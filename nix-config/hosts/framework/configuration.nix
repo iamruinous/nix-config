@@ -9,6 +9,8 @@
   ...
 }: {
   imports = [
+    flake.nixosModules.developer
+    flake.nixosModules.kde
     flake.inputs.lanzaboote.nixosModules.lanzaboote
     inputs.hardware.nixosModules.framework-intel-core-ultra-series1
 
@@ -49,10 +51,15 @@
     dwarf-fortress
   ];
 
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  services.printing.enable = true;
+  services.printing.discoverable = true;
+  programs._1password.enable = true;
+  programs.steam.enable = true;
+  services.flatpak.enable = true;
+  services.desktopManager.plasma6.enable = true;
 
-  # Enable login with fingerprint reader
-  security.pam.services.login.fprintAuth = true;
+  # hint about wayland
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   # Enable the Hyprland DM
   # programs.hyprland = {
@@ -69,9 +76,12 @@
   services.xserver.updateDbusEnvironment = true;
   # Enable security services
   security.polkit.enable = true;
-  security.pam.services = {
-    hyprlock = {};
-  };
+  # security.pam.services = {
+  #   hyprlock = {};
+  # };
+
+  # Enable login with fingerprint reader
+  security.pam.services.login.fprintAuth = true;
 
   # this system has a battery
   programs.starship.settings.battery.disabled = false;

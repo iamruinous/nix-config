@@ -1,8 +1,9 @@
 {flake, ...}: let
-  wallpaper_dir = ../../files/wallpapers/nixos;
+  wallpaper_dir = ../../../../files/wallpapers/nixos;
   workspace-wallpaper = "${wallpaper_dir}/pixel_sakura_static.png";
 in {
   imports = [
+    flake.inputs.plasma-manager.homeModules.plasma-manager
     flake.homeModules.default
     flake.homeModules.hyprland
   ];

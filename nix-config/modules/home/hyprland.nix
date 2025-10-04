@@ -1,5 +1,9 @@
-{inputs, ...}: let
-  wallpaper_dir = ./../../../files/wallpapers/nixos;
+{
+  lib,
+  inputs,
+  ...
+}: let
+  wallpaper_dir = ../../files/wallpapers/nixos;
   space-wallpaper = "${wallpaper_dir}/space1-wallpaper.jpg";
 in {
   imports = [

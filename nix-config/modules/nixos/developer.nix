@@ -7,7 +7,6 @@
 
   nixpkgs = {
     overlays = [
-      # flake.outputs.overlays.stable-packages
       flake.inputs.fenix.overlays.default
     ];
   };
@@ -38,7 +37,7 @@
         llm-gemini
       ]))
     uv
-    # zig # TODO: broken
+    zig # TODO: broken
 
     # lsp and formatters
     alejandra
@@ -58,7 +57,7 @@
     taplo
     typos-lsp
     yaml-language-server
-    # zls # TODO: zig broken
+    zls # TODO: zig broken
 
     # rust
     (fenix.stable.withComponents [
