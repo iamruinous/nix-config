@@ -172,7 +172,7 @@
         ];
       };
     in {
-      rpi5 = nixos-raspberrypi.lib.nixosSystemFull {
+      rpi5-system = nixos-raspberrypi.lib.nixosSystemFull {
         specialArgs = inputs;
         modules = [
           ({
@@ -260,7 +260,7 @@
         nixos = self.nixosConfigurations;
         mkImage = nixosConfig: nixosConfig.config.system.build.sdImage;
       in {
-        pihundo = mkImage nixos."rpi5";
+        rpi5 = mkImage nixos.rpi5-system;
       };
     };
   };
