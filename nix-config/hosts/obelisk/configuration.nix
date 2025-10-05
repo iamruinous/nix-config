@@ -3,6 +3,7 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {flake, ...}: {
   imports = [
+    flake.nixosModules.default
     flake.nixosModules.developer
     flake.nixosModules.hyprland
 

@@ -9,6 +9,7 @@
   ...
 }: {
   imports = [
+    flake.nixosModules.default
     flake.nixosModules.developer
     flake.nixosModules.kde
     flake.inputs.lanzaboote.nixosModules.lanzaboote

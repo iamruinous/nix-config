@@ -7,6 +7,7 @@
   ...
 }: {
   imports = [
+    flake.nixosModules.default
     flake.nixosModules.developer
     flake.nixosModules.bork
     flake.inputs.disko.nixosModules.disko
