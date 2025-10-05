@@ -57,11 +57,26 @@ in {
   # };
 
   # Automatic garbage collection
-  nix.gc = {
-    automatic = pkgs.stdenv.isLinux;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
+  nix.gc =
+    {
+      automatic = pkgs.stdenv.isLinux;
+
+      options = "--delete-older-than 30d";
+    }
+    // (
+      if pkgs.stdenv.isDarwin
+      then {
+        # Add Darwin-specific attributes to the user
+        interval = {
+          Weekday = 0;
+          Hour = 0;
+          Minute = 0;
+        };
+      }
+      else {
+        dates = "weekly";
+      }
+    );
 
   # Add each flake input as a registry
   # To make nix3 commands consistent with the flake

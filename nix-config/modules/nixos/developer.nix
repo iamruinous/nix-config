@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  imports = [flake.nixosModules.default];
+  imports = [flake.nixosModules.common];
 
   nixpkgs = {
     overlays = [
@@ -12,61 +12,66 @@
   };
 
   # System packages
-  environment.systemPackages = with pkgs; [
-    # dev tools
-    aider-chat
-    devenv
-    git-secrets
-    jq
-    just
-    lazygit
-    luarocks
-    #playwright
-    #playwright-driver.browsers
-    ripgrep
+  environment.systemPackages = with pkgs;
+    [
+      # dev tools
+      aider-chat
+      devenv
+      git-secrets
+      jq
+      just
+      lazygit
+      luarocks
+      #playwright
+      #playwright-driver.browsers
+      ripgrep
 
-    # languages
-    go
-    nodejs
-    (python3.withPackages (ps:
-      with ps; [
-        pip
-        virtualenv
-        llm
-        llm-anthropic
-        llm-gemini
-      ]))
-    uv
-    zig # TODO: broken
+      # languages
+      go
+      nodejs
+      (python3.withPackages (ps:
+        with ps; [
+          pip
+          virtualenv
+          llm
+          llm-anthropic
+          llm-gemini
+        ]))
+      uv
+      # zig # TODO: broken
 
-    # lsp and formatters
-    alejandra
-    basedpyright
-    biome
-    golangci-lint
-    golangci-lint-langserver
-    gopls
-    harper
-    lemminx
-    lua-language-server
-    marksman
-    nil
-    ruff
-    selene
-    stylua
-    taplo
-    typos-lsp
-    yaml-language-server
-    zls # TODO: zig broken
+      # lsp and formatters
+      alejandra
+      basedpyright
+      biome
+      golangci-lint
+      golangci-lint-langserver
+      gopls
+      harper
+      lemminx
+      lua-language-server
+      marksman
+      nil
+      ruff
+      selene
+      stylua
+      taplo
+      typos-lsp
+      yaml-language-server
+      # zls # TODO: zig broken
 
-    # rust
-    (fenix.stable.withComponents [
-      "cargo"
-      "clippy"
-      "rust-src"
-      "rustc"
-      "rustfmt"
-    ])
-    rust-analyzer-nightly
-  ];
+      # rust
+      (fenix.stable.withComponents [
+        "cargo"
+        "clippy"
+        "rust-src"
+        "rustc"
+        "rustfmt"
+      ])
+      rust-analyzer-nightly
+    ]
+    ++ (pkgs.lib.optionals pkgs.stdenv.isLinux [
+      zig # zig currently broken on Darwin
+      zls
+    ]);
 }
