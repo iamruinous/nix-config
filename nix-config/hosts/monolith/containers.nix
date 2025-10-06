@@ -519,6 +519,8 @@
             N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = "true";
             N8N_RUNNERS_ENABLED = "true";
             DB_TYPE = "postgresdb";
+            WEBHOOK_URL = "https://n8n.meskill.farm";
+            N8N_EDITOR_BASE_URL = "https://n8n.meskill.farm";
           };
           env_file = [config.age.secrets.monolith_docker_env_n8n.path];
           networks = [
