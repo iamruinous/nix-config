@@ -22,7 +22,7 @@
           nixos-lima.nixosModules.disk-default
           nixos-lima.nixosModules.impure-config
           nixos-lima.nixosModules.lima-container
-          ./lima-settings.nix
+          ./lima-settings86.nix
           ./configuration.nix
         ];
       };

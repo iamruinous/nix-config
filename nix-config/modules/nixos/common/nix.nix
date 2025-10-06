@@ -7,15 +7,6 @@
 }: let
   inherit (lib) mapAttrs imap1;
   inherit (flake.lib) cacheUrl;
-  caches = [
-    "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-    "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-    "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-    "numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE="
-    "wezterm.cachix.org-1:kAbhjYUC9qvblTE+s7S+kl5XM1zVa4skO+E/1IDWdH0="
-    "walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM="
-    "walker-git.cachix.org-1:vmC0ocfPWh0S/vRAQGtChuiZBTAe4wiKDeyyXM0/7pM="
-  ];
 in {
   # Nix Settings
   nix.settings = {
@@ -41,8 +32,8 @@ in {
     builders-use-substitutes = true;
 
     # Binary caches
-    substituters = imap1 (index: key: cacheUrl index key) caches;
-    trusted-public-keys = caches;
+    substituters = imap1 (index: key: cacheUrl index key) flake.caches;
+    trusted-public-keys = flake.caches;
   };
 
   # nix.sshServe = {

@@ -1,4 +1,8 @@
-{flake, ...}: {
+{
+  perSystem,
+  flake,
+  ...
+}: {
   imports = [
     flake.darwinModules.default
     flake.nixosModules.developer
