@@ -20,51 +20,102 @@
   boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [config.boot.kernelPackages.gasket];
 
+  networking.firewall.enable = true;
+  networking.nftables.enable = true;
+  systemd.network = {
+    enable = true;
+    netdevs = {
+      "20-vlan2" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan2";
+        };
+        vlanConfig.Id = 2;
+      };
+      "20-vlan6" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan6";
+        };
+        vlanConfig.Id = 6;
+      };
+      # Create the bridge interface
+      # "20-mvbr0" = {
+      #   netdevConfig = {
+      #     Kind = "bridge";
+      #     Name = "mvbr0";
+      #   };
+      # };
+    };
+    networks = {
+      "30-manage" = {
+        matchConfig.Name = "enp2s0f0np0";
+        networkConfig.DHCP = false;
+        address = ["10.55.10.54/24"];
+        gateway = ["10.55.10.1"];
+        dns = ["10.55.10.35"];
+        vlan = ["vlan2" "vlan6"];
+      };
+      "40-svc" = {
+        matchConfig.Name = "vlan2";
+        address = ["10.55.20.24/24"];
+      };
+      "40-iot" = {
+        matchConfig.Name = "vlan6";
+        address = ["10.55.60.24/24"];
+      };
+      # "40-macvlan" = {
+      #   matchConfig.Name = "mvbr0";
+      #   mode = "bridge";
+      #   parent = "enp2s0";
+      # };
+    };
+  };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  networking.useDHCP = lib.mkDefault false;
+  # networking.useDHCP = lib.mkDefault false;
   # networking.interfaces.enp2s0f0.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp2s0f1.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp87s0.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp88s0.useDHCP = lib.mkDefault true;
   # networking.interfaces.wlp89s0.useDHCP = lib.mkDefault true;
-  networking = {
-    dhcpcd.enable = false;
-    interfaces = {
-      enp2s0f0np0.ipv4.addresses = [
-        {
-          address = "10.55.10.54";
-          prefixLength = 24;
-        }
-      ];
-      vlan2.ipv4.addresses = [
-        {
-          address = "10.55.20.24";
-          prefixLength = 24;
-        }
-      ];
-      vlan6.ipv4.addresses = [
-        {
-          address = "10.55.60.24";
-          prefixLength = 24;
-        }
-      ];
-    };
-    defaultGateway = "10.55.10.1";
-    nameservers = ["10.55.10.35"];
-    vlans = {
-      vlan2 = {
-        id = 2;
-        interface = "enp2s0f0np0";
-      };
-      vlan6 = {
-        id = 6;
-        interface = "enp2s0f0np0";
-      };
-    };
-  };
+  # networking = {
+  #   dhcpcd.enable = false;
+  #   interfaces = {
+  #     # enp2s0f0np0.ipv4.addresses = [
+  #     #   {
+  #     #     address = "10.55.10.54";
+  #     #     prefixLength = 24;
+  #     #   }
+  #     # ];
+  #     # vlan2.ipv4.addresses = [
+  #     #   {
+  #     #     address = "10.55.20.24";
+  #     #     prefixLength = 24;
+  #     #   }
+  #     # ];
+  #     # vlan6.ipv4.addresses = [
+  #     #   {
+  #     #     address = "10.55.60.24";
+  #     #     prefixLength = 24;
+  #     #   }
+  #     # ];
+  #   };
+  #   defaultGateway = "10.55.10.1";
+  #   nameservers = ["10.55.10.35"];
+  #   vlans = {
+  #     vlan2 = {
+  #       id = 2;
+  #       interface = "enp2s0f0np0";
+  #     };
+  #     vlan6 = {
+  #       id = 6;
+  #       interface = "enp2s0f0np0";
+  #     };
+  #   };
+  # };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

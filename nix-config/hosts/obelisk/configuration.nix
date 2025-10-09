@@ -11,6 +11,7 @@
     ./containers.nix
     ./nfs.nix
     ./printing.nix
+    ./microvm.nix
   ];
 
   networking.hostName = "obelisk"; # Define your hostname.
@@ -19,8 +20,8 @@
   services.printing.enable = true;
   services.printing.discoverable = true;
   virtualisation.arion.enable = true;
-  programs.hyprland.enable = true;
-  programs._1password.enable = true;
+  # programs.hyprland.enable = true;
+  # programs._1password.enable = true;
   services.prometheus.exporters.node.enable = true;
 
   # This value determines the NixOS release from which the default

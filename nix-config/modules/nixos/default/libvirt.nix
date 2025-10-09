@@ -1,3 +1,4 @@
+# virtualisation.libvirt.enable = true;
 {
   config,
   pkgs,
@@ -22,7 +23,6 @@ in {
     ];
 
     virtualisation = {
-      # libvirt.enable = lib.mkDefault true;
       libvirtd = {
         qemu = {
           package = pkgs.qemu_kvm;

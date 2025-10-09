@@ -1,4 +1,7 @@
 {config, ...}: {
+  networking.firewall.allowedTCPPorts = [80 443];
+  networking.firewall.allowedUDPPorts = [443];
+
   virtualisation.docker.storageDriver = "btrfs";
 
   virtualisation.arion = {
