@@ -7,17 +7,6 @@
 with lib; let
   cfg = config.services.todoist-auto;
 in {
-  options = {
-    services.todoist-auto = {
-      enable = mkOption {
-        default = false;
-        description = ''
-          Whether to enable todoist auto-sync.
-        '';
-      };
-    };
-  };
-
   config = mkIf cfg.enable (mkMerge [
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.timers.todoist = {

@@ -96,6 +96,11 @@
     # <https://github.com/ciderale/nixos-lima>
     nixos-lima.url = "github:ciderale/nixos-lima";
     nixos-lima.inputs.nixpkgs.follows = "nixpkgs";
+
+    # nixos-anywhere
+    # <https://github.com/nix-community/nixos-anywhere>
+    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
+    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # Load the blueprint
@@ -103,6 +108,7 @@
   outputs = inputs:
     inputs.blueprint {inherit inputs;}
     // {
+      # packages = pkgs.perSystem.default;
       caches = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

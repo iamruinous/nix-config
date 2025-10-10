@@ -5,14 +5,6 @@
 }: let
   cfg = config.services.restic;
 in {
-  options.services.restic = {
-    terranas = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "restic";
-    };
-  };
-
   config = lib.mkIf cfg.terranas {
     # Enable restic backups
     services.restic.backups = {

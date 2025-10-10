@@ -12,10 +12,6 @@ in {
     flake.inputs.arion.nixosModules.arion
   ];
 
-  options.virtualisation.arion = {
-    enable = lib.options.mkEnableOption "arion";
-  };
-
   config = lib.mkIf cfg.enable {
     # Docker configuration
     virtualisation.docker.enable = true;

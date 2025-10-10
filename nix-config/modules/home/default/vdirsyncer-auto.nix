@@ -7,17 +7,6 @@
 with lib; let
   cfg = config.services.vdirsyncer-auto;
 in {
-  options = {
-    services.vdirsyncer-auto = {
-      enable = mkOption {
-        default = false;
-        description = ''
-          Whether to enable vdirsyncer auto-sync.
-        '';
-      };
-    };
-  };
-
   config = mkIf cfg.enable (mkMerge [
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.timers.vdirsyncer = {

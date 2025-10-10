@@ -5,14 +5,6 @@
 }: let
   cfg = config.services.printing;
 in {
-  options.services.printing = {
-    discoverable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "make printers discoverable";
-    };
-  };
-
   config = lib.mkIf cfg.discoverable {
     services.avahi = {
       enable = true;

@@ -1,13 +1,9 @@
 {
   lib,
   pkgs,
-  flake,
-  config,
   ...
 }:
 with lib; let
-  # cfg = config.programs.wezterm;
-  # inherit (flake.inputs) wezterm;
   window_decorations =
     if pkgs.stdenv.isDarwin
     then "RESIZE"
@@ -16,7 +12,6 @@ in {
   # Install wezterm via home-manager module
   programs.wezterm = {
     enable = mkDefault false;
-    # package = wezterm.packages.${pkgs.system}.default;
     extraConfig = ''
       -- Creates a config object which we will be adding our config to
       local config = wezterm.config_builder()
