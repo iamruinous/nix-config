@@ -22,6 +22,7 @@
 
   networking.firewall.enable = true;
   networking.nftables.enable = true;
+  systemd.network.wait-online.enable = false;
   systemd.network = {
     enable = true;
     netdevs = {
@@ -55,6 +56,7 @@
         gateway = ["10.55.10.1"];
         dns = ["10.55.10.35"];
         vlan = ["vlan2" "vlan6"];
+        linkConfig.RequiredForOnline = "carrier";
       };
       "40-svc" = {
         matchConfig.Name = "vlan2";

@@ -15,6 +15,7 @@
     ./hardware-configuration.nix
     # ../modules/nixos/backup-docker-mariadb.nix
     # ../modules/nixos/backup-docker-postgres.nix
+    ./alloy.nix
     ./containers.nix
     ./disko.nix
     ./nfs.nix

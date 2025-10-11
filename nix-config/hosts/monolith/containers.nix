@@ -434,6 +434,19 @@
             "${./files/grafana/dashboards}:/etc/grafana/provisioning/dashboards"
           ];
         };
+        "grafana-loki".service = {
+          container_name = "loki";
+          image = "docker.io/grafana/loki:latest";
+          command = "-config.file=/mnt/config/loki-config.yaml";
+          networks = [
+            "datanet"
+            "proxynet"
+          ];
+          restart = "unless-stopped";
+          volumes = [
+            "/data/docker/loki/config:/mnt/config"
+          ];
+        };
         # "hbbs".service = {
         #   container_name = "hbbs";
         #   image = "docker.io/rustdesk/rustdesk-server:latest";
