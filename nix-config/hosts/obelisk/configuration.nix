@@ -19,7 +19,6 @@
   virtualisation.libvirtd.enable = true;
   services.printing.enable = true;
   services.printing.discoverable = true;
-  virtualisation.arion.enable = true;
   # programs.hyprland.enable = true;
   # programs._1password.enable = true;
   services.prometheus.exporters.node.enable = true;
