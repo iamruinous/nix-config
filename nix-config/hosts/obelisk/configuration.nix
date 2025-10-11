@@ -17,6 +17,7 @@
   networking.hostName = "obelisk"; # Define your hostname.
 
   virtualisation.libvirtd.enable = true;
+  virtualisation.docker.enable = true;
   services.printing.enable = true;
   services.printing.discoverable = true;
   # programs.hyprland.enable = true;
