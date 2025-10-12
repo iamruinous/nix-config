@@ -15,7 +15,7 @@
     "/usr/local/homebrew/bin/"
   ];
 
-  xdg.configFile.aerospace.source = ./aerospace.toml;
+  xdg.configFile."aerospace/aerospace.toml".source = ./aerospace.toml;
 
   programs.wezterm.enable = true;
 
