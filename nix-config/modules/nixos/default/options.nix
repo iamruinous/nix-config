@@ -1,8 +1,4 @@
 {lib, ...}: {
-  options.virtualisation.arion = {
-    enable = lib.options.mkEnableOption "arion";
-  };
-
   options.services.restic = {
     terranas = lib.mkOption {
       type = lib.types.bool;
