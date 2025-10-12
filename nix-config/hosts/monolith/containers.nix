@@ -57,8 +57,8 @@
       caddy = {
         image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
         networks = [
-          "hostnet"
           "proxynet"
+          "servicenet"
         ];
         ports = [
           "80:80"
@@ -97,7 +97,7 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_mariadb.path];
         networks = [
           "datanet"
-          "hostnet"
+          "proxynet"
         ];
         # healthcheck = {
         #   test = [
@@ -128,7 +128,7 @@
         };
         networks = [
           "datanet"
-          "hostnet"
+          "proxynet"
         ];
         volumes = [
           "/data/docker/openldap/ldap:/var/lib/ldap"
@@ -144,7 +144,7 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_postgres.path];
         networks = [
           "datanet"
-          "hostnet"
+          "proxynet"
         ];
         # healthcheck = {
         #   test = [
@@ -166,7 +166,7 @@
         ports = ["9090:9090"];
         networks = [
           "datanet"
-          "hostnet"
+          "proxynet"
         ];
         volumes = [
           "/data/docker/prometheus/data:/prometheus"
@@ -194,7 +194,7 @@
       };
       acme-dns = {
         image = "docker.io/joohoi/acme-dns";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/acme-dns/config:/etc/acme-dns:ro"
           "/data/docker/acme-dns/data:/var/lib/acme-dns"
@@ -206,7 +206,7 @@
           TZ = "America/Phoenix";
         };
         networks = [
-          "proxynet"
+          "servicenet"
           "datanet"
         ];
         volumes = [
@@ -219,7 +219,7 @@
         environment = {
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/apprise/config:/config"
         ];
@@ -232,7 +232,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/autobrr/config:/config"
         ];
@@ -245,7 +245,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/bazarr/config:/config"
           "/nas/media/TV:/tv"
@@ -267,7 +267,7 @@
           CALIBRE_CACHE_DIRECTORY = "/config/cache";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/calibre/config:/config"
           "/nas/media/Books:/mnt/calibre"
@@ -282,7 +282,7 @@
           AUTO_UPDATE = "false";
           #DOCKER_MODS = "lscr.io/linuxserver/mods:universal-calibre-v7.16.0";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/calibre-automated/config:/config"
           "/nas/media/Books:/calibre-library"
@@ -315,7 +315,7 @@
         environment = {
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/changedetection/data:/datastore"
         ];
@@ -344,8 +344,8 @@
           TZ = "America/Phoenix";
         };
         networks = [
-          "hostnet"
           "proxynet"
+          "servicenet"
         ];
         # healthcheck = {
         #   test = [
@@ -382,7 +382,7 @@
       };
       frigate = {
         image = "ghcr.io/blakeblackshear/frigate:stable";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         capabilities = {
           "CAP_PERFMON" = true;
         };
@@ -404,7 +404,7 @@
         environment = {
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/glance/config:/app/config"
           "/etc/timezone:/etc/timezone:ro"
@@ -415,7 +415,7 @@
         image = "docker.io/grafana/grafana-oss:12.1.1";
         networks = [
           "datanet"
-          "proxynet"
+          "servicenet"
         ];
         volumes = [
           "/data/docker/grafana/data:/var/lib/grafana"
@@ -429,7 +429,7 @@
         command = ["-config.file=/mnt/config/loki-config.yaml"];
         networks = [
           "datanet"
-          "proxynet"
+          "servicenet"
         ];
         volumes = [
           "/data/docker/loki/config:/mnt/config"
@@ -443,7 +443,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/jellyseerr/config:/app/config"
         ];
@@ -455,7 +455,7 @@
           PGID = "4000";
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         # healthcheck = {
         #   test = [
         #     "CMD"
@@ -479,7 +479,7 @@
         environment = {
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/mqtt-explorer/config:/mqtt-explorer/config"
           "/etc/timezone:/etc/timezone:ro"
@@ -499,7 +499,7 @@
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
-          "proxynet"
+          "servicenet"
           "datanet"
         ];
         volumes = [
@@ -517,7 +517,7 @@
           RAG_SERVICE_URL = "http://localhost:8000";
           RAG_SERVICE_ENABLED = "true";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/paperless-ai/data:/app/data"
         ];
@@ -539,7 +539,7 @@
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_paperless_ngx.path];
         networks = [
-          "proxynet"
+          "servicenet"
           "datanet"
         ];
         volumes = [
@@ -557,12 +557,12 @@
           "--chromium-allow-list=file:///tmp/.*"
         ];
         image = "docker.io/gotenberg/gotenberg:8.22";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
       };
       "paperless-tika" = {
         name = "tika";
         image = "docker.io/apache/tika:latest";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
       };
       phpldapadmin = {
         image = "docker.io/phpldapadmin/phpldapadmin:2.2.2";
@@ -572,7 +572,7 @@
         };
         networks = [
           "datanet"
-          "proxynet"
+          "servicenet"
         ];
       };
       piavpn = {
@@ -597,7 +597,7 @@
           "--sysctl=net.ipv6.conf.all.disable_ipv6=1"
           "--sysctl=net.ipv6.conf.lo.disable_ipv6=1"
         ];
-        networks = ["hostnet"];
+        networks = ["proxynet"];
         # healthcheck = {
         #   test = [
         #     "CMD"
@@ -622,7 +622,7 @@
         environment = {
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/pinchflat/config:/config"
           "/nas/media/YT:/downloads"
@@ -633,7 +633,7 @@
         image = "docker.io/prom/alertmanager:v0.28.1";
         networks = [
           "datanet"
-          "proxynet"
+          "servicenet"
         ];
         volumes = [
           "${./files/prometheus/alertmanager.yml}:/alertmanager/alertmanager.yml"
@@ -644,8 +644,8 @@
         image = "docker.io/prom/graphite-exporter:v0.16.0";
         networks = [
           "datanet"
+          "servicenet"
           "proxynet"
-          "hostnet"
         ];
         ports = [
           "9109:9109"
@@ -657,7 +657,7 @@
         image = "docker.io/prom/node-exporter:v1.9.1";
         networks = [
           "datanet"
-          "proxynet"
+          "servicenet"
         ];
       };
       "prom-plex-exporter" = {
@@ -665,7 +665,7 @@
         image = "ghcr.io/timothystewart6/prometheus-plex-exporter:latest";
         networks = [
           "datanet"
-          "proxynet"
+          "servicenet"
         ];
         environmentFiles = [config.age.secrets.monolith_docker_env_prometheus_plex_exporter.path];
         environment = {
@@ -680,7 +680,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/prowlarr/config:/config"
         ];
@@ -693,7 +693,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/radarr/config:/config"
           "/nas/media/xfer/completed:/data/xfer/completed"
@@ -711,7 +711,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/readarr/config:/config"
           "/nas/media/Books:/books"
@@ -723,7 +723,7 @@
         image = "docker.io/rommapp/romm:3";
         environmentFiles = [config.age.secrets.monolith_docker_env_romm.path];
         networks = [
-          "proxynet"
+          "servicenet"
           "datanet"
         ];
         # healthcheck = {
@@ -769,7 +769,7 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/sonarr/config:/config"
           "/nas/media/xfer/completed:/data/xfer/completed"
@@ -781,7 +781,7 @@
       stepca = {
         image = "docker.io/smallstep/step-ca:0.28.4";
         environmentFiles = [config.age.secrets.monolith_docker_env_stepca.path];
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         capabilities = {
           "NET_ADMIN" = true;
         };
@@ -791,7 +791,7 @@
       };
       tasktrove = {
         image = "ghcr.io/dohsimpson/tasktrove";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/tasktrove/config:/app/data"
         ];
@@ -801,7 +801,7 @@
         ports = ["50222:50222/udp"];
         environmentFiles = [config.age.secrets.monolith_docker_env_weatherflow.path];
         networks = [
-          "hostnet"
+          "proxynet"
         ];
         volumes = [
           "/data/docker/weatherflow/config:/usr/local/config"

@@ -57,8 +57,8 @@
       caddy = {
         image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
         networks = [
-          "hostnet"
           "proxynet"
+          "servicenet"
         ];
         ports = [
           "80:80"
@@ -97,7 +97,7 @@
           PGDATA = "/var/lib/postgresql/17/docker";
         };
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_postgres.path];
-        networks = ["datanet" "hostnet"];
+        networks = ["datanet" "proxynet"];
         # healthcheck = {
         #   test = [
         #     "CMD-SHELL"
@@ -137,14 +137,14 @@
           WORK_DIR = "/data/albyhub";
           TZ = "America/Phoenix";
         };
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/albyhub/data:/data"
         ];
       };
       baikal = {
         image = "docker.io/ckulka/baikal:0.10.1-nginx-php8.2";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/baikal/config:/var/www/baikal/config"
           "/data/docker/baikal/specific:/var/www/baikal/Specific"
@@ -156,7 +156,11 @@
           USER_UID = "2000";
           USER_GID = "2000";
         };
-        networks = ["hostnet" "datanet" "proxynet"];
+        networks = [
+          "proxynet"
+          "datanet"
+          "servicenet"
+        ];
         ports = [
           "127.0.0.1:2222:22"
         ];
@@ -171,7 +175,7 @@
       karakeep = {
         image = "ghcr.io/karakeep-app/karakeep:release";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/karakeep/data:/data"
         ];
@@ -179,7 +183,7 @@
       "karakeep-chrome" = {
         name = "karakeep-chrome";
         image = "gcr.io/zenika-hub/alpine-chrome:124";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         command = [
           "--no-sandbox"
           "--disable-gpu"
@@ -193,7 +197,7 @@
         name = "karakeep-meilisearch";
         image = "docker.io/getmeili/meilisearch:v1.13.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/karakeep/meili_data:/meili_data"
         ];
@@ -202,7 +206,7 @@
         name = "mastodon-sidekiq";
         image = "ghcr.io/mastodon/mastodon:v4.4";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
-        networks = ["datanet" "proxynet"];
+        networks = ["datanet" "servicenet"];
         command = [
           "bundle"
           "exec"
@@ -226,7 +230,7 @@
         name = "mastodon-streaming";
         image = "ghcr.io/mastodon/mastodon-streaming:v4.4";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
-        networks = ["datanet" "proxynet"];
+        networks = ["datanet" "servicenet"];
         command = [
           "node"
           "./streaming/index.js"
@@ -246,7 +250,7 @@
         name = "mastodon-web";
         image = "ghcr.io/mastodon/mastodon:v4.4";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
-        networks = ["datanet" "proxynet"];
+        networks = ["datanet" "servicenet"];
         command = [
           "bundle"
           "exec"
@@ -271,7 +275,7 @@
       mealie = {
         image = "ghcr.io/mealie-recipes/mealie:latest";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mealie.path];
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/mealie/data:/app/data"
         ];
@@ -279,7 +283,7 @@
       synapse = {
         image = "ghcr.io/element-hq/synapse:latest";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_synapse.path];
-        networks = ["datanet" "proxynet"];
+        networks = ["datanet" "servicenet"];
         volumes = [
           "/data/docker/synapse/data:/data"
         ];
@@ -287,14 +291,14 @@
       "synapse-maubot" = {
         name = "maubot";
         image = "dock.mau.dev/maubot/maubot:latest";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/maubot/data:/data"
         ];
       };
       writefreely = {
         image = "docker.io/writeas/writefreely:latest";
-        networks = ["proxynet"];
+        networks = ["servicenet"];
         volumes = [
           "/data/docker/writefreely/keys:/go/keys"
           "/data/docker/writefreely/db:/db"
