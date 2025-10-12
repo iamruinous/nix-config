@@ -181,10 +181,9 @@
         ];
       };
       "karakeep-chrome" = {
-        name = "karakeep-chrome";
         image = "gcr.io/zenika-hub/alpine-chrome:124";
         networks = ["servicenet"];
-        command = [
+        cmd = [
           "--no-sandbox"
           "--disable-gpu"
           "--disable-dev-shm-usage"
@@ -194,7 +193,6 @@
         ];
       };
       "karakeep-meilisearch" = {
-        name = "karakeep-meilisearch";
         image = "docker.io/getmeili/meilisearch:v1.13.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
@@ -203,11 +201,10 @@
         ];
       };
       "mastodon-sidekiq" = {
-        name = "mastodon-sidekiq";
         image = "ghcr.io/mastodon/mastodon:v4.4";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
-        command = [
+        cmd = [
           "bundle"
           "exec"
           "sidekiq"
@@ -227,11 +224,10 @@
         ];
       };
       "mastodon-streaming" = {
-        name = "mastodon-streaming";
         image = "ghcr.io/mastodon/mastodon-streaming:v4.4";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
-        command = [
+        cmd = [
           "node"
           "./streaming/index.js"
         ];
@@ -247,11 +243,10 @@
         # };
       };
       "mastodon-web" = {
-        name = "mastodon-web";
         image = "ghcr.io/mastodon/mastodon:v4.4";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
-        command = [
+        cmd = [
           "bundle"
           "exec"
           "puma"
@@ -288,8 +283,7 @@
           "/data/docker/synapse/data:/data"
         ];
       };
-      "synapse-maubot" = {
-        name = "maubot";
+      "maubot" = {
         image = "dock.mau.dev/maubot/maubot:latest";
         networks = ["servicenet"];
         volumes = [
