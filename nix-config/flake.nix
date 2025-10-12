@@ -21,10 +21,6 @@
     # <https://github.com/NixOS/nixos-hardware>
     hardware.url = "github:nixos/nixos-hardware";
 
-    # arion for docker
-    # <https://github.com/hercules-ci/arion>
-    arion.url = "github:hercules-ci/arion";
-
     # Nix Darwin (for MacOS machines)
     # <https://github.com/nix-darwin/nix-darwin>
     nix-darwin.url = "github:LnL7/nix-darwin/master";

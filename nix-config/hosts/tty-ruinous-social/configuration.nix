@@ -28,7 +28,7 @@
     sysstat
   ];
 
-  virtualisation.arion.enable = true;
+  virtualisation.docker.enable = true;
 
   # update restic hostname to use tailscale
   services.restic.backups.terranasbackup.repository = "sftp:tmbackup@terranas-1.greyhound-triceratops.ts.net:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";

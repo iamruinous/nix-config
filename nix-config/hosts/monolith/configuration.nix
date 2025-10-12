@@ -33,7 +33,7 @@
 
   services.printing.enable = true;
   services.printing.discoverable = true;
-  virtualisation.arion.enable = true;
+  virtualisation.docker.enable = true;
   services.restic.terranas = true;
 
   # This value determines the NixOS release from which the default
