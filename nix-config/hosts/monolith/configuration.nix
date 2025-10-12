@@ -9,7 +9,6 @@
   imports = [
     flake.nixosModules.default
     flake.nixosModules.developer
-    flake.nixosModules.bork
     flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
@@ -30,6 +29,7 @@
   programs.nix-ld.enable = true;
 
   systemd.services.mariadb-backup.serviceConfig.EnvironmentFile = config.age.secrets.monolith_docker_env_mariadb.path;
+  services.backup-docker-mariadb.enable = true;
 
   services.printing.enable = true;
   services.printing.discoverable = true;

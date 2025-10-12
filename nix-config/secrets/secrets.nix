@@ -42,6 +42,7 @@ in {
 
   "hosts/monolith/files/docker/env/mariadb.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/docker/env/n8n.env.age".publicKeys = [jmeskill monolith];
+  "hosts/monolith/files/docker/env/gluetun.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/docker/env/piavpn.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/docker/env/paperless-ngx.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/docker/env/postgres.env.age".publicKeys = [jmeskill monolith];

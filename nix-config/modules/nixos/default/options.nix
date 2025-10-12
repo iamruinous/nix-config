@@ -1,4 +1,7 @@
 {lib, ...}: {
+  options.services.backup-docker-mariadb.enable = lib.options.mkEnableOption "backup-docker-mariadb";
+  options.services.backup-docker-postgres.enable = lib.options.mkEnableOption "backup-docker-postgres";
+
   options.services.restic = {
     terranas = lib.mkOption {
       type = lib.types.bool;

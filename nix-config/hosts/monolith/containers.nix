@@ -303,9 +303,9 @@
           CWA_DB_PATH = "/auth/app.db";
         };
         extraOptions = [
-          "--network-mode=container:piavpn"
+          "--net=container:gluetun"
         ];
-        dependsOn = ["piavpn"];
+        dependsOn = ["gluetun"];
         volumes = [
           "/data/docker/calibre-automated/config/app.db:/auth/app.db:ro"
           #"/data/docker/calibre-automated/patch/book_manager.py:/app/book_manager.py:ro"
@@ -332,11 +332,11 @@
           DELUGE_LOGLEVEL = "error";
         };
         extraOptions = [
-          "--network-mode=container:piavpn"
+          "--net=container:gluetun"
         ];
-        dependsOn = ["piavpn"];
+        dependsOn = ["gluetun"];
         volumes = [
-          "/data/docker/piavpn/shared:/pia"
+          "/data/docker/gluetun/shared:/pia:ro"
           "/data/docker/deluge/config:/config"
           "/nas/media/xfer:/data/xfer"
         ];
@@ -384,9 +384,9 @@
           AUTO_UPDATE = "false";
         };
         extraOptions = [
-          "--network-mode=container:piavpn"
+          "--net=container:gluetun"
         ];
-        dependsOn = ["piavpn"];
+        dependsOn = ["gluetun"];
       };
       frigate = {
         image = "ghcr.io/blakeblackshear/frigate:stable";
@@ -579,9 +579,9 @@
           "servicenet"
         ];
       };
-      piavpn = {
-        image = "docker.io/thrnz/docker-wireguard-pia";
-        environmentFiles = [config.age.secrets.monolith_docker_env_piavpn.path];
+      gluetun = {
+        image = "docker.io/qmcgaw/gluetun:latest";
+        environmentFiles = [config.age.secrets.monolith_docker_env_gluetun.path];
         ports = [
           "8080:8080"
           "8084:8084"
@@ -592,35 +592,56 @@
         ];
         capabilities = {
           "NET_ADMIN" = true;
-          "NET_RAW" = true;
-          "SYS_MODULE" = true;
         };
-        extraOptions = [
-          "--sysctl=net.ipv4.conf.all.src_valid_mark=1"
-          "--sysctl=net.ipv6.conf.default.disable_ipv6=1"
-          "--sysctl=net.ipv6.conf.all.disable_ipv6=1"
-          "--sysctl=net.ipv6.conf.lo.disable_ipv6=1"
-        ];
+        devices = ["/dev/net/tun"];
         networks = ["proxynet"];
-        # healthcheck = {
-        #   test = [
-        #     "CMD"
-        #     "ping"
-        #     "-c 1"
-        #     "www.google.com"
-        #     "||"
-        #     "exit 1"
-        #   ];
-        #   interval = "30s";
-        #   timeout = "30s";
-        #   retries = 3;
-        # };
         volumes = [
-          "/data/docker/piavpn/config:/config"
-          "/data/docker/piavpn/shared:/pia-shared"
-          "/lib/modules:/lib/modules"
+          "/data/docker/gluetun/config:/gluetun"
+          "/data/docker/gluetun/shared:/gluetun-shared"
         ];
       };
+      # piavpn = {
+      #   image = "docker.io/thrnz/docker-wireguard-pia";
+      #   environmentFiles = [config.age.secrets.monolith_docker_env_piavpn.path];
+      #   ports = [
+      #     "8080:8080"
+      #     "8084:8084"
+      #     # "8112:8112"
+      #     "8191:8191"
+      #     "6789:6789"
+      #     "9999:9999"
+      #   ];
+      #   capabilities = {
+      #     "NET_ADMIN" = true;
+      #     "NET_RAW" = true;
+      #     "SYS_MODULE" = true;
+      #   };
+      #   extraOptions = [
+      #     "--sysctl=net.ipv4.conf.all.src_valid_mark=1"
+      #     "--sysctl=net.ipv6.conf.default.disable_ipv6=1"
+      #     "--sysctl=net.ipv6.conf.all.disable_ipv6=1"
+      #     "--sysctl=net.ipv6.conf.lo.disable_ipv6=1"
+      #   ];
+      #   networks = ["proxynet"];
+      #   # healthcheck = {
+      #   #   test = [
+      #   #     "CMD"
+      #   #     "ping"
+      #   #     "-c 1"
+      #   #     "www.google.com"
+      #   #     "||"
+      #   #     "exit 1"
+      #   #   ];
+      #   #   interval = "30s";
+      #   #   timeout = "30s";
+      #   #   retries = 3;
+      #   # };
+      #   volumes = [
+      #     "/data/docker/piavpn/config:/config"
+      #     "/data/docker/piavpn/shared:/pia-shared"
+      #     "/lib/modules:/lib/modules"
+      #   ];
+      # };
       pinchflat = {
         image = "ghcr.io/kieraneglin/pinchflat:v2025.6.6";
         environment = {
@@ -755,9 +776,9 @@
           AUTO_UPDATE = "false";
         };
         extraOptions = [
-          "--network-mode=container:piavpn"
+          "--net=container:gluetun"
         ];
-        dependsOn = ["piavpn"];
+        dependsOn = ["gluetun"];
         volumes = [
           "/data/docker/sabnzbd/config:/config"
           "/nas/media/xfer:/data/xfer"
@@ -828,6 +849,10 @@
   };
   age.secrets.monolith_docker_env_n8n = {
     file = ./files/docker/env/n8n.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_gluetun = {
+    file = ./files/docker/env/gluetun.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_piavpn = {
