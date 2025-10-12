@@ -302,7 +302,9 @@
           APP_ENV = "prod";
           CWA_DB_PATH = "/auth/app.db";
         };
-        networkMode = "container:piavpn";
+        extraOptions = [
+          "--network-mode=container:piavpn"
+        ];
         dependsOn = ["piavpn"];
         volumes = [
           "/data/docker/calibre-automated/config/app.db:/auth/app.db:ro"
@@ -329,7 +331,9 @@
           AUTO_UPDATE = "false";
           DELUGE_LOGLEVEL = "error";
         };
-        networkMode = "container:piavpn";
+        extraOptions = [
+          "--network-mode=container:piavpn"
+        ];
         dependsOn = ["piavpn"];
         volumes = [
           "/data/docker/piavpn/shared:/pia"
@@ -359,7 +363,9 @@
         #   timeout = "5s";
         #   retries = 3;
         # };
-        tmpfs = ["/transcode,size=4g"];
+        extraOptions = [
+          "--tmpfs=/transcode:size=4g"
+        ];
         volumes = [
           "/data/docker/ersatztv/config:/config"
           "/nas/media:/mnt/plex:ro"
@@ -377,7 +383,9 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networkMode = "container:piavpn";
+        extraOptions = [
+          "--network-mode=container:piavpn"
+        ];
         dependsOn = ["piavpn"];
       };
       frigate = {
@@ -386,7 +394,9 @@
         capabilities = {
           "CAP_PERFMON" = true;
         };
-        tmpfs = ["/tmp/cache,size=2g"];
+        extraOptions = [
+          "--tmpfs=/tmp/cache:size=2g"
+        ];
         volumes = [
           "/etc/localtime:/etc/localtime:ro"
           "/data/docker/frigate/config:/config"
@@ -423,10 +433,9 @@
           "${./files/grafana/dashboards}:/etc/grafana/provisioning/dashboards"
         ];
       };
-      "grafana-loki" = {
-        name = "loki";
+      "loki" = {
         image = "docker.io/grafana/loki:latest";
-        command = ["-config.file=/mnt/config/loki-config.yaml"];
+        cmd = ["-config.file=/mnt/config/loki-config.yaml"];
         networks = [
           "datanet"
           "servicenet"
@@ -474,7 +483,6 @@
         ];
       };
       "mqtt-explorer" = {
-        name = "mqtt-explorer";
         image = "docker.io/smeagolworms4/mqtt-explorer:browser-1.0.3";
         environment = {
           TZ = "America/Phoenix";
@@ -509,7 +517,6 @@
         ];
       };
       "paperless-ai" = {
-        name = "paperless-ai";
         image = "docker.io/clusterzx/paperless-ai:latest";
         environment = {
           PUID = "4000";
@@ -523,7 +530,6 @@
         ];
       };
       "paperless-ngx" = {
-        name = "paperless-ngx";
         image = "ghcr.io/paperless-ngx/paperless-ngx:2.18";
         environment = {
           PAPERLESS_REDIS = "redis://redis:6379";
@@ -549,18 +555,16 @@
           "/nas/paperless/export:/usr/src/paperless/export"
         ];
       };
-      "paperless-gotenberg" = {
-        name = "gotenberg";
-        command = [
+      "gotenberg" = {
+        image = "docker.io/gotenberg/gotenberg:8.22";
+        cmd = [
           "gotenberg"
           "--chromium-disable-javascript=true"
           "--chromium-allow-list=file:///tmp/.*"
         ];
-        image = "docker.io/gotenberg/gotenberg:8.22";
         networks = ["servicenet"];
       };
-      "paperless-tika" = {
-        name = "tika";
+      "tika" = {
         image = "docker.io/apache/tika:latest";
         networks = ["servicenet"];
       };
@@ -628,8 +632,7 @@
           "/nas/media/YT:/downloads"
         ];
       };
-      "prom-alert-manager" = {
-        name = "alert-manager";
+      "alert-manager" = {
         image = "docker.io/prom/alertmanager:v0.28.1";
         networks = [
           "datanet"
@@ -639,8 +642,7 @@
           "${./files/prometheus/alertmanager.yml}:/alertmanager/alertmanager.yml"
         ];
       };
-      "prom-graphite-exporter" = {
-        name = "graphite-exporter";
+      "graphite-exporter" = {
         image = "docker.io/prom/graphite-exporter:v0.16.0";
         networks = [
           "datanet"
@@ -652,16 +654,14 @@
           "9109:9109/udp"
         ];
       };
-      "prom-node-exporter" = {
-        name = "node-exporter";
+      "node-exporter" = {
         image = "docker.io/prom/node-exporter:v1.9.1";
         networks = [
           "datanet"
           "servicenet"
         ];
       };
-      "prom-plex-exporter" = {
-        name = "plex-exporter";
+      "plex-exporter" = {
         image = "ghcr.io/timothystewart6/prometheus-plex-exporter:latest";
         networks = [
           "datanet"
@@ -754,7 +754,9 @@
           TZ = "America/Phoenix";
           AUTO_UPDATE = "false";
         };
-        networkMode = "container:piavpn";
+        extraOptions = [
+          "--network-mode=container:piavpn"
+        ];
         dependsOn = ["piavpn"];
         volumes = [
           "/data/docker/sabnzbd/config:/config"
