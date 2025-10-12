@@ -1,13 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}: let
+{config, ...}: let
   cfg = config.services.alloy;
 in {
-  environment.etc."alloy/journal.alloy" = lib.mkIf cfg.enableJournal pkgs.writeTextFile {
-    name = "journal.alloy";
+  environment.etc."alloy/journal.alloy" = {
+    enable = cfg.enableJournal;
     text = ''
       loki.relabel "journal" {
         forward_to = []

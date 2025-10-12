@@ -18,9 +18,9 @@
     };
   };
 
-  options.services.alloy.loki_url = {
-    discoverable = lib.mkOption {
-      type = lib.types.string;
+  options.services.alloy = {
+    loki_url = lib.mkOption {
+      type = lib.types.str;
       default = "https://loki.meskill.farm";
       description = "Loki url fragment";
     };
