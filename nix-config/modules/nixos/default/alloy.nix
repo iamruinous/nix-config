@@ -23,7 +23,7 @@ in {
 
       loki.write "main_loki" {
          endpoint {
-            url = "${config.services.alloy.loki_url}/loki/api/v1/push"
+            url = "${config.services.alloy.lokiUrl}/loki/api/v1/push"
          }
       }
     '';

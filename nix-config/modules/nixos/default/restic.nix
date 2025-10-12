@@ -5,7 +5,7 @@
 }: let
   cfg = config.services.restic;
 in {
-  config = lib.mkIf cfg.terranas {
+  config = lib.mkIf cfg.enableTerranas {
     # Enable restic backups
     services.restic.backups = {
       terranasbackup = {
@@ -25,7 +25,7 @@ in {
           "/home/*/Downloads"
         ];
         initialize = lib.mkDefault true;
-        repository = lib.mkDefault "sftp:tmbackup@terranas.manage.farmhouse.meskill.network:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
+        repository = lib.mkDefault "sftp:tmbackup@${cfg.terranasHostname}:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
         passwordFile = config.age.secrets.restic_password.path;
         timerConfig = {
           OnCalendar = "00:05";

@@ -23,7 +23,7 @@
   # programs.hyprland.enable = true;
   # programs._1password.enable = true;
   services.prometheus.exporters.node.enable = true;
-  services.restic.terranas = true;
+  services.restic.enableTerranas = true;
   services.alloy.enable = true;
   services.alloy.enableJournal = true;
 

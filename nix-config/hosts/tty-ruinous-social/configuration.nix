@@ -29,11 +29,14 @@
   services.backup-docker-postgres.enable = true;
 
   # update restic hostname to use tailscale
-  services.restic.backups.terranasbackup.repository = "sftp:tmbackup@terranas-1.greyhound-triceratops.ts.net:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
-  services.restic.terranas = true;
+  # services.restic.backups.terranasbackup.repository = "sftp:tmbackup@terranas-1.greyhound-triceratops.ts.net:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
+  services.restic.enableTerranas = true;
 
   services.alloy.enable = true;
   services.alloy.enableJournal = true;
+
+  services.tailscale.enable = true;
+  services.tailscale.useRoutingFeatures = "client";
 
   #  services.openssh.settings.UsePAM = true;
   #  services.openssh.settings.AllowUsers = ["git"];

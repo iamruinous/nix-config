@@ -34,7 +34,7 @@
   services.printing.enable = true;
   services.printing.discoverable = true;
   virtualisation.docker.enable = true;
-  services.restic.terranas = true;
+  services.restic.enableTerranas = true;
   services.alloy.enable = true;
   services.alloy.enableJournal = true;
 

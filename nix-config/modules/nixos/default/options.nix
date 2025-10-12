@@ -3,10 +3,16 @@
   options.services.backup-docker-postgres.enable = lib.options.mkEnableOption "backup-docker-postgres";
 
   options.services.restic = {
-    terranas = lib.mkOption {
+    enableTerranas = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "restic";
+      description = "enable restic using terranas backup";
+    };
+
+    terranasHostname = lib.mkOption {
+      type = lib.types.str;
+      default = "terranas.manage.farmhouse.meskill.network";
+      description = "restic terranas hostname";
     };
   };
 
@@ -19,11 +25,11 @@
   };
 
   options.services.alloy = {
-    loki_url = lib.mkOption {
+    enableJournal = lib.options.mkEnableOption "enableJournal";
+    lokiUrl = lib.mkOption {
       type = lib.types.str;
       default = "https://loki.meskill.farm";
       description = "Loki url fragment";
     };
   };
-  options.services.alloy.enableJournal = lib.options.mkEnableOption "enableJournal";
 }
