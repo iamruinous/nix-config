@@ -17,4 +17,13 @@
       description = "make printers discoverable";
     };
   };
+
+  options.services.alloy.loki_url = {
+    discoverable = lib.mkOption {
+      type = lib.types.string;
+      default = "https://loki.meskill.farm";
+      description = "Loki url fragment";
+    };
+  };
+  options.services.alloy.enableJournal = lib.options.mkEnableOption "enableJournal";
 }

@@ -24,6 +24,8 @@
   # programs._1password.enable = true;
   services.prometheus.exporters.node.enable = true;
   services.restic.terranas = true;
+  services.alloy.enable = true;
+  services.alloy.enableJournal = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
