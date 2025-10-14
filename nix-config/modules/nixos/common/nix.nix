@@ -11,7 +11,15 @@ in {
   # Nix Settings
   nix.settings = {
     # Enable flakes and pipes
-    experimental-features = ["nix-command" "flakes" "pipe-operators"];
+    experimental-features =
+      [
+        "nix-command"
+        "flakes"
+        "pipe-operators"
+      ]
+      ++ (pkgs.lib.optionals pkgs.stdenv.isDarwin [
+        "external-builders"
+      ]);
 
     # 500MB buffer
     download-buffer-size = 500000000;

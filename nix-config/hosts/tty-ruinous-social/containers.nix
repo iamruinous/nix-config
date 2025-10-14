@@ -3,8 +3,8 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443];
-  networking.firewall.allowedUDPPorts = [443];
+  networking.firewall.allowedTCPPorts = [80 443 21115 21116 21117];
+  networking.firewall.allowedUDPPorts = [443 21116];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -46,6 +46,20 @@
       ExecStart = pkgs.writeShellScript "create-datanet-network" ''
         if ! ${pkgs.docker}/bin/docker network inspect datanet >/dev/null 2>&1; then
           ${pkgs.docker}/bin/docker network create datanet --internal
+        fi
+      '';
+    };
+  };
+
+  systemd.services.docker-remotenet-network = {
+    description = "create docker remotenet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-remotenet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect remotenet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create remotenet --internal
         fi
       '';
     };
@@ -297,6 +311,35 @@
           "/data/docker/writefreely/keys:/go/keys"
           "/data/docker/writefreely/db:/db"
           "/data/docker/writefreely/config.ini:/go/config.ini"
+        ];
+      };
+      # remotenet
+      rustdesk-hbbr = {
+        image = "docker.io/rustdesk/rustdesk-server:latest";
+        networks = ["remotenet"];
+        ports = [
+          "21117:21117"
+        ];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
+        };
+        volumes = [
+          "/data/docker/rustdesk/hbbr:/root"
+        ];
+      };
+      rustdesk-hbbs = {
+        image = "docker.io/rustdesk/rustdesk-server:latest";
+        networks = ["remotenet"];
+        ports = [
+          "21115:21115"
+          "21116:21116"
+          "21116:21116/udp"
+        ];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
+        };
+        volumes = [
+          "/data/docker/rustdesk/hbbs:/root"
         ];
       };
     };
