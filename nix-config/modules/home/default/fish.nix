@@ -91,7 +91,7 @@
         exec ${pkgs.tmux}/bin/tmux new-session -A -s shell
       end
 
-      if type -x ${pkgs.toilet}/bin/toilet; and type -x ${pkgs.lolcat}/bin/lolcat
+      if type -q ${pkgs.toilet}/bin/toilet; and type -q ${pkgs.lolcat}/bin/lolcat
         set -q TOILETMAXLENGTH || set TOILETMAXLENGTH 16
         set -q TOILETNAME || set TOILETNAME (hostname -s)
         if ! set -q TOILETFONT
