@@ -87,7 +87,11 @@
     ];
 
     interactiveShellInit = ''
-      if type -q toilet; and type -q lolcat
+      if test -z "$TMUX" -a -n "$SSH_TTY"
+        exec ${pkgs.tmux}/bin/tmux new-session -A -s shell
+      end
+
+      if type -x ${pkgs.toilet}/bin/toilet; and type -x ${pkgs.lolcat}/bin/lolcat
         set -q TOILETMAXLENGTH || set TOILETMAXLENGTH 16
         set -q TOILETNAME || set TOILETNAME (hostname -s)
         if ! set -q TOILETFONT
@@ -97,20 +101,15 @@
             set TOILETFONT "smblock"
           end
         end
-        echo "$TOILETNAME" | toilet -f "$TOILETFONT" | lolcat
+        echo "$TOILETNAME" | ${pkgs.toilet}/bin/toilet -f "$TOILETFONT" | ${pkgs.lolcat}/bin/lolcat
       end
 
       if [ "$ITERM_PROFILE" != "Hotkey Window" ]
-        if type -q fortune
+        if type -q ${pkgs.fortune}/bin/fortune
           set_color brblack
           echo ""
-          fortune
+          ${pkgs.fortune}/bin/fortune
           set_color normal; echo ""
-        end
-
-        if type -q dfrs
-          dfrs
-          echo ""
         end
       end
 
@@ -148,10 +147,6 @@
       set -g fish_pager_color_completion $foreground
       set -g fish_pager_color_description $comment
       set -g fish_pager_color_selected_background --background=$selection
-
-      if test -z "$TMUX" -a -n "$SSH_TTY"
-        exec ${pkgs.tmux}/bin/tmux new-session -A -s shell
-      end
     '';
   };
 }

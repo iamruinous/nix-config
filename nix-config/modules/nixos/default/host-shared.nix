@@ -119,5 +119,6 @@
   environment.systemPackages = with pkgs; [
     btop
     pciutils
+    isd
   ];
 }
