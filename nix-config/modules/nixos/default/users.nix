@@ -1,12 +1,14 @@
 {
   config,
-  lib,
   flake,
+  pkgs,
   ...
 }: let
   # User names with home-manager config
   userNames = builtins.attrNames (config.home-manager.users or {});
 in {
+  users.defaultUserShell = pkgs.fish;
+
   # Update users with details found in flake.users
   users.users.jmeskill = flake.lib.users.jmeskill;
 
