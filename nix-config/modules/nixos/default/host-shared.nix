@@ -25,10 +25,6 @@
     config.nix.registry;
 
   boot = {
-    # Bootloader.
-    loader.systemd-boot.enable = lib.mkDefault true;
-    loader.efi.canTouchEfiVariables = true;
-
     # plymouth for fancy boot splash
     plymouth = {
       enable = true;

@@ -20,6 +20,9 @@
   boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [config.boot.kernelPackages.gasket];
 
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   networking.firewall.enable = true;
   networking.nftables.enable = true;
   systemd.network.wait-online.enable = false;

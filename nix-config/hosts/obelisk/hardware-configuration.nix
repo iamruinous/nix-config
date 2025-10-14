@@ -17,6 +17,8 @@
   boot.kernelModules = ["kvm-intel" "vhost_vsock"];
   boot.extraModprobeConfig = "options kvm_intel nested=1";
   boot.extraModulePackages = [];
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/584fb6b8-2499-4226-91c4-5e5049fe37ca";
