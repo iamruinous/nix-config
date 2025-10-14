@@ -335,6 +335,7 @@
           "21116:21116"
           "21116:21116/udp"
         ];
+        dependsOn = ["rustdesk-hbbr"];
         environment = {
           ALWAYS_USE_RELAY = "Y";
         };
