@@ -17,6 +17,11 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    # System manager
+    # <https://github.com/numtide/system-manager>
+    system-manager.url = "github:numtide/system-manager";
+    system-manager.inputs.nixpkgs.follows = "nixpkgs";
+
     # NixOS profiles to optimize settings for different hardware
     # <https://github.com/NixOS/nixos-hardware>
     hardware.url = "github:nixos/nixos-hardware";
