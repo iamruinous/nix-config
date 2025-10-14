@@ -316,6 +316,7 @@
       # remotenet
       rustdesk-hbbr = {
         image = "docker.io/rustdesk/rustdesk-server:latest";
+        cmd = "hbbs";
         networks = ["remotenet"];
         ports = [
           "21117:21117"
@@ -324,11 +325,12 @@
           ALWAYS_USE_RELAY = "Y";
         };
         volumes = [
-          "/data/docker/rustdesk/hbbr:/root"
+          "/data/docker/rustdesk/config:/root"
         ];
       };
       rustdesk-hbbs = {
         image = "docker.io/rustdesk/rustdesk-server:latest";
+        cmd = "hbbr";
         networks = ["remotenet"];
         ports = [
           "21115:21115"
@@ -340,7 +342,7 @@
           ALWAYS_USE_RELAY = "Y";
         };
         volumes = [
-          "/data/docker/rustdesk/hbbs:/root"
+          "/data/docker/rustdesk/config:/root"
         ];
       };
     };
