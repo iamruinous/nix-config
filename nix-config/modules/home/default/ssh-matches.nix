@@ -29,6 +29,14 @@ in {
       };
 
       # manage
+      "void" = {
+        hostname = "void.manage.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
+      "gap" = {
+        hostname = "gap.manage.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
       "it" = {
         hostname = "it.manage.farmhouse.meskill.network";
         user = "root";

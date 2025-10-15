@@ -43,8 +43,8 @@
   networking.useDHCP = false;
   # networking.interfaces.enp4s0.useDHCP = lib.mkDefault true;
 
-  networking.firewall.enable = true;
-  networking.nftables.enable = true;
+  # networking.firewall.enable = true;
+  # networking.nftables.enable = true;
   systemd.network = {
     enable = true;
     networks = {
