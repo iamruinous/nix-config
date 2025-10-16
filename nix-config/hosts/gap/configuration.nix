@@ -1,15 +1,20 @@
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-{flake, ...}: {
+{
+  flake,
+  inputs,
+  pkgs,
+  ...
+}: {
   imports = [
     flake.nixosModules.default
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ./disko.nix
+    inputs.hardware.nixosModules.raspberry-pi-3
   ];
 
-  networking.hostName = "void86"; # Define your hostname.
+  networking.hostName = "gap"; # Define your hostname.
 
   services.keepalived = {
     enable = true;
@@ -21,11 +26,12 @@
     '';
 
     vrrpInstances.VIP_35 = {
-      state = "MASTER";
+      state = "BACKUP";
       interface = "enp4s0";
       virtualRouterId = 35;
       useVmac = true;
-      priority = 44;
+      priority = 33;
+      noPreempt = true;
       virtualIps = [{addr = "10.55.10.34/24";}];
       # trackScripts = ["track_homepage"];
     };
@@ -90,6 +96,10 @@
     #   }
     # '';
   };
+
+  # environment.systemPackages = with pkgs; [
+  #   raspberrypi-tools
+  # ];
 
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.05"; # Did you read the comment?

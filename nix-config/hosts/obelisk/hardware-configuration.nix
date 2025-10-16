@@ -20,6 +20,9 @@
   boot.loader.systemd-boot.enable = lib.mkDefault true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # allow remote deploy on aarch64 systems
+  boot.binfmt.emulatedSystems = ["aarch64-linux"];
+
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/584fb6b8-2499-4226-91c4-5e5049fe37ca";
     fsType = "ext4";

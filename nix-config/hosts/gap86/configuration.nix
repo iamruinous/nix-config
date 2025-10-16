@@ -9,7 +9,7 @@
     ./disko.nix
   ];
 
-  networking.hostName = "gap"; # Define your hostname.
+  networking.hostName = "gap86"; # Define your hostname.
 
   services.keepalived = {
     enable = true;

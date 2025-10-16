@@ -16,7 +16,7 @@
       "30-manage" = {
         matchConfig.Name = "enu1u1u1";
         networkConfig.DHCP = false;
-        address = ["10.55.10.39/24"];
+        address = ["10.55.10.38/24"];
         gateway = ["10.55.10.1"];
         dns = ["10.55.10.35"];
       };
