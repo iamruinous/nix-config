@@ -37,6 +37,14 @@ in {
         hostname = "gap.manage.farmhouse.meskill.network";
         user = "jmeskill";
       };
+      "void86" = {
+        hostname = "void86.manage.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
+      "gap86" = {
+        hostname = "gap86.manage.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
       "it" = {
         hostname = "it.manage.farmhouse.meskill.network";
         user = "root";
