@@ -23,5 +23,14 @@
     };
   };
 
+  networking.nameservers = ["10.55.10.35"];
+  networking.domain = "manage.farmhouse.meskill.network";
+  networking.search = [
+    "manage.farmhouse.meskill.network"
+    "svc.farmhouse.meskill.network"
+  ];
+
+  services.resolved.enable = false;
+
   nixpkgs.hostPlatform = "aarch64-linux";
 }

@@ -12,13 +12,16 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./blocky.nix
-    inputs.hardware.nixosModules.raspberry-pi-3
+    ./disko.nix
+    # inputs.hardware.nixosModules.raspberry-pi-3
   ];
 
-  networking.hostName = "void"; # Define your hostname.
+  networking.hostName = "voidrad"; # Define your hostname.
+  documentation.enable = false;
+  documentation.nixos.enable = false;
 
   services.keepalived = {
-    enable = true;
+    enable = false;
 
     # openFirewall = true;
 
