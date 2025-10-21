@@ -91,6 +91,22 @@
           "/var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
         ];
       };
+      mosquitto = {
+        image = "docker.io/eclipse-mosquitto:2";
+        networks = [
+          "proxynet"
+        ];
+        ports = [
+          "1883:1883"
+        ];
+        cmd = ["/usr/sbin/mosquitto" "-c" "/config/mosquitto.conf"];
+        volumes = [
+          "${config.age.secrets.monolith_mosquitto_config.path}:/config/mosquitto.conf:ro"
+          "/data/docker/mosquitto/config:/config"
+          "/data/docker/mosquitto/data:/mosquitto/data"
+          "/data/docker/mosquitto/log:/mosquitto/log"
+        ];
+      };
       mariadb = {
         image = "docker.io/mariadb:11";
         ports = ["3306:3306"];
@@ -841,6 +857,15 @@
     file = ./files/glance/glance.yml.age;
     path = "/data/docker/glance/config/glance.yml";
     mode = "600";
+    symlink = false;
+  };
+  # mosquitto container chowns the file
+  age.secrets.monolith_mosquitto_config = {
+    file = ./files/mosquitto/mosquitto.conf.age;
+    path = "/data/docker/mosquitto/config/mosquitto.conf";
+    mode = "600";
+    owner = "1883";
+    group = "1883";
     symlink = false;
   };
   age.secrets.monolith_docker_env_mariadb = {

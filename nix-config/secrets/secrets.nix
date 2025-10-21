@@ -39,6 +39,7 @@ in {
   "hosts/monolith/files/caddy/caddy.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/caddy/Caddyfile.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/glance/glance.yml.age".publicKeys = [jmeskill monolith];
+  "hosts/monolith/files/mosquitto/mosquitto.conf.age".publicKeys = [jmeskill monolith];
 
   "hosts/monolith/files/docker/env/mariadb.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/docker/env/n8n.env.age".publicKeys = [jmeskill monolith];
