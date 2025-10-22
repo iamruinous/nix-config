@@ -829,7 +829,7 @@
         ];
       };
       tasktrove = {
-        image = "ghcr.io/dohsimpson/tasktrove";
+        image = "ghcr.io/dohsimpson/tasktrove:v0.8.0";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/tasktrove/config:/app/data"
@@ -839,11 +839,19 @@
         image = "docker.io/briis/weatherflow2mqtt:3.2.2";
         ports = ["50222:50222/udp"];
         environmentFiles = [config.age.secrets.monolith_docker_env_weatherflow.path];
-        networks = [
-          "proxynet"
-        ];
+        networks = ["proxynet"];
         volumes = [
           "/data/docker/weatherflow/config:/usr/local/config"
+        ];
+      };
+      zigbee2mqtt = {
+        image = "ghcr.io/koenkk/zigbee2mqtt:2";
+        environment = {
+          TZ = "America/Phoenix";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/zigbee2mqtt/data:/app/data"
         ];
       };
     };
