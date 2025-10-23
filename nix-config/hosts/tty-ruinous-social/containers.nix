@@ -59,7 +59,7 @@
       Type = "oneshot";
       ExecStart = pkgs.writeShellScript "create-remotenet-network" ''
         if ! ${pkgs.docker}/bin/docker network inspect remotenet >/dev/null 2>&1; then
-          ${pkgs.docker}/bin/docker network create remotenet --internal
+          ${pkgs.docker}/bin/docker network create remotenet
         fi
       '';
     };
@@ -316,7 +316,7 @@
       # remotenet
       rustdesk-hbbr = {
         image = "docker.io/rustdesk/rustdesk-server:latest";
-        cmd = "hbbs";
+        cmd = ["hbbr"];
         networks = ["remotenet"];
         ports = [
           "21117:21117"
@@ -330,7 +330,7 @@
       };
       rustdesk-hbbs = {
         image = "docker.io/rustdesk/rustdesk-server:latest";
-        cmd = "hbbr";
+        cmd = ["hbbs"];
         networks = ["remotenet"];
         ports = [
           "21115:21115"
