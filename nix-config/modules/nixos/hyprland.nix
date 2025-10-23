@@ -12,7 +12,7 @@
 in {
   imports = [
     flake.inputs.walker.nixosModules.walker
-    flake.nixosModules.desktop-default
+    flake.nixosModules.desktop
   ];
 
   config = lib.mkIf cfg.enable {

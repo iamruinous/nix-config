@@ -2,13 +2,16 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
-  pkgs,
+  flake,
   inputs,
   ...
 }: let
   inherit (inputs) wezterm;
 in {
   imports = [
+    flake.nixosModules.default
+    flake.nixosModules.developer
+    flake.nixosModules.desktop
     ./hardware-configuration.nix
     # ../modules/common.nix
     # ../modules/developer.nix
@@ -19,6 +22,8 @@ in {
   ];
 
   networking.hostName = "moonstone"; # Define your hostname.
+
+  # program.hyprland.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

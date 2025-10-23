@@ -17,6 +17,7 @@
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [];
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/f4934373-b07e-489e-8816-75ac5f0d62ab";

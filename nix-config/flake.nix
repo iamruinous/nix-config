@@ -121,20 +121,3 @@
       ];
     };
 }
-# Blueprint automatically maps: devshells, hosts, lib, modules, packages
-# inherit
-#   (inputs.blueprint {inherit inputs;})
-#   checks
-#   devShells
-#   formatter
-#   lib
-#   nixosConfigurations
-#   darwinConfigurations
-#   packages
-#   homeModules
-#   networking
-#   nixosModules
-#   darwinModules
-#   users
-#   ;
-

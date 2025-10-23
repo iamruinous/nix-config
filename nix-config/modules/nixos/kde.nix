@@ -9,7 +9,7 @@
   cfg = config.services.desktopManager.plasma6;
 in {
   imports = [
-    flake.nixosModules.desktop-default
+    flake.nixosModules.desktop
   ];
 
   config = lib.mkIf cfg.enable {

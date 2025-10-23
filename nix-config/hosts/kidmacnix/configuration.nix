@@ -7,6 +7,9 @@
   ...
 }: {
   imports = [
+    flake.nixosModules.default
+    flake.nixosModules.developer
+    flake.nixosModules.desktop
     flake.inputs.disko.nixosModules.disko
     inputs.hardware.nixosModules.apple-imac-18-2
     ./hardware-configuration.nix
@@ -18,6 +21,8 @@
     # ../modules/nixos/kde.nix
     # ../modules/nixos/latest-kernel.nix
   ];
+
+  services.desktopManager.plasma6.enable = true;
 
   hardware.facetimehd.enable = false;
 

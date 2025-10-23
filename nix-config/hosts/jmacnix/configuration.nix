@@ -7,6 +7,9 @@
   ...
 }: {
   imports = [
+    flake.nixosModules.default
+    flake.nixosModules.developer
+    flake.nixosModules.desktop
     flake.inputs.disko.nixosModules.disko
     inputs.hardware.nixosModules.apple-imac-14-2
     ./hardware-configuration.nix
@@ -17,6 +20,8 @@
     # ../modules/nixos/gnome.nix
     # ../modules/nixos/latest-kernel.nix
   ];
+
+  services.desktopManager.gnome.enable = true;
 
   hardware.facetimehd.enable = false;
 
