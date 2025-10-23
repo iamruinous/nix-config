@@ -1,0 +1,26 @@
+on:
+  pull_request:
+  push:
+    branches: 
+      - main
+      - iamruinous/convert-blueprint
+
+jobs:
+  build:
+    name: Build Nix targets
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nix-config
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check nix
+        uses: DeterminateSystems/flake-checker-action@main # This action
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Build default package
+        run: nix build
