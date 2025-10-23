@@ -10,6 +10,7 @@
 in {
   programs.ssh = {
     enable = lib.mkDefault true;
+    enableDefaultConfig = lib.mkDefault false;
     matchBlocks = {
       "z-ssh-tty" = {
         match = "host * exec \"test -z $SSH_TTY\"";

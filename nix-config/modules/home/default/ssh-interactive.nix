@@ -9,8 +9,13 @@ in {
 
   config = lib.mkIf cfg.enable {
     programs.ssh = {
-      addKeysToAgent = "yes";
-      forwardAgent = true;
+      enableDefaultConfig = lib.mkDefault false;
+      matchBlocks = {
+        "*" = {
+          forwardAgent = true;
+          addKeysToAgent = "yes";
+        };
+      };
       extraConfig = ''
         IgnoreUnknown AddKeysToAgent,UseKeychain
         StrictHostKeyChecking no
