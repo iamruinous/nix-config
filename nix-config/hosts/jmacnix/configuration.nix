@@ -27,6 +27,10 @@
 
   networking.hostName = "jmacnix"; # Define your hostname.
 
+  nixpkgs.config.permittedInsecurePackages = [
+    "broadcom-sta-6.30.223.271-57-6.16.9"
+  ];
+
   disko.devices = {
     disk = {
       main = {

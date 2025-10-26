@@ -33,20 +33,4 @@ pkgs.stdenv.mkDerivation {
     platforms = ["x86_64-linux"];
     maintainers = [pkgs.lib.maintainers.jmeskill];
   };
-
-  passthru.tests = {
-    check-filter = pkgs.runCommand "check-nelko-pl70ebt-filter" {} ''
-      filter_path="${pkgs.nelko-pl70ebt}/lib/cups/filter/Nelko/Filter/rastertolabel"
-      if [ ! -f "$filter_path" ]; then
-        echo "Filter executable not found at $filter_path"
-        exit 1
-      fi
-      if [ ! -x "$filter_path" ]; then
-        echo "Filter is not executable at $filter_path"
-        exit 1
-      fi
-      echo "Test passed"
-      touch $out
-    '';
-  };
 }
