@@ -5,11 +5,7 @@
 }: {
   imports = [flake.nixosModules.common];
 
-  nixpkgs = {
-    overlays = [
-      flake.inputs.fenix.overlays.default
-    ];
-  };
+  nixpkgs.overlays = [flake.inputs.fenix.overlays.default];
 
   # System packages
   environment.systemPackages = with pkgs;
@@ -71,6 +67,10 @@
       rust-analyzer-nightly
     ]
     ++ (pkgs.lib.optionals pkgs.stdenv.isLinux [
+      # ai tools (brew on macos)
+      crush
+      gemini-cli
+
       zig # zig currently broken on Darwin
       zls
     ]);

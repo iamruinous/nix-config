@@ -36,8 +36,8 @@
       };
 
       less = {
-        wraps = "moar";
-        body = "moar $argv";
+        wraps = "moor";
+        body = "moor $argv";
       };
 
       top = {
@@ -45,7 +45,7 @@
         body = "btop $argv";
       };
 
-      history = "builtin history --show-time='%h/%d - %H:%M:%S ' | moar";
+      history = "builtin history --show-time='%h/%d - %H:%M:%S ' | moor";
 
       tree = {
         wraps = "eza";

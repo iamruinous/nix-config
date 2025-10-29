@@ -12,7 +12,7 @@
     dust
     fd
     gnupg
-    moar
+    moor
     mosh
     procs
     rsync

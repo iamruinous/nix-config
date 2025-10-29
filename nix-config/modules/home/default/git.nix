@@ -20,15 +20,6 @@ in {
   programs.git = {
     enable = lib.mkDefault true;
     lfs.enable = lib.mkDefault true;
-    aliases = {
-      a = "add";
-      c = "commit -v";
-      co = "checkout";
-      d = "diff";
-      ds = "diff --staged";
-      s = "status";
-      crypt = "git-crypt";
-    };
     signing = {
       # key = "iamruinous@ruinous.social";
       signByDefault = lib.mkDefault true;
@@ -51,7 +42,16 @@ in {
         condition = "gitdir/i:sourcehut\/iamruinous/";
       }
     ];
-    extraConfig = {
+    settings = {
+      aliases = {
+        a = "add";
+        c = "commit -v";
+        co = "checkout";
+        d = "diff";
+        ds = "diff --staged";
+        s = "status";
+        crypt = "git-crypt";
+      };
       tag.forceSignAnnotated = "true";
       pull.rebase = "false";
       fetch.prune = "true";
