@@ -1,7 +1,6 @@
 # devshell.nix
 # Using mkShell from nixpkgs
-{
-  pkgs,
+{ pkgs,
   perSystem,
   ...
 }:
@@ -10,3 +9,4 @@ pkgs.mkShell {
     # perSystem.nixos-lima.nixos-lima
   ];
 }
+
