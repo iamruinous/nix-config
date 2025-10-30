@@ -98,10 +98,16 @@
         ];
         ports = [
           "1883:1883"
+          "8083:8083"
+          "8084:8084"
+          "8883:8883"
         ];
         cmd = ["/usr/sbin/mosquitto" "-c" "/config/mosquitto.conf"];
         volumes = [
           "${config.age.secrets.monolith_mosquitto_config.path}:/config/mosquitto.conf:ro"
+          "${config.age.secrets.monolith_mosquitto_passwd.path}:/config/passwd:ro"
+          "/data/docker/caddy/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/mqtt.meskill.farm
+:/config/cert:ro"
           "/data/docker/mosquitto/config:/config"
           "/data/docker/mosquitto/data:/mosquitto/data"
           "/data/docker/mosquitto/log:/mosquitto/log"
@@ -872,6 +878,14 @@
     file = ./files/mosquitto/mosquitto.conf.age;
     path = "/data/docker/mosquitto/config/mosquitto.conf";
     mode = "600";
+    owner = "1883";
+    group = "1883";
+    symlink = false;
+  };
+  age.secrets.monolith_mosquitto_passwd = {
+    file = ./files/mosquitto/passwd.age;
+    path = "/data/docker/mosquitto/config/passwd";
+    mode = "400";
     owner = "1883";
     group = "1883";
     symlink = false;
