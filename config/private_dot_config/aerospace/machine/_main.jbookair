@@ -1,4 +1,0 @@
-# vi: ft=toml
-
-alt-c = 'workspace C'
-alt-shift-c = 'move-node-to-workspace C'

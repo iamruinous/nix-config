@@ -4,7 +4,6 @@ on:
   push:
     branches: 
       - main
-      - iamruinous/convert-blueprint
 
 jobs:
   build:
@@ -13,9 +12,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    defaults:
-      run:
-        working-directory: nix-config
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

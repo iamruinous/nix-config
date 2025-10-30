@@ -1,7 +1,0 @@
-[user]
-  name = Jade Meskill
-  email = jmeskill@magicleap.com
-  signingkey = jmeskill@magicleap.com
-
-[url "git@github.com:magicverse"]
-  insteadOf = https://github.com/magicverse

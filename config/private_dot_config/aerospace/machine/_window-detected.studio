@@ -1,7 +1,0 @@
-# vi: ft=toml
-
-[[on-window-detected]]
-if.app-id = 'com.apple.Safari.WebApp.8437BF77-93C7-4DE5-84C0-3A216CAB566A'
-run = 'move-node-to-workspace G' # mnemonics G - Glance
-
-
