@@ -11,5 +11,6 @@ docker exec postgres psql -U postgres -q -l -t -A --pset=pager=off | awk -F'|' '
         echo "Successfully dumped $DB_NAME to $BACKUP_DIR/$DB_NAME.sql"
     else
         echo "Error dumping $DB_NAME"
+    fi
   fi
 done

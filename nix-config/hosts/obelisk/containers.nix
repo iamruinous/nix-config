@@ -1,84 +1,96 @@
-{config, ...}: {
-  hardware.nvidia-container-toolkit.enable = true;
-
+{
+  config,
+  pkgs,
+  ...
+}: {
   networking.firewall.allowedTCPPorts = [80 443];
+  networking.firewall.allowedUDPPorts = [443];
 
-  virtualisation.arion = {
+  virtualisation.docker.autoPrune.enable = true;
+
+  systemd.services.docker-servicenet-network = {
+    description = "create docker servicenet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-servicenet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect servicenet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create servicenet
+        fi
+      '';
+    };
+  };
+
+  systemd.services.docker-proxynet-network = {
+    description = "create docker proxynet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-proxynet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect proxynet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create proxynet
+        fi
+      '';
+    };
+  };
+
+  virtualisation.oci-containers = {
     backend = "docker";
-    projects."obelisk".settings = {
-      networks = {
-        "hostnet" = {
-          name = "hostnet";
+    containers = {
+      caddy = {
+        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10";
+        capabilities = {
+          "NET_ADMIN" = true;
         };
-        "proxynet" = {
-          name = "proxynet";
-        };
+        ports = [
+          "80:80"
+          "443:443"
+          "443:443/udp"
+          "2019:2019"
+        ];
+        networks = ["servicenet" "proxynet"];
+        # healthcheck = {
+        #   test = [
+        #     "CMD"
+        #     "wget"
+        #     "--no-verbose"
+        #     "--tries=1"
+        #     "--spider"
+        #     "http://127.0.0.1:2019/metrics"
+        #   ];
+        #   start-period = "60s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
+        # };
+        volumes = [
+          "${config.age.secrets.obelisk_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
+          "/data/docker/caddy/site:/srv"
+          "/data/docker/caddy/data:/data"
+          "/data/docker/caddy/config:/config"
+          "/data/docker/caddy/static:/static"
+          "/var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
+        ];
       };
-      services = {
-        # hostnet services
-        "caddy".service = {
-          container_name = "caddy";
-          image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
-          networks = [
-            "hostnet"
-            "proxynet"
-          ];
-          ports = [
-            "80:80"
-            "443:443"
-            "443:443/udp"
-            "2019:2019"
-          ];
-          capabilities = {
-            NET_ADMIN = true;
-          };
-          healthcheck = {
-            test = [
-              "CMD"
-              "wget"
-              "--no-verbose"
-              "--tries=1"
-              "--spider"
-              "http://127.0.0.1:2019/metrics"
-            ];
-            start_period = "60s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
-          restart = "unless-stopped";
-          volumes = [
-            "${config.age.secrets.obelisk_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
-            "/data/docker/caddy/site:/srv"
-            "/data/docker/caddy/data:/data"
-            "/data/docker/caddy/config:/config"
-            "/data/docker/caddy/static:/static"
-            "/var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
-          ];
+      open-webui = {
+        image = "ghcr.io/open-webui/open-webui:v0.6.33";
+        environment = {
+          OLLAMA_BASE_URL = "http://ollama:11434";
         };
-        # proxynet services
-        "open-webui".service = {
-          container_name = "open-webui";
-          image = "ghcr.io/open-webui/open-webui:main";
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          environment = {
-            OLLAMA_BASE_URL = "http://ollama:11434";
-          };
-          volumes = [
-            "/data/docker/open-webui/data:/app/backend/data"
-          ];
-        };
-        "ollama".service = {
-          container_name = "ollama";
-          image = "docker.io/ollama/ollama";
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          devices = ["nvidia.com/gpu=all"];
-          volumes = [
-            "/data/docker/ollama/config:/root/.ollama"
-          ];
-        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/open-webui/data:/app/backend/data"
+        ];
+      };
+      ollama = {
+        image = "docker.io/ollama/ollama:0.12.5";
+        devices = ["nvidia.com/gpu=all"];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/ollama/config:/root/.ollama"
+        ];
       };
     };
   };
@@ -88,3 +100,4 @@
     mode = "600";
   };
 }
+

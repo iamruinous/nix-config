@@ -8,6 +8,7 @@
 }: {
   services.fwupd.enable = true;
   hardware.enableRedistributableFirmware = true;
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
   # boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" ];
   # boot.initrd.kernelModules = [ ];
   # boot.kernelModules = [ "kvm-intel" "wl" ];

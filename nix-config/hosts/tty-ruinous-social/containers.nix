@@ -1,333 +1,349 @@
-{config, ...}: {
-  virtualisation.docker.storageDriver = "btrfs";
+{
+  config,
+  pkgs,
+  ...
+}: {
+  networking.firewall.allowedTCPPorts = [80 443 21115 21116 21117];
+  networking.firewall.allowedUDPPorts = [443 21116];
 
-  virtualisation.arion = {
+  virtualisation.docker.storageDriver = "btrfs";
+  virtualisation.docker.autoPrune.enable = true;
+
+  systemd.services.docker-servicenet-network = {
+    description = "create docker servicenet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-servicenet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect servicenet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create servicenet
+        fi
+      '';
+    };
+  };
+
+  systemd.services.docker-proxynet-network = {
+    description = "create docker proxynet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-proxynet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect proxynet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create proxynet
+        fi
+      '';
+    };
+  };
+
+  systemd.services.docker-datanet-network = {
+    description = "create docker datanet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-datanet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect datanet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create datanet --internal
+        fi
+      '';
+    };
+  };
+
+  systemd.services.docker-remotenet-network = {
+    description = "create docker remotenet network";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-remotenet-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect remotenet >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create remotenet
+        fi
+      '';
+    };
+  };
+
+  virtualisation.oci-containers = {
     backend = "docker";
-    projects."tty-ruinous-social".settings = {
-      networks = {
-        "hostnet" = {
-          name = "hostnet";
+    containers = {
+      caddy = {
+        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
+        networks = [
+          "proxynet"
+          "servicenet"
+        ];
+        ports = [
+          "80:80"
+          "443:443"
+          "443:443/udp"
+          "2019:2019"
+        ];
+        capabilities = {
+          "NET_ADMIN" = true;
         };
-        "proxynet" = {
-          name = "proxynet";
-        };
-        "datanet" = {
-          name = "datanet";
-          internal = true;
-        };
+        # healthcheck = {
+        #   test = [
+        #     "CMD"
+        #     "wget"
+        #     "--no-verbose"
+        #     "--tries=1"
+        #     "--spider"
+        #     "http://127.0.0.1:2019/metrics"
+        #   ];
+        #   start-period = "60s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
+        # };
+        volumes = [
+          "${config.age.secrets.tty_ruinous_social_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
+          "/data/docker/caddy/site:/srv"
+          "/data/docker/caddy/data:/data"
+          "/data/docker/caddy/config:/config"
+        ];
       };
-      services = {
-        # hostnet services
-        "caddy".service = {
-          container_name = "caddy";
-          image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
-          networks = [
-            "hostnet"
-            "proxynet"
-          ];
-          ports = [
-            "80:80"
-            "443:443"
-            "443:443/udp"
-            "2019:2019"
-          ];
-          capabilities = {
-            NET_ADMIN = true;
-          };
-          healthcheck = {
-            test = [
-              "CMD"
-              "wget"
-              "--no-verbose"
-              "--tries=1"
-              "--spider"
-              "http://127.0.0.1:2019/metrics"
-            ];
-            start_period = "60s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
-          restart = "unless-stopped";
-          volumes = [
-            "${config.age.secrets.tty_ruinous_social_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
-            "/data/docker/caddy/site:/srv"
-            "/data/docker/caddy/data:/data"
-            "/data/docker/caddy/config:/config"
-          ];
+      postgres = {
+        image = "docker.io/postgres:17";
+        ports = ["5432:5432"];
+        environment = {
+          PGDATA = "/var/lib/postgresql/17/docker";
         };
-        # "mosquitto".service = {
-        #   container_name = "mosquitto";
-        #   image = "docker.io/eclipse-mosquitto:2";
-        #   command = ["/usr/sbin/mosquitto" "-c" "/config/mosquitto.conf"];
-        #   networks = ["hostnet"];
-        #   ports = [
-        #     "1883:1883"
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_postgres.path];
+        networks = ["datanet" "proxynet"];
+        # healthcheck = {
+        #   test = [
+        #     "CMD-SHELL"
+        #     "pg_isready"
         #   ];
-        #   restart = "unless-stopped";
-        #   volumes = [
-        #     "${config.age.secrets.tty_ruinous_social_mosquitto_config.path}:/config/mosquitto.conf:ro"
-        #     "/data/docker/mosquitto/config:/config"
-        #     "/data/docker/mosquitto/data:/mosquitto/data"
-        #     "/data/docker/mosquitto/log:/mosquitto/log"
-        #   ];
+        #   start-period = "10s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
         # };
-        # datanet services
-        "postgres".service = {
-          container_name = "postgres";
-          image = "docker.io/postgres:17";
-          ports = ["5432:5432"];
-          environment = {
-            PGDATA = "/var/lib/postgresql/17/docker";
-          };
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_postgres.path];
-          networks = ["datanet" "hostnet"];
-          healthcheck = {
-            test = [
-              "CMD-SHELL"
-              "pg_isready"
-            ];
-            start_period = "10s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/postgres/pgdata:/var/lib/postgresql/17/docker"
-            "/data/backup/postgres:/backup"
-          ];
-        };
-        "redis".service = {
-          container_name = "redis";
-          image = "docker.io/redis:8-alpine";
-          networks = ["datanet"];
-          healthcheck = {
-            test = [
-              "CMD"
-              "redis-cli"
-              "ping"
-            ];
-            start_period = "60s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/redis/data:/data"
-          ];
-        };
-        # proxynet services
-        "albyhub".service = {
-          container_name = "albyhub";
-          image = "ghcr.io/getalby/hub:v1.19.3";
-          environment = {
-            WORK_DIR = "/data/albyhub";
-            TZ = "America/Phoenix";
-          };
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/albyhub/data:/data"
-          ];
-        };
-        "baikal".service = {
-          container_name = "baikal";
-          image = "docker.io/ckulka/baikal:0.10.1-nginx-php8.2";
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/baikal/config:/var/www/baikal/config"
-            "/data/docker/baikal/specific:/var/www/baikal/Specific"
-          ];
-        };
-        "forgejo".service = {
-          container_name = "forgejo";
-          image = "codeberg.org/forgejo/forgejo:12";
-          environment = {
-            USER_UID = "2000";
-            USER_GID = "2000";
-          };
-          networks = ["hostnet" "datanet" "proxynet"];
-          restart = "unless-stopped";
-          ports = [
-            "127.0.0.1:2222:22"
-          ];
-          volumes = [
-            "/data/docker/forgejo/data:/data"
-            "/home/git/.ssh:/data/git/.ssh"
-            "/home/git/.gnupg:/data/git/.gnupg"
-            "/etc/timezone:/etc/timezone:ro"
-            "/etc/localtime:/etc/localtime:ro"
-          ];
-        };
-        "karakeep".service = {
-          container_name = "karakeep";
-          image = "ghcr.io/karakeep-app/karakeep:release";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/karakeep/data:/data"
-          ];
-        };
-        "karakeep-chrome".service = {
-          container_name = "karakeep-chrome";
-          image = "gcr.io/zenika-hub/alpine-chrome:124";
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          command = [
-            "--no-sandbox"
-            "--disable-gpu"
-            "--disable-dev-shm-usage"
-            "--remote-debugging-address=0.0.0.0"
-            "--remote-debugging-port=9222"
-            "--hide-scrollbars"
-          ];
-        };
-        "karakeep-meilisearch".service = {
-          container_name = "karakeep-meilisearch";
-          image = "docker.io/getmeili/meilisearch:v1.13.3";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/karakeep/meili_data:/meili_data"
-          ];
-        };
-        # "linkstack".service = {
-        #   container_name = "linkstack";
-        #   image = "docker.io/linkstackorg/linkstack:latest";
-        #   environment = {
-        #     HTTP_SERVER_NAME = "links.ruinous.social";
-        #     HTTPS_SERVER_NAME = "links.ruinous.social";
-        #     LOG_LEVEL = "debug";
-        #     SERVER_ADMIN = "iamruinous@ruinous.social";
-        #     TZ = "America/Phoenix";
-        #   };
-        #   networks = ["datanet" "proxynet"];
-        #   restart = "unless-stopped";
-        #   volumes = [
-        #     "/data/docker/linkstack/.env:/htdocs/.env:rw"
-        #     "/data/docker/linkstack/config/advanced-config.php:/htdocs/config/advanced-config.php:rw"
-        #     "/data/docker/linkstack/img:/htdocs/img:rw"
-        #     "/data/docker/linkstack/database:/htdocs/database:rw"
+        volumes = [
+          "/data/docker/postgres/pgdata:/var/lib/postgresql/17/docker"
+          "/data/backup/postgres:/backup"
+        ];
+      };
+      redis = {
+        image = "docker.io/redis:8-alpine";
+        networks = ["datanet"];
+        # healthcheck = {
+        #   test = [
+        #     "CMD"
+        #     "redis-cli"
+        #     "ping"
         #   ];
+        #   start-period = "60s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
         # };
-        "mastodon-sidekiq".service = {
-          container_name = "mastodon-sidekiq";
-          image = "ghcr.io/mastodon/mastodon:v4.4";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
-          networks = ["datanet" "proxynet"];
-          restart = "unless-stopped";
-          command = [
-            "bundle"
-            "exec"
-            "sidekiq"
-          ];
-          healthcheck = {
-            test = [
-              "CMD-SHELL"
-              "ps aux | grep '[s]idekiq\ 7' || false"
-            ];
-            start_period = "60s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
-          volumes = [
-            "/data/docker/mastodon/public/system:/mastodon/public/system"
-          ];
+        volumes = [
+          "/data/docker/redis/data:/data"
+        ];
+      };
+      albyhub = {
+        image = "ghcr.io/getalby/hub:v1.19.3";
+        environment = {
+          WORK_DIR = "/data/albyhub";
+          TZ = "America/Phoenix";
         };
-        "mastodon-streaming".service = {
-          container_name = "mastodon-streaming";
-          image = "ghcr.io/mastodon/mastodon-streaming:v4.4";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
-          networks = ["datanet" "proxynet"];
-          restart = "unless-stopped";
-          command = [
-            "node"
-            "./streaming/index.js"
-          ];
-          healthcheck = {
-            test = [
-              "CMD-SHELL"
-              "curl -s --noproxy localhost localhost:4000/api/v1/streaming/health | grep -q 'OK' || exit 1"
-            ];
-            start_period = "60s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/albyhub/data:/data"
+        ];
+      };
+      baikal = {
+        image = "docker.io/ckulka/baikal:0.10.1-nginx-php8.2";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/baikal/config:/var/www/baikal/config"
+          "/data/docker/baikal/specific:/var/www/baikal/Specific"
+        ];
+      };
+      forgejo = {
+        image = "codeberg.org/forgejo/forgejo:12";
+        environment = {
+          USER_UID = "2000";
+          USER_GID = "2000";
         };
-        "mastodon-web".service = {
-          container_name = "mastodon-web";
-          image = "ghcr.io/mastodon/mastodon:v4.4";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
-          networks = ["datanet" "proxynet"];
-          restart = "unless-stopped";
-          command = [
-            "bundle"
-            "exec"
-            "puma"
-            "-C"
-            "config/puma.rb"
-          ];
-          healthcheck = {
-            test = [
-              "CMD-SHELL"
-              "curl -s --noproxy localhost localhost:3000/health | grep -q 'OK' || exit 1"
-            ];
-            start_period = "60s";
-            interval = "60s";
-            timeout = "5s";
-            retries = 3;
-          };
-          volumes = [
-            "/data/docker/mastodon/public/system:/mastodon/public/system"
-          ];
+        networks = [
+          "proxynet"
+          "datanet"
+          "servicenet"
+        ];
+        ports = [
+          "127.0.0.1:2222:22"
+        ];
+        volumes = [
+          "/data/docker/forgejo/data:/data"
+          "/home/git/.ssh:/data/git/.ssh"
+          "/home/git/.gnupg:/data/git/.gnupg"
+          "/etc/timezone:/etc/timezone:ro"
+          "/etc/localtime:/etc/localtime:ro"
+        ];
+      };
+      karakeep = {
+        image = "ghcr.io/karakeep-app/karakeep:release";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/karakeep/data:/data"
+        ];
+      };
+      "karakeep-chrome" = {
+        image = "gcr.io/zenika-hub/alpine-chrome:124";
+        networks = ["servicenet"];
+        cmd = [
+          "--no-sandbox"
+          "--disable-gpu"
+          "--disable-dev-shm-usage"
+          "--remote-debugging-address=0.0.0.0"
+          "--remote-debugging-port=9222"
+          "--hide-scrollbars"
+        ];
+      };
+      "karakeep-meilisearch" = {
+        image = "docker.io/getmeili/meilisearch:v1.13.3";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/karakeep/meili_data:/meili_data"
+        ];
+      };
+      "mastodon-sidekiq" = {
+        image = "ghcr.io/mastodon/mastodon:v4.4";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
+        networks = ["datanet" "servicenet"];
+        cmd = [
+          "bundle"
+          "exec"
+          "sidekiq"
+        ];
+        # healthcheck = {
+        #   test = [
+        #     "CMD-SHELL"
+        #     "ps aux | grep '[s]idekiq\ 7' || false"
+        #   ];
+        #   start-period = "60s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
+        # };
+        volumes = [
+          "/data/docker/mastodon/public/system:/mastodon/public/system"
+        ];
+      };
+      "mastodon-streaming" = {
+        image = "ghcr.io/mastodon/mastodon-streaming:v4.4";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
+        networks = ["datanet" "servicenet"];
+        cmd = [
+          "node"
+          "./streaming/index.js"
+        ];
+        # healthcheck = {
+        #   test = [
+        #     "CMD-SHELL"
+        #     "curl -s --noproxy localhost localhost:4000/api/v1/streaming/health | grep -q 'OK' || exit 1"
+        #   ];
+        #   start-period = "60s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
+        # };
+      };
+      "mastodon-web" = {
+        image = "ghcr.io/mastodon/mastodon:v4.4";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
+        networks = ["datanet" "servicenet"];
+        cmd = [
+          "bundle"
+          "exec"
+          "puma"
+          "-C"
+          "config/puma.rb"
+        ];
+        # healthcheck = {
+        #   test = [
+        #     "CMD-SHELL"
+        #     "curl -s --noproxy localhost localhost:3000/health | grep -q 'OK' || exit 1"
+        #   ];
+        #   start-period = "60s";
+        #   interval = "60s";
+        #   timeout = "5s";
+        #   retries = 3;
+        # };
+        volumes = [
+          "/data/docker/mastodon/public/system:/mastodon/public/system"
+        ];
+      };
+      mealie = {
+        image = "ghcr.io/mealie-recipes/mealie:latest";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mealie.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/mealie/data:/app/data"
+        ];
+      };
+      synapse = {
+        image = "ghcr.io/element-hq/synapse:latest";
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_synapse.path];
+        networks = ["datanet" "servicenet"];
+        volumes = [
+          "/data/docker/synapse/data:/data"
+        ];
+      };
+      "maubot" = {
+        image = "dock.mau.dev/maubot/maubot:latest";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/maubot/data:/data"
+        ];
+      };
+      writefreely = {
+        image = "docker.io/writeas/writefreely:latest";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/writefreely/keys:/go/keys"
+          "/data/docker/writefreely/db:/db"
+          "/data/docker/writefreely/config.ini:/go/config.ini"
+        ];
+      };
+      # remotenet
+      rustdesk-hbbr = {
+        image = "docker.io/rustdesk/rustdesk-server:latest";
+        cmd = ["hbbr"];
+        networks = ["remotenet"];
+        ports = [
+          "21117:21117"
+        ];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
         };
-        "mealie".service = {
-          container_name = "mealie";
-          image = "ghcr.io/mealie-recipes/mealie:latest";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_mealie.path];
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/mealie/data:/app/data"
-          ];
+        volumes = [
+          "/data/docker/rustdesk/config:/root"
+        ];
+      };
+      rustdesk-hbbs = {
+        image = "docker.io/rustdesk/rustdesk-server:latest";
+        cmd = ["hbbs"];
+        networks = ["remotenet"];
+        ports = [
+          "21115:21115"
+          "21116:21116"
+          "21116:21116/udp"
+        ];
+        dependsOn = ["rustdesk-hbbr"];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
         };
-        "synapse".service = {
-          container_name = "synapse";
-          image = "ghcr.io/element-hq/synapse:latest";
-          env_file = [config.age.secrets.tty_ruinous_social_docker_env_synapse.path];
-          networks = ["datanet" "proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/synapse/data:/data"
-          ];
-        };
-        "synapse-maubot".service = {
-          container_name = "maubot";
-          image = "dock.mau.dev/maubot/maubot:latest";
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/maubot/data:/data"
-          ];
-        };
-        "writefreely".service = {
-          container_name = "writefreely";
-          image = "docker.io/writeas/writefreely:latest";
-          networks = ["proxynet"];
-          restart = "unless-stopped";
-          volumes = [
-            "/data/docker/writefreely/keys:/go/keys"
-            "/data/docker/writefreely/db:/db"
-            "/data/docker/writefreely/config.ini:/go/config.ini"
-          ];
-        };
+        volumes = [
+          "/data/docker/rustdesk/config:/root"
+        ];
       };
     };
   };

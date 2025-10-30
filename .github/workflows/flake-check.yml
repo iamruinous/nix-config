@@ -1,0 +1,29 @@
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: 
+      - main
+      - iamruinous/convert-blueprint
+
+jobs:
+  build:
+    name: Build Nix targets
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: nix-config
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+      - name: Cache Nix
+        uses: DeterminateSystems/flakehub-cache-action@v2
+      - name: Check nix
+        uses: DeterminateSystems/flake-checker-action@v12
+      - name: Check flake
+        run: nix flake check

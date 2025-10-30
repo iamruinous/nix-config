@@ -1,7 +1,12 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  perSystem,
+  ...
+}: {
   services.printing.drivers = [
-    pkgs.nelko-pl70ebt
+    perSystem.self.nelko-pl70ebt
   ];
+
   hardware.printers = {
     ensurePrinters = [
       {

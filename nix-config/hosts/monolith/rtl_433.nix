@@ -6,6 +6,8 @@
   config,
   ...
 }: {
+  networking.firewall.allowedTCPPorts = [8433 8915];
+
   hardware.rtl-sdr.enable = true;
 
   # System packages

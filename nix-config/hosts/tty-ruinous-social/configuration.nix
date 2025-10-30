@@ -4,19 +4,13 @@
 {
   config,
   pkgs,
+  flake,
   ...
 }: {
   imports = [
+    flake.nixosModules.default
+    flake.nixosModules.developer
     ./hardware-configuration.nix
-    ../modules/common.nix
-    ../modules/developer.nix
-    ../modules/nixos/backup-docker-postgres.nix
-    ../modules/nixos/common.nix
-    ../modules/nixos/docker.nix
-    ../modules/nixos/latest-kernel.nix
-    ../modules/nixos/restic.nix
-    ../modules/nixos/sudoless.nix
-    ../modules/nixos/tailscale.nix
     ./containers.nix
     #./disko.nix
   ];
@@ -24,8 +18,6 @@
   networking.hostName = "tty-ruinous-social"; # Define your hostname.
   networking.usePredictableInterfaceNames = false;
   networking.firewall.enable = true;
-  networking.firewall.interfaces."eth0".allowedTCPPorts = [80 443];
-  networking.firewall.interfaces."eth0".allowedUDPPorts = [443];
 
   environment.systemPackages = with pkgs; [
     inetutils
@@ -33,8 +25,18 @@
     sysstat
   ];
 
+  virtualisation.docker.enable = true;
+  services.backup-docker-postgres.enable = true;
+
   # update restic hostname to use tailscale
-  services.restic.backups.terranasbackup.repository = "sftp:tmbackup@terranas-1.greyhound-triceratops.ts.net:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
+  # services.restic.backups.terranasbackup.repository = "sftp:tmbackup@terranas-1.greyhound-triceratops.ts.net:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
+  services.restic.enableTerranas = true;
+
+  services.alloy.enable = true;
+  services.alloy.enableJournal = true;
+
+  services.tailscale.enable = true;
+  services.tailscale.useRoutingFeatures = "client";
 
   #  services.openssh.settings.UsePAM = true;
   #  services.openssh.settings.AllowUsers = ["git"];

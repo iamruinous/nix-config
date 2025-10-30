@@ -4,10 +4,10 @@
 {...}: {
   imports = [
     ./hardware-configuration.nix
-    ../modules/common.nix
-    ../modules/nixos/desktop-common.nix
-    ../modules/nixos/latest-kernel.nix
-    ../modules/nixos/xfce.nix
+    # ../modules/common.nix
+    # ../modules/nixos/desktop-common.nix
+    # ../modules/nixos/latest-kernel.nix
+    # ../modules/nixos/xfce.nix
   ];
 
   networking.hostName = "inspo"; # Define your hostname.

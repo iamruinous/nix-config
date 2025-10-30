@@ -5,22 +5,27 @@
   pkgs,
   lib,
   inputs,
+  flake,
   ...
 }: {
   imports = [
+    flake.nixosModules.default
+    flake.nixosModules.developer
+    flake.nixosModules.kde
+    flake.inputs.lanzaboote.nixosModules.lanzaboote
     inputs.hardware.nixosModules.framework-intel-core-ultra-series1
 
     ./hardware-configuration.nix
-    ../modules/common.nix
-    ../modules/developer.nix
-    ../modules/nixos/desktop-common.nix
-    ../modules/nixos/docker.nix
-    ../modules/nixos/flatpak.nix
-    # ../modules/nixos/hyprland-packages.nix
-    ../modules/nixos/kde.nix
-    ../modules/nixos/latest-kernel.nix
-    ../modules/nixos/restic.nix
-    ../modules/nixos/steam.nix
+    # ../modules/common.nix
+    # ../modules/developer.nix
+    # ../modules/nixos/desktop-common.nix
+    # ../modules/nixos/docker.nix
+    # ../modules/nixos/flatpak.nix
+    # # ../modules/nixos/hyprland-packages.nix
+    # ../modules/nixos/kde.nix
+    # ../modules/nixos/latest-kernel.nix
+    # ../modules/nixos/restic.nix
+    # ../modules/nixos/steam.nix
   ];
 
   networking.hostName = "framework"; # Define your hostname.
@@ -47,10 +52,15 @@
     dwarf-fortress
   ];
 
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  services.printing.enable = true;
+  services.printing.discoverable = true;
+  programs._1password.enable = true;
+  programs.steam.enable = true;
+  services.flatpak.enable = true;
+  services.desktopManager.plasma6.enable = true;
 
-  # Enable login with fingerprint reader
-  security.pam.services.login.fprintAuth = true;
+  # hint about wayland
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   # Enable the Hyprland DM
   # programs.hyprland = {
@@ -67,9 +77,15 @@
   services.xserver.updateDbusEnvironment = true;
   # Enable security services
   security.polkit.enable = true;
-  security.pam.services = {
-    hyprlock = {};
-  };
+  # security.pam.services = {
+  #   hyprlock = {};
+  # };
+
+  # Enable login with fingerprint reader
+  security.pam.services.login.fprintAuth = true;
+
+  # this system has a battery
+  programs.starship.settings.battery.disabled = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
