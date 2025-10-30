@@ -1,4 +1,9 @@
-.PHONY: bootstrap-mac install-nix install-nix-darwin darwin-rebuild
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild
+
+update-flake:
+  @echo "Updating flake..."
+  @nix flake update
+  @echo "Nix flake update complete."
 
 install-nix:
 	@echo "Installing Nix..."
