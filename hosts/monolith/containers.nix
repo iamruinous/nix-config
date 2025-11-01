@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443];
+  networking.firewall.allowedTCPPorts = [80 443 1883 8083 8084 8883];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
@@ -55,7 +55,7 @@
     backend = "docker";
     containers = {
       caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
+        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
         networks = [
           "proxynet"
           "servicenet"
@@ -95,6 +95,7 @@
         image = "docker.io/eclipse-mosquitto:2";
         networks = [
           "proxynet"
+          "servicenet"
         ];
         ports = [
           "1883:1883"
@@ -106,8 +107,7 @@
         volumes = [
           "${config.age.secrets.monolith_mosquitto_config.path}:/config/mosquitto.conf:ro"
           "${config.age.secrets.monolith_mosquitto_passwd.path}:/config/passwd:ro"
-          "/data/docker/caddy/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/mqtt.meskill.farm
-:/config/cert:ro"
+          # "/data/docker/caddy/data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/mqtt.meskill.farm:/config/cert:ro"
           "/data/docker/mosquitto/config:/config"
           "/data/docker/mosquitto/data:/mosquitto/data"
           "/data/docker/mosquitto/log:/mosquitto/log"
@@ -317,7 +317,7 @@
           UID = "4000";
           GID = "4000";
           TZ = "America/Phoenix";
-          FLASK_PORT = "8084";
+          FLASK_PORT = "8085";
           LOG_LEVEL = "info";
           BOOK_LANGUAGE = "en";
           USE_BOOK_TITLE = "true";
@@ -511,6 +511,7 @@
         };
         networks = ["servicenet"];
         volumes = [
+          "${config.age.secrets.monolith_mqtt-explorer_settings.path}:/mqtt-explorer/config/settings.json:ro"
           "/data/docker/mqtt-explorer/config:/mqtt-explorer/config"
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
@@ -606,7 +607,7 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_gluetun.path];
         ports = [
           "8080:8080"
-          "8084:8084"
+          "8085:8085"
           "8112:8112"
           "8191:8191"
           "6789:6789"
@@ -889,6 +890,10 @@
     owner = "1883";
     group = "1883";
     symlink = false;
+  };
+  age.secrets.monolith_mqtt-explorer_settings = {
+    file = ./files/mqtt-explorer/settings.json.age;
+    mode = "644";
   };
   age.secrets.monolith_docker_env_mariadb = {
     file = ./files/docker/env/mariadb.env.age;

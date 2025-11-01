@@ -41,6 +41,7 @@ in {
   "hosts/monolith/files/glance/glance.yml.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/mosquitto/mosquitto.conf.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/mosquitto/passwd.age".publicKeys = [jmeskill monolith];
+  "hosts/monolith/files/mqtt-explorer/settings.json.age".publicKeys = [jmeskill monolith];
 
   "hosts/monolith/files/docker/env/mariadb.env.age".publicKeys = [jmeskill monolith];
   "hosts/monolith/files/docker/env/n8n.env.age".publicKeys = [jmeskill monolith];
