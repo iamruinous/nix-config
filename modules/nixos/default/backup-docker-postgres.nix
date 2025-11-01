@@ -12,6 +12,7 @@ in {
     systemd.services.postgres-backup = {
       description = "postgres backup";
       path = with pkgs; [
+        bash
         coreutils
         docker
         gawk

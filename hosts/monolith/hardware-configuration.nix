@@ -36,13 +36,13 @@
         };
         vlanConfig.Id = 2;
       };
-      "20-vlan6" = {
-        netdevConfig = {
-          Kind = "vlan";
-          Name = "vlan6";
-        };
-        vlanConfig.Id = 6;
-      };
+      # "20-vlan6" = {
+      #   netdevConfig = {
+      #     Kind = "vlan";
+      #     Name = "vlan6";
+      #   };
+      #   vlanConfig.Id = 6;
+      # };
       # Create the bridge interface
       # "20-mvbr0" = {
       #   netdevConfig = {
@@ -55,20 +55,21 @@
       "30-manage" = {
         matchConfig.Name = "enp2s0f0np0";
         networkConfig.DHCP = false;
-        address = ["10.55.10.54/24"];
-        gateway = ["10.55.10.1"];
+        # address = ["10.55.10.54/24"];
+        # gateway = ["10.55.10.1"];
         dns = ["10.55.10.35"];
-        vlan = ["vlan2" "vlan6"];
+        vlan = ["vlan2"];
         linkConfig.RequiredForOnline = "carrier";
       };
       "40-svc" = {
         matchConfig.Name = "vlan2";
         address = ["10.55.20.24/24"];
+        gateway = ["10.55.20.1"];
       };
-      "40-iot" = {
-        matchConfig.Name = "vlan6";
-        address = ["10.55.60.24/24"];
-      };
+      # "40-iot" = {
+      #   matchConfig.Name = "vlan6";
+      #   address = ["10.55.60.24/24"];
+      # };
       # "40-macvlan" = {
       #   matchConfig.Name = "mvbr0";
       #   mode = "bridge";

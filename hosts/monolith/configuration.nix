@@ -16,6 +16,7 @@
     ./disko.nix
     ./nfs.nix
     ./printing.nix
+    ./caddy-cert-copy.nix
     ./rtl_433.nix
   ];
 
