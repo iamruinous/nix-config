@@ -65,14 +65,15 @@
       "30-manage" = {
         matchConfig.Name = "enp2s0";
         networkConfig.DHCP = false;
-        address = ["10.55.10.52/24"];
-        gateway = ["10.55.10.1"];
+        # address = ["10.55.10.52/24"];
+        # gateway = ["10.55.10.1"];
         dns = ["10.55.10.35"];
         vlan = ["vlan2"];
       };
       "40-svc" = {
         matchConfig.Name = "vlan2";
         address = ["10.55.20.22/24"];
+        gateway = ["10.55.20.1"];
       };
       # "40-macvlan" = {
       #   matchConfig.Name = "mvbr0";
@@ -117,6 +118,9 @@
   #   # ];
   #   # interfaces.virbr0.useDHCP = true;
   # };
+
+  networking.useDHCP = lib.mkDefault false;
+  networking.wireless.enable = false;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.enableRedistributableFirmware = true;
