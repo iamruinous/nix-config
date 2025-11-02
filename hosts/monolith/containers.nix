@@ -364,7 +364,7 @@
         ];
       };
       ersatztv = {
-        image = "docker.io/jasongdove/ersatztv:latest-vaapi";
+        image = "docker.io/jasongdove/ersatztv:v25.8.0";
         ports = ["8409:8409"];
         environment = {
           TZ = "America/Phoenix";
@@ -666,7 +666,7 @@
       #   ];
       # };
       pinchflat = {
-        image = "ghcr.io/kieraneglin/pinchflat:v2025.6.6";
+        image = "ghcr.io/kieraneglin/pinchflat:latest";
         environment = {
           TZ = "America/Phoenix";
         };
