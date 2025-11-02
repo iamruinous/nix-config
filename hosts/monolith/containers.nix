@@ -842,15 +842,15 @@
           "/data/docker/tasktrove/config:/app/data"
         ];
       };
-      weatherflow = {
-        image = "docker.io/briis/weatherflow2mqtt:3.2.2";
-        ports = ["50222:50222/udp"];
-        environmentFiles = [config.age.secrets.monolith_docker_env_weatherflow.path];
-        networks = ["proxynet"];
-        volumes = [
-          "/data/docker/weatherflow/config:/usr/local/config"
-        ];
-      };
+      # weatherflow = {
+      #   image = "docker.io/briis/weatherflow2mqtt:3.2.2";
+      #   ports = ["50222:50222/udp"];
+      #   environmentFiles = [config.age.secrets.monolith_docker_env_weatherflow.path];
+      #   networks = ["proxynet"];
+      #   volumes = [
+      #     "/data/docker/weatherflow/config:/usr/local/config"
+      #   ];
+      # };
       zigbee2mqtt = {
         image = "ghcr.io/koenkk/zigbee2mqtt:2";
         environment = {
@@ -931,8 +931,8 @@
     file = ./files/docker/env/stepca.env.age;
     mode = "600";
   };
-  age.secrets.monolith_docker_env_weatherflow = {
-    file = ./files/docker/env/weatherflow.env.age;
-    mode = "600";
-  };
+  # age.secrets.monolith_docker_env_weatherflow = {
+  #   file = ./files/docker/env/weatherflow.env.age;
+  #   mode = "600";
+  # };
 }

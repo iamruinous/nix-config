@@ -1,3 +1,4 @@
+# ruinous.mariadb.docker.backup.enable = true;
 {
   config,
   pkgs,
@@ -6,7 +7,7 @@
 }: let
   scripts_dir = ../../../files/scripts;
   mariadb_backup_script = "${scripts_dir}/mariadb_backup.sh";
-  cfg = config.services.backup-docker-mariadb;
+  cfg = config.ruinous.mariadb.docker.backup;
 in {
   config = lib.mkIf cfg.enable {
     systemd.services.mariadb-backup = {

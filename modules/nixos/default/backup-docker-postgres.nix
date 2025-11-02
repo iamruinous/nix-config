@@ -1,3 +1,4 @@
+# ruinous.postgres.docker.backup.enable = true;
 {
   config,
   pkgs,
@@ -6,7 +7,7 @@
 }: let
   scripts_dir = ../../../files/scripts;
   postgres_backup_script = "${scripts_dir}/postgres_backup.sh";
-  cfg = config.services.backup-docker-postgres;
+  cfg = config.ruinous.postgres.docker.backup;
 in {
   config = lib.mkIf cfg.enable {
     systemd.services.postgres-backup = {

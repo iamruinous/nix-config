@@ -1,35 +1,34 @@
 {lib, ...}: {
-  options.services.backup-docker-mariadb.enable = lib.options.mkEnableOption "backup-docker-mariadb";
-  options.services.backup-docker-postgres.enable = lib.options.mkEnableOption "backup-docker-postgres";
+  options = {
+    ruinous.mariadb.docker.backup.enable = lib.options.mkEnableOption "backup-docker-mariadb";
+    ruinous.postgres.docker.backup.enable = lib.options.mkEnableOption "backup-docker-postgres";
 
-  options.services.restic = {
-    enableTerranas = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "enable restic using terranas backup";
+    ruinous.restic.terranas = {
+      enable = lib.mkEnableOption "enable terranas restic backup";
+
+      username = lib.mkOption {
+        type = lib.types.str;
+        default = "tmbackup";
+        description = "restic terranas username";
+      };
+
+      hostname = lib.mkOption {
+        type = lib.types.str;
+        default = "terranas.manage.farmhouse.meskill.network";
+        description = "restic terranas hostname";
+      };
     };
 
-    terranasHostname = lib.mkOption {
-      type = lib.types.str;
-      default = "terranas.manage.farmhouse.meskill.network";
-      description = "restic terranas hostname";
-    };
-  };
+    ruinous.printing.discoverable = lib.mkEnableOption "make printers discoverable";
 
-  options.services.printing = {
-    discoverable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "make printers discoverable";
-    };
-  };
+    ruinous.alloy = {
+      journal.enable = lib.options.mkEnableOption "enable alloy journal";
 
-  options.services.alloy = {
-    enableJournal = lib.options.mkEnableOption "enableJournal";
-    lokiUrl = lib.mkOption {
-      type = lib.types.str;
-      default = "https://loki.meskill.farm";
-      description = "Loki url fragment";
+      loki.url = lib.mkOption {
+        type = lib.types.str;
+        default = "https://loki.meskill.farm";
+        description = "Loki url fragment";
+      };
     };
   };
 }

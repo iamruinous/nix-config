@@ -19,13 +19,18 @@
   virtualisation.libvirtd.enable = true;
   virtualisation.docker.enable = true;
   services.printing.enable = true;
-  services.printing.discoverable = true;
+
+  ruinous.printing.discoverable = true;
   # programs.hyprland.enable = true;
   # programs._1password.enable = true;
   services.prometheus.exporters.node.enable = true;
-  services.restic.enableTerranas = true;
+
+  ruinous.restic.terranas.enable = true;
   services.alloy.enable = true;
-  services.alloy.enableJournal = true;
+  services.alloy.journal.enable = true;
+  x3ro.tailscale.enable = true;
+  x3ro.tailscale.publicInterface = "vlan2";
+  services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

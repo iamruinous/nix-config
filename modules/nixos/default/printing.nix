@@ -1,9 +1,10 @@
+# ruinous.printing.discoverable = true;
 {
   lib,
   config,
   ...
 }: let
-  cfg = config.services.printing;
+  cfg = config.ruinous.printing;
 in {
   config = lib.mkIf cfg.discoverable {
     services.avahi = {

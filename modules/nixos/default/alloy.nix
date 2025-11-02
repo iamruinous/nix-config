@@ -1,8 +1,9 @@
+# ruinous.alloy.journal.enable = true;
 {config, ...}: let
-  cfg = config.services.alloy;
+  cfg = config.ruinous.alloy;
 in {
   environment.etc."alloy/journal.alloy" = {
-    enable = cfg.enableJournal;
+    enable = cfg.journal.enable;
     text = ''
       loki.relabel "journal" {
         forward_to = []
@@ -23,7 +24,7 @@ in {
 
       loki.write "main_loki" {
          endpoint {
-            url = "${config.services.alloy.lokiUrl}/loki/api/v1/push"
+            url = "${cfg.loki.url}/loki/api/v1/push"
          }
       }
     '';

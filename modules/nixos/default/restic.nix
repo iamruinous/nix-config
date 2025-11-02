@@ -1,11 +1,12 @@
+# ruinous.restic.terranas.enable = true;
 {
   config,
   lib,
   ...
 }: let
-  cfg = config.services.restic;
+  cfg = config.ruinous.restic.terranas;
 in {
-  config = lib.mkIf cfg.enableTerranas {
+  config = lib.mkIf cfg.enable {
     # Enable restic backups
     services.restic.backups = {
       terranasbackup = {
@@ -25,7 +26,7 @@ in {
           "/home/*/Downloads"
         ];
         initialize = lib.mkDefault true;
-        repository = lib.mkDefault "sftp:tmbackup@${cfg.terranasHostname}:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
+        repository = lib.mkDefault "sftp:${cfg.username}@${cfg.hostname}:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
         passwordFile = config.age.secrets.restic_password.path;
         timerConfig = {
           OnCalendar = "00:05";
