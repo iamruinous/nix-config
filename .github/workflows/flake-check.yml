@@ -15,6 +15,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Free up disk space 
+        uses: wimpysworld/nothing-but-nix@main
+        with:
+          hatchet-protocol: 'holster'
       - name: Install Nix
         uses: DeterminateSystems/determinate-nix-action@v3
       - name: Cache Nix
