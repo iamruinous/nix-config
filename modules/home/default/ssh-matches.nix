@@ -122,13 +122,8 @@ in {
         user = "iamruinous";
       };
 
-      "tty.ruinous.social" = {
+      "ruinous.social tty.ruinous.social" = {
         hostname = "tty.ruinous.social";
-        user = "iamruinous";
-      };
-
-      "ruinous.social tty2.ruinous.social" = {
-        hostname = "tty2.ruinous.social";
         user = "jmeskill";
       };
 
