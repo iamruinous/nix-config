@@ -1,8 +1,12 @@
+# ruinous.starship.battery.enabled = true;
 {
   pkgs,
   lib,
+  config,
   ...
-}: {
+}: let
+  cfg = config.ruinous.starship;
+in {
   # Starship configuration
   programs.starship = {
     enable = lib.mkDefault true;
@@ -141,7 +145,7 @@
         full_symbol = "󰁹";
         charging_symbol = "󰚥 ";
         discharging_symbol = "󰁺 ";
-        disabled = lib.mkDefault true;
+        disabled = !cfg.battery.enable;
       };
       battery.display = [
         {

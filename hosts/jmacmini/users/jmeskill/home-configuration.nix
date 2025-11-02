@@ -5,10 +5,10 @@
   ];
 
   # Enable todoist
-  services.todoist-auto.enable = true;
+  ruinous.todoist.sync.enable = true;
 
   # Enable vdirsyncer
-  services.vdirsyncer-auto.enable = true;
+  ruinous.vdirsyncer.sync.enable = true;
 
   # Ensure homebrew is in the PATH
   home.sessionPath = [
@@ -18,7 +18,7 @@
   xdg.configFile."aerospace/aerospace.toml".source = ./aerospace.toml;
 
   programs.wezterm.enable = true;
-  programs.ssh-interactive.enable = true;
+  ruinous.openssh.remote.forwarding.enable = true;
 
   home.stateVersion = "25.05";
 }

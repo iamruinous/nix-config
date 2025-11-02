@@ -53,7 +53,7 @@
   ];
 
   services.printing.enable = true;
-  services.printing.discoverable = true;
+  ruinous.printing.discoverable = true;
   programs._1password.enable = true;
   programs.steam.enable = true;
   services.flatpak.enable = true;

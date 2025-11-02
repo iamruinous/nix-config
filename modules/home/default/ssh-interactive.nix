@@ -1,12 +1,11 @@
+# ruinous.openssh.remote.forwarding = true;
 {
   config,
   lib,
   ...
 }: let
-  cfg = config.programs.ssh-interactive;
+  cfg = config.ruinous.openssh.remote.forwarding;
 in {
-  options.programs.ssh-interactive.enable = lib.options.mkEnableOption "ssh-interactive";
-
   config = lib.mkIf cfg.enable {
     programs.ssh = {
       enableDefaultConfig = lib.mkDefault false;

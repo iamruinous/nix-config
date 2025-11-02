@@ -5,10 +5,10 @@
   ];
 
   # Enable todoist
-  services.todoist-auto.enable = true;
+  ruinous.todoist.sync.enable = true;
 
   # Enable vdirsyncer
-  services.vdirsyncer-auto.enable = true;
+  ruinous.vdirsyncer.sync.enable = true;
 
   # Ensure homebrew is in the PATH
   home.sessionPath = [

@@ -1,3 +1,4 @@
+# ruinous.todoist.sync.enable = true;
 {
   config,
   lib,
@@ -5,7 +6,7 @@
   ...
 }:
 with lib; let
-  cfg = config.services.todoist-auto;
+  cfg = config.ruinous.todoist.sync;
 in {
   config = mkIf cfg.enable (mkMerge [
     (mkIf pkgs.stdenv.isLinux {

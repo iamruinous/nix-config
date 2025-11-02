@@ -26,14 +26,14 @@
   ];
 
   virtualisation.docker.enable = true;
-  services.backup-docker-postgres.enable = true;
+  ruinous.postgres.docker.backup.enable = true;
 
   # update restic hostname to use tailscale
   # services.restic.backups.terranasbackup.repository = "sftp:tmbackup@terranas-1.greyhound-triceratops.ts.net:/mnt/tank/tmbackup/linux-backup/${config.networking.hostName}";
-  services.restic.enableTerranas = true;
+  ruinous.restic.terranas.enable = true;
 
   services.alloy.enable = true;
-  services.alloy.enableJournal = true;
+  ruinous.alloy.journal.enable = true;
 
   services.tailscale.enable = true;
   services.tailscale.useRoutingFeatures = "client";

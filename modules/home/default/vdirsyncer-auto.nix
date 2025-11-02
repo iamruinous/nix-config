@@ -1,3 +1,4 @@
+# ruinous.vdirsyncer.sync.enable = true;
 {
   config,
   lib,
@@ -5,7 +6,7 @@
   ...
 }:
 with lib; let
-  cfg = config.services.vdirsyncer-auto;
+  cfg = config.ruinous.vdirsyncer.sync;
 in {
   config = mkIf cfg.enable (mkMerge [
     (mkIf pkgs.stdenv.isLinux {

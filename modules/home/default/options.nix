@@ -1,19 +1,11 @@
 {lib, ...}: {
-  options.services.todoist-auto = {
-    enable = lib.mkOption {
-      default = false;
-      description = ''
-        Whether to enable todoist auto-sync.
-      '';
-    };
-  };
+  options = {
+    ruinous.starship.battery.enable = lib.mkEnableOption "enable battery in starship";
 
-  options.services.vdirsyncer-auto = {
-    enable = lib.mkOption {
-      default = false;
-      description = ''
-        Whether to enable vdirsyncer auto-sync.
-      '';
-    };
+    ruinous.openssh.remote.forwarding.enable = lib.mkEnableOption "forward agent on remote interactive shell";
+
+    ruinous.todoist.sync.enable = lib.mkEnableOption "Whether to enable todoist auto-sync";
+
+    ruinous.vdirsyncer.sync.enable = lib.mkEnableOption "Whether to enable vdirsyncer auto-sync";
   };
 }

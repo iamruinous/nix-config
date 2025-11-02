@@ -9,13 +9,13 @@ in {
   ];
 
   # Enable todoist
-  services.todoist-auto.enable = true;
+  ruinous.todoist.sync.enable = true;
 
   # Enable vdirsyncer
-  services.vdirsyncer-auto.enable = true;
+  ruinous.vdirsyncer.sync.enable = true;
 
   programs.wezterm.enable = true;
-  programs.ssh-interactive.enable = true;
+  ruinous.openssh.remote.forwarding.enable = true;
 
   programs.plasma = {
     enable = true;

@@ -69,6 +69,7 @@
         # gateway = ["10.55.10.1"];
         dns = ["10.55.10.35"];
         vlan = ["vlan2"];
+        linkConfig.RequiredForOnline = "carrier";
       };
       "40-svc" = {
         matchConfig.Name = "vlan2";
