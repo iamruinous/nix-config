@@ -51,7 +51,7 @@ in {
         user = "root";
       };
       "monolith" = {
-        hostname = "monolith.manage.farmhouse.meskill.network";
+        hostname = "monolith.svc.farmhouse.meskill.network";
         user = "jmeskill";
       };
       "moonstone" = {
@@ -63,7 +63,7 @@ in {
         user = "root";
       };
       "obelisk" = {
-        hostname = "obelisk.manage.farmhouse.meskill.network";
+        hostname = "obelisk.svc.farmhouse.meskill.network";
         user = "jmeskill";
       };
       "obsidian" = {
