@@ -23,6 +23,7 @@
       "crush"
       "gemini-cli"
       "mas"
+      "opencode"
       "step"
     ];
     casks = [
@@ -33,6 +34,8 @@
       "balenaetcher"
       "blockblock"
       "claude"
+      "claude-code"
+      "codex"
       "cyberduck"
       "deskpad"
       "dropbox"

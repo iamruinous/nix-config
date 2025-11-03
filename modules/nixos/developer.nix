@@ -68,8 +68,11 @@
     ]
     ++ (pkgs.lib.optionals pkgs.stdenv.isLinux [
       # ai tools (brew on macos)
+      claude-code
+      codex
       crush
       gemini-cli
+      opencode
 
       zig # zig currently broken on Darwin
       zls
