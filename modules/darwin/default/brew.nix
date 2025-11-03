@@ -17,6 +17,8 @@
 
   homebrew = {
     enable = pkgs.stdenv.isDarwin;
+    onActivation.autoUpdate = true;
+    onActivation.cleanup = "zap";
     onActivation.upgrade = true;
     brews = [
       "boring"
@@ -64,7 +66,6 @@
       "ggozad/formulas"
       "nikitabobko/tap"
     ];
-    onActivation.cleanup = "zap";
     masApps = {
       "Amphetamine" = 937984704;
       "Bitwarden" = 1352778147;
