@@ -60,7 +60,7 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
-    gemini
+    gemini-cli
     tmux
   ];
 }

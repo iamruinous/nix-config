@@ -20,4 +20,9 @@ darwin-rebuild:
 	@darwin-rebuild switch --flake .#$(hostname)
 	@echo "Darwin rebuild complete."
 
+remote-rebuild:
+	@echo "Rebuilding remote configuration..."
+  @nixos-rebuild --sudo --target-host $(remotehost).manage.farmhouse.meskill.network switch --flake .#$(remotehost) --accept-flake-config 
+	@echo "Remote rebuild complete."
+
 bootstrap-mac: install-nix install-nix-darwin
