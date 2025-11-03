@@ -1,6 +1,13 @@
 {
   "tools" : {
     "sandbox": true
-
-  }
+  },
+  "mcpServers": [
+    {
+      "name": "mcp-nixos",
+      "type": "local",
+      "command": "/nix/var/nix/profiles/default/bin/nix",
+      "args": ["run", "github:utensils/mcp-nixos"]
+    }
+  ]
 }
