@@ -61,6 +61,7 @@
       "soundsource"
       "spotify"
       "steam"
+      "telegram"
     ];
     taps = [
       "charmbracelet/tap"

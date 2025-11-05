@@ -138,8 +138,8 @@ alt-t = 'workspace T'
 ## alt-u = 'workspace U'
 ## alt-v = 'workspace V'
 alt-w = 'workspace W'
-## alt-x = 'workspace X'
-## alt-y = 'workspace Y'
+alt-x = 'workspace X'
+alt-y = 'workspace Y'
 ## alt-z = 'workspace Z'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
@@ -171,8 +171,8 @@ alt-shift-t = 'move-node-to-workspace T'
 ## alt-shift-u = 'move-node-to-workspace U'
 ## alt-shift-v = 'move-node-to-workspace V'
 alt-shift-w = 'move-node-to-workspace W'
-## alt-shift-x = 'move-node-to-workspace X'
-## alt-shift-y = 'move-node-to-workspace Y'
+alt-shift-x = 'move-node-to-workspace X'
+alt-shift-y = 'move-node-to-workspace Y'
 ## alt-shift-z = 'move-node-to-workspace Z'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
@@ -284,6 +284,12 @@ run = 'move-node-to-workspace N'
 if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Chat
 run = 'move-node-to-workspace C'
 
+# E - Element
+
+[[on-window-detected]]
+if.app-id = 'im.riot.app'
+run = 'move-node-to-workspace E'
+
 # F - Fantastical Space
 
 [[on-window-detected]]
@@ -295,12 +301,6 @@ run = 'move-node-to-workspace F'
 [[on-window-detected]]
 if.app-id = 'com.mimestream.Mimestream'
 run = 'move-node-to-workspace M'
-
-# N - Spotify
-
-[[on-window-detected]]
-if.app-id = 'com.spotify.client'
-run = 'move-node-to-workspace N'
 
 # O - Obsidian Space
 
@@ -314,8 +314,14 @@ run = 'move-node-to-workspace O'
 if.app-id = 'com.todoist.mac.Todoist'
 run = 'move-node-to-workspace T'
 
-# S - Slack Space
+# S - Spotify
 
 [[on-window-detected]]
-if.app-id = 'com.tinyspeck.slackmacgap'
+if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace S'
+
+# X - Telegram
+
+[[on-window-detected]]
+if.app-id = 'ru.keepcoder.Telegram'
+run = 'move-node-to-workspace T'
