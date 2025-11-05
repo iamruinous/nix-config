@@ -9,7 +9,7 @@ require("mason-null-ls").setup {
   ensure_installed = {},
   automatic_installation = false,
 }
-require('mason-tool-installer').setup {
+require("mason-tool-installer").setup {
   ensure_installed = {},
   run_on_start = false,
 }

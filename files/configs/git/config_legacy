@@ -73,5 +73,6 @@
 
 [gpg "ssh"]
 	allowedSignersFile = ~/.config/git/allowed_signers
+
 [init]
 	defaultBranch = main

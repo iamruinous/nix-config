@@ -13,7 +13,7 @@
     enableRosetta = pkgs.stdenv.isDarwin && pkgs.system == "aarch64-darwin";
     user = config.system.primaryUser;
     autoMigrate = lib.mkDefault true;
-    mutableTaps = false;
+    # mutableTaps = false;
   };
 
   homebrew = {

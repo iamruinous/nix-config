@@ -1,11 +1,9 @@
 {lib, ...}: let
   git_config = ../../../files/configs/git;
 in {
-  # home.file.".ssh/allowed_signers".text = ''
-  #   iamruinous@ruinous.social ${builtins.readFile ~/.ssh/id_ed25519.pub}
-  #   iamruinous@ruinous.social ${builtins.readFile ~/.ssh/id_ruinous_computer_ed25519.pub}
-  #   jade.meskill@gmail.com ${builtins.readFile ~/.ssh/id_jademeskill_ed25519.pub}
-  # '';
+  home.file.".ssh/allowed_signers".text = ''
+    iamruinous@ruinous.social ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm
+  '';
 
   programs.lazygit = {
     enable = lib.mkDefault true;
@@ -32,6 +30,10 @@ in {
       {
         path = "~/.config/git/includes/github.inc";
         condition = "gitdir/i:github\\/iamruinous/";
+      }
+      {
+        path = "~/.config/git/includes/ruinous-social.inc";
+        condition = "gitdir/i:farmforge\/iamruinous/";
       }
       {
         path = "~/.config/git/includes/ruinous-social.inc";
@@ -63,6 +65,8 @@ in {
       diff.submodule = "log";
       branch.autosetupmerge = "true";
       init.defaultBranch = "main";
+      gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
+      gpg.format = "ssh";
     };
   };
 
