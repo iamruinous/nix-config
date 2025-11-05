@@ -112,6 +112,8 @@
       nixpkgs.config.allowUnfree = true;
     }
     // {
+      inherit (inputs.self.lib) users;
+
       # packages = pkgs.perSystem.default;
       caches = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="

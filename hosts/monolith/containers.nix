@@ -410,6 +410,28 @@
         ];
         dependsOn = ["gluetun"];
       };
+      forgejo = {
+        image = "codeberg.org/forgejo/forgejo:13";
+        environment = {
+          USER_UID = "2000";
+          USER_GID = "2000";
+        };
+        networks = [
+          "proxynet"
+          "datanet"
+          "servicenet"
+        ];
+        ports = [
+          "127.0.0.1:2222:22"
+        ];
+        volumes = [
+          "/data/docker/forgejo/data:/data"
+          "/home/git/.ssh:/data/git/.ssh"
+          "/home/git/.gnupg:/data/git/.gnupg"
+          "/etc/timezone:/etc/timezone:ro"
+          "/etc/localtime:/etc/localtime:ro"
+        ];
+      };
       frigate = {
         image = "ghcr.io/blakeblackshear/frigate:stable";
         networks = ["servicenet"];
@@ -518,14 +540,15 @@
         ];
       };
       n8n = {
-        image = "docker.n8n.io/n8nio/n8n:1.112.6";
+        image = "docker.n8n.io/n8nio/n8n:1.119.0";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
           N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = "true";
           N8N_RUNNERS_ENABLED = "true";
+          N8N_PROXY_HOPS = "1";
           DB_TYPE = "postgresdb";
-          WEBHOOK_URL = "https://n8n.meskill.farm";
+          WEBHOOK_URL = "https://n8h.meskill.farm";
           N8N_EDITOR_BASE_URL = "https://n8n.meskill.farm";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];

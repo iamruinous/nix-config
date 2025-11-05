@@ -17,6 +17,8 @@
     ./nfs.nix
     ./printing.nix
     ./caddy-cert-copy.nix
+    ./cloudflared.nix
+    ./sshd.nix
     ./rtl_433.nix
   ];
 

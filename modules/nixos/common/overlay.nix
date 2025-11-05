@@ -3,6 +3,7 @@
     (_final: _prev: {
       inherit (perSystem) self;
       nelko-pl70ebt = perSystem.self.nelko-pl70ebt;
+      forgejo-shell = perSystem.self.forgejo-shell;
     })
   ];
 }
