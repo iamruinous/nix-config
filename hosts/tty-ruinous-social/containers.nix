@@ -164,28 +164,28 @@
           "/data/docker/baikal/specific:/var/www/baikal/Specific"
         ];
       };
-      forgejo = {
-        image = "codeberg.org/forgejo/forgejo:12";
-        environment = {
-          USER_UID = "2000";
-          USER_GID = "2000";
-        };
-        networks = [
-          "proxynet"
-          "datanet"
-          "servicenet"
-        ];
-        ports = [
-          "127.0.0.1:2222:22"
-        ];
-        volumes = [
-          "/data/docker/forgejo/data:/data"
-          "/home/git/.ssh:/data/git/.ssh"
-          "/home/git/.gnupg:/data/git/.gnupg"
-          "/etc/timezone:/etc/timezone:ro"
-          "/etc/localtime:/etc/localtime:ro"
-        ];
-      };
+      # forgejo = {
+      #   image = "codeberg.org/forgejo/forgejo:12";
+      #   environment = {
+      #     USER_UID = "2000";
+      #     USER_GID = "2000";
+      #   };
+      #   networks = [
+      #     "proxynet"
+      #     "datanet"
+      #     "servicenet"
+      #   ];
+      #   ports = [
+      #     "127.0.0.1:2222:22"
+      #   ];
+      #   volumes = [
+      #     "/data/docker/forgejo/data:/data"
+      #     "/home/git/.ssh:/data/git/.ssh"
+      #     "/home/git/.gnupg:/data/git/.gnupg"
+      #     "/etc/timezone:/etc/timezone:ro"
+      #     "/etc/localtime:/etc/localtime:ro"
+      #   ];
+      # };
       karakeep = {
         image = "ghcr.io/karakeep-app/karakeep:release";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
