@@ -8,15 +8,18 @@
     flake.inputs.microvm.nixosModules.host
   ];
 
-  networking.firewall.allowedTCPPorts = [2222];
-  # networking.macvlans.mv-eth0-host = {
-  #   interface = "enp2s0";
-  #   mode = "bridge";
-  # };
+  # networking.firewall.allowedTCPPorts = [2222 2223];
 
-  microvm.autostart = ["messytty"];
+  # microvm.autostart = ["messytty" "ruinous-tty"];
   microvm.vms = {
-    messytty.config = import ./microvms/messytty.nix {inherit inputs pkgs;};
-    # messytty = tracedAttrset.config;
+    # messytty.config = import ./microvms/messytty.nix {inherit inputs pkgs;};
+    # ruinitty = {
+    #   inherit flake;
+    #   updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config#ruinitty";
+    # };
+    ruinous-tty = {
+      inherit flake;
+      updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config";
+    };
   };
 }

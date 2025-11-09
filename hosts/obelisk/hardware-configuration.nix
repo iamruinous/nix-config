@@ -122,6 +122,7 @@
 
   networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = false;
+  networking.networkmanager.enable = false;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.enableRedistributableFirmware = true;

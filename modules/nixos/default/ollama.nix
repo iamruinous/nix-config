@@ -1,3 +1,4 @@
+# services.ollama.enable = true;
 {
   lib,
   config,

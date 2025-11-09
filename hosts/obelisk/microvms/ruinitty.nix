@@ -1,19 +1,17 @@
 {pkgs, ...}: let
   sshKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm iamruinous@ruinous.social"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIHrfqbC3NHGjwLhV4qoBCWZ44DU7dfyhUJJ83XCD1LD messy@messytty"
   ];
 in {
   # The configuration for the MicroVM.
   # Multiple definitions will be merged as expected.
   system.stateVersion = "25.05";
 
-  networking.hostName = "messytty";
+  networking.hostName = "ruinitty";
 
-  users.users.root.password = "password";
   users.users.root.openssh.authorizedKeys.keys = sshKeys;
 
-  users.users.messy = {
+  users.users.jmeskill = {
     password = "password";
     extraGroups = ["wheel"];
     group = "users";
@@ -29,10 +27,10 @@ in {
     interfaces = [
       {
         type = "macvtap";
-        id = "mvtap1";
+        id = "mvtap2";
         macvtap.link = "vlan2";
         macvtap.mode = "bridge";
-        mac = "02:02:00:00:00:01";
+        mac = "02:02:00:00:00:02";
       }
     ];
 
@@ -64,6 +62,10 @@ in {
 
   environment.systemPackages = with pkgs; [
     gemini-cli
+    git
     tmux
   ];
+
+  # Fish configuration
+  programs.fish.enable = true;
 }

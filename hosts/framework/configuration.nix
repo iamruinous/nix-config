@@ -58,6 +58,7 @@
   programs.steam.enable = true;
   services.flatpak.enable = true;
   services.desktopManager.plasma6.enable = true;
+  boot.plymouth.enable = true;
 
   # hint about wayland
   environment.sessionVariables.NIXOS_OZONE_WL = "1";

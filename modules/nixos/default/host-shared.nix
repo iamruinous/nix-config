@@ -24,34 +24,8 @@
     })
     config.nix.registry;
 
-  boot = {
-    # plymouth for fancy boot splash
-    plymouth = {
-      enable = true;
-      theme = lib.mkDefault "motion";
-      themePackages = with pkgs; [
-        (adi1090x-plymouth-themes.override {
-          selected_themes = ["motion"];
-        })
-      ];
-    };
-    # enable silent boot
-    consoleLogLevel = 0;
-    initrd.verbose = false;
-    kernelParams = [
-      "quiet"
-      "splash"
-      "boot.shell_on_fail"
-      "loglevel=3"
-      "rd.systemd.show_status=false"
-      "rd.udev.log_level=3"
-      "udev.log_priority=3"
-    ];
-    loader.timeout = 3;
-  };
-
   # Networking
-  networking.networkmanager.enable = true;
+  networking.networkmanager.enable = lib.mkDefault true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -88,7 +62,7 @@
   services.locate.enable = true;
 
   # OpenSSH daemon
-  services.openssh.enable = true;
+  services.openssh.enable = lib.mkDefault true;
   services.openssh.extraConfig = ''
     Match User jmeskill
           AllowAgentForwarding yes

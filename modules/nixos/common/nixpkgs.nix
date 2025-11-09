@@ -17,4 +17,9 @@
       stable = perSystem.nixpkgs-stable;
     })
   ];
+
+  # put allowed insecure packages here
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-36.9.5"
+  ];
 }

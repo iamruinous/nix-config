@@ -102,6 +102,10 @@
     # <https://github.com/nix-community/nixos-anywhere>
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
     nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+
+    # impermanence
+    # <https://github.com/nix-community/impermanence>
+    impermanence.url = "github:nix-community/impermanence";
   };
 
   # Load the blueprint
@@ -113,6 +117,7 @@
     }
     // {
       inherit (inputs.self.lib) users;
+      # inherit (inputs.microvm) config;
 
       # packages = pkgs.perSystem.default;
       caches = [
