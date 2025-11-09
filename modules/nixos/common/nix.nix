@@ -25,7 +25,7 @@ in {
     download-buffer-size = 500000000;
 
     # Deduplicate and optimize nix store
-    auto-optimise-store = true;
+    auto-optimise-store = lib.mkDefault true;
 
     # Root and sudo users
     trusted-users = ["root" "@wheel"];

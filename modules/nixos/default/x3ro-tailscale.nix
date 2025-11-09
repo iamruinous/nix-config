@@ -52,5 +52,10 @@ in {
         ${pkgs.ethtool}/bin/ethtool -K ${cfg.publicInterface} rx-udp-gro-forwarding on rx-gro-list off
       '';
     };
+
+    environment.systemPackages = with pkgs; [
+      ethtool
+      networkd-dispatcher
+    ];
   };
 }

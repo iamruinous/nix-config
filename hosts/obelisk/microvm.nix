@@ -6,6 +6,7 @@
 }: {
   imports = [
     flake.inputs.microvm.nixosModules.host
+    flake.inputs.impermanence.nixosModules.impermanence
   ];
 
   # networking.firewall.allowedTCPPorts = [2222 2223];

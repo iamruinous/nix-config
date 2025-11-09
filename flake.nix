@@ -117,7 +117,6 @@
     }
     // {
       inherit (inputs.self.lib) users;
-      # inherit (inputs.microvm) config;
 
       # packages = pkgs.perSystem.default;
       caches = [
