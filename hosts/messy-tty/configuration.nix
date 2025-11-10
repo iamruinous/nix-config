@@ -9,7 +9,7 @@
     flake.nixosModules.developer
   ];
 
-  networking.hostName = "ruinous-tty";
+  networking.hostName = "messy-tty";
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
 
@@ -24,10 +24,10 @@
     interfaces = [
       {
         type = "macvtap";
-        id = "mvtap2";
+        id = "mvtap1";
         macvtap.link = "vlan2";
         macvtap.mode = "vepa";
-        mac = "02:02:00:00:00:02";
+        mac = "02:02:00:00:00:01";
       }
     ];
 
@@ -37,7 +37,7 @@
       {
         proto = "virtiofs";
         tag = "persistent";
-        source = "/persistent/microvms/ruinous-tty/persistent";
+        source = "/persistent/microvms/messy-tty/persistent";
         mountPoint = "/persistent";
       }
       {
@@ -50,18 +50,13 @@
   };
   environment.persistence."/persistent" = {
     hideMounts = true; # Hide the mount point from the root
-    users.jmeskill = {
+    users.messy = {
       directories = [
-        "Projects"
-        ".gemini"
-        ".local" # keep vim state
-        ".cache"
-        ".claude"
-        ".npm"
+        "Projects" # Persist user projects
       ];
-      files = [
-        ".claude.json"
-      ];
+      # files = [
+      #   ".bashrc" # Persist user's bashrc
+      # ];
     };
 
     files = [

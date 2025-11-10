@@ -9,18 +9,21 @@
     flake.inputs.impermanence.nixosModules.impermanence
   ];
 
-  # networking.firewall.allowedTCPPorts = [2222 2223];
-
-  # microvm.autostart = ["messytty" "ruinous-tty"];
+  microvm.autostart = ["messy-tty" "ruinous-tty"];
   microvm.vms = {
-    # messytty.config = import ./microvms/messytty.nix {inherit inputs pkgs;};
-    # ruinitty = {
-    #   inherit flake;
-    #   updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config#ruinitty";
-    # };
+    messy-tty = {
+      inherit flake;
+      updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config";
+    };
     ruinous-tty = {
       inherit flake;
       updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config";
     };
   };
+
+  # make sure directories exist or vm boot will fail
+  systemd.tmpfiles.rules = [
+    "d /persistent/microvms/messy-tty/persistent 0770 root root -"
+    "d /persistent/microvms/ruinous-tty/persistent 0770 root root -"
+  ];
 }

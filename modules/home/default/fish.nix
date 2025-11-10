@@ -1,8 +1,20 @@
+# ruinous.openssh.tmux.attach.enable = true;
 {
   lib,
   pkgs,
+  config,
   ...
-}: {
+}: let
+  cfg = config.ruinous.openssh.tmux.attach;
+  tmuxAttachScript =
+    if cfg.enable
+    then ''
+      if test -z "$TMUX" -a -n "$SSH_TTY"
+        exec ${pkgs.tmux}/bin/tmux new-session -A -s shell
+      end
+    ''
+    else "";
+in {
   # fish shell configuration
   programs.fish = {
     enable = lib.mkDefault true;
@@ -87,9 +99,7 @@
     ];
 
     interactiveShellInit = ''
-      if test -z "$TMUX" -a -n "$SSH_TTY"
-        exec ${pkgs.tmux}/bin/tmux new-session -A -s shell
-      end
+      ${tmuxAttachScript}
 
       if type -q ${pkgs.toilet}/bin/toilet; and type -q ${pkgs.lolcat}/bin/lolcat
         set -q TOILETMAXLENGTH || set TOILETMAXLENGTH 16
