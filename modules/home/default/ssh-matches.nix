@@ -30,20 +30,20 @@ in {
       };
 
       # manage
+      "mtty" = {
+        hostname = "messy.tty.meskill.farm";
+        user = "messy";
+      };
+      "rtty" = {
+        hostname = "ruinous.tty.meskill.farm";
+        user = "jmeskill";
+      };
       "void" = {
         hostname = "void.manage.farmhouse.meskill.network";
         user = "jmeskill";
       };
       "gap" = {
         hostname = "gap.manage.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "void86" = {
-        hostname = "void86.manage.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "gap86" = {
-        hostname = "gap86.manage.farmhouse.meskill.network";
         user = "jmeskill";
       };
       "it" = {
