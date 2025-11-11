@@ -48,6 +48,7 @@
       }
     ];
   };
+
   environment.persistence."/persistent" = {
     hideMounts = true; # Hide the mount point from the root
     users.messy = {
