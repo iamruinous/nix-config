@@ -4,7 +4,5 @@ pkgs.mkShell {
     ghostscript
     paperjam
     poppler-utils
-    densify
-    gotenberg
   ];
 }

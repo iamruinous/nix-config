@@ -3,7 +3,7 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 {
   flake,
-  pkgs,
+  config,
   ...
 }: {
   imports = [
@@ -23,7 +23,7 @@
     mem = 2047;
     vcpu = 2;
     hypervisor = "qemu";
-    writableStoreOverlay = "/nix/.rwstore";
+    writableStoreOverlay = "/nix/.rw-store";
 
     interfaces = [
       {
@@ -32,6 +32,14 @@
         macvtap.link = "vlan2";
         macvtap.mode = "vepa";
         mac = "02:02:00:00:00:02";
+      }
+    ];
+
+    volumes = [
+      {
+        image = "nix-store-overlay.img";
+        mountPoint = config.microvm.writableStoreOverlay;
+        size = 4096;
       }
     ];
 

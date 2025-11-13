@@ -1,7 +1,11 @@
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-{flake, ...}: {
+{
+  flake,
+  config,
+  ...
+}: {
   imports = [
     flake.inputs.microvm.nixosModules.microvm
     flake.inputs.impermanence.nixosModules.impermanence
@@ -19,7 +23,7 @@
     mem = 2047;
     vcpu = 2;
     hypervisor = "qemu";
-    writableStoreOverlay = "/nix/.rwstore";
+    writableStoreOverlay = "/nix/.rw-store";
 
     interfaces = [
       {
@@ -28,6 +32,14 @@
         macvtap.link = "vlan2";
         macvtap.mode = "vepa";
         mac = "02:02:00:00:00:01";
+      }
+    ];
+
+    volumes = [
+      {
+        image = "nix-store-overlay.img";
+        mountPoint = config.microvm.writableStoreOverlay;
+        size = 4096;
       }
     ];
 
