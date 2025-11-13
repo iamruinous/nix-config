@@ -11,6 +11,7 @@
     ./containers.nix
     ./nfs.nix
     ./printing.nix
+    ./sshd.nix
     ./microvm.nix
   ];
 

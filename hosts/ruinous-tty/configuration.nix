@@ -1,12 +1,21 @@
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-{flake, ...}: {
+{
+  flake,
+  pkgs,
+  ...
+}: {
   imports = [
     flake.inputs.microvm.nixosModules.microvm
     flake.inputs.impermanence.nixosModules.impermanence
     flake.nixosModules.default
     flake.nixosModules.developer
+  ];
+
+  environment.systemPackages = with pkgs; [
+    ghostscript
+    pdfinfo
   ];
 
   networking.hostName = "ruinous-tty";
