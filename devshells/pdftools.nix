@@ -2,6 +2,9 @@
 pkgs.mkShell {
   packages = with pkgs; [
     ghostscript
-    xpdf
+    paperjam
+    poppler-utils
+    densify
+    gotenberg
   ];
 }
