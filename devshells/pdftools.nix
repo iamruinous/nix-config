@@ -4,4 +4,8 @@ pkgs.mkShell {
     ghostscript
     xpdf
   ];
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "xpdf-4.05"
+  ];
 }
