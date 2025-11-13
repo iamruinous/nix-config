@@ -13,14 +13,13 @@
   users.users.git.extraGroups = ["docker"];
 
   programs.rush.enable = true;
-  programs.rush.rules = [
-    ''
-      rule change-command
-        match $command == "ls -la"
-        set [0] = "/bin/ls"
-        set [1] = "-alF"
-    ''
-  ];
+  programs.rush.rules = {
+    "change-command" = ''
+      match $command == "ls -la"
+      set [0] = "/bin/ls"
+      set [1] = "-alF"
+    '';
+  };
   users.users.messy = {
     inherit (config.programs.rush) shell;
     extraGroups = ["docker"];

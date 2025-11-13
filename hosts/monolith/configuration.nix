@@ -35,8 +35,7 @@
   ruinous.restic.terranas.enable = true;
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
-  x3ro.tailscale.enable = true;
-  x3ro.tailscale.publicInterface = "vlan2";
+  services.tailscale.enable = true;
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
   boot.plymouth.enable = true;
 

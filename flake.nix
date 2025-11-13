@@ -79,24 +79,19 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
 
-    # Declarative libvirt
-    # <https://github.com/AshleyYakeley/NixVirt>
-    NixVirt.url = "https://flakehub.com/f/AshleyYakeley/NixVirt/*.tar.gz";
-    NixVirt.inputs.nixpkgs.follows = "nixpkgs";
-
     # MicroVM
     # <https://github.com.astro/microvm>
     microvm.url = "github:astro/microvm.nix";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
 
-    # ai coding agents
-    # <https://github.com/numtide/nix-ai-tools>
-    nix-ai-tools.url = "github:numtide/nix-ai-tools";
+    # # ai coding agents
+    # # <https://github.com/numtide/nix-ai-tools>
+    # nix-ai-tools.url = "github:numtide/nix-ai-tools";
 
-    # nixos-lima VM builders
-    # <https://github.com/ciderale/nixos-lima>
-    nixos-lima.url = "github:ciderale/nixos-lima";
-    nixos-lima.inputs.nixpkgs.follows = "nixpkgs";
+    # # nixos-lima VM builders
+    # # <https://github.com/ciderale/nixos-lima>
+    # nixos-lima.url = "github:ciderale/nixos-lima";
+    # nixos-lima.inputs.nixpkgs.follows = "nixpkgs";
 
     # nixos-anywhere
     # <https://github.com/nix-community/nixos-anywhere>
