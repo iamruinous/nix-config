@@ -2,3 +2,10 @@
 .direnv
 result
 .nvimlog
+
+# Claude Code sensitive files
+.claude/settings.json
+.claude/settings.local.json
+.claude/chats/
+.claude/*.local
+.claude/.envrc

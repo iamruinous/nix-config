@@ -1,4 +1,4 @@
-.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild refresh-readme restore-readme
 
 update-flake:
   @echo "Updating flake..."
@@ -22,7 +22,18 @@ darwin-rebuild:
 
 remote-rebuild:
 	@echo "Rebuilding remote configuration..."
-  @nixos-rebuild --sudo --target-host $(remotehost).manage.farmhouse.meskill.network switch --flake .#$(remotehost) --accept-flake-config 
+  @nixos-rebuild --use-remote-sudo --target-host $(remotehost).manage.farmhouse.meskill.network switch --flake .#$(remotehost) --accept-flake-config
 	@echo "Remote rebuild complete."
+
+refresh-readme:
+	@echo "Pulling latest README.md from remote..."
+	@git fetch origin
+	@git checkout origin/main -- README.md
+	@echo "README.md refreshed from remote repository."
+
+restore-readme:
+	@echo "Restoring README.md from current commit (discarding local changes)..."
+	@git restore README.md
+	@echo "README.md restored from current commit."
 
 bootstrap-mac: install-nix install-nix-darwin
