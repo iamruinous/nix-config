@@ -7,6 +7,7 @@ let
   jmacmini = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBucoQ40ZvFyVdqtLqcITFVflxliTOHddWIso4fGwlX+";
   monolith = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzI0xVuc0SbWyDk+sVC5N3W4FzcAPOd5JCoJfTU2mTF";
   obelisk = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKz0mrGO9wDTjOq7wC8w5EFIxB0e/vKBGLnOL/kx7Ov+";
+  pilaster = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAg3OPJgudnx+mmP3HkFTHVhUnOFeMMb3pCUuXelPpBM";
   studio = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBVXtjGlDK/b/8KU5edVlMcF/pcrcqlm4S2o94XtGOPD";
   tty-ruinous-social = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmSBDge9Ab890sUudOY01sWUxXbd640VV1gHA+n1RYr";
 
@@ -20,6 +21,7 @@ let
     framework
     monolith
     obelisk
+    pilaster
   ];
 
   remote_linux_systems = [
