@@ -23,9 +23,9 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 │   │   └── common/       # Shared configurations
 │   ├── darwin/           # macOS-specific modules
 │   └── home/             # home-manager modules (fish, git, wezterm, tmux, etc.)
-├── packages/             # Custom Nix packages
+├── packages/             # Custom Nix packages (see packages/README.md)
 ├── users/                # User configurations (jmeskill, git, messy)
-├── devshells/            # Development shell environments
+├── devshells/            # Development shell environments (see devshells/README.md)
 ├── lib/                  # Custom Nix library functions
 ├── secrets/              # Encrypted secrets managed with agenix
 ├── files/                # Static configuration files
@@ -43,11 +43,13 @@ For detailed information about each host including hardware specifications, key 
 
 ## Custom Packages
 
-Custom packages are defined in `packages/` and include:
+This repository includes custom Nix packages for specialized functionality:
 
-- **[forgejo-shell](packages/forgejo-shell/README.md)** - SSH shell wrapper for Forgejo Docker container
-- **[messy-restricted-shell](packages/messy-restricted-shell/README.md)** - Restricted shell with whitelisted commands
-- **[nelko-pl70ebt](packages/nelko-pl70ebt/README.md)** - CUPS driver for Nelko PL70e-BT label printer
+- **forgejo-shell** - SSH shell wrapper for Forgejo Docker container
+- **messy-restricted-shell** - Restricted shell with whitelisted commands
+- **nelko-pl70ebt** - CUPS driver for Nelko PL70e-BT label printer
+
+For detailed information about each package including usage examples and dependencies, see **[packages/README.md](packages/README.md)**.
 
 ## Key Features
 
@@ -70,7 +72,7 @@ Multiple desktop environment modules available:
 
 ### Development
 
-- **Development Shells** - Pre-configured environments (default, pdftools, python313)
+- **Development Shells** - Pre-configured environments (see [devshells/README.md](devshells/README.md))
 - **[Devenv](https://devenv.sh)** - Integrated development environment support
 - **[Fenix](https://github.com/nix-community/fenix)** - Rust toolchain for reproducible Rust builds
 - **Docker** - Container support on multiple hosts
@@ -156,6 +158,8 @@ nix develop .#pdftools         # PDF manipulation tools
 nix develop .#python313        # Python 3.13 environment
 ```
 
+For detailed information about available shells, direnv integration, and creating custom shells, see **[devshells/README.md](devshells/README.md)**.
+
 ### Bootstrap macOS
 
 To bootstrap a fresh macOS system with Nix and nix-darwin:
@@ -188,97 +192,3 @@ agenix -e secrets/<secret-name>.age
 
 Secrets are automatically decrypted on the target system and available to services that reference them.
 
-## Using Devshells with direnv
-
-This repository uses [direnv](https://direnv.net/) to automatically load development environments when you enter a project directory. The `.envrc` file tells direnv which Nix devshell to load.
-
-### Current .envrc Configuration
-
-The root `.envrc` file loads the default devshell:
-
-```bash
-#!/usr/bin/env bash
-# Used by https://direnv.net
-source_up
-
-# Automatically reload when this file changes
-watch_file devshells/default.nix
-
-# Load `nix develop`
-use flake
-
-# Extend the environment with per-user overrides
-source_env_if_exists .envrc.local
-
-export SEATBELT_PROFILE="permissive-open-with-tmp"
-export GEMINI_SANDBOX=true
-```
-
-### Creating a New .envrc for a Specific Devshell
-
-To use a different devshell (e.g., `pdftools` or `python313`) in a project directory:
-
-1. **Create an `.envrc` file** in your project directory:
-
-```bash
-#!/usr/bin/env bash
-# Load a specific devshell from the nix-config flake
-use flake ~/Projects/github/iamruinous/nix-config#pdftools
-```
-
-2. **Allow direnv** to load the configuration:
-
-```bash
-direnv allow
-```
-
-3. **The environment will automatically load** when you `cd` into the directory
-
-### Available Devshells
-
-- **default** - `use flake` or `use flake .#default`
-- **pdftools** - `use flake .#pdftools` - PDF manipulation tools (ghostscript, poppler-utils, etc.)
-- **python313** - `use flake .#python313` - Python 3.13 environment
-
-### Creating a New Devshell
-
-1. **Create a new file** in `devshells/` (e.g., `devshells/nodejs.nix`):
-
-```nix
-{pkgs, ...}:
-pkgs.mkShell {
-  packages = with pkgs; [
-    nodejs_22
-    nodePackages.npm
-    nodePackages.pnpm
-    nodePackages.typescript
-  ];
-}
-```
-
-2. **The Blueprint system** automatically discovers and exposes it as a flake output
-
-3. **Use it in an `.envrc`**:
-
-```bash
-use flake ~/Projects/github/iamruinous/nix-config#nodejs
-```
-
-### .envrc Best Practices
-
-- **watch_file** - Automatically reload when specific files change:
-  ```bash
-  watch_file devshells/pdftools.nix
-  ```
-
-- **source_up** - Inherit environment from parent directories
-
-- **source_env_if_exists** - Load local overrides without tracking them in git:
-  ```bash
-  source_env_if_exists .envrc.local
-  ```
-
-- **Environment variables** - Export project-specific variables:
-  ```bash
-  export DATABASE_URL="postgresql://localhost/mydb"
-  ```
