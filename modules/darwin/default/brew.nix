@@ -27,6 +27,7 @@
       "gemini-cli"
       "mas"
       "opencode"
+      "picocom"
       "step"
     ];
     casks = [

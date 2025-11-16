@@ -22,8 +22,8 @@
   ruinous.restic.terranas.enable = true;
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
-  # services.tailscale.enable = true;
-  # services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
+  services.tailscale.enable = true;
+  services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
   boot.plymouth.enable = true;
 
   # This value determines the NixOS release from which the default
