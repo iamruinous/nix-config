@@ -4,6 +4,7 @@
 {
   flake,
   config,
+  pkgs,
   ...
 }: {
   imports = [
@@ -65,11 +66,17 @@
     hideMounts = true; # Hide the mount point from the root
     users.messy = {
       directories = [
-        "Projects" # Persist user projects
+        "Projects"
+        ".gemini"
+        ".local" # keep vim state
+        ".cache"
+        ".claude"
+        ".npm"
       ];
-      # files = [
-      #   ".bashrc" # Persist user's bashrc
-      # ];
+      files = [
+        ".claude.json"
+        ".cfcli.yml"
+      ];
     };
 
     files = [
@@ -88,6 +95,10 @@
       path = "/etc/ssh/ssh_host_ed25519_key";
       type = "ed25519";
     }
+  ];
+
+  environment.systemPackages = with pkgs; [
+    cloudflare-cli
   ];
 
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
