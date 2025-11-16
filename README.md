@@ -15,7 +15,7 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 ```
 .
 ├── flake.nix              # Main flake configuration with inputs and outputs
-├── hosts/                 # Individual host configurations (14 hosts)
+├── hosts/                 # Individual host configurations (see hosts/README.md)
 ├── modules/               # Reusable NixOS, Darwin, and home-manager modules
 │   ├── nixos/            # NixOS-specific modules
 │   │   ├── default/      # Common NixOS modules (docker, tailscale, backups, etc.)
@@ -34,41 +34,30 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 
 ## Hosts
 
-### NixOS Systems (9)
+This configuration manages 12 hosts across multiple platforms:
+- 6 NixOS servers (physical and cloud)
+- 3 NixOS MicroVMs (development environments)
+- 3 macOS systems (development workstations)
 
-- **framework** - Framework laptop with Intel Core Ultra, KDE Plasma 6, Lanzaboote secure boot
-- **monolith** - Primary server with Docker containers, NFS shares, Restic backups, Tailscale
-- **obelisk** - Server
-- **pilaster** - Server with Tailscale
-- **gap** - Workstation/server
-- **void** - Workstation/server
-- **ruinous-tty** - TTY-only system
-- **messy-tty** - TTY-only system with restricted shell
-- **tty-ruinous-social** - TTY-only system
-
-### macOS Systems (3)
-
-- **jmacmini** - Mac mini with nix-darwin
-- **jbookpro** - MacBook Pro with nix-darwin
-- **studio** - Mac Studio with nix-darwin
+For detailed information about each host including hardware specifications, key features, and purposes, see **[hosts/README.md](hosts/README.md)**.
 
 ## Custom Packages
 
 Custom packages are defined in `packages/` and include:
 
-- **forgejo-shell** - Custom shell for Forgejo Git hosting service
-- **messy-restricted-shell** - Restricted shell environment for the "messy" user account
-- **nelko-pl70ebt** - Thermal label printer driver/utility
+- **[forgejo-shell](packages/forgejo-shell/README.md)** - SSH shell wrapper for Forgejo Docker container
+- **[messy-restricted-shell](packages/messy-restricted-shell/README.md)** - Restricted shell with whitelisted commands
+- **[nelko-pl70ebt](packages/nelko-pl70ebt/README.md)** - CUPS driver for Nelko PL70e-BT label printer
 
 ## Key Features
 
 ### Infrastructure
 
-- **Blueprint** - Structured flake organization that maps directory structure to outputs
-- **Home Manager** - Declarative dotfile and user environment management
-- **Agenix** - Encrypted secrets management with age
-- **Disko** - Declarative disk partitioning and formatting
-- **System Manager** - Unified system configuration across NixOS and Darwin
+- **[Blueprint](https://github.com/numtide/blueprint)** - Structured flake organization that maps directory structure to outputs
+- **[Home Manager](https://github.com/nix-community/home-manager)** - Declarative dotfile and user environment management
+- **[Agenix](https://github.com/ryantm/agenix)** - Encrypted secrets management with age
+- **[Disko](https://github.com/nix-community/disko)** - Declarative disk partitioning and formatting
+- **[System Manager](https://github.com/numtide/system-manager)** - Unified system configuration across NixOS and Darwin
 
 ### Desktop Environments
 
@@ -82,18 +71,18 @@ Multiple desktop environment modules available:
 ### Development
 
 - **Development Shells** - Pre-configured environments (default, pdftools, python313)
-- **Devenv** - Integrated development environment support
-- **Rust Toolchain** - Fenix for reproducible Rust builds
+- **[Devenv](https://devenv.sh)** - Integrated development environment support
+- **[Fenix](https://github.com/nix-community/fenix)** - Rust toolchain for reproducible Rust builds
 - **Docker** - Container support on multiple hosts
 
 ### Security & Services
 
-- **Lanzaboote** - Secure boot with UEFI
-- **Tailscale** - Mesh VPN networking
-- **Restic** - Automated backups to remote storage
-- **Caddy** - Reverse proxy and web server
-- **Cloudflared** - Cloudflare tunnel support
-- **Alloy** - Observability and monitoring
+- **[Lanzaboote](https://github.com/nix-community/lanzaboote)** - Secure boot with UEFI
+- **[Tailscale](https://tailscale.com)** - Mesh VPN networking
+- **[Restic](https://restic.net)** - Automated backups to remote storage
+- **[Caddy](https://caddyserver.com)** - Reverse proxy and web server
+- **[Cloudflared](https://github.com/cloudflare/cloudflared)** - Cloudflare tunnel support
+- **[Grafana Alloy](https://grafana.com/docs/alloy)** - Observability and monitoring
 
 ### Home Manager Modules
 
