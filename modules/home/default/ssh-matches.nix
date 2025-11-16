@@ -54,10 +54,6 @@ in {
         hostname = "monolith.svc.farmhouse.meskill.network";
         user = "jmeskill";
       };
-      "moonstone" = {
-        hostname = "moonstone.manage.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
       "nut" = {
         hostname = "nut.manage.farmhouse.meskill.network";
         user = "root";
@@ -66,13 +62,9 @@ in {
         hostname = "obelisk.svc.farmhouse.meskill.network";
         user = "jmeskill";
       };
-      "obsidian" = {
-        hostname = "obsidian.manage.farmhouse.meskill.network";
-        user = "root";
-      };
-      "onyx" = {
-        hostname = "onyx.manage.farmhouse.meskill.network";
-        user = "root";
+      "pilaster" = {
+        hostname = "pilaster.svc.farmhouse.meskill.network";
+        user = "jmeskill";
       };
       "pbs" = {
         hostname = "pbs.manage.farmhouse.meskill.network";

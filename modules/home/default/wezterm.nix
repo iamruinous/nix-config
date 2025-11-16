@@ -11,7 +11,6 @@ with lib; let
 in {
   # Install wezterm via home-manager module
   programs.wezterm = {
-    enable = mkDefault false;
     extraConfig = ''
       -- Creates a config object which we will be adding our config to
       local config = wezterm.config_builder()
