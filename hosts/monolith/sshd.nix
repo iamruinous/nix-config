@@ -13,11 +13,31 @@
   users.users.git.extraGroups = ["docker"];
 
   programs.rush.enable = true;
+  # programs.rush.global = ''
+  #   regex +extended +icase
+  # '';
+
   programs.rush.rules = {
-    "change-command" = ''
-      match $command == "ls -la"
-      set [0] = "/bin/ls"
-      set [1] = "-alF"
+    "ls" = ''
+      match $command == "/bin/ls"
+      match $# = 2
+    '';
+    #
+    # "docker_ps" = ''
+    #   match[0] "^(/usr/bin/)?docker$"
+    #   match[1] "^ps$"
+    #   match $# = 2
+    # '';
+    #
+    # "docker_ps_all" = ''
+    #   match[0] "^(/usr/bin/)?docker$"
+    #   match[1] "^ps$"
+    #   match[2] "^-a$"
+    #   match $# = 3
+    # '';
+
+    "default" = ''
+      exit "Access denied: Only authorized commands allowed"
     '';
   };
   users.users.messy = {
