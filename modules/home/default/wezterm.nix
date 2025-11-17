@@ -1,9 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
-with lib; let
+{pkgs, ...}: let
   window_decorations =
     if pkgs.stdenv.isDarwin
     then "RESIZE"

@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 1883 8083 8084 8883];
+  networking.firewall.allowedTCPPorts = [80 443];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
@@ -69,20 +69,6 @@
         capabilities = {
           "NET_ADMIN" = true;
         };
-        # healthcheck = {
-        #   test = [
-        #     "CMD"
-        #     "wget"
-        #     "--no-verbose"
-        #     "--tries=1"
-        #     "--spider"
-        #     "http://127.0.0.1:2019/metrics"
-        #   ];
-        #   start-period = "60s";
-        #   interval = "60s";
-        #   timeout = "5s";
-        #   retries = 3;
-        # };
         volumes = [
           "${config.age.secrets.monolith_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
           "/data/docker/caddy/site:/srv"

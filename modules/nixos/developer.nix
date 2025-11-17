@@ -56,6 +56,8 @@
       yaml-language-server
       # zls # TODO: zig broken
 
+      forgejo-cli
+
       # rust
       (fenix.stable.withComponents [
         "cargo"
