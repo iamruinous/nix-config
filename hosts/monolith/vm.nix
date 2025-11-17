@@ -101,7 +101,7 @@ in {
   };
 
   age.secrets.monolith_acme_cloudflare = {
-    file = ./files/acme/cloudflare.env.age;
+    rekeyFile = ./files/acme/cloudflare.env.age;
     mode = "600";
   };
 }

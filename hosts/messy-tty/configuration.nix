@@ -15,6 +15,7 @@
   ];
 
   networking.hostName = "messy-tty";
+
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
 

@@ -888,18 +888,18 @@
   };
 
   age.secrets.monolith_caddy_caddyfile = {
-    file = ./files/caddy/Caddyfile.age;
+    rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
   age.secrets.monolith_glance_config = {
-    file = ./files/glance/glance.yml.age;
+    rekeyFile = ./files/glance/glance.yml.age;
     path = "/data/docker/glance/config/glance.yml";
     mode = "600";
     symlink = false;
   };
   # mosquitto container chowns the file
   age.secrets.monolith_mosquitto_config = {
-    file = ./files/mosquitto/mosquitto.conf.age;
+    rekeyFile = ./files/mosquitto/mosquitto.conf.age;
     path = "/data/docker/mosquitto/config/mosquitto.conf";
     mode = "600";
     owner = "1883";
@@ -907,7 +907,7 @@
     symlink = false;
   };
   age.secrets.monolith_mosquitto_passwd = {
-    file = ./files/mosquitto/passwd.age;
+    rekeyFile = ./files/mosquitto/passwd.age;
     path = "/data/docker/mosquitto/config/passwd";
     mode = "400";
     owner = "1883";
@@ -915,43 +915,43 @@
     symlink = false;
   };
   age.secrets.monolith_mqtt-explorer_settings = {
-    file = ./files/mqtt-explorer/settings.json.age;
+    rekeyFile = ./files/mqtt-explorer/settings.json.age;
     mode = "644";
   };
   age.secrets.monolith_docker_env_mariadb = {
-    file = ./files/docker/env/mariadb.env.age;
+    rekeyFile = ./files/docker/env/mariadb.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_n8n = {
-    file = ./files/docker/env/n8n.env.age;
+    rekeyFile = ./files/docker/env/n8n.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_gluetun = {
-    file = ./files/docker/env/gluetun.env.age;
+    rekeyFile = ./files/docker/env/gluetun.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_piavpn = {
-    file = ./files/docker/env/piavpn.env.age;
+    rekeyFile = ./files/docker/env/piavpn.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_paperless_ngx = {
-    file = ./files/docker/env/paperless-ngx.env.age;
+    rekeyFile = ./files/docker/env/paperless-ngx.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_postgres = {
-    file = ./files/docker/env/postgres.env.age;
+    rekeyFile = ./files/docker/env/postgres.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_prometheus_plex_exporter = {
-    file = ./files/docker/env/prometheus-plex-exporter.env.age;
+    rekeyFile = ./files/docker/env/prometheus-plex-exporter.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_romm = {
-    file = ./files/docker/env/romm.env.age;
+    rekeyFile = ./files/docker/env/romm.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_stepca = {
-    file = ./files/docker/env/stepca.env.age;
+    rekeyFile = ./files/docker/env/stepca.env.age;
     mode = "600";
   };
   # age.secrets.monolith_docker_env_weatherflow = {

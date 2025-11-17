@@ -14,6 +14,7 @@
   ];
 
   networking.hostName = "ruinous-tty";
+
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
 

@@ -10,6 +10,8 @@ let
   pilaster = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAg3OPJgudnx+mmP3HkFTHVhUnOFeMMb3pCUuXelPpBM";
   studio = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBVXtjGlDK/b/8KU5edVlMcF/pcrcqlm4S2o94XtGOPD";
   tty-ruinous-social = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmSBDge9Ab890sUudOY01sWUxXbd640VV1gHA+n1RYr";
+  void = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICltiYcHcPfd8NFixR+rBu2jZmJIe58BWDfDiWpvtCIY";
+  gap = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpPwEg0FY03uNvOaQsGWax1vCRwdF3k6GfM/4KA4aDo";
 
   darwin_systems = [
     jbookpro
@@ -19,9 +21,11 @@ let
 
   linux_systems = [
     framework
+    gap
     monolith
     obelisk
     pilaster
+    void
   ];
 
   remote_linux_systems = [

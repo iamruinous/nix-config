@@ -16,16 +16,6 @@
     inputs.hardware.nixosModules.framework-intel-core-ultra-series1
 
     ./hardware-configuration.nix
-    # ../modules/common.nix
-    # ../modules/developer.nix
-    # ../modules/nixos/desktop-common.nix
-    # ../modules/nixos/docker.nix
-    # ../modules/nixos/flatpak.nix
-    # # ../modules/nixos/hyprland-packages.nix
-    # ../modules/nixos/kde.nix
-    # ../modules/nixos/latest-kernel.nix
-    # ../modules/nixos/restic.nix
-    # ../modules/nixos/steam.nix
   ];
 
   networking.hostName = "framework"; # Define your hostname.

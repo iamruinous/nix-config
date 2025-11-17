@@ -42,7 +42,7 @@ in {
     };
 
     age.secrets.restic_password = {
-      file = ../../../files/configs/restic/restic-password.age;
+      rekeyFile = ../../../files/configs/restic/restic-password.age;
       mode = "600";
     };
   };

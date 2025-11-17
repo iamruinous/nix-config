@@ -96,7 +96,7 @@
   };
 
   age.secrets.obelisk_caddy_caddyfile = {
-    file = ./files/caddy/Caddyfile.age;
+    rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
 }

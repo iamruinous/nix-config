@@ -42,11 +42,11 @@
   };
 
   age.secrets.monolith_rtl433_conf = {
-    file = ./files/rtl_433/rtl_433.conf.age;
+    rekeyFile = ./files/rtl_433/rtl_433.conf.age;
     mode = "600";
   };
   age.secrets.monolith_rtl915_conf = {
-    file = ./files/rtl_433/rtl_915.conf.age;
+    rekeyFile = ./files/rtl_433/rtl_915.conf.age;
     mode = "600";
   };
 }

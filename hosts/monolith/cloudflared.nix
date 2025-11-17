@@ -11,13 +11,13 @@
   };
 
   age.secrets.monolith_cloudflared_cert_pem = {
-    file = ./files/cloudflared/cert.pem.age;
+    rekeyFile = ./files/cloudflared/cert.pem.age;
     path = "/etc/cloudflared/cert.pem";
     mode = "644";
   };
 
   age.secrets.monolith_cloudflared_n8n_webhook = {
-    file = ./files/cloudflared/n8n-webhook.json.age;
+    rekeyFile = ./files/cloudflared/n8n-webhook.json.age;
     mode = "644";
   };
 }

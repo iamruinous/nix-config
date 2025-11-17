@@ -50,7 +50,7 @@ in {
     };
 
     age.secrets.acme_cloudflare_env = {
-      file = ../../../hosts/${config.networking.hostName}/files/acme/cloudflare.env.age;
+      rekeyFile = ../../../hosts/${config.networking.hostName}/files/acme/cloudflare.env.age;
       mode = "600";
     };
 

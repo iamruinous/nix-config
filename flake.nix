@@ -64,6 +64,11 @@
     # <https://github.com/ryantm/agenix>
     agenix.url = "github:ryantm/agenix";
 
+    # Agenix-rekey for improved secret management
+    # <https://github.com/oddlama/agenix-rekey>
+    agenix-rekey.url = "github:oddlama/agenix-rekey";
+    agenix-rekey.inputs.nixpkgs.follows = "nixpkgs";
+
     # Flatpak
     # <https://github.com/gmodena/nix-flatpak>
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
@@ -105,11 +110,13 @@
 
   # Load the blueprint
   # outputs = inputs: inputs.blueprint {inherit inputs;};
-  outputs = inputs:
-    inputs.blueprint {
+  outputs = inputs: let
+    blueprintOutputs = inputs.blueprint {
       inherit inputs;
       nixpkgs.config.allowUnfree = true;
-    }
+    };
+  in
+    blueprintOutputs
     // {
       inherit (inputs.self.lib) users;
 
@@ -123,5 +130,13 @@
         "walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM="
         "walker-git.cachix.org-1:vmC0ocfPWh0S/vRAQGtChuiZBTAe4wiKDeyyXM0/7pM="
       ];
+
+      # Expose agenix-rekey configuration
+      # Usage: nix run .#agenix-rekey -- edit <secret>
+      #        nix run .#agenix-rekey -- rekey --all
+      agenix-rekey = inputs.agenix-rekey.configure {
+        userFlake = inputs.self;
+        nixosConfigurations = blueprintOutputs.nixosConfigurations or {};
+      };
     };
 }

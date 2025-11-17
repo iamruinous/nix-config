@@ -349,12 +349,12 @@
   };
 
   age.secrets.tty_ruinous_social_caddy_caddyfile = {
-    file = ./files/caddy/Caddyfile.age;
+    rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
   # mosquitto container chowns the file
   age.secrets.tty_ruinous_social_mosquitto_config = {
-    file = ./files/mosquitto/mosquitto.conf.age;
+    rekeyFile = ./files/mosquitto/mosquitto.conf.age;
     path = "/data/docker/mosquitto/config/mosquitto.conf";
     mode = "600";
     owner = "1883";
@@ -362,23 +362,23 @@
     symlink = false;
   };
   age.secrets.tty_ruinous_social_docker_env_karakeep = {
-    file = ./files/docker/env/karakeep.env.age;
+    rekeyFile = ./files/docker/env/karakeep.env.age;
     mode = "600";
   };
   age.secrets.tty_ruinous_social_docker_env_mastodon = {
-    file = ./files/docker/env/mastodon.env.age;
+    rekeyFile = ./files/docker/env/mastodon.env.age;
     mode = "600";
   };
   age.secrets.tty_ruinous_social_docker_env_mealie = {
-    file = ./files/docker/env/mealie.env.age;
+    rekeyFile = ./files/docker/env/mealie.env.age;
     mode = "600";
   };
   age.secrets.tty_ruinous_social_docker_env_postgres = {
-    file = ./files/docker/env/postgres.env.age;
+    rekeyFile = ./files/docker/env/postgres.env.age;
     mode = "600";
   };
   age.secrets.tty_ruinous_social_docker_env_synapse = {
-    file = ./files/docker/env/synapse.env.age;
+    rekeyFile = ./files/docker/env/synapse.env.age;
     mode = "600";
   };
 }

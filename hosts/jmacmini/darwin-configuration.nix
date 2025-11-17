@@ -6,6 +6,8 @@
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
+  networking.hostName = "jmacmini";
+
   users.users.jmeskill.home = /Users/jmeskill;
   system.primaryUser = "jmeskill";
 

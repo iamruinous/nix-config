@@ -6,6 +6,8 @@
 
   nixpkgs.hostPlatform = "x86_64-darwin";
 
+  networking.hostName = "studio";
+
   users.users.jmeskill.home = /Users/jmeskill;
   system.primaryUser = "jmeskill";
 

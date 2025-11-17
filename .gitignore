@@ -9,3 +9,7 @@ result
 .claude/chats/
 .claude/*.local
 .claude/.envrc
+
+# Agenix-rekey sensitive files
+secrets/master-keys/*.age
+secrets/rekeyed/
