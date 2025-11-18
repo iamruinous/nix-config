@@ -20,8 +20,16 @@ in {
       };
 
       # svc
-      "mono" = {
-        hostname = "mono.svc.farmhouse.meskill.network";
+      "monolith" = {
+        hostname = "monolith.svc.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
+      "obelisk" = {
+        hostname = "obelisk.svc.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
+      "pilaster" = {
+        hostname = "pilaster.svc.farmhouse.meskill.network";
         user = "jmeskill";
       };
       "tip" = {
@@ -29,7 +37,7 @@ in {
         user = "root";
       };
 
-      # manage
+      # ttys
       "mtty" = {
         hostname = "messy.tty.meskill.farm";
         user = "messy";
@@ -38,6 +46,8 @@ in {
         hostname = "ruinous.tty.meskill.farm";
         user = "jmeskill";
       };
+
+      # manage
       "void" = {
         hostname = "void.manage.farmhouse.meskill.network";
         user = "jmeskill";
@@ -50,21 +60,9 @@ in {
         hostname = "it.manage.farmhouse.meskill.network";
         user = "root";
       };
-      "monolith" = {
-        hostname = "monolith.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
       "nut" = {
         hostname = "nut.manage.farmhouse.meskill.network";
         user = "root";
-      };
-      "obelisk" = {
-        hostname = "obelisk.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "pilaster" = {
-        hostname = "pilaster.svc.farmhouse.meskill.network";
-        user = "jmeskill";
       };
       "pbs" = {
         hostname = "pbs.manage.farmhouse.meskill.network";
