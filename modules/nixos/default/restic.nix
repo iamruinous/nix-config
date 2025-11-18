@@ -2,6 +2,7 @@
 {
   config,
   lib,
+  flake,
   ...
 }: let
   cfg = config.ruinous.restic.terranas;
@@ -42,7 +43,7 @@ in {
     };
 
     age.secrets.restic_password = {
-      rekeyFile = ../../../files/configs/restic/restic-password.age;
+      rekeyFile = flake + /files/configs/restic/restic-password.age;
       mode = "600";
     };
   };

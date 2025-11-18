@@ -3,6 +3,7 @@
   config,
   pkgs,
   lib,
+  flake,
   ...
 }: let
   cfg = config.virtualisation.libvirtd;
@@ -50,7 +51,7 @@ in {
     };
 
     age.secrets.acme_cloudflare_env = {
-      rekeyFile = ../../../hosts/${config.networking.hostName}/files/acme/cloudflare.env.age;
+      rekeyFile = flake + /hosts/${config.networking.hostName}/files/acme/cloudflare.env.age;
       mode = "600";
     };
 
