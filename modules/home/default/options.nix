@@ -1,9 +1,12 @@
 {
   lib,
-  osConfig,
-  config,
+  flake,
   ...
 }: {
+  imports = [
+    flake.homeModules.common
+  ];
+
   options = {
     ruinous.starship.battery.enable = lib.mkEnableOption "enable battery in starship";
 
@@ -13,13 +16,5 @@
     ruinous.todoist.sync.enable = lib.mkEnableOption "Whether to enable todoist auto-sync";
 
     ruinous.vdirsyncer.sync.enable = lib.mkEnableOption "Whether to enable vdirsyncer auto-sync";
-
-    home.uid = lib.mkOption {
-      type = with lib.types; nullOr int;
-      default = osConfig.users.users.${config.home.username}.uid or null;
-      description = ''
-        Lookup uid from flake.users.<name>.uid and assign to config.home.uid
-      '';
-    };
   };
 }

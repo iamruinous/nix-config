@@ -1,6 +1,6 @@
 {flake, ...}: {
   imports = [
-    flake.inputs.agenix.homeManagerModules.default
+    flake.homeModules.common
   ];
 
   age.secrets.monolith_git_id_ed25519 = {
