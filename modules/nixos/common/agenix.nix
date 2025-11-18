@@ -1,23 +1,19 @@
 {
   flake,
-  perSystem,
-  config,
+  pkgs,
   ...
 }: {
   imports = [
     flake.inputs.agenix.nixosModules.default
     flake.inputs.agenix-rekey.nixosModules.default
+    (flake + /secrets)
   ];
 
-  environment.systemPackages = [
-    perSystem.agenix.default
-  ];
+  nixpkgs.overlays = [flake.inputs.agenix-rekey.overlays.default];
 
-  # agenix-rekey configuration for automatic secret management
-  age.rekey = {
-    hostPubkey = flake + /hosts/${config.networking.hostName}/ssh_host_ed25519_key.pub;
-    masterIdentities = [(flake + /secrets/master-keys/master.pub)];
-    storageMode = "local";
-    localStorageDir = flake + "/secrets/rekeyed/${config.networking.hostName}";
-  };
+  environment.systemPackages = with pkgs; [
+    age
+    agenix-rekey
+    rage
+  ];
 }

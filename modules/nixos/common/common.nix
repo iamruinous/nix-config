@@ -1,9 +1,6 @@
 {pkgs, ...}: {
   # System packages
   environment.systemPackages = with pkgs; [
-    # config management
-    age
-    # chezmoi
     home-manager
 
     # utils

@@ -9,6 +9,7 @@
   networking.hostName = "studio";
 
   users.users.jmeskill.home = /Users/jmeskill;
+  users.users.jmeskill.uid = 1000;
   system.primaryUser = "jmeskill";
 
   # Used for backwards compatibility, please read the changelog before changing.

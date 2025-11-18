@@ -9,6 +9,7 @@
   networking.hostName = "jbookpro";
 
   users.users.jmeskill.home = /Users/jmeskill;
+  users.users.jmeskill.uid = 1000;
   system.primaryUser = "jmeskill";
 
   system.stateVersion = 6;

@@ -18,6 +18,7 @@ in {
   # fish shell configuration
   programs.fish = {
     enable = lib.mkDefault true;
+    package = pkgs.fish;
     shellAbbrs = {
       dl = "curl --create-dirs -O --output-dir /tmp/";
     };

@@ -57,8 +57,4 @@ in {
   # Disallow modifying users outside of this config
   users.mutableUsers = false;
   users.defaultUserShell = pkgs.fish;
-
-  # Update users with details found in flake.users
-  # users.users.jmeskill = flake.lib.users.jmeskill;
-  # users.users.git = flake.lib.users.git;
 }

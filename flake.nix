@@ -136,7 +136,8 @@
       #        nix run .#agenix-rekey -- rekey --all
       agenix-rekey = inputs.agenix-rekey.configure {
         userFlake = inputs.self;
-        nixosConfigurations = blueprintOutputs.nixosConfigurations or {};
+        nixosConfigurations = blueprintOutputs.nixosConfigurations // blueprintOutputs.darwinConfigurations or {};
+        homeConfigurations = blueprintOutputs.homeConfigurations or {};
       };
     };
 }
