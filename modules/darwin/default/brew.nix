@@ -34,6 +34,7 @@
       "1password"
       "1password-cli"
       "aerospace"
+      "antigravity"
       "audacity"
       "balenaetcher"
       "blockblock"
