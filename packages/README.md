@@ -4,6 +4,26 @@ This directory contains custom Nix packages developed specifically for this infr
 
 ## Available Packages
 
+### [docker-mcp-gateway](docker-mcp-gateway/README.md)
+
+Docker CLI plugin for MCP (Model Context Protocol) gateway.
+
+**Purpose**: Enables integration between Docker and the Model Context Protocol, allowing AI assistants and tools to interact with Docker environments.
+
+**Key Features**:
+- Docker CLI plugin integration
+- MCP protocol support for Docker operations
+- Secure, controlled access to Docker functionality
+- Compatible with Docker Desktop's MCP Toolkit
+
+**Used By**: Development systems requiring AI-assisted Docker operations
+
+**Dependencies**: Docker
+
+**Version**: 0.28.0
+
+---
+
 ### [forgejo-shell](forgejo-shell/README.md)
 
 SSH shell wrapper for Forgejo Git hosting in Docker.
@@ -67,6 +87,7 @@ These packages are automatically available to all hosts in this flake. To use th
 
 ```nix
 environment.systemPackages = with pkgs; [
+  docker-mcp-gateway
   forgejo-shell
   messy-restricted-shell
   nelko-pl70ebt

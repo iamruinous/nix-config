@@ -45,6 +45,7 @@ For detailed information about each host including hardware specifications, key 
 
 This repository includes custom Nix packages for specialized functionality:
 
+- **docker-mcp-gateway** - Docker CLI plugin for Model Context Protocol integration
 - **forgejo-shell** - SSH shell wrapper for Forgejo Docker container
 - **messy-restricted-shell** - Restricted shell with whitelisted commands
 - **nelko-pl70ebt** - CUPS driver for Nelko PL70e-BT label printer

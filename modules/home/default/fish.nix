@@ -90,6 +90,8 @@ in {
       call = "cal list";
       cala = "cal calendar";
       cali = "ikhal";
+
+      randhex = ''hexdump -vn16 -e'4/4 "%08X" 1 "\n"' /dev/urandom'';
     };
 
     plugins = with pkgs.fishPlugins; [
