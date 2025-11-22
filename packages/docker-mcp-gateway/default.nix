@@ -1,8 +1,4 @@
-{
-  pkgs,
-  lib,
-  ...
-}:
+{pkgs, ...}:
 pkgs.buildGoModule rec {
   pname = "docker-mcp-gateway";
   version = "0.28.0";
@@ -41,7 +37,7 @@ pkgs.buildGoModule rec {
     ln -s $out/docker/cli-plugins/docker-mcp $out/bin/docker-mcp
   '';
 
-  meta = with lib; {
+  meta = with pkgs.lib; {
     description = "Docker CLI plugin for MCP (Model Context Protocol) gateway";
     homepage = "https://github.com/docker/mcp-gateway";
     license = licenses.asl20;

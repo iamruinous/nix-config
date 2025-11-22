@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
-  config,
+  pkgs,
   flake,
   ...
 }: {
@@ -26,6 +26,10 @@
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
   boot.plymouth.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    docker-mcp-gateway
+  ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

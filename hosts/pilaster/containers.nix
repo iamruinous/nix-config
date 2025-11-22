@@ -70,7 +70,7 @@
           "NET_ADMIN" = true;
         };
         volumes = [
-          "${config.age.secrets.monolith_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
+          "${config.age.secrets.pilaster_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
           "/data/docker/caddy/site:/srv"
           "/data/docker/caddy/data:/data"
           "/data/docker/caddy/config:/config"
@@ -79,18 +79,80 @@
       };
       postgres = {
         image = "docker.io/postgres:18";
-        ports = ["5432:5432"];
+        # ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/18/docker";
         };
         environmentFiles = [config.age.secrets.pilaster_docker_env_postgres.path];
         networks = [
           "datanet"
-          "proxynet"
+          # "proxynet"
         ];
         volumes = [
           "/data/docker/postgres/pgdata:/var/lib/postgresql/18/docker"
           "/data/backup/postgres:/backup"
+        ];
+      };
+      # services
+      authentik = {
+        image = "ghcr.io/goauthentik/server:2025.10.2";
+        cmd = ["server"];
+        environmentFiles = [config.age.secrets.pilaster_docker_env_authentik.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        volumes = [
+          "/data/docker/authentik/media:/media"
+          "/data/docker/authentik/templates:/templates"
+        ];
+      };
+      authentik-worker = {
+        image = "ghcr.io/goauthentik/server:2025.10.2";
+        cmd = ["worker"];
+        environmentFiles = [config.age.secrets.pilaster_docker_env_authentik.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        volumes = [
+          "/var/run/docker.sock:/var/run/docker.sock"
+          "/data/docker/authentik/certs:/certs"
+          "/data/docker/authentik/media:/media"
+          "/data/docker/authentik/templates:/templates"
+        ];
+      };
+      # supakong = {
+      #   image = "docker.io/kong:2.8.1";
+      #   environmentFiles = [config.age.secrets.pilaster_docker_env_supakong.path];
+      #   networks = [
+      #     "datanet"
+      #     "servicenet"
+      #   ];
+      #   volumes = [
+      #     "/data/docker/supakong/kong.yml:/home/kong/temp.yml:ro,z"
+      #   ];
+      # };
+      # supastudio = {
+      #   image = "docker.io/supabase/studio:2025.11.10-sha-5291fe3";
+      #   environmentFiles = [config.age.secrets.pilaster_docker_env_supastudio.path];
+      #   networks = [
+      #     "datanet"
+      #     "servicenet"
+      #   ];
+      #   volumes = [
+      #     "/data/docker/supastudio/.env:/app/apps/studio/.env"
+      #   ];
+      # };
+      qdrant = {
+        image = "qdrant/qdrant";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_qdrant.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        volumes = [
+          "/data/docker/qdrant/data:/qdrant/storage"
         ];
       };
     };
@@ -100,8 +162,24 @@
     rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
+  age.secrets.pilaster_docker_env_authentik = {
+    rekeyFile = ./files/docker/env/authentik.env.age;
+    mode = "600";
+  };
   age.secrets.pilaster_docker_env_postgres = {
     rekeyFile = ./files/docker/env/postgres.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_supakong = {
+    rekeyFile = ./files/docker/env/supakong.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_supastudio = {
+    rekeyFile = ./files/docker/env/supastudio.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_qdrant = {
+    rekeyFile = ./files/docker/env/qdrant.env.age;
     mode = "600";
   };
 }
