@@ -10,16 +10,11 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    # Age identity management aliases
-    alias age-unlock='${pkgs.bash}/bin/bash .scripts/agenix-unlock.sh unlock'
-    alias age-lock='${pkgs.bash}/bin/bash .scripts/agenix-unlock.sh lock'
-    alias age-status='${pkgs.bash}/bin/bash .scripts/agenix-unlock.sh status'
-
-    # Show helpful message on shell startup
-    if [[ ! -f /tmp/id_age ]]; then
+    # Show helpful message on shell startup if age identity is not unlocked
+    if ! ${pkgs.coreutils}/bin/test -f /tmp/id_age 2>/dev/null; then
       echo ""
-      echo "💡 Tip: Run 'age-unlock' to decrypt your age identity for agenix operations"
-      echo "   Run 'age-lock' when done to remove the decrypted key"
+      echo "💡 Tip: Run 'agenix-helper unlock' to decrypt your age identity for agenix operations"
+      echo "   Available commands: agenix-helper {unlock|lock|status}"
       echo ""
     fi
   '';

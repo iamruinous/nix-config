@@ -4,6 +4,27 @@ This directory contains custom Nix packages developed specifically for this infr
 
 ## Available Packages
 
+### [agenix-helper](agenix-helper/README.md)
+
+Helper utility for managing passphrase-protected age identities.
+
+**Purpose**: Simplifies working with encrypted age identities by providing unlock/lock commands. Decrypt your identity once per session and reuse it for all agenix operations.
+
+**Key Features**:
+- One-time unlock per session (no repeated passphrase prompts)
+- Temporary storage in `/tmp/id_age` with `600` permissions
+- Automatic direnv integration
+- Quiet mode for scripting
+- Simple commands: `unlock`, `lock`, `status`
+
+**Used By**: All hosts (development workflow for managing encrypted secrets)
+
+**Dependencies**: age, coreutils
+
+**Version**: 0.1.0
+
+---
+
 ### [docker-mcp-gateway](docker-mcp-gateway/README.md)
 
 Docker CLI plugin for MCP (Model Context Protocol) gateway.
@@ -87,6 +108,7 @@ These packages are automatically available to all hosts in this flake. To use th
 
 ```nix
 environment.systemPackages = with pkgs; [
+  agenix-helper
   docker-mcp-gateway
   forgejo-shell
   messy-restricted-shell

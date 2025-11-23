@@ -29,6 +29,7 @@
   programs.nix-ld.enable = true;
 
   environment.systemPackages = with pkgs; [
+    agenix-helper
     docker-mcp-gateway
   ];
 

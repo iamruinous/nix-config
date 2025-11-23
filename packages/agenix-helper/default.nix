@@ -1,21 +1,39 @@
+{pkgs, ...}:
+pkgs.stdenv.mkDerivation {
+  pname = "agenix-helper";
+  version = "0.1.0";
+  dontUnpack = true;
+
+  propagatedBuildInputs = [
+    pkgs.age
+    pkgs.coreutils
+  ];
+
+  passthru.shellPath = "/bin/agenix-helper";
+  outputs = ["out"];
+
+  buildPhase = ''
+    mkdir -p $out/bin
+
+    cat > $out/bin/agenix-helper << 'EOF'
 #!/usr/bin/env bash
 # Helper script for unlocking/locking age identity
 # Based on https://github.com/suderman/nixos/blob/main/packages/agenix/agenix.sh
 
 set -euo pipefail
 
-AGE_IDENTITY_FILE="${AGE_IDENTITY_FILE:-/tmp/id_age}"
-AGE_IDENTITY_ENCRYPTED="${AGE_IDENTITY_ENCRYPTED:-secrets/id_age.age}"
-AGE_IDENTITY_BACKUP="${AGE_IDENTITY_BACKUP:-/tmp/id_age_}"
+AGE_IDENTITY_FILE="''${AGE_IDENTITY_FILE:-/tmp/id_age}"
+AGE_IDENTITY_ENCRYPTED="''${AGE_IDENTITY_ENCRYPTED:-secrets/id_age.age}"
+AGE_IDENTITY_BACKUP="''${AGE_IDENTITY_BACKUP:-/tmp/id_age_}"
 
 agenix_unlock() {
-  local quiet="${1:-}"
+  local quiet="''${1:-}"
 
   # If quiet mode and the decrypted age identity already exists, skip
   if [[ "$quiet" == "quiet" ]]; then
     [[ -f "$AGE_IDENTITY_FILE" ]] && return 0
     # In quiet mode, if not already unlocked, silently fail
-    # User needs to manually unlock with: age-unlock
+    # User needs to manually unlock with: agenix-helper unlock
     return 1
   fi
 
@@ -33,7 +51,7 @@ agenix_unlock() {
 
   # Attempt to decrypt age identity using passphrase (interactive only)
   if [[ -z "$id" ]]; then
-    id="$(age -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
+    id="$(${pkgs.age}/bin/age -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
     if [[ -z "$id" ]] || [[ "$id" =~ "incorrect" ]]; then
       echo "Error: Failed to decrypt age identity (incorrect passphrase?)"
       return 1
@@ -57,7 +75,7 @@ agenix_unlock() {
 }
 
 agenix_lock() {
-  local quiet="${1:-}"
+  local quiet="''${1:-}"
 
   # Remove the decrypted identity files
   if [[ -f "$AGE_IDENTITY_FILE" ]] || [[ -f "$AGE_IDENTITY_BACKUP" ]]; then
@@ -80,12 +98,12 @@ agenix_status() {
 }
 
 # Main command routing
-case "${1:-status}" in
+case "''${1:-status}" in
   unlock|u)
-    agenix_unlock "${2:-}"
+    agenix_unlock "''${2:-}"
     ;;
   lock|l)
-    agenix_lock "${2:-}"
+    agenix_lock "''${2:-}"
     ;;
   status|s)
     agenix_status
@@ -104,3 +122,22 @@ case "${1:-status}" in
     exit 1
     ;;
 esac
+EOF
+
+    chmod +x $out/bin/agenix-helper
+  '';
+
+  installPhase = ''
+    # No installation steps needed beyond what's done in buildPhase
+    true
+  '';
+
+  meta = with pkgs.lib; {
+    description = "Helper utilities for working with agenix encrypted secrets";
+    homepage = "https://github.com/iamruinous/nix-config";
+    license = licenses.mit;
+    maintainers = [];
+    mainProgram = "agenix-helper";
+    platforms = platforms.unix;
+  };
+}

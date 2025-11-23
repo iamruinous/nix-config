@@ -45,6 +45,7 @@ For detailed information about each host including hardware specifications, key 
 
 This repository includes custom Nix packages for specialized functionality:
 
+- **agenix-helper** - Helper utility for managing passphrase-protected age identities
 - **docker-mcp-gateway** - Docker CLI plugin for Model Context Protocol integration
 - **forgejo-shell** - SSH shell wrapper for Forgejo Docker container
 - **messy-restricted-shell** - Restricted shell with whitelisted commands
@@ -185,7 +186,29 @@ This will:
 
 ## Secrets Management
 
-Secrets are encrypted using [agenix](https://github.com/ryantm/agenix) and stored in `secrets/`. To edit secrets:
+Secrets are encrypted using [agenix](https://github.com/ryantm/agenix) and stored in `secrets/`.
+
+### Quick Workflow with agenix-helper
+
+For a streamlined experience when working with multiple secrets:
+
+```sh
+# Unlock once per session (enter passphrase once)
+agenix-helper unlock
+
+# Edit secrets without repeated passphrase prompts
+agenix edit secrets/<secret-name>.age
+agenix rekey -a
+
+# Lock when done
+agenix-helper lock
+```
+
+See the [agenix-helper package documentation](packages/agenix-helper/README.md) for details.
+
+### Traditional Workflow
+
+To edit secrets directly (prompts for passphrase each time):
 
 ```sh
 agenix -e secrets/<secret-name>.age

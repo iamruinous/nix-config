@@ -3,6 +3,9 @@
   environment.systemPackages = with pkgs; [
     home-manager
 
+    # config management
+    agenix-helper
+
     # utils
     cargo-binstall
     duf
@@ -23,6 +26,9 @@
     neofetch
     toilet
   ];
+
+  # Bash configuration
+  programs.bash.enable = true;
 
   # Zsh configuration
   programs.zsh.enable = true;
