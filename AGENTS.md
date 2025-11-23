@@ -412,14 +412,13 @@ git log -1 --stat
 
 ### Handling Commit Failures
 
-If `git commit` fails (e.g., GPG signing issues, hooks, or other errors):
+**IMPORTANT:** All commits must be GPG signed. Never use `--no-gpg-sign`.
 
-1. **Stage the files** if not already staged:
-   ```bash
-   git add <file1> <file2> <file3>
-   ```
+If `git commit` fails due to GPG signing issues:
 
-2. **Save the commit message** to a file for the user:
+1. **Keep the files staged** (they should already be staged from the failed commit attempt)
+
+2. **Save the commit message to a temporary file**:
    ```bash
    cat > COMMIT_MSG.txt << 'EOF'
    type(scope): short description
@@ -432,57 +431,88 @@ If `git commit` fails (e.g., GPG signing issues, hooks, or other errors):
    EOF
    ```
 
-3. **Notify the user**:
+3. **Notify the user** to commit manually:
    ```
-   ⚠️  Git commit failed. Files are staged and commit message saved to COMMIT_MSG.txt
+   ⚠️  Unable to create signed commit (GPG signing failed).
 
-   To complete the commit manually, run:
-   git commit -F COMMIT_MSG.txt
+   Changes are staged and commit message saved to COMMIT_MSG.txt
 
-   Or if GPG signing is the issue:
-   git commit --no-gpg-sign -F COMMIT_MSG.txt
-   ```
+   To create the signed commit, run:
+     git commit -F COMMIT_MSG.txt
 
-4. **Check git status** to confirm files are staged:
-   ```bash
-   git status
+   Then clean up the temporary file:
+     rm COMMIT_MSG.txt
    ```
 
 #### Example: Handling GPG Signing Failure
 
 ```bash
-# Attempt commit
-git commit -m "feat: add new feature" -m "Detailed description..."
+# Attempt signed commit
+git commit -m "feat(packages): add new helper utility" -m "
+Detailed description of the utility and its purpose.
+
+Key features:
+- Feature A
+- Feature B
+- Feature C
+"
 # Error: Couldn't get agent socket?
 
-# Solution:
-# 1. Verify files are staged
-git status
-
-# 2. Save commit message
+# Save commit message to file
 cat > COMMIT_MSG.txt << 'EOF'
-feat: add new feature
+feat(packages): add new helper utility
 
-Detailed description of the feature and why it was added.
+Detailed description of the utility and its purpose.
 
-Key changes:
-- Added X functionality
-- Updated Y configuration
-- Documented Z usage
+Key features:
+- Feature A
+- Feature B
+- Feature C
 EOF
 
-# 3. Inform user
-echo "⚠️  Commit failed with GPG error. Files staged and message saved to COMMIT_MSG.txt"
-echo "Run: git commit --no-gpg-sign -F COMMIT_MSG.txt"
+# Notify user
+echo ""
+echo "⚠️  Unable to create signed commit (GPG signing failed)."
+echo ""
+echo "Changes are staged and commit message saved to COMMIT_MSG.txt"
+echo ""
+echo "To create the signed commit, run:"
+echo "  git commit -F COMMIT_MSG.txt"
+echo ""
+echo "Then clean up the temporary file:"
+echo "  rm COMMIT_MSG.txt"
+echo ""
 ```
 
-#### Common Commit Failures
+#### Benefits of This Approach
 
-- **GPG signing issues**: Use `--no-gpg-sign` flag
-- **Pre-commit hooks**: Fix the issues the hooks identify
-- **Empty commits**: Ensure files are actually changed and staged
-- **Merge conflicts**: Resolve conflicts before committing
-- **Commit message format**: Follow conventional commits format
+1. **No lost work**: Changes remain staged and commit message is saved
+2. **Maintains security**: All commits are properly GPG signed by the user
+3. **Simple recovery**: User runs a single `git commit -F COMMIT_MSG.txt` command
+4. **No retyping**: Commit message is preserved in the temporary file
+5. **Clear workflow**: User knows exactly what to do to complete the commit
+
+#### Other Common Commit Issues
+
+**Pre-commit hooks fail:**
+- Fix the issues identified by the hooks
+- Re-run the commit after fixes
+- Don't use `--no-verify` unless explicitly instructed
+
+**Empty commits:**
+- Ensure files are actually changed
+- Verify files are staged with `git status`
+- Check `git diff --cached` to see staged changes
+
+**Merge conflicts:**
+- Resolve conflicts first
+- Stage resolved files
+- Then commit
+
+**Invalid commit message format:**
+- Follow conventional commits specification
+- Use proper type, scope, and description
+- Include detailed body for non-trivial changes
 
 ### Commit Frequency
 

@@ -13,3 +13,4 @@ result
 # Agenix-rekey sensitive files
 secrets/master-keys/*.age
 secrets/rekeyed/
+COMMIT_MSG.txt
