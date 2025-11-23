@@ -26,6 +26,7 @@
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
   boot.plymouth.enable = true;
+  programs.nix-ld.enable = true;
 
   environment.systemPackages = with pkgs; [
     docker-mcp-gateway

@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443];
+  networking.firewall.allowedTCPPorts = [80 443 3493 5050 9000];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
@@ -122,6 +122,52 @@
           "/data/docker/authentik/templates:/templates"
         ];
       };
+      mcpx = {
+        image = "us-central1-docker.pkg.dev/prj-common-442813/mcpx/mcpx:latest";
+        extraOptions = [
+          "--privileged"
+        ];
+        networks = [
+          "proxynet"
+          "servicenet"
+        ];
+        ports = [
+          "9000:9000"
+        ];
+        volumes = [
+          "/data/docker/mcpx/config:/lunar/packages/mcpx-server/config"
+        ];
+      };
+      nutify = {
+        image = "dartsteven/nutify:amd64-latest";
+        extraOptions = [
+          "--privileged"
+          "--device=/dev/bus/usb:/dev/bus/usb:rwm"
+          "--device-cgroup-rule=c 189:* rwm"
+        ];
+        environmentFiles = [config.age.secrets.pilaster_docker_env_nutify.path];
+        capabilities = {
+          SYS_ADMIN = true;
+          SYS_RAWIO = true;
+          MKNOD = true;
+        };
+        networks = [
+          "servicenet"
+        ];
+        ports = [
+          "3493:3493"
+          "5050:5050"
+          "443:443"
+        ];
+        volumes = [
+          "/data/docker/nutify/logs:/app/nutify/logs"
+          "/data/docker/nutify/instance:/app/nutify/instance"
+          "/data/docker/nutify/ssl:/app/ssl"
+          "/data/docker/nutify/etc/nut:/etc/nut"
+          "/dev:/dev:rw"
+          "/run/udev:/run/udev:ro"
+        ];
+      };
       # supakong = {
       #   image = "docker.io/kong:2.8.1";
       #   environmentFiles = [config.age.secrets.pilaster_docker_env_supakong.path];
@@ -180,6 +226,10 @@
   };
   age.secrets.pilaster_docker_env_qdrant = {
     rekeyFile = ./files/docker/env/qdrant.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_nutify = {
+    rekeyFile = ./files/docker/env/nutify.env.age;
     mode = "600";
   };
 }
