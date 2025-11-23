@@ -11,7 +11,7 @@
   environment.systemPackages = with pkgs;
     [
       # dev tools
-      aider-chat
+      # aider-chat
       devenv
       git-secrets
       jq
@@ -29,9 +29,9 @@
         with ps; [
           pip
           virtualenv
-          llm
-          llm-anthropic
-          llm-gemini
+          # llm
+          # llm-anthropic
+          # llm-gemini
         ]))
       uv
       # zig # TODO: broken
