@@ -119,6 +119,102 @@ Create commits at logical breakpoints during feature development:
 3. **Before Major Changes**: Commit working code before starting significant refactoring
 4. **Logical Groupings**: Group related changes together (e.g., package + overlay + docs)
 
+### Commit Along the Way
+
+**IMPORTANT**: Don't wait until the end of a session to commit. Create commits progressively as you complete features.
+
+#### Progressive Commit Strategy
+
+```bash
+# Example session workflow:
+
+# 1. Add feature A (e.g., new package)
+# ... make changes ...
+nixos-rebuild dry-build --flake .#hostname  # Test
+git add packages/new-package/
+git commit -m "feat(packages): add new-package for X functionality"
+
+# 2. Add feature B (e.g., integrate with overlay)
+# ... make changes ...
+nixos-rebuild dry-build --flake .#hostname  # Test
+git add modules/nixos/common/overlay.nix
+git commit -m "feat(overlay): add new-package to system overlay"
+
+# 3. Add documentation
+# ... make changes ...
+git add packages/new-package/README.md packages/README.md
+git commit -m "docs(packages): document new-package usage and features"
+
+# 4. Add configuration
+# ... make changes ...
+nixos-rebuild dry-build --flake .#hostname  # Test
+git add hosts/hostname/configuration.nix
+git commit -m "feat(hostname): enable new-package in system packages"
+```
+
+#### Benefits of Committing Along the Way
+
+1. **Rollback Safety**: Easy to revert a specific change if something breaks
+2. **Clear History**: Easier to understand what changed and when
+3. **Reduced Cognitive Load**: Don't have to remember everything at the end
+4. **Better Commit Messages**: Write while context is fresh
+5. **Incremental Progress**: Show progress even if session is interrupted
+6. **Easier Debugging**: Bisect to find which commit introduced an issue
+
+#### When to Group vs. Split Commits
+
+**Group into one commit:**
+- Package + its README (the feature isn't complete without docs)
+- Config file + its corresponding secrets (they work together)
+- Refactor that touches multiple files but is one logical change
+
+**Split into separate commits:**
+- Different features (even if worked on in same session)
+- Bugfix + new feature (separate concerns)
+- Code changes + documentation updates (if substantial)
+- Package rename + new functionality
+
+#### Red Flags (Don't Do This)
+
+❌ **One giant commit at end of session**
+```bash
+# Bad: Everything in one commit
+git add .
+git commit -m "add lots of stuff"
+```
+
+❌ **Committing broken code**
+```bash
+# Bad: Commit before testing
+git add .
+git commit -m "add feature (not tested)"
+```
+
+❌ **Vague commit messages**
+```bash
+# Bad: No detail
+git commit -m "fix stuff"
+git commit -m "wip"
+git commit -m "updates"
+```
+
+✅ **Good Practice**
+```bash
+# Good: Specific, tested, detailed
+git add packages/agenix-helper/
+git commit -m "feat(packages): add agenix-helper for managing encrypted age identities" -m "
+Provides unlock/lock/status commands for working with passphrase-protected
+age identities. Allows unlocking once per session instead of entering
+passphrase for every agenix operation.
+
+Key features:
+- One-time unlock per session
+- Quiet mode for direnv integration
+- Temporary storage with 600 permissions
+- Automatic environment variable export
+"
+```
+
 ### Commit Creation Guidelines
 
 When creating commits, follow these steps:
@@ -313,6 +409,80 @@ git log -1 --stat
 4. **Secrets**: Never commit unencrypted secrets; always use agenix
 5. **Large changes**: Consider breaking into multiple commits with clear progression
 6. **Rebase, don't merge**: Keep history linear when possible
+
+### Handling Commit Failures
+
+If `git commit` fails (e.g., GPG signing issues, hooks, or other errors):
+
+1. **Stage the files** if not already staged:
+   ```bash
+   git add <file1> <file2> <file3>
+   ```
+
+2. **Save the commit message** to a file for the user:
+   ```bash
+   cat > COMMIT_MSG.txt << 'EOF'
+   type(scope): short description
+
+   Detailed explanation of what changed and why.
+
+   - Bullet points for key changes
+   - Context about the motivation
+   - Any breaking changes or notes
+   EOF
+   ```
+
+3. **Notify the user**:
+   ```
+   ⚠️  Git commit failed. Files are staged and commit message saved to COMMIT_MSG.txt
+
+   To complete the commit manually, run:
+   git commit -F COMMIT_MSG.txt
+
+   Or if GPG signing is the issue:
+   git commit --no-gpg-sign -F COMMIT_MSG.txt
+   ```
+
+4. **Check git status** to confirm files are staged:
+   ```bash
+   git status
+   ```
+
+#### Example: Handling GPG Signing Failure
+
+```bash
+# Attempt commit
+git commit -m "feat: add new feature" -m "Detailed description..."
+# Error: Couldn't get agent socket?
+
+# Solution:
+# 1. Verify files are staged
+git status
+
+# 2. Save commit message
+cat > COMMIT_MSG.txt << 'EOF'
+feat: add new feature
+
+Detailed description of the feature and why it was added.
+
+Key changes:
+- Added X functionality
+- Updated Y configuration
+- Documented Z usage
+EOF
+
+# 3. Inform user
+echo "⚠️  Commit failed with GPG error. Files staged and message saved to COMMIT_MSG.txt"
+echo "Run: git commit --no-gpg-sign -F COMMIT_MSG.txt"
+```
+
+#### Common Commit Failures
+
+- **GPG signing issues**: Use `--no-gpg-sign` flag
+- **Pre-commit hooks**: Fix the issues the hooks identify
+- **Empty commits**: Ensure files are actually changed and staged
+- **Merge conflicts**: Resolve conflicts before committing
+- **Commit message format**: Follow conventional commits format
 
 ### Commit Frequency
 
