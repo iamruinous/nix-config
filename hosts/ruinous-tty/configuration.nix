@@ -40,7 +40,7 @@
       {
         image = "nix-store-overlay.img";
         mountPoint = config.microvm.writableStoreOverlay;
-        size = 4096;
+        size = 20480;
       }
     ];
 
@@ -48,10 +48,10 @@
     # with the VMs to prevent building huge images.
     shares = [
       {
-        proto = "virtiofs";
-        tag = "persistent";
         source = "/persistent/microvms/ruinous-tty/persistent";
         mountPoint = "/persistent";
+        tag = "persistent";
+        proto = "virtiofs";
       }
       {
         source = "/nix/store";
