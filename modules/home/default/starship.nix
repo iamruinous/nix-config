@@ -42,6 +42,7 @@ in {
         " "
         "$git_status"
         "\${custom.ssh}"
+        "\${custom.ssh_auth_sock}"
         "$line_break"
         "[┕](248)[━](249)[❯](250)"
         " "
@@ -103,6 +104,13 @@ in {
         symbol = "󰹑";
         style = "250";
         format = "[$symbol]($style)";
+      };
+      custom.ssh_auth_sock = {
+        when = "test \"$SSH_AUTH_SOCK_INVALID\" = \"1\"";
+        symbol = "⚠";
+        style = "bold red";
+        format = "[$symbol SSH]($style)";
+        description = "SSH agent socket is invalid";
       };
       git_branch = {
         always_show_remote = true;

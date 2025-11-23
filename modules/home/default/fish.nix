@@ -104,6 +104,20 @@ in {
     interactiveShellInit = ''
       ${tmuxAttachScript}
 
+      # Check SSH_AUTH_SOCK validity
+      if set -q SSH_AUTH_SOCK
+        if not test -S "$SSH_AUTH_SOCK"
+          set -gx SSH_AUTH_SOCK_INVALID 1
+          set_color red
+          echo "⚠ SSH_AUTH_SOCK is set but invalid (socket not found at $SSH_AUTH_SOCK)"
+          set_color normal
+        else
+          set -gx SSH_AUTH_SOCK_INVALID 0
+        end
+      else
+        set -e SSH_AUTH_SOCK_INVALID
+      end
+
       if type -q ${pkgs.toilet}/bin/toilet; and type -q ${pkgs.lolcat}/bin/lolcat
         set -q TOILETMAXLENGTH || set TOILETMAXLENGTH 16
         set -q TOILETNAME || set TOILETNAME (hostname -s)
