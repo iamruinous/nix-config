@@ -76,6 +76,10 @@
       gemini-cli
       opencode
 
+      # sandboxing
+      socat
+      bubblewrap
+
       zig # zig currently broken on Darwin
       zls
     ]);

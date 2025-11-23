@@ -26,15 +26,9 @@
         then "home/${hostName}-${username}"
         else "nixos/${hostName}";
     in {
-      # Master identity decrypted to /tmp/id_age for rekeying
-      # > agenix unlock
-      # masterIdentities = [/tmp/id_age /tmp/id_age_];
-      masterIdentities = [
-        {
-          identity = flake + /secrets/id_age.age;
-          pubkey = flake + /secrets/id_age.pub;
-        }
-      ];
+      # Master identity decrypted to /tmp/id_age by agenix-helper
+      # Run `agenix-helper unlock` before rekeying operations
+      masterIdentities = [/tmp/id_age /tmp/id_age_];
 
       # Public ssh host key derived from 32-byte hex
       # > nixos generate

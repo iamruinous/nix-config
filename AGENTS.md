@@ -327,3 +327,138 @@ git log -1 --stat
 - Temporary/debugging code is present
 - Secrets are exposed
 - Work is incomplete and non-functional
+
+## Session Logging
+
+### Overview
+
+This repository maintains a running log of development sessions in `SESSION_LOG.md`. This helps track:
+- What work was completed in each session
+- Context for future sessions
+- Historical decisions and rationale
+- Unresolved issues and follow-up tasks
+
+### When to Update the Session Log
+
+Update `SESSION_LOG.md` at the **end of each development session** when:
+- Significant features were added or modified
+- Multiple related changes were made
+- Important decisions were documented
+- Issues were discovered that need follow-up
+- The session lasted more than 15-20 minutes
+
+### How to Update the Session Log
+
+1. **Add a new session entry at the top** (after the format template)
+2. **Use the standard format**:
+   ```markdown
+   ## YYYY-MM-DD - Descriptive Session Title
+
+   **AI Agent:** [Your name/type]
+   **Duration:** [Approximate time]
+   **Focus Areas:** [Main topics worked on]
+
+   ### Changes Made
+   - Bullet list of significant changes
+   - Include file paths where relevant
+   - Note any breaking changes
+
+   ### Commits Created
+   - List of commit messages/summaries
+   - Or note if changes are staged but not committed
+
+   ### Issues/Notes
+   - Any unresolved issues
+   - Follow-up tasks needed
+   - Important notes for future sessions
+   ```
+
+3. **Be concise but informative**: Focus on what and why, not excessive detail
+4. **Group related changes**: Don't list every single file, group by feature/area
+5. **Highlight important decisions**: Document why certain approaches were chosen
+6. **Note pending work**: Make it easy for the next session to pick up where you left off
+
+### Session Log Best Practices
+
+**Do:**
+- Update at the end of productive sessions
+- Group changes by feature/area
+- Note technical decisions and rationale
+- List unresolved issues clearly
+- Include file paths for major changes
+- Note breaking changes prominently
+
+**Don't:**
+- Log trivial changes (typo fixes, formatting)
+- Duplicate information from commit messages verbatim
+- Write essays - keep it concise
+- Update for every tiny edit
+- Forget to update before ending the session
+
+### Example Session Entry
+
+```markdown
+## 2025-11-23 - Docker Container Security Hardening
+
+**AI Agent:** Claude Code
+**Duration:** 1 hour
+**Focus Areas:** Container security, secret management
+
+### Changes Made
+
+1. **Container Security** (`hosts/production/containers.nix`)
+   - Added security context to all containers
+   - Implemented read-only root filesystems
+   - Dropped unnecessary capabilities
+   - Files: hosts/production/containers.nix
+
+2. **Secret Rotation**
+   - Rotated database credentials
+   - Updated API keys in agenix
+   - Documented rotation process
+   - Files: secrets/production/*.age
+
+### Commits Created
+
+- `feat(security): harden container security contexts`
+- `chore(secrets): rotate production credentials`
+
+### Issues/Notes
+
+**Pending:**
+- Need to test backup restore with new credentials
+- Should automate credential rotation (follow-up ticket)
+
+**Important:**
+- Breaking change: Containers now require explicit volume mounts
+- Old configs will fail with read-only filesystem errors
+- Migration guide added to docs/MIGRATION.md
+```
+
+### Integrating with Git Workflow
+
+The session log complements, but doesn't replace, git commit messages:
+
+- **Commit messages**: Detailed, per-change documentation
+- **Session log**: High-level session summary, context, pending work
+
+Think of it as:
+- Commit messages = Chapter details
+- Session log = Table of contents
+
+### When to Skip Logging
+
+You can skip updating the session log for:
+- Quick typo fixes
+- Simple README updates
+- Experimental/throwaway work
+- Sessions under 10-15 minutes
+- Work that was completely reverted
+
+### Session Log Maintenance
+
+Periodically (every few months):
+- Review old entries for outdated information
+- Archive very old sessions to `SESSION_LOG_ARCHIVE.md`
+- Keep recent ~6 months in main log
+- Update template if format evolves
