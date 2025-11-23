@@ -27,6 +27,51 @@ This file tracks significant changes and work done across development sessions. 
 
 ---
 
+## 2025-11-23 - SSH Agent Validation and Shell Improvements
+
+**AI Agent:** Claude Code
+**Duration:** ~30 minutes
+**Focus Areas:** SSH agent validation, shell configuration, project documentation
+
+### Changes Made
+
+1. **SSH_AUTH_SOCK Validation** (`modules/home/default/fish.nix`)
+   - Added automatic validation of SSH_AUTH_SOCK on shell startup
+   - Checks if socket path is set and points to a valid socket file
+   - Sets `SSH_AUTH_SOCK_INVALID` environment variable (0/1) for prompt integration
+   - Displays warning message in red when socket is invalid
+   - Helps catch stale SSH agent sessions and configuration issues
+
+2. **Starship Prompt Indicator** (`modules/home/default/starship.nix`)
+   - Added `custom.ssh_auth_sock` module to display visual warning
+   - Shows "⚠ SSH" in bold red when SSH_AUTH_SOCK is invalid
+   - Positioned after git status and SSH connection indicator
+   - Only appears when there's an actual problem (no prompt clutter)
+
+3. **Project Documentation** (repository root)
+   - Created `CLAUDE.md` symlink pointing to `AGENTS.md`
+   - Enables Claude Code to automatically read project context on startup
+   - Maintains existing AGENTS.md filename while providing Claude Code compatibility
+
+### Commits Created
+
+- `67a517e feat(shell): add SSH_AUTH_SOCK validation and visual indicator`
+
+### Issues/Notes
+
+**Benefits:**
+- Immediate feedback when SSH agent socket becomes invalid
+- Helps diagnose SSH authentication issues faster
+- Prevents confusion from stale environment variables
+- Visual indicator only shows when needed
+
+**Technical Details:**
+- Uses fish's `test -S` to verify socket file exists
+- Environment variable allows starship to react to validation state
+- Validation runs on every new shell session
+
+---
+
 ## 2025-11-23 - Container Configuration and Agenix Helper Package
 
 **AI Agent:** Claude Code
