@@ -386,7 +386,11 @@ git add <file1> <file2> <file3>
 # 4. Verify staged changes
 git diff --cached
 
-# 5. Create commit with detailed message
+# 5. Check if SSH/GPG agent is available (prevents commit failures)
+ssh-agent-check || echo "Warning: SSH agent not responding"
+
+# 6. Create commit with detailed message
+# If commit fails due to GPG agent issues, save to COMMIT_MSG.txt
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 
@@ -397,7 +401,7 @@ Detailed explanation of what changed and why.
 Fixes #123
 "
 
-# 6. Verify commit
+# 7. Verify commit
 git log -1 --stat
 ```
 
@@ -413,6 +417,12 @@ git log -1 --stat
 ### Handling Commit Failures
 
 **IMPORTANT:** All commits must be GPG signed. Never use `--no-gpg-sign`.
+
+**Before attempting to commit**, check if the SSH/GPG agent is available:
+```bash
+ssh-agent-check
+```
+If this returns exit code 1 (agent not responding), the commit will likely fail. In this case, skip to step 2 below to save the commit message for the user.
 
 If `git commit` fails due to GPG signing issues:
 
@@ -437,11 +447,11 @@ If `git commit` fails due to GPG signing issues:
 
    Changes are staged and commit message saved to COMMIT_MSG.txt
 
-   To create the signed commit, run:
-     git commit -F COMMIT_MSG.txt
+   To create the signed commit (fish shell syntax):
+     git commit -F COMMIT_MSG.txt; and rm COMMIT_MSG.txt
 
-   Then clean up the temporary file:
-     rm COMMIT_MSG.txt
+   Or for bash/zsh:
+     git commit -F COMMIT_MSG.txt && rm COMMIT_MSG.txt
    ```
 
 #### Example: Handling GPG Signing Failure
