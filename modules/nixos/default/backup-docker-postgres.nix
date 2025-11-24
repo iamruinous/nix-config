@@ -5,22 +5,14 @@
   lib,
   ...
 }: let
-  scripts_dir = ../../../files/scripts;
-  postgres_backup_script = "${scripts_dir}/postgres_backup.sh";
   cfg = config.ruinous.postgres.docker.backup;
 in {
   config = lib.mkIf cfg.enable {
     systemd.services.postgres-backup = {
       description = "postgres backup";
-      path = with pkgs; [
-        bash
-        coreutils
-        docker
-        gawk
-      ];
       serviceConfig = {
         Type = "oneshot"; # For tasks that run and exit
-        ExecStart = "${pkgs.bash}/bin/bash ${postgres_backup_script}";
+        ExecStart = "${pkgs.postgres-backup}/bin/postgres-backup";
       };
     };
 

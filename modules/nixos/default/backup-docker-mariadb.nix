@@ -5,21 +5,15 @@
   lib,
   ...
 }: let
-  scripts_dir = ../../../files/scripts;
-  mariadb_backup_script = "${scripts_dir}/mariadb_backup.sh";
   cfg = config.ruinous.mariadb.docker.backup;
 in {
   config = lib.mkIf cfg.enable {
     systemd.services.mariadb-backup = {
       description = "mariadb backup";
-      path = with pkgs; [
-        coreutils
-        docker
-      ];
       serviceConfig = {
         Type = "oneshot"; # For tasks that run and exit
-        ExecStart = "${pkgs.bash}/bin/bash ${mariadb_backup_script}";
-        # EnvironmentFile = add file with passwords
+        ExecStart = "${pkgs.mariadb-backup}/bin/mariadb-backup";
+        # EnvironmentFile = add file with passwords (MARIADB_ROOT_PASSWORD)
       };
     };
 
