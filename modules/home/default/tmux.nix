@@ -57,7 +57,7 @@
 
       set -g status-bg "#1a1b26"
 
-      set -g status-right "#[bg=default,fg=#24283B]#[fg=white,bg=#24283B] %Y-%m-%d #[]❬ %H:%M #[fg=blue,bg=#24283B,nobold,nounderscore,noitalics]#[fg=black,bg=blue,bold]󰹑 #S "
+      set -g status-right "#[bg=default,fg=#24283B]#[fg=white,bg=#24283B] %Y-%m-%d #[]❬ %H:%M #[fg=blue,bg=#24283B,nobold,nounderscore,noitalics]#[fg=black,bg=blue,bold]󰹑 #S "
       set -g window-status-separator ""
     '';
   };
