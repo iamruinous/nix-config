@@ -352,6 +352,12 @@
     rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
+
+  # Restart docker-caddy service when Caddyfile secret changes
+  systemd.services.docker-caddy = {
+    restartTriggers = [config.age.secrets.tty_ruinous_social_caddy_caddyfile.path];
+  };
+
   # mosquitto container chowns the file
   age.secrets.tty_ruinous_social_mosquitto_config = {
     rekeyFile = ./files/mosquitto/mosquitto.conf.age;

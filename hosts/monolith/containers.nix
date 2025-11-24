@@ -891,6 +891,11 @@
     rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
+
+  # Restart docker-caddy service when Caddyfile secret changes
+  systemd.services.docker-caddy = {
+    restartTriggers = [config.age.secrets.monolith_caddy_caddyfile.path];
+  };
   age.secrets.monolith_glance_config = {
     rekeyFile = ./files/glance/glance.yml.age;
     path = "/data/docker/glance/config/glance.yml";

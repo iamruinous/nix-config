@@ -99,5 +99,10 @@
     rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
+
+  # Restart docker-caddy service when Caddyfile secret changes
+  systemd.services.docker-caddy = {
+    restartTriggers = [config.age.secrets.obelisk_caddy_caddyfile.path];
+  };
 }
 

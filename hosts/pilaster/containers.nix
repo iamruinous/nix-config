@@ -244,6 +244,11 @@
     rekeyFile = ./files/caddy/Caddyfile.age;
     mode = "600";
   };
+
+  # Restart docker-caddy service when Caddyfile secret changes
+  systemd.services.docker-caddy = {
+    restartTriggers = [config.age.secrets.pilaster_caddy_caddyfile.path];
+  };
   age.secrets.pilaster_docker_env_authentik = {
     rekeyFile = ./files/docker/env/authentik.env.age;
     mode = "600";
