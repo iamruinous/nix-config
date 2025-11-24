@@ -16,13 +16,13 @@ pkgs.writeShellApplication {
     CACHE_FILE="''${XDG_RUNTIME_DIR:-/tmp}/ssh-agent-check-cache-$$"
 
     # If SSH_AUTH_SOCK is not set, agent is not available
-    if [ -z "$SSH_AUTH_SOCK" ]; then
+    if [ -z "''${SSH_AUTH_SOCK:-}" ]; then
       exit 1
     fi
 
-    # For local sessions (not SSH), verify SSH_TTY is a tty/pty
-    # This prevents false positives when running locally
-    if [ -n "$SSH_TTY" ] && ! [ -c "$SSH_TTY" ]; then
+    # Verify SSH_TTY is a valid tty/pty if set
+    # This prevents false positives on local or misconfigured sessions
+    if [ -n "''${SSH_TTY:-}" ] && ! [ -c "''${SSH_TTY:-}" ]; then
       exit 1
     fi
 
