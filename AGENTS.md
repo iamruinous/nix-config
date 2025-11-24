@@ -67,6 +67,90 @@ nix run 'github:numtide/system-manager' -- switch --flake .#pit
 -   **Lanzaboote:** Some hosts use `lanzaboote` for secure boot.
 -   **Custom Packages:** Custom packages in `packages/` are automatically discovered by blueprint and exposed via overlay.
 
+## Custom AI Agents
+
+This repository includes custom AI agents that provide specialized expertise for specific tasks. Agents are defined in `.claude/agents/` and are automatically available to Claude Code.
+
+### Available Agents
+
+#### nix-packager
+
+**Location:** `.claude/agents/nix-packager.md`
+
+**Purpose:** Expert NixOS package developer specializing in:
+- Creating new Nix packages from scratch
+- Converting shell scripts and binaries into reproducible Nix packages
+- Setting up proper dependencies (buildInputs, nativeBuildInputs, propagatedBuildInputs)
+- Configuring build phases and package metadata
+- Integrating packages with the blueprint flake structure
+- Testing and debugging package builds
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Creating packages in `packages/`
+- Converting scripts to Nix packages
+- Fixing package build errors
+- Setting up stdenv.mkDerivation or specialized builders
+- Integrating packages with overlays
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the nix-packager agent to convert this bash script into a Nix package"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (for nix build, testing, etc.)
+- NixOS MCP server: Access to nixos package search, options lookup, and version history
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Create a Nix package for this Python script that manages Docker containers"
+
+# Explicit invocation:
+"Use the nix-packager agent to package the backup script as a proper Nix package"
+
+# Complex task:
+"Convert the mariadb-backup.sh script into a Nix package with proper dependencies
+and integrate it with the overlay so it's available on all hosts"
+```
+
+### Creating Additional Custom Agents
+
+To create your own custom agents:
+
+1. **Create agent file:** `.claude/agents/<agent-name>.md`
+2. **Add YAML frontmatter:**
+   ```yaml
+   ---
+   name: agent-name
+   description: "Detailed description of when/why to invoke this agent"
+   tools: Read, Grep, Glob, Bash, Edit, Write
+   model: sonnet
+   ---
+   ```
+3. **Write system prompt:** Define the agent's expertise, workflow, and best practices in markdown below the frontmatter
+4. **Document the agent:** Add it to this section of CLAUDE.md
+
+**Configuration Fields:**
+- `name` (required): Unique identifier in kebab-case
+- `description` (required): Detailed explanation of the agent's purpose and when to invoke it
+- `tools` (optional): Comma-separated list of tool names; inherits all if omitted
+- `model` (optional): Override model (`sonnet`, `opus`, `haiku`, or `inherit`)
+
+**Agent Context:**
+- Each agent runs in isolated context
+- Prevents information overload
+- Can be parallelized with other agents
+- All configured MCP servers are automatically available
+
+**Best Practices:**
+- Store agents in `.claude/agents/` (project-level) for team sharing
+- Write detailed descriptions for accurate auto-delegation
+- Include comprehensive system prompts with examples
+- Document agents in this CLAUDE.md file
+- Test agents with explicit invocation before relying on auto-delegation
+
 ## Git Workflow
 
 This project adheres to the [Conventional Commits](https://www.conventionalcommits.org/) specification. This creates a structured and easily understandable commit history.
