@@ -27,6 +27,87 @@ This file tracks significant changes and work done across development sessions. 
 
 ---
 
+## 2025-11-24 - 1Password Integration for Age Identity Management
+
+**AI Agent:** Claude Code
+**Duration:** ~1.5 hours
+**Focus Areas:** 1Password CLI integration, pinentry protocol, agenix-helper enhancement
+
+### Changes Made
+
+1. **New Package: pinentry-1password** (`packages/pinentry-1password/`)
+   - Created pinentry-compatible program using 1Password CLI
+   - Implements standard pinentry protocol for passphrase retrieval
+   - Uses `op read` command to fetch secrets from 1Password
+   - Compatible with rage, age, GPG, and other pinentry-aware programs
+   - Proper error handling with exit codes (83886179 for errors)
+   - Based on https://gist.github.com/mrgrain/9c3519952d9af811bd7bf50bfcfaa16f
+   - Comprehensive README with usage examples and setup instructions
+   - Files: `packages/pinentry-1password/default.nix`, `packages/pinentry-1password/README.md`
+
+2. **agenix-helper Enhancement** (`packages/agenix-helper/`)
+   - **Switched from `age` to `rage`** for better pinentry support
+   - Added automatic 1Password integration detection
+   - Checks for: `op` CLI, `pinentry-1password`, and `OP_PIN_ITEM` env var
+   - Automatically sets `PINENTRY_PROGRAM=pinentry-1password` when available
+   - Falls back to interactive passphrase prompt if 1Password unavailable
+   - Updated help text to document `OP_PIN_ITEM` environment variable
+   - Added comprehensive 1Password integration section to README
+   - Files: `packages/agenix-helper/default.nix`, `packages/agenix-helper/README.md`
+
+3. **Documentation Updates**
+   - Updated `packages/README.md` with pinentry-1password entry
+   - Updated main `README.md`:
+     - Added pinentry-1password to custom packages list
+     - Added "1Password Integration" section to Secrets Management
+     - Documented setup requirements and usage
+   - Added pinentry-1password to overlay (`modules/nixos/common/overlay.nix`)
+
+### Commits Created
+
+- Changes staged, ready for commit
+
+### Issues/Notes
+
+**Benefits:**
+- No need to type age identity passphrase repeatedly
+- Works seamlessly with 1Password's biometric unlock
+- Passphrase never stored on disk by agenix-helper
+- Automatic fallback to interactive prompt if 1Password unavailable
+- Enhances security by leveraging 1Password's vault
+
+**Usage:**
+```sh
+# Setup (one-time)
+export OP_PIN_ITEM="op://Private/age-identity/passphrase"
+
+# Unlock without typing passphrase
+agenix-helper unlock
+
+# Edit secrets
+agenix edit secrets/some-secret.age
+agenix rekey -a
+
+# Lock when done
+agenix-helper lock
+```
+
+**Technical Details:**
+- pinentry-1password reads commands via stdin loop
+- Responds to `GETPIN` with `op read $OP_PIN_ITEM` output
+- agenix-helper sets `PINENTRY_PROGRAM` env var before calling rage
+- rage uses pinentry protocol to request passphrase
+- Detection order: op → pinentry-1password → OP_PIN_ITEM
+- Blueprint automatically discovers package from `packages/` directory
+
+**Implementation Notes:**
+- Package permissions needed fixing (644) for blueprint discovery
+- Files must be git-added for nix flake to recognize them
+- SQLite cache issues resolved by removing `~/.cache/nix/fetcher-cache*`
+- Both packages build successfully with dry-run and full builds
+
+---
+
 ## 2025-11-23 - SSH Agent Validation, Docker Auto-Restart, and Custom Packages
 
 **AI Agent:** Claude Code

@@ -5,7 +5,7 @@ pkgs.stdenv.mkDerivation {
   dontUnpack = true;
 
   propagatedBuildInputs = [
-    pkgs.age
+    pkgs.rage
     pkgs.coreutils
   ];
 
@@ -51,7 +51,17 @@ agenix_unlock() {
 
   # Attempt to decrypt age identity using passphrase (interactive only)
   if [[ -z "$id" ]]; then
-    id="$(${pkgs.age}/bin/age -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
+    # Check if we can use 1Password CLI for pinentry
+    if command -v op &>/dev/null && command -v pinentry-1password &>/dev/null && [[ -n "''${OP_PIN_ITEM:-}" ]]; then
+      # Use pinentry-1password for passphrase retrieval
+      export PINENTRY_PROGRAM="pinentry-1password"
+      id="$(${pkgs.rage}/bin/rage -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
+      unset PINENTRY_PROGRAM
+    else
+      # Fall back to standard interactive passphrase prompt
+      id="$(${pkgs.rage}/bin/rage -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
+    fi
+
     if [[ -z "$id" ]] || [[ "$id" =~ "incorrect" ]]; then
       echo "Error: Failed to decrypt age identity (incorrect passphrase?)"
       return 1
@@ -119,6 +129,11 @@ case "''${1:-status}" in
     echo "Environment variables:"
     echo "  AGE_IDENTITY_FILE      - Path to decrypted identity (default: /tmp/id_age)"
     echo "  AGE_IDENTITY_ENCRYPTED - Path to encrypted identity (default: secrets/id_age.age)"
+    echo "  OP_PIN_ITEM            - 1Password item reference for passphrase (optional)"
+    echo ""
+    echo "1Password integration:"
+    echo "  If op CLI and pinentry-1password are available, set OP_PIN_ITEM to use"
+    echo "  1Password for passphrase retrieval: export OP_PIN_ITEM='op://vault/item/field'"
     exit 1
     ;;
 esac

@@ -45,11 +45,12 @@ For detailed information about each host including hardware specifications, key 
 
 This repository includes custom Nix packages for specialized functionality:
 
-- **agenix-helper** - Helper utility for managing passphrase-protected age identities
+- **agenix-helper** - Helper utility for managing passphrase-protected age identities with 1Password integration
 - **docker-mcp-gateway** - Docker CLI plugin for Model Context Protocol integration
 - **forgejo-shell** - SSH shell wrapper for Forgejo Docker container
 - **messy-restricted-shell** - Restricted shell with whitelisted commands
 - **nelko-pl70ebt** - CUPS driver for Nelko PL70e-BT label printer
+- **pinentry-1password** - Pinentry-compatible program using 1Password CLI for passphrase retrieval
 - **ssh-agent-check** - Fast, cached SSH agent availability checker
 
 For detailed information about each package including usage examples and dependencies, see **[packages/README.md](packages/README.md)**.
@@ -205,7 +206,24 @@ agenix rekey -a
 agenix-helper lock
 ```
 
-See the [agenix-helper package documentation](packages/agenix-helper/README.md) for details.
+### 1Password Integration
+
+If you use 1Password CLI, you can store your age identity passphrase in 1Password and have `agenix-helper` retrieve it automatically:
+
+```sh
+# Set up 1Password secret reference
+export OP_PIN_ITEM="op://Private/age-identity/passphrase"
+
+# Unlock without typing passphrase (retrieved from 1Password)
+agenix-helper unlock
+```
+
+This requires:
+- 1Password CLI (`op`) installed and authenticated
+- `pinentry-1password` package installed
+- `OP_PIN_ITEM` environment variable set to your 1Password secret reference
+
+See the [agenix-helper package documentation](packages/agenix-helper/README.md) and [pinentry-1password documentation](packages/pinentry-1password/README.md) for details.
 
 ### Traditional Workflow
 

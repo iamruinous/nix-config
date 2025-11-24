@@ -83,6 +83,60 @@ echo $SOPS_AGE_KEY_FILE     # /tmp/id_age
 echo $AGE_IDENTITIES_FILE   # /tmp/id_age
 ```
 
+## 1Password Integration
+
+If you have the [1Password CLI (`op`)](https://developer.1password.com/docs/cli) installed and configured, `agenix-helper` can automatically retrieve your passphrase from 1Password instead of prompting interactively.
+
+### Requirements
+
+1. Install and configure 1Password CLI
+2. Install the `pinentry-1password` package (available in this flake)
+3. Set the `OP_PIN_ITEM` environment variable to your 1Password secret reference
+
+### Setup
+
+```bash
+# Install the packages
+environment.systemPackages = with pkgs; [
+  agenix-helper
+  pinentry-1password
+  _1password  # or install via other means
+];
+
+# Set the 1Password secret reference (in your shell config or .envrc)
+export OP_PIN_ITEM="op://Private/age-identity/passphrase"
+
+# Now unlock without interactive passphrase prompt
+agenix-helper unlock
+# Will automatically retrieve passphrase from 1Password!
+```
+
+### How It Works
+
+When you run `agenix-helper unlock`:
+1. It checks if `op` command is available
+2. It checks if `pinentry-1password` is available
+3. It checks if `OP_PIN_ITEM` environment variable is set
+4. If all conditions are met, it sets `PINENTRY_PROGRAM=pinentry-1password`
+5. The `rage` tool uses pinentry to request the passphrase
+6. `pinentry-1password` retrieves it from 1Password via `op read`
+
+### 1Password Secret Reference Format
+
+The `OP_PIN_ITEM` should be in the format: `op://vault/item/field`
+
+Examples:
+- `op://Private/age-identity/password`
+- `op://Work/nixos-secrets/passphrase`
+- `op://Personal/encryption-keys/age-passphrase`
+
+### Benefits
+
+- No need to remember or type your passphrase
+- Works seamlessly with 1Password's biometric unlock
+- Still secure (passphrase never stored on disk by agenix-helper)
+- Falls back to interactive prompt if 1Password is unavailable
+
 ## Environment Variables
 
 Customize behavior with these environment variables:
@@ -90,6 +144,7 @@ Customize behavior with these environment variables:
 - `AGE_IDENTITY_FILE` - Path to decrypted identity (default: `/tmp/id_age`)
 - `AGE_IDENTITY_ENCRYPTED` - Path to encrypted identity (default: `secrets/id_age.age`)
 - `AGE_IDENTITY_BACKUP` - Path to backup identity (default: `/tmp/id_age_`)
+- `OP_PIN_ITEM` - 1Password secret reference for passphrase (optional, enables 1Password integration)
 
 ## Security Considerations
 

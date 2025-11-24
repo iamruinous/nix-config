@@ -125,6 +125,27 @@ Fast, cached SSH agent availability checker.
 
 ---
 
+### [pinentry-1password](pinentry-1password/README.md)
+
+Pinentry-compatible program using 1Password CLI for passphrase retrieval.
+
+**Purpose**: Allows programs like `rage`, `gpg-agent`, and other pinentry-compatible tools to retrieve secrets from 1Password.
+
+**Key Features**:
+- Implements standard pinentry protocol
+- Retrieves secrets from 1Password using `op` CLI
+- Works with age/rage, GPG, and other pinentry-compatible programs
+- Automatic integration with agenix-helper
+- No secrets stored on disk
+
+**Used By**: Development systems with 1Password CLI integration
+
+**Dependencies**: 1Password CLI (`op`), coreutils
+
+**Version**: 0.1.0
+
+---
+
 ## Usage
 
 These packages are automatically available to all hosts in this flake. To use them in a host configuration:
@@ -136,6 +157,7 @@ environment.systemPackages = with pkgs; [
   forgejo-shell
   messy-restricted-shell
   nelko-pl70ebt
+  pinentry-1password
   ssh-agent-check
 ];
 ```
