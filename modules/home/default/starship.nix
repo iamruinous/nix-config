@@ -22,6 +22,7 @@ in {
         "[┍](247)[━](246)[━](245)[━](244)[━](243)[━](242)[┫](241)"
         "$username"
         "$hostname"
+        "\${custom.ssh_auth_sock}"
         "[┣](241)[━](240)[━](239)[━](238)[━](237)[╾](236)[╶](236)"
         " "
         "$directory"
@@ -42,7 +43,6 @@ in {
         " "
         "$git_status"
         "\${custom.ssh}"
-        "\${custom.ssh_auth_sock}"
         "$line_break"
         "[┕](248)[━](249)[❯](250)"
         " "
@@ -107,10 +107,10 @@ in {
       };
       custom.ssh_auth_sock = {
         when = "test \"$SSH_AUTH_SOCK_INVALID\" = \"1\"";
-        symbol = "⚠";
+        symbol = "󰌆";
         style = "bold red";
-        format = "[$symbol SSH]($style)";
-        description = "SSH agent socket is invalid";
+        format = "[$symbol]($style)";
+        description = "SSH agent is not responding";
       };
       git_branch = {
         always_show_remote = true;

@@ -30,45 +30,60 @@ This file tracks significant changes and work done across development sessions. 
 ## 2025-11-23 - SSH Agent Validation and Shell Improvements
 
 **AI Agent:** Claude Code
-**Duration:** ~30 minutes
-**Focus Areas:** SSH agent validation, shell configuration, project documentation
+**Duration:** ~2 hours
+**Focus Areas:** SSH agent validation, shell configuration, tmux status bar, project documentation
 
 ### Changes Made
 
 1. **SSH_AUTH_SOCK Validation** (`modules/home/default/fish.nix`)
    - Added automatic validation of SSH_AUTH_SOCK on shell startup
-   - Checks if socket path is set and points to a valid socket file
-   - Sets `SSH_AUTH_SOCK_INVALID` environment variable (0/1) for prompt integration
-   - Displays warning message in red when socket is invalid
-   - Helps catch stale SSH agent sessions and configuration issues
+   - Uses `ssh-add -l` to verify agent is actually responding (not just socket file exists)
+   - Checks exit code: 0/1 = agent working, 2 = cannot contact agent
+   - Sets `SSH_AUTH_SOCK_INVALID` environment variable for prompt integration
+   - Displays warning message in red when agent is not responding
+   - Catches dead/hung agents, not just missing socket files
 
 2. **Starship Prompt Indicator** (`modules/home/default/starship.nix`)
    - Added `custom.ssh_auth_sock` module to display visual warning
-   - Shows "⚠ SSH" in bold red when SSH_AUTH_SOCK is invalid
-   - Positioned after git status and SSH connection indicator
-   - Only appears when there's an actual problem (no prompt clutter)
+   - Shows nerd font symbol 󰌆 (key-alert) in bold red when agent fails
+   - Positioned immediately after hostname for maximum visibility
+   - Clean icon-only design (no text clutter)
+   - Only appears when there's an actual problem
 
-3. **Project Documentation** (repository root)
+3. **Tmux Status Bar Indicator** (`modules/home/default/tmux.nix`)
+   - Added SSH_AUTH_SOCK validation to tmux status-right configuration
+   - Uses `ssh-add -l` to test agent responsiveness in real-time
+   - Displays nerd font symbol 󰌆 in bold red when agent fails
+   - Positioned before date/time in bottom right status bar
+   - Consistent visual indicator across shell, prompt, and tmux
+
+4. **Project Documentation** (repository root)
    - Created `CLAUDE.md` symlink pointing to `AGENTS.md`
    - Enables Claude Code to automatically read project context on startup
    - Maintains existing AGENTS.md filename while providing Claude Code compatibility
 
 ### Commits Created
 
-- `67a517e feat(shell): add SSH_AUTH_SOCK validation and visual indicator`
+- `67a517e feat(shell): add SSH_AUTH_SOCK validation and visual indicator` (initial implementation)
 
 ### Issues/Notes
 
 **Benefits:**
-- Immediate feedback when SSH agent socket becomes invalid
+- Immediate, highly visible feedback when SSH agent fails
+- Actually tests agent responsiveness (not just socket file existence)
 - Helps diagnose SSH authentication issues faster
-- Prevents confusion from stale environment variables
-- Visual indicator only shows when needed
+- Prevents confusion from dead agents with valid socket files
+- Visual indicators only show when needed
+- Consistent validation and design across fish shell, starship prompt, and tmux status bar
 
 **Technical Details:**
-- Uses fish's `test -S` to verify socket file exists
-- Environment variable allows starship to react to validation state
-- Validation runs on every new shell session
+- Uses `ssh-add -l` to verify agent is responding (exit 2 = unreachable)
+- Fish uses `${pkgs.openssh}/bin/ssh-add -l` with exit code checking
+- Tmux uses inline shell command: `ssh-add -l >/dev/null 2>&1; [ $? -eq 2 ] && echo invalid`
+- Environment variable `SSH_AUTH_SOCK_INVALID` allows starship to react to validation state
+- Nerd font symbol 󰌆 (nf-md-key_alert) used for visual consistency
+- Starship indicator positioned after hostname for maximum prominence
+- Validation runs on shell startup (fish) and continuously in tmux status bar
 
 ---
 

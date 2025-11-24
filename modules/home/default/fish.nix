@@ -106,10 +106,12 @@ in {
 
       # Check SSH_AUTH_SOCK validity
       if set -q SSH_AUTH_SOCK
-        if not test -S "$SSH_AUTH_SOCK"
+        ${pkgs.openssh}/bin/ssh-add -l >/dev/null 2>&1
+        set ssh_exit $status
+        if test $ssh_exit -eq 2
           set -gx SSH_AUTH_SOCK_INVALID 1
           set_color red
-          echo "⚠ SSH_AUTH_SOCK is set but invalid (socket not found at $SSH_AUTH_SOCK)"
+          echo "⚠ SSH_AUTH_SOCK is set but agent is not responding"
           set_color normal
         else
           set -gx SSH_AUTH_SOCK_INVALID 0
