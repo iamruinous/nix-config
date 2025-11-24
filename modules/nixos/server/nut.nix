@@ -8,11 +8,11 @@
     mode = lib.mkDefault "netclient";
     upsmon = {
       enable = true;
-      monitor = {
+      monitor."cyberpower-servers" = {
         system = lib.mkDefault "cyberpower-servers@nutify-servers.meskill.farm";
         user = "monuser";
         powerValue = 1;
-        passwordFile = config.age.secrets.nut_client_password;
+        passwordFile = config.age.secrets.nut_client_password.file;
         type = "slave";
       };
     };

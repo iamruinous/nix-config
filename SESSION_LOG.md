@@ -37,7 +37,7 @@ This file tracks significant changes and work done across development sessions. 
 
 1. **SSH_AUTH_SOCK Validation** (`modules/home/default/fish.nix`)
    - Added automatic validation of SSH_AUTH_SOCK on shell startup
-   - Uses `ssh-add -l` to verify agent is actually responding (not just socket file exists)
+   - Uses `ssh-add -L` to verify agent is actually responding (not just socket file exists)
    - Checks exit code: 0/1 = agent working, 2 = cannot contact agent
    - Sets `SSH_AUTH_SOCK_INVALID` environment variable for prompt integration
    - Displays warning message in red when agent is not responding
@@ -52,7 +52,7 @@ This file tracks significant changes and work done across development sessions. 
 
 3. **Tmux Status Bar Indicator** (`modules/home/default/tmux.nix`)
    - Added SSH_AUTH_SOCK validation to tmux status-right configuration
-   - Uses `ssh-add -l` to test agent responsiveness in real-time
+   - Uses `ssh-add -L` to test agent responsiveness in real-time
    - Displays nerd font symbol 󰌆 in bold red when agent fails
    - Positioned before date/time in bottom right status bar
    - Consistent visual indicator across shell, prompt, and tmux
@@ -77,9 +77,9 @@ This file tracks significant changes and work done across development sessions. 
 - Consistent validation and design across fish shell, starship prompt, and tmux status bar
 
 **Technical Details:**
-- Uses `ssh-add -l` to verify agent is responding (exit 2 = unreachable)
-- Fish uses `${pkgs.openssh}/bin/ssh-add -l` with exit code checking
-- Tmux uses inline shell command: `ssh-add -l >/dev/null 2>&1; [ $? -eq 2 ] && echo invalid`
+- Uses `ssh-add -L` to verify agent is responding (exit 2 = unreachable)
+- Fish uses `${pkgs.openssh}/bin/ssh-add -L` with exit code checking
+- Tmux uses inline shell command: `ssh-add -L >/dev/null 2>&1; [ $? -eq 2 ] && echo invalid`
 - Environment variable `SSH_AUTH_SOCK_INVALID` allows starship to react to validation state
 - Nerd font symbol 󰌆 (nf-md-key_alert) used for visual consistency
 - Starship indicator positioned after hostname for maximum prominence

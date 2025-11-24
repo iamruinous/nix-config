@@ -106,7 +106,7 @@ in {
 
       # Check SSH_AUTH_SOCK validity
       if set -q SSH_AUTH_SOCK
-        ${pkgs.openssh}/bin/ssh-add -l >/dev/null 2>&1
+        ${pkgs.openssh}/bin/ssh-add -L >/dev/null 2>&1
         set ssh_exit $status
         if test $ssh_exit -eq 2
           set -gx SSH_AUTH_SOCK_INVALID 1
