@@ -1,28 +1,4 @@
-# ruinous.postgres.docker.backup.enable = true;
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}: let
-  cfg = config.ruinous.postgres.docker.backup;
-in {
-  config = lib.mkIf cfg.enable {
-    systemd.services.postgres-backup = {
-      description = "postgres backup";
-      serviceConfig = {
-        Type = "oneshot"; # For tasks that run and exit
-        ExecStart = "${pkgs.postgres-backup}/bin/postgres-backup";
-      };
-    };
-
-    systemd.timers.postgres-backup = {
-      wantedBy = ["timers.target"]; # Ensures the timer starts with the system
-      timerConfig = {
-        Unit = "postgres-backup.service"; # Links to the service defined above
-        OnCalendar = "*-*-* 01:00:00"; # Example: run daily at midnight
-        Persistent = true; # Ensures the timer runs even if the system was off during a scheduled run
-      };
-    };
-  };
-}
+# Imports the NixOS module from the backup-docker-postgres package
+# Enable with: ruinous.postgres.docker.backup.enable = true;
+{pkgs, ...}:
+pkgs.backup-docker-postgres.nixosModules.default

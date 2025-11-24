@@ -25,6 +25,56 @@ Helper utility for managing passphrase-protected age identities.
 
 ---
 
+### [backup-docker-mariadb](backup-docker-mariadb/README.md)
+
+Automated backup solution for MariaDB databases running in Docker containers.
+
+**Purpose**: Provides scheduled backups of all MariaDB databases (excluding system databases) with integrated NixOS module support.
+
+**Key Features**:
+- Automatic database discovery and backup
+- Excludes system databases (information_schema, performance_schema, mysql, sys)
+- Daily scheduled backups at 01:30 via systemd timer
+- Integrated NixOS module with options
+- Secure password management via environment files
+- SQL dump format backups
+
+**Used By**: Hosts running MariaDB in Docker containers
+
+**Dependencies**: docker, coreutils
+
+**NixOS Usage**:
+```nix
+ruinous.mariadb.docker.backup.enable = true;
+```
+
+---
+
+### [backup-docker-postgres](backup-docker-postgres/README.md)
+
+Automated backup solution for PostgreSQL databases running in Docker containers.
+
+**Purpose**: Provides scheduled backups of all PostgreSQL databases (excluding system databases) with integrated NixOS module support.
+
+**Key Features**:
+- Automatic database discovery and backup
+- Excludes system databases (template0, template1, postgres)
+- Daily scheduled backups at 01:00 via systemd timer
+- Integrated NixOS module with options
+- Compressed custom format backups (pg_dump -Fc -Z 9)
+- No-owner, no-privileges dumps for portability
+
+**Used By**: Hosts running PostgreSQL in Docker containers
+
+**Dependencies**: docker, gawk, coreutils
+
+**NixOS Usage**:
+```nix
+ruinous.postgres.docker.backup.enable = true;
+```
+
+---
+
 ### [docker-mcp-gateway](docker-mcp-gateway/README.md)
 
 Docker CLI plugin for MCP (Model Context Protocol) gateway.
@@ -153,6 +203,8 @@ These packages are automatically available to all hosts in this flake. To use th
 ```nix
 environment.systemPackages = with pkgs; [
   agenix-helper
+  backup-docker-mariadb
+  backup-docker-postgres
   docker-mcp-gateway
   forgejo-shell
   messy-restricted-shell
@@ -163,6 +215,17 @@ environment.systemPackages = with pkgs; [
 ```
 
 Or for specific use cases:
+
+### As NixOS Modules with Systemd Services
+
+```nix
+# Enable automated database backups
+ruinous.postgres.docker.backup.enable = true;
+ruinous.mariadb.docker.backup.enable = true;
+
+# Customize with EnvironmentFile for secure credentials
+systemd.services.mariadb-backup.serviceConfig.EnvironmentFile = "/run/secrets/mariadb-env";
+```
 
 ### As a Login Shell
 ```nix

@@ -46,6 +46,8 @@ For detailed information about each host including hardware specifications, key 
 This repository includes custom Nix packages for specialized functionality:
 
 - **agenix-helper** - Helper utility for managing passphrase-protected age identities with 1Password integration
+- **backup-docker-mariadb** - Automated MariaDB backup with integrated NixOS module and systemd timer
+- **backup-docker-postgres** - Automated PostgreSQL backup with integrated NixOS module and systemd timer
 - **docker-mcp-gateway** - Docker CLI plugin for Model Context Protocol integration
 - **forgejo-shell** - SSH shell wrapper for Forgejo Docker container
 - **messy-restricted-shell** - Restricted shell with whitelisted commands
