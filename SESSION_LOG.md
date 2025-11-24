@@ -27,6 +27,237 @@ This file tracks significant changes and work done across development sessions. 
 
 ---
 
+## 2025-11-24 - Database Backup Package Refactoring and Integration
+
+**AI Agent:** Claude Code
+**Duration:** ~2 hours
+**Focus Areas:** Package refactoring, NixOS module integration, documentation
+
+### Changes Made
+
+1. **Converted Backup Scripts to Nix Packages**
+   - Transformed `files/scripts/postgres_backup.sh` → `packages/backup-docker-postgres/`
+   - Transformed `files/scripts/mariadb_backup.sh` → `packages/backup-docker-mariadb/`
+   - Used `pkgs.writeShellApplication` for proper packaging
+   - Included runtime dependencies (docker, gawk, coreutils)
+   - All scripts pass shellcheck validation
+   - Fixed shell variable escaping (using `''${VAR}` in Nix strings)
+   - Files: `packages/backup-docker-postgres/default.nix`, `packages/backup-docker-mariadb/default.nix`
+
+2. **Package Renames** (for clarity, preserving git history)
+   - `postgres-backup` → `backup-docker-postgres`
+   - `mariadb-backup` → `backup-docker-mariadb`
+   - Used `git mv` to preserve file history
+   - Updated binary names to match package names
+
+3. **Integrated NixOS Modules**
+   - Added `passthru.nixosModules.default` to both packages
+   - Each module includes:
+     - Option definitions (`ruinous.*.docker.backup.enable`)
+     - systemd service configuration (Type = "oneshot")
+     - systemd timer configuration (Persistent = true)
+   - postgres: runs daily at 01:00
+   - mariadb: runs daily at 01:30
+   - Packages are now self-contained with their own configuration
+
+4. **Simplified Module Files**
+   - `modules/nixos/default/backup-docker-postgres.nix`
+     Reduced from 32 lines to 4 lines (now just imports package module)
+   - `modules/nixos/default/backup-docker-mariadb.nix`
+     Reduced from 34 lines to 5 lines (now just imports package module)
+   - `modules/nixos/default/options.nix`
+     Removed backup options (now defined in packages)
+   - Module files act as thin wrappers importing package modules
+
+5. **Comprehensive Documentation**
+   - Created `packages/backup-docker-postgres/README.md` (138 lines)
+     - Complete usage guide, requirements, customization
+     - Monitoring commands and restoration procedures
+     - Technical details about backup format and exclusions
+   - Created `packages/backup-docker-mariadb/README.md` (218 lines)
+     - Usage guide with security considerations
+     - Environment variable management
+     - Troubleshooting section for common issues
+     - Secure password management with agenix examples
+   - Updated `packages/README.md`
+     - Added both packages to package listing
+     - Added NixOS module usage examples
+     - Included in systemPackages example
+   - Updated main `README.md`
+     - Added packages to custom packages section
+
+### Commits Created
+
+- `6c4deca` feat(packages): convert database backup scripts to proper Nix packages
+  - Converted bash scripts to writeShellApplication packages
+  - Added proper dependency management
+  - Updated NixOS modules to use packages instead of direct script references
+  - 5 files changed, 72 insertions(+), 18 deletions(-)
+
+- `8f367b6` refactor(packages): rename and restructure backup packages with integrated NixOS modules
+  - Renamed packages for clarity (backup-docker-*)
+  - Added integrated NixOS modules via passthru.nixosModules.default
+  - Simplified module files to import from packages
+  - Created comprehensive README documentation
+  - 11 files changed, 569 insertions(+), 128 deletions(-)
+
+### Issues/Notes
+
+**Benefits:**
+- Self-contained packages with integrated configuration
+- Module definitions live with package code
+- Easier to reuse in other NixOS configurations
+- Cleaner module directory structure
+- Better encapsulation and separation of concerns
+- Packages are now self-documenting
+
+**Technical Details:**
+- Both packages use `writeShellApplication` with shellcheck validation
+- Shell variables in Nix strings require `''${VAR}` escaping
+- Packages export NixOS modules via `passthru.nixosModules.default`
+- Blueprint automatically discovers packages from `packages/` directory
+- Module files in `modules/nixos/default/` now just import package modules
+- All runtime dependencies declared in `runtimeInputs`
+
+**Usage (unchanged):**
+```nix
+ruinous.postgres.docker.backup.enable = true;
+ruinous.mariadb.docker.backup.enable = true;
+
+# Optional: provide credentials securely
+systemd.services.mariadb-backup.serviceConfig.EnvironmentFile =
+  config.age.secrets.mariadb-backup-env.path;
+```
+
+**Package Structure:**
+```
+packages/backup-docker-postgres/
+├── default.nix          # Package + NixOS module
+└── README.md           # Comprehensive documentation
+
+packages/backup-docker-mariadb/
+├── default.nix          # Package + NixOS module
+└── README.md           # Comprehensive documentation
+```
+
+**Testing:**
+- Both packages build successfully: `nix build .#backup-docker-postgres`
+- shellcheck validation passes
+- NixOS modules accessible via `pkgs.backup-docker-*.nixosModules.default`
+
+**Future Enhancements:**
+- Could add backup retention policies
+- Consider adding backup verification commands
+- Could integrate with restic for off-site backups
+- Might add support for custom backup schedules via options
+
+---
+
+## 2025-11-24 - Custom AI Agent Framework and nix-packager Agent
+
+**AI Agent:** Claude Code
+**Duration:** ~30 minutes
+**Focus Areas:** Custom agent development, NixOS packaging expertise, AI integration
+
+### Changes Made
+
+1. **Agent Directory Structure** (`.claude/agents/`)
+   - Created `.claude/agents/` directory for project-level custom agents
+   - Enables team collaboration through git-tracked agent definitions
+   - Files: `.claude/agents/` (new directory)
+
+2. **nix-packager Agent** (`.claude/agents/nix-packager.md`)
+   - Created specialized NixOS packaging expert agent
+   - Comprehensive knowledge of Nix language and packaging patterns
+   - Expertise in:
+     - Creating new Nix packages from scratch
+     - Converting shell scripts/binaries to reproducible Nix packages
+     - Setting up proper dependencies (buildInputs, nativeBuildInputs, propagatedBuildInputs)
+     - Configuring stdenv.mkDerivation and specialized builders
+     - Integrating with blueprint flake structure
+     - Testing and debugging package builds
+   - Automatic access to nixos MCP server (mcp__nixos__* tools)
+   - Includes detailed system prompt with:
+     - Packaging workflow (6-phase process)
+     - Common patterns for scripts, Python, Rust packages
+     - Best practices for dependencies and reproducibility
+     - Troubleshooting guide for common issues
+   - Agent automatically invoked for packaging-related tasks
+   - Can be explicitly invoked with "use the nix-packager agent"
+   - Files: `.claude/agents/nix-packager.md`
+
+3. **Documentation** (`CLAUDE.md`)
+   - Added "Custom AI Agents" section (new major section)
+   - Documented nix-packager agent capabilities and usage
+   - Provided examples of automatic and explicit invocation
+   - Added guide for creating additional custom agents
+   - Explained agent configuration format (YAML frontmatter + system prompt)
+   - Documented agent context isolation and MCP server access
+   - Included best practices for agent development and team collaboration
+   - Files: `CLAUDE.md`
+
+### Commits Created
+
+**Not yet committed** - Changes ready for commit:
+- Custom agent infrastructure
+- nix-packager agent definition
+- Documentation updates
+
+### Issues/Notes
+
+**How It Works:**
+- Claude Code automatically delegates packaging tasks to nix-packager agent
+- Agent runs in isolated context to prevent information overload
+- Has full access to configured MCP servers (nixos tools automatically available)
+- Uses sonnet model for optimal balance of capability and performance
+
+**Usage Examples:**
+```sh
+# Automatic delegation:
+"Create a Nix package for this Python script"
+"Convert the backup script to a proper Nix package"
+
+# Explicit invocation:
+"Use the nix-packager agent to package this shell script"
+
+# Complex tasks:
+"Use the nix-packager agent to convert the mariadb backup script
+into a proper package with full dependency management"
+```
+
+**Agent Configuration:**
+- Location: `.claude/agents/nix-packager.md`
+- Tools: Read, Grep, Glob, Bash, Edit, Write
+- Model: sonnet
+- MCP Access: Automatic (all configured servers)
+- Invocation: Automatic based on task description
+
+**Benefits:**
+- Specialized expertise for NixOS packaging tasks
+- Reduces context window usage through isolation
+- Consistent packaging patterns and best practices
+- Team collaboration through git-tracked definitions
+- Extensible framework for additional specialized agents
+
+**Next Steps:**
+- Agent ready to use immediately (no restart required)
+- Can verify with `/agents` command
+- Consider creating additional specialized agents:
+  - secrets-manager: For agenix and secrets management
+  - container-expert: For Docker/OCI container configurations
+  - system-optimizer: For NixOS system configuration tuning
+  - home-manager-specialist: For user environment management
+
+**Technical Details:**
+- Agent definitions use YAML frontmatter + markdown system prompt
+- Project-level: `.claude/agents/` (shared via git)
+- User-level: `~/.claude/agents/` (personal agents)
+- Automatic discovery by Claude Code
+- No programmatic type system (file-based configuration)
+- Description field used for automatic delegation matching
+
+---
+
 ## 2025-11-24 - 1Password Integration for Age Identity Management
 
 **AI Agent:** Claude Code
