@@ -9,6 +9,7 @@
   imports = [
     flake.nixosModules.default
     flake.nixosModules.developer
+    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
@@ -38,6 +39,7 @@
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
   boot.plymouth.enable = true;
+  power.ups.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

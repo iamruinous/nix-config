@@ -9,6 +9,7 @@
   imports = [
     flake.nixosModules.default
     flake.nixosModules.developer
+    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
@@ -27,6 +28,7 @@
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
   boot.plymouth.enable = true;
   programs.nix-ld.enable = true;
+  power.ups.enable = true;
 
   environment.systemPackages = with pkgs; [
     agenix-helper

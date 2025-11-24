@@ -131,7 +131,7 @@ home.packages = with pkgs; [
 
 ## Dependencies
 
-- `age` - Age encryption tool
+- `rage` - Rust version of age encryption tool
 - `coreutils` - Basic Unix utilities (for mv, chmod, etc.)
 
 ## Implementation Details
@@ -163,4 +163,4 @@ MIT
 
 - [agenix](https://github.com/ryantm/agenix) - Age encryption for NixOS
 - [agenix-rekey](https://github.com/oddlama/agenix-rekey) - Rekeying support for agenix
-- [age](https://age-encryption.org/) - Modern encryption tool
+- [rage](https://github.com/str4d/rage) - Rust implementation of age: modern encryption tool

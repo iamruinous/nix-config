@@ -4,12 +4,14 @@
 {flake, ...}: {
   imports = [
     flake.nixosModules.default
+    flake.nixosModules.server
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./disko.nix
   ];
 
   networking.hostName = "void"; # Define your hostname.
+  power.ups.enable = true;
 
   services.keepalived = {
     enable = true;
