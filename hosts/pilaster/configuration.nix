@@ -21,6 +21,7 @@
   networking.hostName = "pilaster"; # Define your hostname.
 
   virtualisation.docker.enable = true;
+  ruinous.postgres.docker.backup.enable = true;
   ruinous.restic.terranas.enable = true;
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
