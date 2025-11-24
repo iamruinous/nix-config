@@ -9,6 +9,8 @@
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
 
+  # this is for services that need to talk to each other
+  # they are not accessed directly, but typically through Caddy
   systemd.services.docker-servicenet-network = {
     description = "create docker servicenet network";
     wantedBy = ["multi-user.target"];
@@ -23,6 +25,10 @@
     };
   };
 
+  # this is for services that need to bind a port to the host
+  # typically this is only caddy, but some other services that
+  # use UDP or special protocols may also need to directly expose
+  # a port on the host
   systemd.services.docker-proxynet-network = {
     description = "create docker proxynet network";
     wantedBy = ["multi-user.target"];
@@ -37,6 +43,8 @@
     };
   };
 
+  # this is for services like databases that should only be
+  # accessible by other containers
   systemd.services.docker-datanet-network = {
     description = "create docker datanet network";
     wantedBy = ["multi-user.target"];
@@ -138,7 +146,7 @@
           "/data/docker/mcpx/config:/lunar/packages/mcpx-server/config"
         ];
       };
-      nutify = {
+      nutify-netrack = {
         image = "dartsteven/nutify:amd64-latest";
         extraOptions = [
           "--privileged"
@@ -153,17 +161,45 @@
         };
         networks = [
           "servicenet"
+          "proxynet"
+        ];
+        ports = [
+          "3494:3493"
+        ];
+        volumes = [
+          "/data/docker/nutify-netrack/logs:/app/nutify/logs"
+          "/data/docker/nutify-netrack/instance:/app/nutify/instance"
+          "/data/docker/nutify-netrack/ssl:/app/ssl"
+          "/data/docker/nutify-netrack/etc/nut:/etc/nut"
+          "/dev:/dev:rw"
+          "/run/udev:/run/udev:ro"
+        ];
+      };
+      nutify-servers = {
+        image = "dartsteven/nutify:amd64-latest";
+        extraOptions = [
+          "--privileged"
+          "--device=/dev/bus/usb:/dev/bus/usb:rwm"
+          "--device-cgroup-rule=c 189:* rwm"
+        ];
+        environmentFiles = [config.age.secrets.pilaster_docker_env_nutify.path];
+        capabilities = {
+          SYS_ADMIN = true;
+          SYS_RAWIO = true;
+          MKNOD = true;
+        };
+        networks = [
+          "servicenet"
+          "proxynet"
         ];
         ports = [
           "3493:3493"
-          "5050:5050"
-          "443:443"
         ];
         volumes = [
-          "/data/docker/nutify/logs:/app/nutify/logs"
-          "/data/docker/nutify/instance:/app/nutify/instance"
-          "/data/docker/nutify/ssl:/app/ssl"
-          "/data/docker/nutify/etc/nut:/etc/nut"
+          "/data/docker/nutify-servers/logs:/app/nutify/logs"
+          "/data/docker/nutify-servers/instance:/app/nutify/instance"
+          "/data/docker/nutify-servers/ssl:/app/ssl"
+          "/data/docker/nutify-servers/etc/nut:/etc/nut"
           "/dev:/dev:rw"
           "/run/udev:/run/udev:ro"
         ];
