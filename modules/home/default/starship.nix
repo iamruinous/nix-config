@@ -106,7 +106,7 @@ in {
         format = "[$symbol]($style)";
       };
       custom.ssh_auth_sock = {
-        when = "test -n \"$SSH_AUTH_SOCK\" && ! ssh-add -L >/dev/null 2>&1; test $? -eq 2";
+        when = "! ssh-agent-check";
         symbol = "󰌆";
         style = "bold red";
         format = "[$symbol]($style)";

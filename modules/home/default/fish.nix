@@ -105,19 +105,13 @@ in {
       ${tmuxAttachScript}
 
       # Check SSH_AUTH_SOCK validity
-      if set -q SSH_AUTH_SOCK
-        ${pkgs.openssh}/bin/ssh-add -L >/dev/null 2>&1
-        set ssh_exit $status
-        if test $ssh_exit -eq 2
-          set -gx SSH_AUTH_SOCK_INVALID 1
-          set_color red
-          echo "⚠ SSH_AUTH_SOCK is set but agent is not responding"
-          set_color normal
-        else
-          set -gx SSH_AUTH_SOCK_INVALID 0
-        end
+      if ${pkgs.ssh-agent-check}/bin/ssh-agent-check
+        set -gx SSH_AUTH_SOCK_INVALID 0
       else
-        set -e SSH_AUTH_SOCK_INVALID
+        set -gx SSH_AUTH_SOCK_INVALID 1
+        set_color red
+        echo "⚠ SSH agent is not responding"
+        set_color normal
       end
 
       if type -q ${pkgs.toilet}/bin/toilet; and type -q ${pkgs.lolcat}/bin/lolcat

@@ -50,6 +50,7 @@ This repository includes custom Nix packages for specialized functionality:
 - **forgejo-shell** - SSH shell wrapper for Forgejo Docker container
 - **messy-restricted-shell** - Restricted shell with whitelisted commands
 - **nelko-pl70ebt** - CUPS driver for Nelko PL70e-BT label printer
+- **ssh-agent-check** - Fast, cached SSH agent availability checker
 
 For detailed information about each package including usage examples and dependencies, see **[packages/README.md](packages/README.md)**.
 

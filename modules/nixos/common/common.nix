@@ -5,6 +5,7 @@
 
     # config management
     agenix-helper
+    ssh-agent-check
 
     # utils
     cargo-binstall

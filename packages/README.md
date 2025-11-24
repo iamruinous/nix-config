@@ -102,6 +102,29 @@ CUPS printer driver for the Nelko PL70e-BT Bluetooth label printer.
 
 ---
 
+### [ssh-agent-check](ssh-agent-check/README.md)
+
+Fast, cached SSH agent availability checker.
+
+**Purpose**: Checks if the SSH agent is available and responding, with intelligent caching to avoid repeated ssh-add calls.
+
+**Key Features**:
+- Caches results based on SSH_AUTH_SOCK value
+- Only re-checks when SSH_AUTH_SOCK changes
+- Near-instant response for repeated checks
+- Shell-agnostic (works in bash, fish, zsh, etc.)
+- Simple exit codes: 0 = working, 1 = not responding
+
+**Used By**:
+- `modules/home/default/fish.nix` - Shell startup warning
+- `modules/home/default/starship.nix` - Prompt indicator
+
+**Dependencies**: openssh
+
+**Performance**: <1ms for cached checks, ~10-50ms for fresh checks
+
+---
+
 ## Usage
 
 These packages are automatically available to all hosts in this flake. To use them in a host configuration:
@@ -113,6 +136,7 @@ environment.systemPackages = with pkgs; [
   forgejo-shell
   messy-restricted-shell
   nelko-pl70ebt
+  ssh-agent-check
 ];
 ```
 
