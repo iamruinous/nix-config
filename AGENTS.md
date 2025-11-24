@@ -422,7 +422,7 @@ git log -1 --stat
 ```bash
 ssh-agent-check
 ```
-If this returns exit code 1 (agent not responding), the commit will likely fail. In this case, skip to step 2 below to save the commit message for the user.
+If this returns exit code 2 (agent not responding), the commit will likely fail. In this case, skip to step 2 below to save the commit message for the user.
 
 If `git commit` fails due to GPG signing issues:
 

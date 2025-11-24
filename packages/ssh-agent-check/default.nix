@@ -20,6 +20,12 @@ pkgs.writeShellApplication {
       exit 1
     fi
 
+    # For local sessions (not SSH), verify SSH_TTY is a tty/pty
+    # This prevents false positives when running locally
+    if [ -n "$SSH_TTY" ] && ! [ -c "$SSH_TTY" ]; then
+      exit 1
+    fi
+
     # Check if we have a cached result for this SSH_AUTH_SOCK
     if [ -f "$CACHE_FILE" ]; then
       read -r cached_sock cached_result < "$CACHE_FILE" 2>/dev/null || true
