@@ -27,6 +27,190 @@ This file tracks significant changes and work done across development sessions. 
 
 ---
 
+## 2025-11-24 - Supabase Full Stack Deployment Setup
+
+**AI Agent:** Claude Code
+**Duration:** ~2 hours
+**Focus Areas:** Supabase architecture, Docker container configuration, secrets management, documentation
+
+### Changes Made
+
+1. **Supabase Service Configuration** (`hosts/pilaster/containers.nix`)
+   - Added 12 Supabase container definitions:
+     - supabase-studio: Web dashboard (supabase/studio:2025.11.10-sha-5291fe3)
+     - supabase-kong: API gateway (kong:2.8.1)
+     - supabase-auth: GoTrue authentication (supabase/gotrue:v2.182.1)
+     - supabase-rest: PostgREST API (postgrest/postgrest:v13.0.7)
+     - supabase-realtime: WebSocket service (supabase/realtime:v2.63.0)
+     - supabase-storage: File storage (supabase/storage-api:v1.29.0)
+     - supabase-imgproxy: Image transformation (darthsim/imgproxy:v3.8.0)
+     - supabase-meta: Postgres metadata (supabase/postgres-meta:v0.93.1)
+     - supabase-functions: Edge functions (supabase/edge-runtime:v1.69.23)
+     - supabase-analytics: Logflare logging (supabase/logflare:1.22.6)
+     - supabase-vector: Log routing (timberio/vector:0.28.1-alpine)
+     - supabase-pooler: Connection pooler (supabase/supavisor:2.7.4)
+   - Configured proper network assignments (servicenet, datanet, proxynet)
+   - Set up container dependencies and environment variable references
+   - Added 4 agenix secret definitions for environment files
+
+2. **PostgreSQL Configuration for Supabase**
+   - Updated existing postgres:18 container for Supabase compatibility
+   - Created custom postgresql.conf with recommended Supabase settings
+   - Added initialization script (00-extensions.sql) for:
+     - Required PostgreSQL extensions (uuid-ossp, pgcrypto, pg_stat_statements)
+     - Supabase schemas (_supabase, _analytics, storage, graphql_public, realtime)
+     - Database roles (anon, authenticated, service_role, supabase_*_admin)
+     - JWT helper functions (auth.uid(), auth.role(), auth.email())
+   - Configured volume mounts for config and init scripts
+
+3. **Kong API Gateway Configuration** (`hosts/pilaster/files/supabase/api/kong.yml`)
+   - Downloaded and adapted official Supabase Kong configuration
+   - Configured declarative routing for all services:
+     - Auth routes (/auth/v1/* → auth:9999)
+     - REST API (/rest/v1/* → rest:3000)
+     - GraphQL (/graphql/v1 → rest:3000/rpc/graphql)
+     - Realtime (/realtime/v1/* → realtime:4000)
+     - Storage (/storage/v1/* → storage:5000)
+     - Functions (/functions/v1/* → functions:9000)
+     - Analytics (/analytics/v1/* → analytics:4000)
+     - Meta (/pg/* → meta:8080)
+   - Set up authentication plugins (key-auth, basic-auth)
+   - Configured ACL for anon and service_role access
+
+4. **Vector Log Aggregation** (`hosts/pilaster/files/supabase/logs/vector.yml`)
+   - Downloaded official Supabase Vector configuration
+   - Configured log collection from all Docker containers
+   - Set up log routing and transformation for each service
+   - Configured sinks to Logflare/Analytics service
+
+5. **Environment File Templates**
+   - Created `supabase-common.env.template`:
+     - JWT secrets, API keys, dashboard credentials
+     - Site URLs, encryption keys, email configuration
+   - Created `supabase-db.env.template`:
+     - Database connection strings
+     - PostgREST configuration
+     - Postgres Meta settings
+   - Created `supabase-analytics.env.template`:
+     - Logflare tokens and configuration
+   - Created `supabase-pooler.env.template`:
+     - Supavisor connection pooler settings
+   - All templates include clear CHANGE_ME placeholders
+
+6. **Volume Management**
+   - Created systemd service `supabase-volumes-setup`
+   - Automatically creates required directories:
+     - /data/docker/supabase/storage (file uploads)
+     - /data/docker/supabase/functions (edge function code)
+     - /data/docker/supabase/logs (vector config)
+     - /data/docker/supabase/pooler (pooler config)
+     - /data/docker/supabase/api (kong config)
+   - Sets appropriate permissions (755)
+   - Runs before docker.service
+
+7. **Comprehensive Documentation** (`hosts/pilaster/SUPABASE_SETUP.md`)
+   - Complete setup guide (486 lines)
+   - Step-by-step instructions for:
+     - Generating JWT secrets and API keys
+     - Creating encrypted environment files with agenix
+     - Updating Caddyfile for reverse proxy
+     - Deploying to pilaster host
+   - Troubleshooting section for common issues
+   - Monitoring and maintenance procedures
+   - Architecture diagrams and service flow
+   - References to official Supabase documentation
+
+### Commits Created
+
+- `3505816` feat(pilaster): add Supabase full stack deployment
+  - 10 files changed, 1,643 insertions(+)
+  - Complete container definitions for 12 services
+  - Kong routing configuration (283 lines)
+  - Vector logging configuration (242 lines)
+  - PostgreSQL setup (167 lines total)
+  - Environment templates (163 lines total)
+  - Comprehensive setup documentation (486 lines)
+
+### Issues/Notes
+
+**Architecture Decisions:**
+- **Database**: Using existing postgres:18 instead of supabase/postgres image
+  - Requires manual extension setup via initialization scripts
+  - Avoids version conflicts with existing postgres container
+  - Init scripts handle schema and role creation
+- **Networking**: Three-tier network architecture
+  - `servicenet`: Inter-service communication
+  - `datanet`: Database access (internal only, no internet)
+  - `proxynet`: Caddy ↔ Kong reverse proxy
+- **Domain**: supabase.meskill.farm via Caddy reverse proxy
+  - All traffic routes through Kong (port 8000)
+  - Kong handles internal routing to services
+  - No direct port exposure to internet
+
+**Security Considerations:**
+- All secrets stored in encrypted agenix files
+- JWT tokens generated with proper roles and claims
+- Database password must match existing postgres configuration
+- Environment variables use `${VAR}` syntax for runtime substitution
+- No secrets committed to repository (only templates)
+
+**Manual Steps Required:**
+1. Generate strong JWT secret (64 characters)
+2. Create ANON_KEY and SERVICE_ROLE_KEY JWT tokens
+3. Generate encryption keys for VAULT_ENC_KEY, SECRET_KEY_BASE, etc.
+4. Create 4 encrypted environment files with agenix
+5. Update Caddyfile with supabase.meskill.farm route
+6. Run `agenix-rekey rekey` to generate rekeyed secrets
+7. Deploy with `nixos-rebuild switch`
+
+**Future Enhancements:**
+- Consider adding PostgreSQL extensions via Nix overlay
+- May need to add custom Supabase extensions (pgjwt, pg_graphql, pgvector)
+- Could add backup configuration for Supabase-specific schemas
+- Might integrate with existing monitoring solutions
+- Could add automated health checks for all services
+
+**Technical Details:**
+- Total services: 13 (12 Supabase + existing postgres)
+- Configuration lines added: 1,643
+- Environment variables: ~80 across 4 files
+- Container images: 12 different images from 4 registries
+- Networks: 3 Docker networks (servicenet, datanet, proxynet)
+- Volumes: 5 persistent directories
+- Systemd services: 1 (volume setup)
+
+**Service Dependencies:**
+```
+Analytics (base service)
+  ↓
+├─ postgres (database)
+│   ↓
+│   ├─ auth, rest, realtime, meta, pooler (db clients)
+│   ↓
+├─ studio (depends on analytics)
+├─ kong (depends on analytics)
+```
+
+**Testing Status:**
+- Configuration structure validated (Nix syntax)
+- Dry-build fails on missing encrypted files (expected)
+- Will require actual deployment testing after secrets created
+- All container images publicly available
+- No build-time dependencies
+
+**Documentation:**
+- Setup guide: hosts/pilaster/SUPABASE_SETUP.md (486 lines)
+- Environment templates: 4 files with detailed comments
+- Kong config: Inline comments for all routes
+- Vector config: Service-specific log transformations documented
+
+**References:**
+- Based on: https://github.com/supabase/supabase/tree/master/docker
+- Supabase self-hosting: https://supabase.com/docs/guides/self-hosting
+- Kong configuration: https://docs.konghq.com/gateway/latest/
+
+---
+
 ## 2025-11-24 - Backup Package Refactoring with Configurable Options
 
 **AI Agent:** Claude Code (with nix-packager agent)
