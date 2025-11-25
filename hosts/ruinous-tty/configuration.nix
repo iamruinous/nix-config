@@ -21,8 +21,8 @@
   fileSystems."/persistent".neededForBoot = true;
 
   microvm = {
-    mem = 2047;
-    vcpu = 2;
+    mem = 4095;
+    vcpu = 4;
     hypervisor = "qemu";
     writableStoreOverlay = "/nix/.rw-store";
 
@@ -74,6 +74,7 @@
       ];
       files = [
         ".claude.json"
+        ".ssh/known_hosts"
       ];
     };
 
