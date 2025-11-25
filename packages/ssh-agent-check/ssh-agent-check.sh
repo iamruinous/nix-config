@@ -1,11 +1,66 @@
 #!/usr/bin/env bash
 # Check if SSH agent is available and responding
-# Exit codes:
-#   0 - Agent is working (has keys or no keys but reachable)
-#   1 - Agent is not responding (SSH_AUTH_SOCK invalid or agent dead)
-#
-# Caching: Results are cached based on SSH_AUTH_SOCK value
-# Only re-checks if SSH_AUTH_SOCK has changed
+
+set -euo pipefail
+
+show_help() {
+  cat << 'EOF'
+ssh-agent-check - Check if SSH agent is available and responding
+
+USAGE:
+    ssh-agent-check [OPTIONS]
+
+OPTIONS:
+    -h, --help    Show this help message and exit
+
+DESCRIPTION:
+    Checks whether the SSH agent is available and responding. This is useful
+    for scripts that need to verify SSH agent availability before attempting
+    operations that require SSH keys (like GPG-signed git commits).
+
+    For local sessions (where SSH_TTY is not set), the check always succeeds.
+    For SSH sessions, it verifies that SSH_AUTH_SOCK is set and the agent
+    is reachable.
+
+EXIT CODES:
+    0    Agent is working (has keys or is reachable with no keys)
+    1    Agent is not responding (SSH_AUTH_SOCK invalid or agent dead)
+
+CACHING:
+    Results are cached based on the SSH_AUTH_SOCK value. The agent is only
+    re-checked if SSH_AUTH_SOCK has changed since the last check.
+
+ENVIRONMENT VARIABLES:
+    SSH_TTY         If not set, assumes local session (always returns 0)
+    SSH_AUTH_SOCK   Path to the SSH agent socket
+
+EXAMPLES:
+    # Check if agent is available before committing
+    if ssh-agent-check; then
+        git commit -m "message"
+    else
+        echo "SSH agent not available for signing"
+    fi
+
+    # Use in conditional command execution
+    ssh-agent-check && git commit -S -m "signed commit"
+EOF
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Use --help for usage information" >&2
+      exit 1
+      ;;
+  esac
+done
 
 CACHE_FILE="${XDG_RUNTIME_DIR:-/tmp}/ssh-agent-check-cache-$$"
 
