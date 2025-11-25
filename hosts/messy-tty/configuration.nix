@@ -77,6 +77,7 @@
       files = [
         ".claude.json"
         ".cfcli.yml"
+        ".ssh/known_hosts"
       ];
     };
 

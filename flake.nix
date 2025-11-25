@@ -106,6 +106,9 @@
     # impermanence
     # <https://github.com/nix-community/impermanence>
     impermanence.url = "github:nix-community/impermanence";
+
+    # claude-code-nix
+    claude-code.url = "github:sadjow/claude-code-nix";
   };
 
   # Load the blueprint
@@ -129,6 +132,7 @@
         "wezterm.cachix.org-1:kAbhjYUC9qvblTE+s7S+kl5XM1zVa4skO+E/1IDWdH0="
         "walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM="
         "walker-git.cachix.org-1:vmC0ocfPWh0S/vRAQGtChuiZBTAe4wiKDeyyXM0/7pM="
+        "claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk="
       ];
 
       # Expose agenix-rekey configuration

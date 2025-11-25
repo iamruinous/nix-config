@@ -5,7 +5,10 @@
 }: {
   imports = [flake.nixosModules.common];
 
-  nixpkgs.overlays = [flake.inputs.fenix.overlays.default];
+  nixpkgs.overlays = [
+    flake.inputs.claude-code.overlays.default
+    flake.inputs.fenix.overlays.default
+  ];
 
   # System packages
   environment.systemPackages = with pkgs;
