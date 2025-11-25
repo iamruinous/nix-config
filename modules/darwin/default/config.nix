@@ -31,5 +31,6 @@
   # default system packages
   environment.systemPackages = with pkgs; [
     jankyborders
+    pinentry-1password
   ];
 }

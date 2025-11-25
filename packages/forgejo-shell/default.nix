@@ -12,10 +12,9 @@ pkgs.stdenv.mkDerivation {
   buildPhase = ''
     mkdir -p $out/bin
 
-    cat > $out/bin/forgejo-shell << EOF
-    #!/bin/sh
-    ${pkgs.docker}/bin/docker exec -i --env SSH_ORIGINAL_COMMAND="\$SSH_ORIGINAL_COMMAND" forgejo su git -c "\$@"
-    EOF
+    # Substitute @docker@ with the actual docker path
+    substitute ${./forgejo-shell.sh} $out/bin/forgejo-shell \
+      --replace '@docker@' '${pkgs.docker}'
 
     chmod +x $out/bin/forgejo-shell
   '';

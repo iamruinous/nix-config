@@ -27,6 +27,111 @@ This file tracks significant changes and work done across development sessions. 
 
 ---
 
+## 2025-11-24 - Package Script Refactoring and Pinentry Protocol Fixes
+
+**AI Agent:** Claude Code
+**Duration:** ~45 minutes
+**Focus Areas:** Shell script extraction, pinentry protocol implementation, package maintainability
+
+### Changes Made
+
+1. **Fixed pinentry-1password Protocol Implementation**
+   - Implemented proper Assuan protocol based on pinentry-bash reference
+   - Added initial greeting: "OK Pleased to meet you"
+   - Implemented comprehensive command support:
+     - `GETINFO` (version, pid, flavor, ttyinfo)
+     - `SETDESC`, `SETPROMPT`, `SETTITLE`, `SETOK`, `SETCANCEL`
+     - `SETERROR`, `SETREPEAT`, `SETREPEATERROR`
+     - `SETTIMEOUT`, `SETKEYINFO`, `OPTION`
+     - `CONFIRM`, `MESSAGE`, `RESET`, `NOP`
+   - Added proper GPG error codes and `assuan_result()` helper function
+   - Fixed command parsing to handle arguments correctly
+   - Moved configuration checks to only run on `GETPIN` (not at startup)
+   - Files: `packages/pinentry-1password/pinentry-1password.sh`, `packages/pinentry-1password/default.nix`
+
+2. **Extracted Scripts to Separate .sh Files**
+   - **agenix-helper**: Extracted to `agenix-helper.sh`
+     - Uses `substitute` to replace `@rage@` placeholder with actual path
+     - Simpler editing without Nix string escaping (`''${var}` → `${var}`)
+   - **ssh-agent-check**: Extracted to `ssh-agent-check.sh`
+     - Uses `builtins.readFile` (compatible with `writeShellApplication`)
+     - Cleaner separation between package definition and script logic
+   - **forgejo-shell**: Extracted to `forgejo-shell.sh`
+     - Uses `substitute` to replace `@docker@` placeholder with actual path
+     - Minimal 2-line script now easily editable
+   - **pinentry-1password**: Extracted to `pinentry-1password.sh`
+     - 192-line script now separate from Nix packaging
+     - Better syntax highlighting and linting support
+   - Files: All scripts in respective `packages/*/` directories
+
+3. **Consistent Package Pattern**
+   - All custom packages now follow same structure:
+     - `default.nix`: Package definition with dependencies
+     - `<package-name>.sh`: Shell script implementation
+     - `README.md`: Documentation and usage examples
+   - Two patterns used:
+     - `substitute` for path replacements (`@rage@`, `@docker@`)
+     - `builtins.readFile` for direct inclusion (no substitutions needed)
+
+### Commits Created
+
+- `877824c` refactor(packages): extract shell scripts to separate .sh files
+
+### Issues/Notes
+
+**Benefits:**
+- **Easier editing**: No Nix string escaping (`''${var}` vs `${var}`)
+- **Better tooling**: Syntax highlighting, shellcheck, and linting work properly
+- **Clearer code**: Separation between packaging logic and shell script logic
+- **Consistent pattern**: All custom packages now follow the same structure
+- **Tested**: All packages build successfully and tests pass
+
+**Technical Details:**
+- `substitute` used when need to replace placeholders (`@rage@` → `/nix/store/.../bin/rage`)
+- `builtins.readFile` used when script needs no modifications
+- Shell scripts must be git-tracked for Nix flake to recognize them
+- All packages build and run correctly after refactoring
+
+**Testing:**
+- `nix build .#agenix-helper` ✓
+- `nix build .#ssh-agent-check` ✓
+- `nix build .#pinentry-1password` ✓
+- `nix build .#forgejo-shell` (x86_64-linux only, as expected)
+- `nix run .#agenix-helper -- status` ✓
+- `nix run .#ssh-agent-check` ✓
+- Protocol test: pinentry-1password responds correctly to all commands ✓
+- Automated test: `ssh-agent-check.tests.local-session` ✓
+
+**Package Structure (consistent across all packages):**
+```
+packages/<package-name>/
+├── default.nix          # Nix package definition
+├── <package-name>.sh    # Shell script implementation
+└── README.md            # Documentation
+```
+
+**Before (embedded script):**
+```nix
+buildPhase = ''
+  cat > $out/bin/script << 'EOF'
+  #!/usr/bin/env bash
+  # 100+ lines of shell script
+  # with ''${escaping} everywhere
+  EOF
+'';
+```
+
+**After (separate file):**
+```nix
+buildPhase = ''
+  substitute ${./script.sh} $out/bin/script \
+    --replace '@dependency@' '${pkgs.dependency}'
+  chmod +x $out/bin/script
+'';
+```
+
+---
+
 ## 2025-11-24 - Database Backup Package Refactoring and Integration
 
 **AI Agent:** Claude Code
