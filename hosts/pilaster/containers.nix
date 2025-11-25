@@ -59,32 +59,6 @@
     };
   };
 
-  # Create Supabase volume directories
-  systemd.services.supabase-volumes-setup = {
-    description = "Create Supabase volume directories";
-    wantedBy = ["multi-user.target"];
-    before = ["docker.service"];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "create-supabase-volumes" ''
-        mkdir -p /data/docker/supabase/storage
-        mkdir -p /data/docker/supabase/functions
-        mkdir -p /data/docker/supabase/logs
-        mkdir -p /data/docker/supabase/pooler
-        mkdir -p /data/docker/supabase/api
-
-        # Set appropriate permissions
-        chmod 755 /data/docker/supabase
-        chmod 755 /data/docker/supabase/storage
-        chmod 755 /data/docker/supabase/functions
-        chmod 755 /data/docker/supabase/logs
-        chmod 755 /data/docker/supabase/pooler
-        chmod 755 /data/docker/supabase/api
-      '';
-      RemainAfterExit = true;
-    };
-  };
-
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
@@ -163,22 +137,22 @@
           "/data/docker/authentik/templates:/templates"
         ];
       };
-      mcpx = {
-        image = "us-central1-docker.pkg.dev/prj-common-442813/mcpx/mcpx:latest";
-        extraOptions = [
-          "--privileged"
-        ];
-        networks = [
-          "proxynet"
-          "servicenet"
-        ];
-        ports = [
-          "9000:9000"
-        ];
-        volumes = [
-          "/data/docker/mcpx/config:/lunar/packages/mcpx-server/config"
-        ];
-      };
+      # mcpx = {
+      #   image = "us-central1-docker.pkg.dev/prj-common-442813/mcpx/mcpx:latest";
+      #   extraOptions = [
+      #     "--privileged"
+      #   ];
+      #   networks = [
+      #     "proxynet"
+      #     "servicenet"
+      #   ];
+      #   ports = [
+      #     "9000:9000"
+      #   ];
+      #   volumes = [
+      #     "/data/docker/mcpx/config:/lunar/packages/mcpx-server/config"
+      #   ];
+      # };
       nutify-netrack = {
         image = "dartsteven/nutify:amd64-latest";
         extraOptions = [
@@ -237,28 +211,6 @@
           "/run/udev:/run/udev:ro"
         ];
       };
-      # supakong = {
-      #   image = "docker.io/kong:2.8.1";
-      #   environmentFiles = [config.age.secrets.pilaster_docker_env_supakong.path];
-      #   networks = [
-      #     "datanet"
-      #     "servicenet"
-      #   ];
-      #   volumes = [
-      #     "/data/docker/supakong/kong.yml:/home/kong/temp.yml:ro,z"
-      #   ];
-      # };
-      # supastudio = {
-      #   image = "docker.io/supabase/studio:2025.11.10-sha-5291fe3";
-      #   environmentFiles = [config.age.secrets.pilaster_docker_env_supastudio.path];
-      #   networks = [
-      #     "datanet"
-      #     "servicenet"
-      #   ];
-      #   volumes = [
-      #     "/data/docker/supastudio/.env:/app/apps/studio/.env"
-      #   ];
-      # };
       qdrant = {
         image = "qdrant/qdrant";
         environmentFiles = [config.age.secrets.pilaster_docker_env_qdrant.path];
@@ -266,6 +218,7 @@
           "datanet"
           "servicenet"
         ];
+        dependsOn = ["postgres"];
         volumes = [
           "/data/docker/qdrant/data:/qdrant/storage"
         ];
