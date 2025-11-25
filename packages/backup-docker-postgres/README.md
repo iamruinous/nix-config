@@ -28,13 +28,24 @@ nix build .#backup-docker-postgres
 ./result/bin/backup-docker-postgres
 ```
 
+The package can be customized with override:
+
+```nix
+pkgs.backup-docker-postgres.override {
+  containerName = "my-postgres";
+  backupDir = "/var/backups";
+  postgresUser = "backup_user";
+  excludedDatabases = ["template0" "template1" "test_db"];
+}
+```
+
 ### As a NixOS Module
 
 Enable the backup service in your NixOS configuration:
 
 ```nix
 {
-  # Enable PostgreSQL Docker backup
+  # Enable PostgreSQL Docker backup with defaults
   ruinous.postgres.docker.backup.enable = true;
 }
 ```
@@ -45,32 +56,82 @@ This will automatically:
 - Create a systemd timer that runs daily at 01:00
 - Persist the timer across reboots
 
-## Requirements
+## Module Options
 
-- Docker container named `postgres` must be running
-- PostgreSQL container must have a `postgres` superuser
-- Backup directory `/backup` must exist and be writable from within the container
-
-## Backup Location
-
-Backups are written to `/backup` inside the PostgreSQL container:
-- Format: `/backup/<database_name>.dump`
-- Compression: Custom format with level 9 compression
-- Naming: Each database gets its own `.dump` file
-
-## Customization
-
-The systemd service runs as a oneshot service with the following default schedule:
-- **Schedule**: Daily at 01:00 (1 AM)
-- **Persistent**: Yes (runs missed backups if system was off)
-
-To customize the schedule, override the timer configuration in your NixOS config:
+The NixOS module provides comprehensive configuration options:
 
 ```nix
 {
-  systemd.timers.postgres-backup.timerConfig.OnCalendar = "*-*-* 02:00:00";  # 2 AM
+  ruinous.postgres.docker.backup = {
+    enable = true;                # Enable the backup service
+
+    containerName = "postgres";   # Docker container name
+    backupDir = "/backup";        # Backup directory inside container
+    postgresUser = "postgres";    # PostgreSQL user for backups
+
+    excludedDatabases = [         # Databases to skip
+      "template0"
+      "template1"
+      "postgres"
+      "postgres=CTc/postgres"
+    ];
+
+    schedule = "*-*-* 01:00:00";  # Systemd timer schedule (OnCalendar format)
+    persistent = true;            # Run missed backups if system was off
+
+    serviceConfig = {};           # Additional systemd service options
+  };
 }
 ```
+
+### Configuration Examples
+
+**Custom schedule (backup at 2:30 AM):**
+```nix
+{
+  ruinous.postgres.docker.backup = {
+    enable = true;
+    schedule = "*-*-* 02:30:00";
+  };
+}
+```
+
+**Different container and backup location:**
+```nix
+{
+  ruinous.postgres.docker.backup = {
+    enable = true;
+    containerName = "my-postgres";
+    backupDir = "/var/backups/postgres";
+  };
+}
+```
+
+**With environment file for secrets:**
+```nix
+{
+  ruinous.postgres.docker.backup = {
+    enable = true;
+    serviceConfig = {
+      EnvironmentFile = "/run/secrets/postgres-backup-env";
+    };
+  };
+}
+```
+
+## Requirements
+
+- Docker container must be running (default name: `postgres`)
+- PostgreSQL container must have the specified user (default: `postgres`)
+- Backup directory must exist and be writable from within the container (default: `/backup`)
+
+## Backup Location
+
+Backups are written inside the PostgreSQL container:
+- Default path: `/backup/<database_name>.dump`
+- Format: PostgreSQL custom format (compressed)
+- Compression: Level 9 (maximum)
+- Naming: Each database gets its own `.dump` file
 
 ## Technical Details
 

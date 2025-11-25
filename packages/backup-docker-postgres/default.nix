@@ -1,67 +1,55 @@
-{pkgs, ...}: let
-  script = pkgs.writeShellApplication {
-    name = "backup-docker-postgres";
+{
+  pkgs,
+  # Configuration options (can be overridden)
+  containerName ? "postgres",
+  backupDir ? "/backup",
+  postgresUser ? "postgres",
+  excludedDatabases ? ["template0" "template1" "postgres" "postgres=CTc/postgres"],
+  ...
+}: let
+  lib = pkgs.lib;
 
-    runtimeInputs = with pkgs; [
+  # Convert excluded databases list to comma-separated string
+  excludedDbsString = lib.concatStringsSep "," excludedDatabases;
+in
+  pkgs.stdenv.mkDerivation {
+    pname = "backup-docker-postgres";
+    version = "1.0.0";
+    dontUnpack = true;
+
+    propagatedBuildInputs = with pkgs; [
       docker
       gawk
       coreutils
     ];
 
-    text = ''
-      BACKUP_DIR="/backup"
+    passthru.shellPath = "/bin/backup-docker-postgres";
+    outputs = ["out"];
 
-      # Dump individual databases directly to restic repository.
-      docker exec postgres psql -U postgres -q -l -t -A --pset=pager=off | awk -F'|' '{print $1}' | while read -r DB_NAME; do
-        if [[ -n "$DB_NAME" && "$DB_NAME" != "template0" && "$DB_NAME" != "template1" && "$DB_NAME" != "postgres" && "$DB_NAME" != "postgres=CTc/postgres" ]]; then
-          echo "Dumping database: ''\${DB_NAME}"
-          if docker exec postgres pg_dump -Fc -Z 9 --user="postgres" --no-owner --no-privileges --dbname="$DB_NAME" --file="''${BACKUP_DIR}/''${DB_NAME}.dump"; then
-              echo "Successfully dumped $DB_NAME to $BACKUP_DIR/$DB_NAME.sql"
-          else
-              echo "Error dumping $DB_NAME"
-          fi
-        fi
-      done
+    buildPhase = ''
+      mkdir -p $out/bin
+
+      # Substitute configuration variables in the shell script
+      substitute ${./backup-docker-postgres.sh} $out/bin/backup-docker-postgres \
+        --replace '@containerName@' '${containerName}' \
+        --replace '@backupDir@' '${backupDir}' \
+        --replace '@postgresUser@' '${postgresUser}' \
+        --replace '@excludedDatabases@' '${excludedDbsString}'
+
+      chmod +x $out/bin/backup-docker-postgres
     '';
 
-    meta = with pkgs.lib; {
+    installPhase = ''
+      # No installation steps needed beyond what's done in buildPhase
+      true
+    '';
+
+    meta = with lib; {
       description = "Backup script for PostgreSQL databases running in Docker containers";
+      homepage = "https://github.com/iamruinous/nix-config";
+      license = licenses.mit;
+      maintainers = [];
       mainProgram = "backup-docker-postgres";
       platforms = platforms.linux;
-    };
-  };
-in
-  script
-  // {
-    passthru.nixosModules.default = {
-      config,
-      lib,
-      pkgs,
-      ...
-    }: let
-      cfg = config.ruinous.postgres.docker.backup;
-    in {
-      options = {
-        ruinous.postgres.docker.backup.enable = lib.mkEnableOption "backup-docker-postgres";
-      };
-
-      config = lib.mkIf cfg.enable {
-        systemd.services.postgres-backup = {
-          description = "postgres backup";
-          serviceConfig = {
-            Type = "oneshot";
-            ExecStart = "${pkgs.backup-docker-postgres}/bin/backup-docker-postgres";
-          };
-        };
-
-        systemd.timers.postgres-backup = {
-          wantedBy = ["timers.target"];
-          timerConfig = {
-            Unit = "postgres-backup.service";
-            OnCalendar = "*-*-* 01:00:00";
-            Persistent = true;
-          };
-        };
-      };
     };
   }

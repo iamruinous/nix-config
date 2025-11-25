@@ -1,7 +1,6 @@
 {lib, ...}: {
   options = {
     ruinous.mariadb.docker.backup.enable = lib.mkEnableOption "backup-docker-mariadb";
-    ruinous.postgres.docker.backup.enable = lib.mkEnableOption "backup-docker-postgres";
 
     ruinous.restic.terranas = {
       enable = lib.mkEnableOption "enable terranas restic backup";
