@@ -27,6 +27,162 @@ This file tracks significant changes and work done across development sessions. 
 
 ---
 
+## 2025-11-24 - Backup Package Refactoring with Configurable Options
+
+**AI Agent:** Claude Code (with nix-packager agent)
+**Duration:** ~1.5 hours
+**Focus Areas:** Package refactoring, template substitution, NixOS module enhancement, comprehensive documentation
+
+### Changes Made
+
+1. **backup-docker-postgres Refactoring** (`packages/backup-docker-postgres/`)
+   - Extracted shell script to `backup-docker-postgres.sh` (standalone file)
+   - Converted from `writeShellApplication` to `stdenv.mkDerivation`
+   - Added template substitution for configuration variables:
+     - `@docker@`, `@containerName@`, `@backupDir@`, `@postgresUser@`, `@excludedDatabases@`
+   - Removed `passthru.nixosModules.default` (prevents module conflicts)
+   - Fixed missing `@docker@` substitution that was in script but not default.nix
+
+2. **backup-docker-mariadb Refactoring** (`packages/backup-docker-mariadb/`)
+   - Extracted shell script to `backup-docker-mariadb.sh` (standalone file)
+   - Converted from `writeShellApplication` to `stdenv.mkDerivation`
+   - Added template substitution for configuration variables:
+     - `@docker@`, `@containerName@`, `@backupDir@`, `@mariadbUser@`, `@excludedDatabases@`
+   - Removed `passthru.nixosModules.default` (prevents module conflicts)
+
+3. **Enhanced NixOS Modules**
+   - Updated `modules/nixos/default/backup-docker-postgres.nix`:
+     - Added 8 comprehensive configuration options
+     - Integrated package override mechanism
+     - Added systemPackages with configured package
+   - Updated `modules/nixos/default/backup-docker-mariadb.nix`:
+     - Added 8 comprehensive configuration options matching postgres structure
+     - Integrated package override mechanism
+     - Added systemPackages with configured package
+   - Removed duplicate enable options from `modules/nixos/default/options.nix`
+
+4. **Module Options Added** (both packages)
+   - `enable`: Enable the backup service
+   - `containerName`: Docker container name (postgres/mariadb)
+   - `backupDir`: Backup directory path (/backup)
+   - `postgresUser`/`mariadbUser`: Database user for backups
+   - `excludedDatabases`: List of databases to skip
+   - `schedule`: Systemd timer schedule (*-*-* HH:MM:SS)
+   - `persistent`: Run missed backups if system was off
+   - `serviceConfig`: Additional systemd service options
+
+5. **Comprehensive Documentation**
+   - Updated `packages/backup-docker-postgres/README.md` (452 lines, expanded from 200):
+     - Added "Package Structure" section explaining template substitution
+     - Detailed documentation for each of 8 module options
+     - Complete configuration examples (basic, custom schedule, excluded DBs, service config)
+     - Added "Template Substitution" section with table of all variables
+     - Enhanced monitoring section with manual backup instructions
+     - Added "Building and Testing" section
+     - Added "Package Customization" section with override examples
+     - Added comparison table with backup-docker-mariadb
+     - Improved restoration examples with multiple scenarios
+   - Created `packages/backup-docker-mariadb/README.md` (572 lines):
+     - Comprehensive module options documentation (8 options)
+     - Complete configuration examples with agenix integration
+     - Environment variable management and security considerations
+     - Template substitution explanation and table
+     - Troubleshooting section for common issues
+     - Monitoring commands and manual backup triggers
+     - Building, testing, and customization instructions
+     - Comparison table with backup-docker-postgres
+
+### Commits Created
+
+- `refactor(packages): extract backup-docker-postgres script to standalone file`
+  - Converted to stdenv.mkDerivation with template substitution
+  - Added comprehensive module options (8 total)
+  - Enhanced README with complete documentation
+  - Fixed @docker@ template substitution
+  - Removed module conflicts
+- `refactor(packages): extract backup-docker-mariadb script to standalone file`
+  - Matched postgres package structure and pattern
+  - Added comprehensive module options (8 total)
+  - Created extensive README (572 lines)
+  - Ensured consistency across both backup packages
+
+### Issues/Notes
+
+**Benefits:**
+- **Consistency**: Both backup packages follow identical patterns
+- **Maintainability**: Shell scripts now in separate .sh files (easier to edit)
+- **Flexibility**: Comprehensive module options for customization
+- **Reproducibility**: Configuration baked into derivation at build time
+- **Documentation**: Extensive READMEs with examples and troubleshooting
+- **No conflicts**: Module definitions separated from package definitions
+
+**Module Options Structure** (identical for both packages):
+```nix
+ruinous.{postgres|mariadb}.docker.backup = {
+  enable = true;
+  containerName = "postgres" | "mariadb";
+  backupDir = "/backup";
+  {postgres|mariadb}User = "postgres" | "root";
+  excludedDatabases = [ /* system databases */ ];
+  schedule = "*-*-* 01:00:00" | "*-*-* 01:30:00";
+  persistent = true;
+  serviceConfig = {};
+};
+```
+
+**Technical Details:**
+- Template substitution uses `@variable@` placeholders
+- `substitute` command replaces placeholders at build time
+- Scripts exist as separate .sh files for better tooling support
+- Module options defined in `modules/nixos/default/` files
+- Package uses `override` mechanism for configuration
+- All defaults preserve backward compatibility
+
+**Testing:**
+- monolith configuration builds successfully
+- Package builds verified for both packages
+- Module syntax validated through dry-run builds
+- Template substitution confirmed working correctly
+- Backward compatible with existing configurations
+
+**Package Structure** (consistent):
+```
+packages/backup-docker-{postgres|mariadb}/
+├── default.nix                      # Package definition
+├── backup-docker-{postgres|mariadb}.sh  # Shell script template
+└── README.md                        # Comprehensive documentation
+```
+
+**Comparison Table:**
+| Feature                      | PostgreSQL               | MariaDB                  |
+|------------------------------|--------------------------|--------------------------|
+| Builder                      | stdenv.mkDerivation      | stdenv.mkDerivation      |
+| Template substitution        | Yes                      | Yes                      |
+| Separate .sh file            | Yes                      | Yes                      |
+| Module options               | 8 options                | 8 options                |
+| Default schedule             | 01:00                    | 01:30                    |
+| Default user                 | postgres                 | root                     |
+| Excluded DBs                 | 4 template DBs           | 4 system DBs             |
+| Backup format                | Custom compressed        | SQL dump                 |
+| README lines                 | 452                      | 572                      |
+
+**Usage** (unchanged from user perspective):
+```nix
+# Still works with defaults
+ruinous.postgres.docker.backup.enable = true;
+ruinous.mariadb.docker.backup.enable = true;
+
+# New: Can customize everything
+ruinous.postgres.docker.backup = {
+  enable = true;
+  containerName = "custom-postgres";
+  schedule = "*-*-* 03:00:00";
+  excludedDatabases = [ "template0" "test_db" ];
+};
+```
+
+---
+
 ## 2025-11-24 - Package Script Refactoring and Pinentry Protocol Fixes
 
 **AI Agent:** Claude Code
