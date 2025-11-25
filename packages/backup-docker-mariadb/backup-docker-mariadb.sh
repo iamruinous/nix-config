@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Backup PostgreSQL databases running in \@docker@/bin/docker containers
+# Backup MariaDB databases running in @docker@/bin/docker containers
 # Automatically discovers and backs up all non-system databases
 
 set -euo pipefail
@@ -7,10 +7,10 @@ set -euo pipefail
 # Configuration (will be substituted by Nix)
 CONTAINER_NAME="@containerName@"
 BACKUP_DIR="@backupDir@"
-POSTGRES_USER="@postgresUser@"
+MARIADB_USER="@mariadbUser@"
 EXCLUDED_DBS="@excludedDatabases@"
 
-echo "Starting PostgreSQL backup for container: ${CONTAINER_NAME}"
+echo "Starting MariaDB backup for container: ${CONTAINER_NAME}"
 echo "Backup directory: ${BACKUP_DIR}"
 
 # Convert excluded databases string to array for easier checking
@@ -30,9 +30,9 @@ is_excluded() {
   return 1
 }
 
-# Dump individual databases directly to backup directory
-@docker@/bin/docker exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -q -l -t -A --pset=pager=off | \
-  awk -F'|' '{print $1}' | \
+# Get list of databases and dump each one
+@docker@/bin/docker exec "$CONTAINER_NAME" mysql -u"$MARIADB_USER" -p"${MARIADB_ROOT_PASSWORD}" -e "SHOW DATABASES;" | \
+  tail -n +2 | \
   while read -r DB_NAME; do
     # Skip empty names
     if [[ -z "$DB_NAME" ]]; then
@@ -46,18 +46,15 @@ is_excluded() {
     fi
 
     echo "Dumping database: ${DB_NAME}"
-    if @docker@/bin/docker exec "$CONTAINER_NAME" pg_dump \
-      -Fc \
-      -Z 9 \
-      --user="$POSTGRES_USER" \
-      --no-owner \
-      --no-privileges \
-      --dbname="$DB_NAME" \
-      --file="${BACKUP_DIR}/${DB_NAME}.dump"; then
+    if @docker@/bin/docker exec "$CONTAINER_NAME" mariadb-dump \
+      -u"$MARIADB_USER" \
+      -p"${MARIADB_ROOT_PASSWORD}" \
+      --databases "$DB_NAME" \
+      > "${BACKUP_DIR}/${DB_NAME}.dump"; then
       echo "Successfully dumped ${DB_NAME} to ${BACKUP_DIR}/${DB_NAME}.dump"
     else
       echo "Error dumping ${DB_NAME}" >&2
     fi
   done
 
-echo "PostgreSQL backup process complete."
+echo "MariaDB backup process complete."

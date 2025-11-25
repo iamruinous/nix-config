@@ -1,72 +1,55 @@
-{pkgs, ...}: let
-  script = pkgs.writeShellApplication {
-    name = "backup-docker-mariadb";
+{
+  pkgs,
+  # Configuration options (can be overridden)
+  containerName ? "mariadb",
+  backupDir ? "/backup",
+  mariadbUser ? "root",
+  excludedDatabases ? ["information_schema" "performance_schema" "mysql" "sys"],
+  ...
+}: let
+  lib = pkgs.lib;
 
-    runtimeInputs = with pkgs; [
+  # Convert excluded databases list to comma-separated string
+  excludedDbsString = lib.concatStringsSep "," excludedDatabases;
+in
+  pkgs.stdenv.mkDerivation {
+    pname = "backup-docker-mariadb";
+    version = "1.0.0";
+    dontUnpack = true;
+
+    propagatedBuildInputs = with pkgs; [
       docker
       coreutils
     ];
 
-    text = ''
-      DB_USER="root"
-      DB_PASSWORD="''${MARIADB_ROOT_PASSWORD}"
-      BACKUP_DIR="/backup"
+    passthru.shellPath = "/bin/backup-docker-mariadb";
+    outputs = ["out"];
 
-      # Get a list of databases (excluding system databases)
-      DATABASES=$(docker exec mariadb mysql -u"$DB_USER" -p"$DB_PASSWORD" -e "SHOW DATABASES;" | grep -Ev "(Database|information_schema|performance_schema|mysql|sys)")
+    buildPhase = ''
+      mkdir -p $out/bin
 
-      # Loop through each database and dump it
-      for DB_NAME in $DATABASES; do
-          echo "Dumping database: ''\${DB_NAME}"
-          if docker exec mariadb mariadb-dump -u"$DB_USER" -p"$DB_PASSWORD" --databases "$DB_NAME" > "$BACKUP_DIR/$DB_NAME.dump"; then
-              echo "Successfully dumped $DB_NAME to $BACKUP_DIR/$DB_NAME.sql"
-          else
-              echo "Error dumping $DB_NAME"
-          fi
-      done
+      # Substitute configuration variables in the shell script
+      substitute ${./backup-docker-mariadb.sh} $out/bin/backup-docker-mariadb \
+        --replace '@docker@' '${pkgs.docker}' \
+        --replace '@containerName@' '${containerName}' \
+        --replace '@backupDir@' '${backupDir}' \
+        --replace '@mariadbUser@' '${mariadbUser}' \
+        --replace '@excludedDatabases@' '${excludedDbsString}'
 
-      echo "Database dumping process complete."
+      chmod +x $out/bin/backup-docker-mariadb
     '';
 
-    meta = with pkgs.lib; {
+    installPhase = ''
+      # No installation steps needed beyond what's done in buildPhase
+      true
+    '';
+
+    meta = with lib; {
       description = "Backup script for MariaDB databases running in Docker containers";
+      homepage = "https://github.com/iamruinous/nix-config";
+      license = licenses.mit;
+      maintainers = [];
       mainProgram = "backup-docker-mariadb";
       platforms = platforms.linux;
-    };
-  };
-in
-  script
-  // {
-    passthru.nixosModules.default = {
-      config,
-      lib,
-      pkgs,
-      ...
-    }: let
-      cfg = config.ruinous.mariadb.docker.backup;
-    in {
-      options = {
-        ruinous.mariadb.docker.backup.enable = lib.mkEnableOption "backup-docker-mariadb";
-      };
-
-      config = lib.mkIf cfg.enable {
-        systemd.services.mariadb-backup = {
-          description = "mariadb backup";
-          serviceConfig = {
-            Type = "oneshot";
-            ExecStart = "${pkgs.backup-docker-mariadb}/bin/backup-docker-mariadb";
-            # EnvironmentFile can be set to provide MARIADB_ROOT_PASSWORD
-          };
-        };
-
-        systemd.timers.mariadb-backup = {
-          wantedBy = ["timers.target"];
-          timerConfig = {
-            Unit = "mariadb-backup.service";
-            OnCalendar = "*-*-* 01:30:00";
-            Persistent = true;
-          };
-        };
-      };
     };
   }
