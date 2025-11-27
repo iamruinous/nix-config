@@ -60,7 +60,10 @@
       yaml-language-server
       # zls # TODO: zig broken
 
+      # helpful cli utils
       gum
+      glow
+      vhs
       forgejo-cli
 
       # rust
