@@ -201,6 +201,36 @@
         ];
       };
       # Supabase Services
+      supabase-db = {
+        image = "supabase/postgres:15.8.1.085";
+        cmd = [
+          "postgres"
+          "-c"
+          "config_file=/etc/postgresql/postgresql.conf"
+          "-c"
+          "log_min_messages=fatal"
+        ];
+        environmentFiles = [
+          config.age.secrets.pilaster_docker_env_supabase_db.path
+        ];
+        environment = {
+          POSTGRES_HOST = "/var/run/postgresql";
+        };
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        volumes = [
+          "/data/docker/supabase-db/pgdata:/var/lib/postgresql/data"
+          "${./files/supabase/postgres/postgresql.conf}:/etc/postgresql/postgresql.conf:ro"
+        ];
+        extraOptions = [
+          "--health-cmd=pg_isready -U postgres -h localhost"
+          "--health-interval=5s"
+          "--health-timeout=5s"
+          "--health-retries=10"
+        ];
+      };
       supabase-studio = {
         image = "supabase/studio:2025.11.10-sha-5291fe3";
         environmentFiles = [
@@ -208,12 +238,12 @@
           config.age.secrets.pilaster_docker_env_supabase_db.path
         ];
         environment = {
-          STUDIO_PG_META_URL = "http://meta:8080";
+          STUDIO_PG_META_URL = "http://supabase-meta:8080";
           SUPABASE_ANON_KEY = "\${ANON_KEY}";
           SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
         };
         networks = ["servicenet"];
-        dependsOn = ["supabase-analytics"];
+        dependsOn = ["supabase-db" "supabase-analytics"];
       };
       supabase-kong = {
         image = "kong:2.8.1";
@@ -263,7 +293,7 @@
           "datanet"
         ];
         dependsOn = [
-          "postgres"
+          "supabase-db"
           "supabase-analytics"
         ];
       };
@@ -281,7 +311,7 @@
           "datanet"
         ];
         dependsOn = [
-          "postgres"
+          "supabase-db"
           "supabase-analytics"
         ];
       };
@@ -311,7 +341,7 @@
           "./prod/rel/realtime/bin/realtime eval 'Realtime.Release.migrate' && ./prod/rel/realtime/bin/realtime start"
         ];
         dependsOn = [
-          "postgres"
+          "supabase-db"
           "supabase-analytics"
         ];
       };
@@ -340,7 +370,7 @@
           "/data/docker/supabase/storage:/var/lib/storage"
         ];
         dependsOn = [
-          "postgres"
+          "supabase-db"
           "supabase-rest"
           "supabase-imgproxy"
         ];
@@ -368,7 +398,7 @@
           "datanet"
         ];
         dependsOn = [
-          "postgres"
+          "supabase-db"
           "supabase-analytics"
         ];
       };
@@ -405,7 +435,7 @@
           "servicenet"
           "datanet"
         ];
-        dependsOn = ["postgres"];
+        dependsOn = ["supabase-db"];
       };
       supabase-vector = {
         image = "timberio/vector:0.28.1-alpine";
@@ -429,7 +459,7 @@
           "datanet"
         ];
         dependsOn = [
-          "postgres"
+          "supabase-db"
           "supabase-analytics"
         ];
       };

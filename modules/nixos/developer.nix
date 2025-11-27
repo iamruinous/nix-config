@@ -21,6 +21,7 @@
       just
       lazygit
       luarocks
+      openssl
       #playwright
       #playwright-driver.browsers
       ripgrep
@@ -59,6 +60,7 @@
       yaml-language-server
       # zls # TODO: zig broken
 
+      gum
       forgejo-cli
 
       # rust

@@ -4,7 +4,8 @@ This guide explains how to complete the Supabase setup on the pilaster host.
 
 ## Overview
 
-A full Supabase stack has been configured with 12 services:
+A full Supabase stack has been configured with 13 services:
+- **supabase-db** - Dedicated PostgreSQL with Supabase extensions (supabase/postgres:15.8.1.085)
 - **supabase-studio** - Web dashboard
 - **supabase-kong** - API gateway
 - **supabase-auth** - Authentication (GoTrue)
@@ -18,7 +19,7 @@ A full Supabase stack has been configured with 12 services:
 - **supabase-vector** - Log routing
 - **supabase-pooler** - Connection pooler (Supavisor)
 
-The existing **postgres** container has been configured with Supabase extensions and initialization scripts.
+A dedicated **supabase-db** container using the official `supabase/postgres:15.8.1.085` image provides all required PostgreSQL extensions (pgsodium, pg_graphql, pg_net, etc.) pre-installed. The existing **postgres** container remains available for other services like Authentik.
 
 ## Prerequisites
 
@@ -141,25 +142,26 @@ GOTRUE_DISABLE_SIGNUP=false
 agenix -e hosts/pilaster/files/docker/env/supabase-db.env.age
 ```
 
-**IMPORTANT:** Use the same password as your existing postgres container!
+**IMPORTANT:** This configures the dedicated Supabase PostgreSQL container (`supabase-db`).
 
 ```bash
-POSTGRES_HOST=postgres
+# PostgreSQL configuration for supabase-db container
 POSTGRES_PORT=5432
 POSTGRES_DB=postgres
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_existing_postgres_password
+POSTGRES_PASSWORD=your_strong_supabase_postgres_password
 
-DB_HOST=postgres
+# Database connection settings (all services use supabase-db hostname)
+DB_HOST=supabase-db
 DB_PORT=5432
 DB_NAME=postgres
 DB_USER=postgres
-DB_PASSWORD=your_existing_postgres_password
+DB_PASSWORD=your_strong_supabase_postgres_password
 
-DATABASE_URL=postgresql://postgres:your_existing_postgres_password@postgres:5432/postgres
-PGRST_DB_URI=postgresql://postgres:your_existing_postgres_password@postgres:5432/postgres
-GOTRUE_DB_DATABASE_URL=postgresql://postgres:your_existing_postgres_password@postgres:5432/postgres
-SUPABASE_DB_URL=postgresql://postgres:your_existing_postgres_password@postgres:5432/postgres
+DATABASE_URL=postgresql://postgres:your_strong_supabase_postgres_password@supabase-db:5432/postgres
+PGRST_DB_URI=postgresql://postgres:your_strong_supabase_postgres_password@supabase-db:5432/postgres
+GOTRUE_DB_DATABASE_URL=postgresql://postgres:your_strong_supabase_postgres_password@supabase-db:5432/postgres
+SUPABASE_DB_URL=postgresql://postgres:your_strong_supabase_postgres_password@supabase-db:5432/postgres
 
 PGRST_DB_SCHEMAS=public,storage,graphql_public
 PGRST_DB_ANON_ROLE=anon
@@ -170,13 +172,15 @@ API_JWT_SECRET=your_jwt_secret_from_above
 
 PG_META_CRYPTO_KEY=your_32_char_random_string
 PG_META_PORT=8080
-PG_META_DB_HOST=postgres
+PG_META_DB_HOST=supabase-db
 PG_META_DB_PORT=5432
 PG_META_DB_NAME=postgres
 PG_META_DB_USER=postgres
-PG_META_DB_PASSWORD=your_existing_postgres_password
+PG_META_DB_PASSWORD=your_strong_supabase_postgres_password
 
-PGDATA=/var/lib/postgresql/18/docker
+# JWT settings (must match supabase-common.env)
+JWT_SECRET=your_jwt_secret_from_above
+JWT_EXP=3600
 ```
 
 ### 2.3 Create supabase-analytics.env
@@ -190,12 +194,12 @@ LOGFLARE_PUBLIC_ACCESS_TOKEN=your_generated_public_token
 LOGFLARE_PRIVATE_ACCESS_TOKEN=your_generated_private_token
 
 DB_USERNAME=postgres
-DB_PASSWORD=your_existing_postgres_password
+DB_PASSWORD=your_strong_supabase_postgres_password
 DB_DATABASE=postgres
-DB_HOSTNAME=postgres
+DB_HOSTNAME=supabase-db
 DB_PORT=5432
 
-POSTGRES_BACKEND_URL=postgresql://postgres:your_existing_postgres_password@postgres:5432/postgres
+POSTGRES_BACKEND_URL=postgresql://postgres:your_strong_supabase_postgres_password@supabase-db:5432/postgres
 LOGFLARE_API_KEY=your_service_role_key_from_above
 
 PHOENIX_ENV=production
@@ -212,17 +216,17 @@ agenix -e hosts/pilaster/files/docker/env/supabase-pooler.env.age
 
 ```bash
 POOLER_TENANT_ID=prod-pilaster
-DATABASE_HOST=postgres
+DATABASE_HOST=supabase-db
 DATABASE_PORT=5432
 DATABASE_NAME=postgres
 DATABASE_USER=postgres
-DATABASE_PASSWORD=your_existing_postgres_password
+DATABASE_PASSWORD=your_strong_supabase_postgres_password
 
 POOLER_DEFAULT_POOL_SIZE=20
 POOLER_MAX_CLIENT_CONN=100
 POOLER_DB_POOL_SIZE=5
 
-DATABASE_URL=postgresql://postgres:your_existing_postgres_password@postgres:5432/postgres
+DATABASE_URL=postgresql://postgres:your_strong_supabase_postgres_password@supabase-db:5432/postgres
 SECRET_KEY_BASE=your_secret_key_base_from_above
 VAULT_ENC_KEY=your_vault_enc_key_from_above
 
@@ -325,7 +329,7 @@ sudo nixos-rebuild switch --flake .#pilaster
 docker ps | grep supabase
 ```
 
-You should see all 12 Supabase containers running.
+You should see all 13 Supabase containers running (including supabase-db).
 
 ### 6.2 Check Logs
 
@@ -335,8 +339,8 @@ docker logs supabase-auth
 docker logs supabase-rest
 docker logs supabase-analytics
 
-# Check postgres logs for initialization
-docker logs postgres | grep -i supabase
+# Check supabase-db logs for initialization
+docker logs supabase-db
 ```
 
 ### 6.3 Access Supabase Studio
@@ -381,17 +385,15 @@ curl https://supabase.meskill.farm/rest/v1/ \
 ```
 Internet → Caddy (443) → Kong (8000) → [Auth|REST|Storage|Functions|...]
                                        ↓
-                                    PostgreSQL (5432)
+                                    supabase-db (5432)
 ```
 
 ### Volumes
 
-All data stored in `/data/docker/supabase/`:
-- `storage/` - Uploaded files
-- `functions/` - Edge function code
-- `logs/` - Vector configuration
-- `pooler/` - Connection pooler config
-- `api/` - Kong configuration
+Supabase data is stored in:
+- `/data/docker/supabase-db/pgdata` - PostgreSQL data (dedicated Supabase database)
+- `/data/docker/supabase/storage/` - Uploaded files
+- `/data/docker/supabase/functions/` - Edge function code
 
 ## Troubleshooting
 
@@ -409,12 +411,12 @@ Common issues:
 
 ### Database Connection Errors
 
-1. Verify postgres password matches in all env files
-2. Check postgres is on datanet network
-3. Verify postgres initialization completed:
+1. Verify supabase-db password matches in all env files
+2. Check supabase-db is on datanet network
+3. Verify supabase-db initialization completed:
    ```bash
-   docker exec postgres psql -U postgres -c "\dn"
-   # Should show: _supabase, _analytics, storage, graphql_public, realtime
+   docker exec supabase-db psql -U postgres -c "\dn"
+   # Should show: _supabase, _analytics, auth, storage, graphql_public, realtime, extensions
    ```
 
 ### Kong 404 Errors
@@ -441,9 +443,9 @@ Common issues:
 
 ### Backup
 
-PostgreSQL data is in `/data/docker/postgres/pgdata`
-- Use existing postgres backup system
-- Supabase schemas will be included in full postgres backup
+PostgreSQL data is in `/data/docker/supabase-db/pgdata`
+- Back up the dedicated Supabase database separately from the main postgres container
+- Use `docker exec supabase-db pg_dump -U postgres postgres > backup.sql`
 
 Storage files in `/data/docker/supabase/storage`
 - Include in regular backup routine

@@ -1,1 +1,16 @@
-{"mcpServers":{"nixos":{"type":"stdio","command":"/run/current-system/sw/bin/uvx","args":["mcp-nixos"],"env":{}},"MCP_DOCKER":{"command":"docker","args":["mcp","gateway","run"],"type":"stdio"}}}
+{
+  "mcpServers": {
+    "nixos": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-nixos"
+      ],
+      "env": {}
+    },
+    "mcp-farm": {
+      "type": "sse",
+      "url": "https://mcp.meskill.farm/sse"
+    }
+  }
+}
