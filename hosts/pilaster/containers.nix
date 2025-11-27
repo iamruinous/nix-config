@@ -88,11 +88,11 @@
       postgres = {
         image = "docker.io/postgres:18";
         # ports = ["5432:5432"];
-        cmd = [
-          "postgres"
-          "-c"
-          "config_file=/etc/postgresql/postgresql.conf"
-        ];
+        # cmd = [
+        #   "postgres"
+        #   "-c"
+        #   "config_file=/etc/postgresql/postgresql.conf"
+        # ];
         environment = {
           PGDATA = "/var/lib/postgresql/18/docker";
         };
@@ -104,8 +104,8 @@
         volumes = [
           "/data/docker/postgres/pgdata:/var/lib/postgresql/18/docker"
           "/data/backup/postgres:/backup"
-          "${./files/supabase/postgres/postgresql.conf}:/etc/postgresql/postgresql.conf:ro"
-          "${./files/supabase/postgres/init}:/docker-entrypoint-initdb.d:ro"
+          # "${./files/supabase/postgres/postgresql.conf}:/etc/postgresql/postgresql.conf:ro"
+          # "${./files/supabase/postgres/init}:/docker-entrypoint-initdb.d:ro"
         ];
       };
       # services
@@ -223,257 +223,283 @@
           "/data/docker/qdrant/data:/qdrant/storage"
         ];
       };
-      # Supabase Services
-      supabase-studio = {
-        image = "supabase/studio:2025.11.10-sha-5291fe3";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          STUDIO_PG_META_URL = "http://meta:8080";
-          SUPABASE_ANON_KEY = "\${ANON_KEY}";
-          SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
-        };
-        networks = ["servicenet"];
-        dependsOn = ["supabase-analytics"];
-      };
-      supabase-kong = {
-        image = "kong:2.8.1";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-        ];
-        environment = {
-          KONG_DATABASE = "off";
-          KONG_DECLARATIVE_CONFIG = "/var/lib/kong/kong.yml";
-          KONG_DNS_ORDER = "LAST,A,CNAME";
-          KONG_PLUGINS = "request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction";
-          KONG_NGINX_PROXY_PROXY_BUFFER_SIZE = "160k";
-          KONG_NGINX_PROXY_PROXY_BUFFERS = "64 160k";
-          SUPABASE_ANON_KEY = "\${ANON_KEY}";
-          SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
-        };
-        networks = [
-          "servicenet"
-          "proxynet"
-        ];
-        volumes = [
-          "${./files/supabase/api/kong.yml}:/var/lib/kong/kong.yml:ro"
-        ];
-        dependsOn = ["supabase-analytics"];
-      };
-      supabase-auth = {
-        image = "supabase/gotrue:v2.182.1";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          GOTRUE_API_HOST = "0.0.0.0";
-          GOTRUE_API_PORT = "9999";
-          GOTRUE_DB_DRIVER = "postgres";
-          GOTRUE_SITE_URL = "\${SITE_URL}";
-          GOTRUE_URI_ALLOW_LIST = "*";
-          GOTRUE_DISABLE_SIGNUP = "false";
-          GOTRUE_JWT_ADMIN_ROLES = "service_role";
-          GOTRUE_JWT_AUD = "authenticated";
-          GOTRUE_JWT_DEFAULT_GROUP_NAME = "authenticated";
-          GOTRUE_EXTERNAL_EMAIL_ENABLED = "true";
-          GOTRUE_MAILER_AUTOCONFIRM = "false";
-        };
-        networks = [
-          "servicenet"
-          "datanet"
-        ];
-        dependsOn = [
-          "postgres"
-          "supabase-analytics"
-        ];
-      };
-      supabase-rest = {
-        image = "postgrest/postgrest:v13.0.7";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          PGRST_DB_SCHEMAS = "\${PGRST_DB_SCHEMAS}";
-          PGRST_DB_ANON_ROLE = "\${PGRST_DB_ANON_ROLE}";
-          PGRST_DB_USE_LEGACY_GUCS = "false";
-          PGRST_APP_SETTINGS_JWT_SECRET = "\${PGRST_JWT_SECRET}";
-        };
-        networks = [
-          "servicenet"
-          "datanet"
-        ];
-        dependsOn = [
-          "postgres"
-          "supabase-analytics"
-        ];
-      };
-      supabase-realtime = {
-        image = "supabase/realtime:v2.63.0";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          PORT = "4000";
-          DB_AFTER_CONNECT_QUERY = "SET search_path TO _realtime";
-          DB_ENC_KEY = "supabaserealtime";
-          FLY_ALLOC_ID = "fly123";
-          FLY_APP_NAME = "realtime";
-          SECRET_KEY_BASE = "\${SECRET_KEY_BASE}";
-          ERL_AFLAGS = "-proto_dist inet_tcp";
-          ENABLE_TAILSCALE = "false";
-          DNS_NODES = "'realtime-dev.supabase-realtime@supabase-realtime'";
-        };
-        networks = [
-          "servicenet"
-          "datanet"
-        ];
+      # # Supabase Services
+      # supabase-studio = {
+      #   image = "supabase/studio:2025.11.10-sha-5291fe3";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_common.path
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     STUDIO_PG_META_URL = "http://meta:8080";
+      #     SUPABASE_ANON_KEY = "\${ANON_KEY}";
+      #     SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
+      #   };
+      #   networks = ["servicenet"];
+      #   dependsOn = ["supabase-analytics"];
+      # };
+      # supabase-kong = {
+      #   image = "kong:2.8.1";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_common.path
+      #   ];
+      #   environment = {
+      #     KONG_DATABASE = "off";
+      #     KONG_DECLARATIVE_CONFIG = "/var/lib/kong/kong.yml";
+      #     KONG_DNS_ORDER = "LAST,A,CNAME";
+      #     KONG_PLUGINS = "request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction";
+      #     KONG_NGINX_PROXY_PROXY_BUFFER_SIZE = "160k";
+      #     KONG_NGINX_PROXY_PROXY_BUFFERS = "64 160k";
+      #     SUPABASE_ANON_KEY = "\${ANON_KEY}";
+      #     SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "proxynet"
+      #   ];
+      #   volumes = [
+      #     "${./files/supabase/api/kong.yml}:/var/lib/kong/kong.yml:ro"
+      #   ];
+      #   dependsOn = ["supabase-analytics"];
+      # };
+      # supabase-auth = {
+      #   image = "supabase/gotrue:v2.182.1";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_common.path
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     GOTRUE_API_HOST = "0.0.0.0";
+      #     GOTRUE_API_PORT = "9999";
+      #     GOTRUE_DB_DRIVER = "postgres";
+      #     GOTRUE_SITE_URL = "\${SITE_URL}";
+      #     GOTRUE_URI_ALLOW_LIST = "*";
+      #     GOTRUE_DISABLE_SIGNUP = "false";
+      #     GOTRUE_JWT_ADMIN_ROLES = "service_role";
+      #     GOTRUE_JWT_AUD = "authenticated";
+      #     GOTRUE_JWT_DEFAULT_GROUP_NAME = "authenticated";
+      #     GOTRUE_EXTERNAL_EMAIL_ENABLED = "true";
+      #     GOTRUE_MAILER_AUTOCONFIRM = "false";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   dependsOn = [
+      #     "postgres"
+      #     "supabase-analytics"
+      #   ];
+      # };
+      # supabase-rest = {
+      #   image = "postgrest/postgrest:v13.0.7";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     PGRST_DB_SCHEMAS = "\${PGRST_DB_SCHEMAS}";
+      #     PGRST_DB_ANON_ROLE = "\${PGRST_DB_ANON_ROLE}";
+      #     PGRST_DB_USE_LEGACY_GUCS = "false";
+      #     PGRST_APP_SETTINGS_JWT_SECRET = "\${PGRST_JWT_SECRET}";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   dependsOn = [
+      #     "postgres"
+      #     "supabase-analytics"
+      #   ];
+      # };
+      # supabase-realtime = {
+      #   image = "supabase/realtime:v2.63.0";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_common.path
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     PORT = "4000";
+      #     DB_AFTER_CONNECT_QUERY = "SET search_path TO _realtime";
+      #     DB_ENC_KEY = "supabaserealtime";
+      #     FLY_ALLOC_ID = "fly123";
+      #     FLY_APP_NAME = "realtime";
+      #     SECRET_KEY_BASE = "\${SECRET_KEY_BASE}";
+      #     ERL_AFLAGS = "-proto_dist inet_tcp";
+      #     ENABLE_TAILSCALE = "false";
+      #     DNS_NODES = "'realtime-dev.supabase-realtime@supabase-realtime'";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   cmd = [
+      #     "bash"
+      #     "-c"
+      #     "./prod/rel/realtime/bin/realtime eval 'Realtime.Release.migrate' && ./prod/rel/realtime/bin/realtime start"
+      #   ];
+      #   dependsOn = [
+      #     "postgres"
+      #     "supabase-analytics"
+      #   ];
+      # };
+      # supabase-storage = {
+      #   image = "supabase/storage-api:v1.29.0";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_common.path
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     POSTGREST_URL = "http://rest:3000";
+      #     ANON_KEY = "\${ANON_KEY}";
+      #     SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
+      #     PGRST_JWT_SECRET = "\${JWT_SECRET}";
+      #     DATABASE_URL = "\${DATABASE_URL}";
+      #     FILE_SIZE_LIMIT = "\${FILE_SIZE_LIMIT}";
+      #     STORAGE_BACKEND = "file";
+      #     FILE_STORAGE_BACKEND_PATH = "/var/lib/storage";
+      #     TENANT_ID = "stub";
+      #     REGION = "stub";
+      #     GLOBAL_S3_BUCKET = "stub";
+      #     ENABLE_IMAGE_TRANSFORMATION = "true";
+      #     IMGPROXY_URL = "\${IMGPROXY_URL}";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   volumes = [
+      #     "/data/docker/supabase/storage:/var/lib/storage"
+      #   ];
+      #   dependsOn = [
+      #     "postgres"
+      #     "supabase-rest"
+      #     "supabase-imgproxy"
+      #   ];
+      # };
+      # supabase-imgproxy = {
+      #   image = "darthsim/imgproxy:v3.8.0";
+      #   environment = {
+      #     IMGPROXY_BIND = ":5001";
+      #     IMGPROXY_LOCAL_FILESYSTEM_ROOT = "/";
+      #     IMGPROXY_USE_ETAG = "true";
+      #     IMGPROXY_ENABLE_WEBP_DETECTION = "true";
+      #   };
+      #   networks = ["servicenet"];
+      #   volumes = [
+      #     "/data/docker/supabase/storage:/var/lib/storage:ro"
+      #   ];
+      # };
+      # supabase-meta = {
+      #   image = "supabase/postgres-meta:v0.93.1";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     PG_META_PORT = "\${PG_META_PORT}";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   dependsOn = [
+      #     "postgres"
+      #     "supabase-analytics"
+      #   ];
+      # };
+      # supabase-functions = {
+      #   image = "supabase/edge-runtime:v1.69.23";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_common.path
+      #     config.age.secrets.pilaster_docker_env_supabase_db.path
+      #   ];
+      #   environment = {
+      #     JWT_SECRET = "\${JWT_SECRET}";
+      #     SUPABASE_URL = "\${SUPABASE_URL}";
+      #     SUPABASE_ANON_KEY = "\${ANON_KEY}";
+      #     SUPABASE_SERVICE_ROLE_KEY = "\${SERVICE_ROLE_KEY}";
+      #     SUPABASE_DB_URL = "\${SUPABASE_DB_URL}";
+      #     VERIFY_JWT = "true";
+      #   };
+      #   networks = ["servicenet"];
+      #   volumes = [
+      #     "/data/docker/supabase/functions:/home/deno/functions:ro"
+      #   ];
+      # };
+      # supabase-analytics = {
+      #   image = "supabase/logflare:1.22.6";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_analytics.path
+      #   ];
+      #   environment = {
+      #     LOGFLARE_NODE_HOST = "0.0.0.0";
+      #     LOGFLARE_SINGLE_TENANT = "true";
+      #     LOGFLARE_SUPABASE_MODE = "true";
+      #     LOGFLARE_MIN_CLUSTER_SIZE = "1";
+      #     POSTGRES_BACKEND_URL = "\${POSTGRES_BACKEND_URL}";
+      #     POSTGRES_BACKEND_SCHEMA = "_analytics";
+      #     LOGFLARE_API_KEY = "\${LOGFLARE_PUBLIC_ACCESS_TOKEN}";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   dependsOn = ["postgres"];
+      # };
+      # supabase-vector = {
+      #   image = "timberio/vector:0.28.1-alpine";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_analytics.path
+      #   ];
+      #   networks = ["servicenet"];
+      #   volumes = [
+      #     "/var/run/docker.sock:/var/run/docker.sock:ro"
+      #     "${./files/supabase/logs/vector.yml}:/etc/vector/vector.yaml:ro"
+      #   ];
+      #   cmd = ["--config" "/etc/vector/vector.yaml"];
+      # };
+      # supabase-pooler = {
+      #   image = "supabase/supavisor:2.7.4";
+      #   environmentFiles = [
+      #     config.age.secrets.pilaster_docker_env_supabase_pooler.path
+      #   ];
+      #   environment = {
+      #     POOLER_TENANT_ID = "\${POOLER_TENANT_ID}";
+      #     POOLER_DEFAULT_POOL_SIZE = "\${POOLER_DEFAULT_POOL_SIZE}";
+      #     POOLER_MAX_CLIENT_CONN = "\${POOLER_MAX_CLIENT_CONN}";
+      #     POOLER_DB_POOL_SIZE = "\${POOLER_DB_POOL_SIZE}";
+      #   };
+      #   networks = [
+      #     "servicenet"
+      #     "datanet"
+      #   ];
+      #   dependsOn = [
+      #     "postgres"
+      #     "supabase-analytics"
+      #   ];
+      # };
+      mcp-gateway = {
+        image = "docker/mcp-gateway";
         cmd = [
-          "bash"
-          "-c"
-          "./prod/rel/realtime/bin/realtime eval 'Realtime.Release.migrate' && ./prod/rel/realtime/bin/realtime start"
+          "--catalog=/mcp/catalogs/docker-mcp.yaml"
+          "--config=/mcp/config.yaml"
+          "--registry=/mcp/registry.yaml"
+          "--tools-config=/mcp/tools.yaml"
+          "--watch=true"
+          "--secrets=/secrets/mcp.env"
+          "--transport=sse"
+          "--port=8811"
         ];
-        dependsOn = [
-          "postgres"
-          "supabase-analytics"
+        extraOptions = [
+          "--use-api-socket"
         ];
-      };
-      supabase-storage = {
-        image = "supabase/storage-api:v1.29.0";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          POSTGREST_URL = "http://rest:3000";
-          ANON_KEY = "\${ANON_KEY}";
-          SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
-          PGRST_JWT_SECRET = "\${JWT_SECRET}";
-          DATABASE_URL = "\${DATABASE_URL}";
-          FILE_SIZE_LIMIT = "\${FILE_SIZE_LIMIT}";
-          STORAGE_BACKEND = "file";
-          FILE_STORAGE_BACKEND_PATH = "/var/lib/storage";
-          TENANT_ID = "stub";
-          REGION = "stub";
-          GLOBAL_S3_BUCKET = "stub";
-          ENABLE_IMAGE_TRANSFORMATION = "true";
-          IMGPROXY_URL = "\${IMGPROXY_URL}";
-        };
         networks = [
           "servicenet"
-          "datanet"
+        ];
+        environmentFiles = [
+          config.age.secrets.pilaster_docker_env_mcp_gateway.path
         ];
         volumes = [
-          "/data/docker/supabase/storage:/var/lib/storage"
-        ];
-        dependsOn = [
-          "postgres"
-          "supabase-rest"
-          "supabase-imgproxy"
-        ];
-      };
-      supabase-imgproxy = {
-        image = "darthsim/imgproxy:v3.8.0";
-        environment = {
-          IMGPROXY_BIND = ":5001";
-          IMGPROXY_LOCAL_FILESYSTEM_ROOT = "/";
-          IMGPROXY_USE_ETAG = "true";
-          IMGPROXY_ENABLE_WEBP_DETECTION = "true";
-        };
-        networks = ["servicenet"];
-        volumes = [
-          "/data/docker/supabase/storage:/var/lib/storage:ro"
-        ];
-      };
-      supabase-meta = {
-        image = "supabase/postgres-meta:v0.93.1";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          PG_META_PORT = "\${PG_META_PORT}";
-        };
-        networks = [
-          "servicenet"
-          "datanet"
-        ];
-        dependsOn = [
-          "postgres"
-          "supabase-analytics"
-        ];
-      };
-      supabase-functions = {
-        image = "supabase/edge-runtime:v1.69.23";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-          config.age.secrets.pilaster_docker_env_supabase_db.path
-        ];
-        environment = {
-          JWT_SECRET = "\${JWT_SECRET}";
-          SUPABASE_URL = "\${SUPABASE_URL}";
-          SUPABASE_ANON_KEY = "\${ANON_KEY}";
-          SUPABASE_SERVICE_ROLE_KEY = "\${SERVICE_ROLE_KEY}";
-          SUPABASE_DB_URL = "\${SUPABASE_DB_URL}";
-          VERIFY_JWT = "true";
-        };
-        networks = ["servicenet"];
-        volumes = [
-          "/data/docker/supabase/functions:/home/deno/functions:ro"
-        ];
-      };
-      supabase-analytics = {
-        image = "supabase/logflare:1.22.6";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_analytics.path
-        ];
-        environment = {
-          LOGFLARE_NODE_HOST = "0.0.0.0";
-          LOGFLARE_SINGLE_TENANT = "true";
-          LOGFLARE_SUPABASE_MODE = "true";
-          LOGFLARE_MIN_CLUSTER_SIZE = "1";
-          POSTGRES_BACKEND_URL = "\${POSTGRES_BACKEND_URL}";
-          POSTGRES_BACKEND_SCHEMA = "_analytics";
-          LOGFLARE_API_KEY = "\${LOGFLARE_PUBLIC_ACCESS_TOKEN}";
-        };
-        networks = [
-          "servicenet"
-          "datanet"
-        ];
-        dependsOn = ["postgres"];
-      };
-      supabase-vector = {
-        image = "timberio/vector:0.28.1-alpine";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_analytics.path
-        ];
-        networks = ["servicenet"];
-        volumes = [
-          "/var/run/docker.sock:/var/run/docker.sock:ro"
-          "${./files/supabase/logs/vector.yml}:/etc/vector/vector.yaml:ro"
-        ];
-        cmd = ["--config" "/etc/vector/vector.yaml"];
-      };
-      supabase-pooler = {
-        image = "supabase/supavisor:2.7.4";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_pooler.path
-        ];
-        environment = {
-          POOLER_TENANT_ID = "\${POOLER_TENANT_ID}";
-          POOLER_DEFAULT_POOL_SIZE = "\${POOLER_DEFAULT_POOL_SIZE}";
-          POOLER_MAX_CLIENT_CONN = "\${POOLER_MAX_CLIENT_CONN}";
-          POOLER_DB_POOL_SIZE = "\${POOLER_DB_POOL_SIZE}";
-        };
-        networks = [
-          "servicenet"
-          "datanet"
-        ];
-        dependsOn = [
-          "postgres"
-          "supabase-analytics"
+          "/home/jmeskill/.docker/mcp:/mcp:ro"
+          "${config.age.secrets.pilaster_docker_env_mcp_gateway.path}:/secrets/mcp.env:ro"
         ];
       };
     };
@@ -494,14 +520,6 @@
   };
   age.secrets.pilaster_docker_env_postgres = {
     rekeyFile = ./files/docker/env/postgres.env.age;
-    mode = "600";
-  };
-  age.secrets.pilaster_docker_env_supakong = {
-    rekeyFile = ./files/docker/env/supakong.env.age;
-    mode = "600";
-  };
-  age.secrets.pilaster_docker_env_supastudio = {
-    rekeyFile = ./files/docker/env/supastudio.env.age;
     mode = "600";
   };
   age.secrets.pilaster_docker_env_qdrant = {
@@ -526,6 +544,10 @@
   };
   age.secrets.pilaster_docker_env_supabase_pooler = {
     rekeyFile = ./files/docker/env/supabase-pooler.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_mcp_gateway = {
+    rekeyFile = ./files/docker/env/mcp-gateway.env.age;
     mode = "600";
   };
 }
