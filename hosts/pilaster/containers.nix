@@ -87,25 +87,18 @@
       };
       postgres = {
         image = "docker.io/postgres:18";
-        # ports = ["5432:5432"];
-        cmd = [
-          "postgres"
-          "-c"
-          "config_file=/etc/postgresql/postgresql.conf"
-        ];
+        ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/18/docker";
         };
         environmentFiles = [config.age.secrets.pilaster_docker_env_postgres.path];
         networks = [
           "datanet"
-          # "proxynet"
+          "proxynet"
         ];
         volumes = [
           "/data/docker/postgres/pgdata:/var/lib/postgresql/18/docker"
           "/data/backup/postgres:/backup"
-          "${./files/supabase/postgres/postgresql.conf}:/etc/postgresql/postgresql.conf:ro"
-          "${./files/supabase/postgres/init}:/docker-entrypoint-initdb.d:ro"
         ];
       };
       # services
@@ -137,22 +130,6 @@
           "/data/docker/authentik/templates:/templates"
         ];
       };
-      # mcpx = {
-      #   image = "us-central1-docker.pkg.dev/prj-common-442813/mcpx/mcpx:latest";
-      #   extraOptions = [
-      #     "--privileged"
-      #   ];
-      #   networks = [
-      #     "proxynet"
-      #     "servicenet"
-      #   ];
-      #   ports = [
-      #     "9000:9000"
-      #   ];
-      #   volumes = [
-      #     "/data/docker/mcpx/config:/lunar/packages/mcpx-server/config"
-      #   ];
-      # };
       nutify-netrack = {
         image = "dartsteven/nutify:amd64-latest";
         extraOptions = [
@@ -296,8 +273,6 @@
           config.age.secrets.pilaster_docker_env_supabase_db.path
         ];
         environment = {
-          PGRST_DB_SCHEMAS = "\${PGRST_DB_SCHEMAS}";
-          PGRST_DB_ANON_ROLE = "\${PGRST_DB_ANON_ROLE}";
           PGRST_DB_USE_LEGACY_GUCS = "false";
           PGRST_APP_SETTINGS_JWT_SECRET = "\${PGRST_JWT_SECRET}";
         };
@@ -322,7 +297,6 @@
           DB_ENC_KEY = "supabaserealtime";
           FLY_ALLOC_ID = "fly123";
           FLY_APP_NAME = "realtime";
-          SECRET_KEY_BASE = "\${SECRET_KEY_BASE}";
           ERL_AFLAGS = "-proto_dist inet_tcp";
           ENABLE_TAILSCALE = "false";
           DNS_NODES = "'realtime-dev.supabase-realtime@supabase-realtime'";
@@ -349,18 +323,14 @@
         ];
         environment = {
           POSTGREST_URL = "http://rest:3000";
-          ANON_KEY = "\${ANON_KEY}";
           SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
           PGRST_JWT_SECRET = "\${JWT_SECRET}";
-          DATABASE_URL = "\${DATABASE_URL}";
-          FILE_SIZE_LIMIT = "\${FILE_SIZE_LIMIT}";
           STORAGE_BACKEND = "file";
           FILE_STORAGE_BACKEND_PATH = "/var/lib/storage";
           TENANT_ID = "stub";
           REGION = "stub";
           GLOBAL_S3_BUCKET = "stub";
           ENABLE_IMAGE_TRANSFORMATION = "true";
-          IMGPROXY_URL = "\${IMGPROXY_URL}";
         };
         networks = [
           "servicenet"
@@ -393,9 +363,6 @@
         environmentFiles = [
           config.age.secrets.pilaster_docker_env_supabase_db.path
         ];
-        environment = {
-          PG_META_PORT = "\${PG_META_PORT}";
-        };
         networks = [
           "servicenet"
           "datanet"
@@ -412,11 +379,8 @@
           config.age.secrets.pilaster_docker_env_supabase_db.path
         ];
         environment = {
-          JWT_SECRET = "\${JWT_SECRET}";
-          SUPABASE_URL = "\${SUPABASE_URL}";
           SUPABASE_ANON_KEY = "\${ANON_KEY}";
           SUPABASE_SERVICE_ROLE_KEY = "\${SERVICE_ROLE_KEY}";
-          SUPABASE_DB_URL = "\${SUPABASE_DB_URL}";
           VERIFY_JWT = "true";
         };
         networks = ["servicenet"];
@@ -434,7 +398,6 @@
           LOGFLARE_SINGLE_TENANT = "true";
           LOGFLARE_SUPABASE_MODE = "true";
           LOGFLARE_MIN_CLUSTER_SIZE = "1";
-          POSTGRES_BACKEND_URL = "\${POSTGRES_BACKEND_URL}";
           POSTGRES_BACKEND_SCHEMA = "_analytics";
           LOGFLARE_API_KEY = "\${LOGFLARE_PUBLIC_ACCESS_TOKEN}";
         };
@@ -461,12 +424,6 @@
         environmentFiles = [
           config.age.secrets.pilaster_docker_env_supabase_pooler.path
         ];
-        environment = {
-          POOLER_TENANT_ID = "\${POOLER_TENANT_ID}";
-          POOLER_DEFAULT_POOL_SIZE = "\${POOLER_DEFAULT_POOL_SIZE}";
-          POOLER_MAX_CLIENT_CONN = "\${POOLER_MAX_CLIENT_CONN}";
-          POOLER_DB_POOL_SIZE = "\${POOLER_DB_POOL_SIZE}";
-        };
         networks = [
           "servicenet"
           "datanet"
@@ -474,6 +431,32 @@
         dependsOn = [
           "postgres"
           "supabase-analytics"
+        ];
+      };
+      mcp-gateway = {
+        image = "docker/mcp-gateway";
+        cmd = [
+          "--catalog=/mcp/catalogs/docker-mcp.yaml"
+          "--config=/mcp/config.yaml"
+          "--registry=/mcp/registry.yaml"
+          "--tools-config=/mcp/tools.yaml"
+          "--watch=true"
+          "--secrets=/secrets/mcp.env"
+          "--transport=sse"
+          "--port=8811"
+        ];
+        extraOptions = [
+          "--use-api-socket"
+        ];
+        networks = [
+          "servicenet"
+        ];
+        environmentFiles = [
+          config.age.secrets.pilaster_docker_env_mcp_gateway.path
+        ];
+        volumes = [
+          "/home/jmeskill/.docker/mcp:/mcp:ro"
+          "${config.age.secrets.pilaster_docker_env_mcp_gateway.path}:/secrets/mcp.env:ro"
         ];
       };
     };
@@ -494,14 +477,6 @@
   };
   age.secrets.pilaster_docker_env_postgres = {
     rekeyFile = ./files/docker/env/postgres.env.age;
-    mode = "600";
-  };
-  age.secrets.pilaster_docker_env_supakong = {
-    rekeyFile = ./files/docker/env/supakong.env.age;
-    mode = "600";
-  };
-  age.secrets.pilaster_docker_env_supastudio = {
-    rekeyFile = ./files/docker/env/supastudio.env.age;
     mode = "600";
   };
   age.secrets.pilaster_docker_env_qdrant = {
@@ -526,6 +501,10 @@
   };
   age.secrets.pilaster_docker_env_supabase_pooler = {
     rekeyFile = ./files/docker/env/supabase-pooler.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_mcp_gateway = {
+    rekeyFile = ./files/docker/env/mcp-gateway.env.age;
     mode = "600";
   };
 }

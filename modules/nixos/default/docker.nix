@@ -9,8 +9,10 @@
 in {
   config = lib.mkIf cfg.enable {
     users.users.jmeskill.extraGroups = ["docker"]; # TODO: generalize user
+    virtualisation.docker.autoPrune.enable = true;
 
     environment.systemPackages = with pkgs; [
+      docker-credential-helpers
       lazydocker
     ];
   };
