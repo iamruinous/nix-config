@@ -100,6 +100,13 @@ in {
 
       -- Table mapping keypresses to actions
       config.keys = {
+        -- Sends a newline for multiline editing
+        -- in AI tools like Claude Code
+        {
+          key = 'Enter',
+          mods = 'SHIFT',
+          action = wezterm.action.SendString '\x1b\r',
+        },
         -- Sends ESC + b and ESC + f sequence, which is used
         -- for telling your shell to jump back/forward.
         {
