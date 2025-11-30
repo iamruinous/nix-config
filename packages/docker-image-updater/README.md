@@ -2,6 +2,8 @@
 
 A beautiful interactive TUI tool for checking and updating Docker image versions in NixOS container configurations.
 
+> **Development Status:** This tool is partially implemented. Container scanning works, but update checking and applying updates are not yet functional. See [NEXT_STEPS.md](./NEXT_STEPS.md) for the implementation plan.
+
 ## Overview
 
 This tool scans your `hosts/**/containers.nix` files, extracts Docker image references, checks for available updates using container registries, and provides an interactive interface to selectively apply updates.
