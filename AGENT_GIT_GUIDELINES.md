@@ -255,6 +255,181 @@ This enables the application to send transactional emails
 with full delivery tracking and user preference management.
 ```
 
+## Branching Strategy
+
+**IMPORTANT**: Never commit directly to the main/master branch. Always use feature branches and pull requests.
+
+### Branch Naming Conventions
+
+Use descriptive branch names with a type prefix:
+
+```
+<type>/<short-description>
+```
+
+**Types:**
+- `feat/` - New features
+- `fix/` - Bug fixes
+- `docs/` - Documentation updates
+- `refactor/` - Code refactoring
+- `test/` - Test additions or fixes
+- `chore/` - Maintenance tasks
+
+**Examples:**
+```
+feat/oauth-authentication
+fix/rate-limiter-calculation
+docs/api-endpoint-documentation
+refactor/database-connection-pooling
+```
+
+### Feature Branch Workflow
+
+1. **Ensure you're on the latest main branch:**
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+
+2. **Create a new feature branch:**
+   ```bash
+   git checkout -b feat/my-new-feature
+   ```
+
+3. **Make commits on the feature branch** following the commit guidelines above
+
+4. **Push the feature branch:**
+   ```bash
+   git push -u origin feat/my-new-feature
+   ```
+
+5. **Create a pull request** (see platform-specific instructions below)
+
+6. **After PR is merged**, clean up:
+   ```bash
+   git checkout main
+   git pull origin main
+   git branch -d feat/my-new-feature
+   ```
+
+### Pull Request Workflow
+
+Always create pull requests for code review before merging to main. The process differs slightly between GitHub and Forgejo.
+
+#### Detecting the Git Platform
+
+Check the git remote URL to determine the platform:
+
+```bash
+git remote -v
+```
+
+- **GitHub**: URL contains `github.com`
+- **Forgejo/Gitea**: URL contains your self-hosted domain (e.g., `forge.meskill.farm`) or uses `/git/` path pattern
+
+#### GitHub Pull Requests
+
+Use the GitHub CLI (`gh`) for pull request operations:
+
+```bash
+# Create a pull request
+gh pr create --title "feat: add OAuth authentication" --body "$(cat <<'EOF'
+## Summary
+- Add OAuth2 authentication flow
+- Support Google, GitHub, Microsoft providers
+- Implement automatic token refresh
+
+## Test Plan
+- [ ] Test OAuth flow with each provider
+- [ ] Verify token refresh works correctly
+- [ ] Check session management
+EOF
+)"
+
+# List open pull requests
+gh pr list
+
+# View pull request details
+gh pr view <number>
+
+# Check out a pull request locally
+gh pr checkout <number>
+
+# Merge a pull request (if you have permission)
+gh pr merge <number>
+```
+
+**Note:** If `gh` is not available, create the PR through the GitHub web interface.
+
+#### Forgejo/Gitea Pull Requests
+
+Forgejo uses the same API as Gitea. You can use either:
+
+1. **Web Interface** (recommended for most cases):
+   - Push your branch
+   - Navigate to the repository in your browser
+   - Click "New Pull Request"
+   - Select your feature branch as the source
+   - Fill in title and description
+
+2. **API via curl** (for automation):
+   ```bash
+   # Create a pull request via API
+   curl -X POST "https://forge.meskill.farm/api/v1/repos/OWNER/REPO/pulls" \
+     -H "Authorization: token $FORGEJO_API_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "title": "feat: add OAuth authentication",
+       "body": "## Summary\n- Add OAuth2 flow\n- Support multiple providers",
+       "head": "feat/oauth-authentication",
+       "base": "main"
+     }'
+   ```
+
+3. **Tea CLI** (if installed):
+   ```bash
+   # Create a pull request
+   tea pr create --title "feat: add OAuth authentication" --description "Add OAuth2 flow"
+
+   # List pull requests
+   tea pr list
+   ```
+
+### Pull Request Best Practices
+
+1. **Title**: Use conventional commit format for the PR title
+   - `feat: add OAuth authentication`
+   - `fix: correct rate limiting calculation`
+
+2. **Description**: Include:
+   - Summary of changes (what and why)
+   - Test plan or checklist
+   - Breaking changes or migration notes
+   - Related issues (e.g., `Closes #123`)
+
+3. **Size**: Keep PRs focused and reviewable
+   - Prefer smaller, incremental PRs over large monolithic ones
+   - Split unrelated changes into separate PRs
+
+4. **Review**:
+   - Request review from appropriate team members
+   - Address review feedback with additional commits
+   - Don't force-push after review has started (unless requested)
+
+5. **Merge Strategy**:
+   - Prefer "Squash and merge" for feature branches (cleaner history)
+   - Use "Merge commit" for long-running branches with meaningful commit history
+   - Never use "Rebase and merge" without understanding the implications
+
+### When NOT to Create a PR
+
+In rare cases, direct commits to main may be acceptable:
+- Emergency hotfixes when PR review would cause unacceptable delay (document afterwards)
+- Trivial typo fixes (though PRs are still preferred)
+- Initial repository setup
+
+**Always prefer PRs** - they provide documentation, enable review, and create a clear audit trail.
+
 ## Git Commands Workflow
 
 When making commits, use this workflow:
@@ -272,7 +447,10 @@ git add <file1> <file2> <file3>
 # 4. Verify staged changes
 git diff --cached
 
-# 5. Create commit with detailed message
+# 5. Check SSH agent and signing capability BEFORE committing
+ssh-agent-check
+
+# 6. Create commit with detailed message (only if ssh-agent-check passes)
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 
@@ -283,9 +461,21 @@ Detailed explanation of what changed and why.
 Fixes #123
 "
 
-# 6. Verify commit
+# 7. Verify commit
 git log -1 --stat
 ```
+
+### Pre-Commit Signing Check
+
+**IMPORTANT**: Before attempting any commit, always run `ssh-agent-check` to verify that SSH/GPG signing will succeed.
+
+```bash
+# Run the signing check
+ssh-agent-check
+```
+
+- **If the check passes**: Proceed with the commit normally
+- **If the check fails**: Do NOT attempt to commit. Instead, follow the "SSH/GPG Signing Failure" procedure below to save the commit message and instruct the user to commit manually
 
 ## Special Considerations
 
@@ -298,15 +488,22 @@ git log -1 --stat
 
 ## Handling Commit Failures
 
-### GPG Signing Issues
+### SSH/GPG Signing Failure
 
-If commits require GPG signing and it fails:
+If `ssh-agent-check` fails or commits require signing and signing fails:
 
-1. **Keep the files staged** (they should already be staged from the failed commit attempt)
+1. **Do NOT attempt to commit** if `ssh-agent-check` fails
 
-2. **Save the commit message to a temporary file**:
+2. **Keep the files staged** (stage them if not already staged)
+
+3. **Generate a random hex suffix** for the commit message file:
    ```bash
-   cat > COMMIT_MSG.txt << 'EOF'
+   COMMIT_FILE="COMMIT_MSG_$(openssl rand -hex 4).txt"
+   ```
+
+4. **Save the commit message to the temporary file**:
+   ```bash
+   cat > "$COMMIT_FILE" << 'EOF'
    type(scope): short description
 
    Detailed explanation of what changed and why.
@@ -317,15 +514,42 @@ If commits require GPG signing and it fails:
    EOF
    ```
 
-3. **Notify the user** to commit manually:
+5. **Notify the user** to commit manually:
    ```
-   Unable to create signed commit (GPG signing failed).
+   Unable to create signed commit (ssh-agent-check failed or signing unavailable).
 
-   Changes are staged and commit message saved to COMMIT_MSG.txt
+   Changes are staged and commit message saved to COMMIT_MSG_<hex>.txt
 
    To create the signed commit:
-     git commit -F COMMIT_MSG.txt && rm COMMIT_MSG.txt
+     git commit -F COMMIT_MSG_<hex>.txt && rm COMMIT_MSG_<hex>.txt
    ```
+
+**Example workflow when ssh-agent-check fails:**
+```bash
+# 1. Stage the files
+git add src/feature.ts
+
+# 2. Run ssh-agent-check
+ssh-agent-check
+# Output: FAIL - SSH agent not available
+
+# 3. Generate unique filename and save commit message
+COMMIT_FILE="COMMIT_MSG_$(openssl rand -hex 4).txt"
+cat > "$COMMIT_FILE" << 'EOF'
+feat(feature): add new capability
+
+Implements the new feature with full test coverage.
+
+Key changes:
+- Add feature implementation
+- Add unit tests
+- Update documentation
+EOF
+
+# 4. Inform user
+echo "Changes staged. Commit message saved to $COMMIT_FILE"
+echo "Run: git commit -F $COMMIT_FILE && rm $COMMIT_FILE"
+```
 
 ### Other Common Issues
 
@@ -365,9 +589,17 @@ If commits require GPG signing and it fails:
 
 ## HEREDOC Format for Complex Messages
 
-For complex commit messages, use HEREDOC to ensure proper formatting:
+For complex commit messages, use HEREDOC to ensure proper formatting.
 
+**Remember**: Always run `ssh-agent-check` before attempting the commit. If it fails, save the message to `COMMIT_MSG_<hex>.txt` instead. 
+
+**Never allow unsigned commits.**
+ 
 ```bash
+# First, verify signing will work
+ssh-agent-check
+
+# If ssh-agent-check passes, proceed with commit
 git commit -m "$(cat <<'EOF'
 feat(component): add new feature
 
