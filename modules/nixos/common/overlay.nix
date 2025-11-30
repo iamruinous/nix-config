@@ -5,6 +5,7 @@
       agenix-helper = perSystem.self.agenix-helper;
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
+      docker-image-updater = perSystem.self.docker-image-updater;
       docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
       forgejo-shell = perSystem.self.forgejo-shell;
       messy-restricted-shell = perSystem.self.messy-restricted-shell;
