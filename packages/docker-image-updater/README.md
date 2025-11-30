@@ -1,18 +1,20 @@
 # docker-image-updater
 
-A beautiful interactive tool for checking and updating Docker image versions in NixOS container configurations.
+A beautiful interactive TUI tool for checking and updating Docker image versions in NixOS container configurations.
 
 ## Overview
 
 This tool scans your `hosts/**/containers.nix` files, extracts Docker image references, checks for available updates using container registries, and provides an interactive interface to selectively apply updates.
 
+Written in Go using [Bubbletea](https://github.com/charmbracelet/bubbletea) for the terminal UI.
+
 ## Features
 
 - **Automatic Discovery**: Scans all `containers.nix` files under `hosts/` directory
 - **Multi-Registry Support**: Works with Docker Hub, GitHub Container Registry (ghcr.io), and other OCI-compliant registries
-- **Version Detection**: Intelligently detects versioned tags and finds newer versions
+- **Version Detection**: Intelligently detects versioned tags and finds newer versions using semantic versioning
 - **Floating Tag Detection**: Identifies when floating tags (like `latest`) have new digests available
-- **Interactive Selection**: Beautiful gum-powered interface for selecting which images to update
+- **Interactive TUI**: Beautiful Bubbletea-powered interface for selecting which images to update
 - **Flexible Update Options**:
   - Update all images at once
   - Update all images for a specific host
@@ -100,6 +102,7 @@ docker-image-updater --non-interactive
 | `-l, --limit N` | Limit the number of containers to check |
 | `--dry-run` | Only scan containers, skip checking for updates |
 | `--non-interactive` | Run without interactive prompts |
+| `-v, --version` | Show version |
 | `-h, --help` | Show help message |
 
 ## Interactive Menu
@@ -111,6 +114,14 @@ When updates are found, you'll be presented with options:
 3. **Individual images** - Multi-select specific containers to update
 4. **Show update commands only** - Display the changes without applying them
 5. **Exit** - Exit without making changes
+
+### Keyboard Navigation
+
+- `↑/↓` or `j/k` - Navigate up/down
+- `Enter` - Select option
+- `Space` - Toggle selection (in multi-select mode)
+- `q` or `Ctrl+C` - Quit
+- `Esc` - Go back
 
 ## How It Works
 
@@ -134,61 +145,41 @@ Images are automatically normalized to their full registry paths:
 
 ## Examples
 
-### Example Output
+### Example Output (Non-Interactive)
 
 ```
-┌──────────────────────────────────────────────────┐
-│            Docker Image Updater                   │
-│          for NixOS Configurations                 │
-└──────────────────────────────────────────────────┘
+=== Docker Image Updater ===
+    for NixOS Configurations
 
 Found 45 containers across 4 hosts
 
 Checking for updates...
+[45/45] Checking pilaster/authentik...
+Found 3 available updates (checked 45 containers)
 
-Found 3 available updates
+=== Available Updates ===
 
-┌─────────────────────────────────────────────────────────────┐
-│                    Available Updates                         │
-└─────────────────────────────────────────────────────────────┘
+HOST            CONTAINER            CURRENT         LATEST
+----            ---------            -------         ------
+monolith        postgres             17              18
+obelisk         ollama               0.12.5          0.12.6
+pilaster        authentik            2025.10.2       2025.11.1
 
-HOST        CONTAINER    CURRENT    LATEST
-monolith    postgres     17         18
-obelisk     ollama       0.12.5     0.12.6
-pilaster    authentik    2025.10.2  2025.11.1
+=== Update Commands ===
 
-What would you like to update?
-> All images
-  All images for a specific host
-  Individual images
-  Show update commands only
-  Exit
-```
-
-### Example Update Commands
-
-When selecting "Show update commands only":
-
-```
 Host: monolith
 Container: postgres
-Current: docker.io/postgres:17
-New: docker.io/postgres:18
+Current: postgres:17
+New: postgres:18
 File: /path/to/nix-config/hosts/monolith/containers.nix
 
 To update manually:
-  sed -i 's|docker.io/postgres:17|docker.io/postgres:18|g' /path/to/nix-config/hosts/monolith/containers.nix
+  sed -i 's|postgres:17|postgres:18|g' /path/to/nix-config/hosts/monolith/containers.nix
 ```
 
 ## Dependencies
 
-- **gum** - For beautiful terminal UI
-- **skopeo** - For querying container registries
-- **jq** - For parsing JSON responses
-- **GNU coreutils** - Standard utilities
-- **GNU sed** - For applying updates to files
-- **findutils** - For discovering container files
-- **grep** - For pattern matching
+- **skopeo** - For querying container registries (automatically wrapped into PATH)
 
 ## Limitations
 
@@ -232,9 +223,16 @@ For private registries, configure credentials in `~/.docker/config.json` or use 
 
 ## Version History
 
+### 2.0.0
+
+- Complete rewrite in Go using Bubbletea TUI framework
+- Improved version detection with semantic versioning
+- Better terminal handling and keyboard navigation
+- Simpler dependency footprint (only skopeo required at runtime)
+
 ### 1.0.0
 
-- Initial release
+- Initial release (shell script version)
 - Interactive update selection with gum
 - Multi-registry support via skopeo
 - Host-level and individual container updates
