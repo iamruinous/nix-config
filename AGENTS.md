@@ -181,137 +181,119 @@ In addition to the general guidelines, this NixOS configuration repository has t
 
 4. **All commits must be GPG signed** - never use `--no-gpg-sign`
 
-## Session Logging
+## Changelog
 
-### Overview
+This repository maintains a changelog in `CHANGELOG.md` following the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
-This repository maintains a running log of development sessions in `SESSION_LOG.md`. This helps track:
-- What work was completed in each session
-- Context for future sessions
-- Historical decisions and rationale
-- Unresolved issues and follow-up tasks
+### Guiding Principles
 
-### When to Update the Session Log
+- Changelogs are for **humans**, not machines
+- One entry per version/release
+- Group similar changes together
+- Latest version appears first
+- Use ISO 8601 dates (YYYY-MM-DD)
 
-Update `SESSION_LOG.md` at the **end of each development session** when:
-- Significant features were added or modified
-- Multiple related changes were made
-- Important decisions were documented
-- Issues were discovered that need follow-up
-- The session lasted more than 15-20 minutes
+### Change Categories
 
-### How to Update the Session Log
+Use these standard sections to categorize changes:
 
-1. **Add a new session entry at the top** (after the format template)
-2. **Use the standard format**:
-   ```markdown
-   ## YYYY-MM-DD - Descriptive Session Title
+- **Added** - New features or capabilities
+- **Changed** - Modifications to existing functionality
+- **Deprecated** - Features marked for future removal
+- **Removed** - Features that have been deleted
+- **Fixed** - Bug corrections
+- **Security** - Vulnerability patches
 
-   **AI Agent:** [Your name/type]
-   **Duration:** [Approximate time]
-   **Focus Areas:** [Main topics worked on]
+### Unreleased Section
 
-   ### Changes Made
-   - Bullet list of significant changes
-   - Include file paths where relevant
-   - Note any breaking changes
+Always maintain an `[Unreleased]` section at the top of the changelog. This:
+- Tracks upcoming changes before they're released
+- Makes it easy to see what's changed since last release
+- Simplifies the release process (just move items to a new version section)
 
-   ### Commits Created
-   - List of commit messages/summaries
-   - Or note if changes are staged but not committed
+### When to Update the Changelog
 
-   ### Issues/Notes
-   - Any unresolved issues
-   - Follow-up tasks needed
-   - Important notes for future sessions
-   ```
+Update `CHANGELOG.md` when:
+- Adding new features or packages
+- Making breaking changes
+- Fixing significant bugs
+- Deprecating or removing functionality
+- Addressing security issues
 
-3. **Be concise but informative**: Focus on what and why, not excessive detail
-4. **Group related changes**: Don't list every single file, group by feature/area
-5. **Highlight important decisions**: Document why certain approaches were chosen
-6. **Note pending work**: Make it easy for the next session to pick up where you left off
+**Skip updates for:**
+- Typo fixes
+- Internal refactoring with no user impact
+- Documentation-only changes (unless significant)
+- Work-in-progress on feature branches
 
-### Session Log Best Practices
-
-**Do:**
-- Update at the end of productive sessions
-- Group changes by feature/area
-- Note technical decisions and rationale
-- List unresolved issues clearly
-- Include file paths for major changes
-- Note breaking changes prominently
-
-**Don't:**
-- Log trivial changes (typo fixes, formatting)
-- Duplicate information from commit messages verbatim
-- Write essays - keep it concise
-- Update for every tiny edit
-- Forget to update before ending the session
-
-### Example Session Entry
+### Format
 
 ```markdown
-## 2025-11-23 - Docker Container Security Hardening
+# Changelog
 
-**AI Agent:** Claude Code
-**Duration:** 1 hour
-**Focus Areas:** Container security, secret management
+All notable changes to this project will be documented in this file.
 
-### Changes Made
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-1. **Container Security** (`hosts/production/containers.nix`)
-   - Added security context to all containers
-   - Implemented read-only root filesystems
-   - Dropped unnecessary capabilities
-   - Files: hosts/production/containers.nix
+## [Unreleased]
 
-2. **Secret Rotation**
-   - Rotated database credentials
-   - Updated API keys in agenix
-   - Documented rotation process
-   - Files: secrets/production/*.age
+### Added
+- New docker-image-updater Go implementation with Bubbletea TUI
 
-### Commits Created
+### Changed
+- Updated flake inputs
 
-- `feat(security): harden container security contexts`
-- `chore(secrets): rotate production credentials`
+## [2025-11-29]
 
-### Issues/Notes
+### Added
+- Initial docker-image-updater shell script package
+- Custom nix-packager AI agent
 
-**Pending:**
-- Need to test backup restore with new credentials
-- Should automate credential rotation (follow-up ticket)
-
-**Important:**
-- Breaking change: Containers now require explicit volume mounts
-- Old configs will fail with read-only filesystem errors
-- Migration guide added to docs/MIGRATION.md
+### Fixed
+- SSH agent check script permissions
 ```
 
-### Integrating with Git Workflow
+### Best Practices
 
-The session log complements, but doesn't replace, git commit messages:
+**Do:**
+- Write entries from the user's perspective
+- Be concise but descriptive
+- Include context for breaking changes
+- Group related changes under a single bullet
+- Link to PRs or issues where relevant
 
-- **Commit messages**: Detailed, per-change documentation
-- **Session log**: High-level session summary, context, pending work
+**Don't:**
+- Copy commit messages verbatim
+- Include every tiny change
+- Use technical jargon without explanation
+- Forget to move Unreleased items when releasing
 
-Think of it as:
-- Commit messages = Chapter details
-- Session log = Table of contents
+### Relationship to Git
 
-### When to Skip Logging
+The changelog complements git history:
 
-You can skip updating the session log for:
-- Quick typo fixes
-- Simple README updates
-- Experimental/throwaway work
-- Sessions under 10-15 minutes
-- Work that was completely reverted
+| Git History | Changelog |
+|-------------|-----------|
+| Every commit | Notable changes only |
+| Technical details | User-facing summary |
+| Chronological | Grouped by category |
+| For developers | For users |
 
-### Session Log Maintenance
+### Example Entry
 
-Periodically (every few months):
-- Review old entries for outdated information
-- Archive very old sessions to `SESSION_LOG_ARCHIVE.md`
-- Keep recent ~6 months in main log
-- Update template if format evolves
+```markdown
+## [Unreleased]
+
+### Added
+- `docker-image-updater` package: Interactive TUI for checking Docker image updates in NixOS container configurations
+- Support for multiple container registries (Docker Hub, ghcr.io)
+
+### Changed
+- Migrated docker-image-updater from shell script to Go for better maintainability
+
+### Deprecated
+- The `--verbose` flag is deprecated; use `--debug` instead
+
+### Fixed
+- Container scanner now correctly parses quoted container names in Nix files
+```
