@@ -93,7 +93,7 @@ in {
 
       randhex = ''hexdump -vn16 -e'4/4 "%08X" 1 "\n"' /dev/urandom'';
 
-      glow = "glow --pager"; # add pager
+      glowp = "glow --pager"; # add pager
     };
 
     plugins = with pkgs.fishPlugins; [
