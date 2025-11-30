@@ -65,6 +65,8 @@
       glow
       vhs
       forgejo-cli
+      gh
+      tea
 
       # rust
       (fenix.stable.withComponents [
