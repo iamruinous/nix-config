@@ -19,6 +19,20 @@ in {
         };
       };
 
+      # cabin
+      "cabinpi" = {
+        hostname = "pi.cabin.meskill.network";
+        user = "root";
+      };
+      "hacabin" = {
+        hostname = "ha.cabin.meskill.network";
+        user = "hass";
+      };
+      "plexicabin" = {
+        hostname = "plexi.cabin.meskill.network";
+        user = "root";
+      };
+
       # svc
       "armistice" = {
         hostname = "armistice.svc.farmhouse.meskill.network";
