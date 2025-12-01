@@ -7,10 +7,12 @@
     flake.nixosModules.developer
     flake.nixosModules.hyprland
     flake.nixosModules.server
+    flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
     ./containers.nix
     ./nfs.nix
+    ./disko.nix
     ./printing.nix
     ./sshd.nix
     ./microvm.nix

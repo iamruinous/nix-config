@@ -16,7 +16,6 @@
 
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
-  boot.plymouth.enable = true;
   power.ups.enable = true;
 
   # This value determines the NixOS release from which the default
