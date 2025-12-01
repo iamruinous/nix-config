@@ -1,0 +1,214 @@
+package registry
+
+import (
+	"testing"
+)
+
+func TestIsFloatingTag(t *testing.T) {
+	tests := []struct {
+		tag      string
+		expected bool
+	}{
+		{"latest", true},
+		{"stable", true},
+		{"release", true},
+		{"main", true},
+		{"master", true},
+		{"develop", true},
+		{"dev", true},
+		{"2", true},
+		{"v2", true},
+		{"1.0", false},
+		{"1.0.0", false},
+		{"v1.0", false},
+		{"v1.0.0", false},
+		{"17.1", false},
+		{"2025.1.2", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.tag, func(t *testing.T) {
+			result := IsFloatingTag(tc.tag)
+			if result != tc.expected {
+				t.Errorf("IsFloatingTag(%q) = %v, expected %v", tc.tag, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestIsSemverTag(t *testing.T) {
+	tests := []struct {
+		tag      string
+		expected bool
+	}{
+		{"1.0", true},
+		{"1.0.0", true},
+		{"v1.0", true},
+		{"v1.0.0", true},
+		{"17.1", true},
+		{"0.12.5", true},
+		{"latest", false},
+		{"stable", false},
+		{"v2", false},
+		{"2", false},
+		{"1.2.3.4", false},
+		{"abc", false},
+		{"1.0-beta", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.tag, func(t *testing.T) {
+			result := IsSemverTag(tc.tag)
+			if result != tc.expected {
+				t.Errorf("IsSemverTag(%q) = %v, expected %v", tc.tag, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestParseVersion(t *testing.T) {
+	tests := []struct {
+		version       string
+		major         int
+		minor         int
+		patch         int
+		shouldSucceed bool
+	}{
+		{"1.0.0", 1, 0, 0, true},
+		{"1.2.3", 1, 2, 3, true},
+		{"v1.0.0", 1, 0, 0, true},
+		{"v1.2.3", 1, 2, 3, true},
+		{"1.0", 1, 0, 0, true},
+		{"17.1", 17, 1, 0, true},
+		{"0.12.5", 0, 12, 5, true},
+		{"latest", 0, 0, 0, false},
+		{"1", 0, 0, 0, false},
+		{"1.2.3.4", 0, 0, 0, false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.version, func(t *testing.T) {
+			major, minor, patch, ok := ParseVersion(tc.version)
+			if ok != tc.shouldSucceed {
+				t.Errorf("ParseVersion(%q) ok = %v, expected %v", tc.version, ok, tc.shouldSucceed)
+				return
+			}
+			if tc.shouldSucceed {
+				if major != tc.major || minor != tc.minor || patch != tc.patch {
+					t.Errorf("ParseVersion(%q) = (%d, %d, %d), expected (%d, %d, %d)",
+						tc.version, major, minor, patch, tc.major, tc.minor, tc.patch)
+				}
+			}
+		})
+	}
+}
+
+func TestCompareVersions(t *testing.T) {
+	tests := []struct {
+		v1       string
+		v2       string
+		expected int
+	}{
+		{"1.0.0", "1.0.0", 0},
+		{"1.0.0", "1.0.1", -1},
+		{"1.0.1", "1.0.0", 1},
+		{"1.0.0", "2.0.0", -1},
+		{"2.0.0", "1.0.0", 1},
+		{"1.0.0", "1.1.0", -1},
+		{"1.1.0", "1.0.0", 1},
+		{"v1.0.0", "1.0.0", 0},
+		{"v1.0.0", "v1.0.1", -1},
+		{"17", "18", -1},
+		{"0.12.5", "0.12.6", -1},
+		{"1.0", "1.0.0", 0},
+		{"1.0", "1.0.1", -1},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.v1+"_vs_"+tc.v2, func(t *testing.T) {
+			result := CompareVersions(tc.v1, tc.v2)
+			if result != tc.expected {
+				t.Errorf("CompareVersions(%q, %q) = %d, expected %d", tc.v1, tc.v2, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestIsNewerVersion(t *testing.T) {
+	tests := []struct {
+		current  string
+		new      string
+		expected bool
+	}{
+		{"1.0.0", "1.0.1", true},
+		{"1.0.0", "2.0.0", true},
+		{"1.0.0", "1.0.0", false},
+		{"1.0.1", "1.0.0", false},
+		{"v1.0.0", "v1.0.1", true},
+		{"17", "18", true},
+		{"0.12.5", "0.12.6", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.current+"_to_"+tc.new, func(t *testing.T) {
+			result := IsNewerVersion(tc.current, tc.new)
+			if result != tc.expected {
+				t.Errorf("IsNewerVersion(%q, %q) = %v, expected %v", tc.current, tc.new, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFilterSemverTags(t *testing.T) {
+	tags := []string{"1.0.0", "latest", "v1.2.3", "stable", "2.0", "dev", "main"}
+	expected := []string{"1.0.0", "v1.2.3", "2.0"}
+
+	result := FilterSemverTags(tags)
+
+	if len(result) != len(expected) {
+		t.Errorf("FilterSemverTags returned %d tags, expected %d", len(result), len(expected))
+		return
+	}
+
+	for i, tag := range result {
+		if tag != expected[i] {
+			t.Errorf("FilterSemverTags[%d] = %q, expected %q", i, tag, expected[i])
+		}
+	}
+}
+
+func TestFindLatestVersion(t *testing.T) {
+	tests := []struct {
+		tags     []string
+		expected string
+	}{
+		{[]string{"1.0.0", "1.0.1", "1.0.2"}, "1.0.2"},
+		{[]string{"1.0.0", "2.0.0", "1.5.0"}, "2.0.0"},
+		{[]string{"v1.0.0", "v1.0.1", "v2.0.0"}, "v2.0.0"},
+		{[]string{"latest", "stable"}, ""},
+		{[]string{"1.0", "1.1", "2.0"}, "2.0"},
+		{[]string{"0.12.5", "0.12.6", "0.12.4"}, "0.12.6"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.expected, func(t *testing.T) {
+			result := FindLatestVersion(tc.tags)
+			if result != tc.expected {
+				t.Errorf("FindLatestVersion(%v) = %q, expected %q", tc.tags, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestSortVersions(t *testing.T) {
+	versions := []string{"2.0.0", "1.0.0", "1.5.0", "1.0.1", "10.0.0"}
+	expected := []string{"1.0.0", "1.0.1", "1.5.0", "2.0.0", "10.0.0"}
+
+	SortVersions(versions)
+
+	for i, v := range versions {
+		if v != expected[i] {
+			t.Errorf("SortVersions[%d] = %q, expected %q", i, v, expected[i])
+		}
+	}
+}
