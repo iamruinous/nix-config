@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/iamruinous/docker-image-updater/internal/cache"
 	"github.com/iamruinous/docker-image-updater/internal/scanner"
 )
 
@@ -21,6 +22,8 @@ type UpdateResult struct {
 // Checker provides methods to check container registries for updates.
 type Checker struct {
 	skopeoPath string
+	cache      *cache.Cache
+	useCache   bool
 }
 
 // NewChecker creates a new registry Checker.
@@ -30,6 +33,33 @@ func NewChecker(skopeoPath string) *Checker {
 		skopeoPath = "skopeo"
 	}
 	return &Checker{skopeoPath: skopeoPath}
+}
+
+// NewCheckerWithCache creates a new registry Checker with caching enabled.
+func NewCheckerWithCache(skopeoPath string, c *cache.Cache) *Checker {
+	checker := NewChecker(skopeoPath)
+	checker.cache = c
+	checker.useCache = true
+	return checker
+}
+
+// SetCache sets the cache for the checker.
+func (c *Checker) SetCache(cache *cache.Cache) {
+	c.cache = cache
+	c.useCache = cache != nil
+}
+
+// Cache returns the checker's cache.
+func (c *Checker) Cache() *cache.Cache {
+	return c.cache
+}
+
+// SaveCache saves the cache to disk if caching is enabled.
+func (c *Checker) SaveCache() error {
+	if c.cache != nil {
+		return c.cache.Save()
+	}
+	return nil
 }
 
 // tagsResponse represents the JSON response from skopeo list-tags.
@@ -85,6 +115,17 @@ func (c *Checker) GetDigest(imageRef string) (string, error) {
 func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 	result := &UpdateResult{
 		Container: container,
+		LatestTag: container.Tag, // Default to current tag
+	}
+
+	// Check cache first
+	if c.useCache && c.cache != nil {
+		if entry, ok := c.cache.Get(container.Image); ok {
+			result.LatestTag = entry.LatestTag
+			result.HasUpdate = entry.HasUpdate
+			result.IsDigestOnly = entry.IsDigestOnly
+			return result
+		}
 	}
 
 	currentTag := container.Tag
@@ -98,16 +139,22 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 		}
 
 		latestTag := FindLatestVersion(tags)
-		if latestTag != "" && IsNewerVersion(currentTag, latestTag) {
-			result.HasUpdate = true
+		if latestTag != "" {
 			result.LatestTag = latestTag
-			return result
+			if IsNewerVersion(currentTag, latestTag) {
+				result.HasUpdate = true
+			}
 		}
+		// Cache the result
+		c.cacheResult(container.Image, result)
+		return result
 	}
 
 	// For floating tags, check if the digest has changed
 	if !IsFloatingTag(currentTag) {
 		// Non-floating, non-semver tag - we can't determine updates
+		// Cache it anyway
+		c.cacheResult(container.Image, result)
 		return result
 	}
 
@@ -127,6 +174,8 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 	latestDigest, err := c.GetDigest(latestRef)
 	if err != nil {
 		// Can't get latest digest, not an error condition
+		// Cache the result
+		c.cacheResult(container.Image, result)
 		return result
 	}
 
@@ -136,7 +185,17 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 		result.IsDigestOnly = true
 	}
 
+	// Cache the result
+	c.cacheResult(container.Image, result)
+
 	return result
+}
+
+// cacheResult stores the result in the cache if caching is enabled.
+func (c *Checker) cacheResult(imageRef string, result *UpdateResult) {
+	if c.useCache && c.cache != nil && result.Error == nil {
+		c.cache.Set(imageRef, result.LatestTag, result.HasUpdate, result.IsDigestOnly)
+	}
 }
 
 // extractImageBase extracts the image reference without the tag.

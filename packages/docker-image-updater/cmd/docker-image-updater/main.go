@@ -9,13 +9,14 @@ import (
 	flag "github.com/spf13/pflag"
 	"golang.org/x/term"
 
+	"github.com/iamruinous/docker-image-updater/internal/cache"
 	"github.com/iamruinous/docker-image-updater/internal/registry"
 	"github.com/iamruinous/docker-image-updater/internal/scanner"
 	"github.com/iamruinous/docker-image-updater/internal/tui"
 	"github.com/iamruinous/docker-image-updater/internal/updater"
 )
 
-var version = "2.0.0"
+var version = "2.1.0"
 
 func main() {
 	// Command line flags
@@ -25,6 +26,8 @@ func main() {
 		limit          int
 		nonInteractive bool
 		dryRun         bool
+		clearCache     bool
+		noCache        bool
 		showVersion    bool
 		showHelp       bool
 	)
@@ -34,6 +37,8 @@ func main() {
 	flag.IntVarP(&limit, "limit", "l", 0, "Limit the number of containers to check")
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Run in non-interactive mode (just show updates)")
 	flag.BoolVar(&dryRun, "dry-run", false, "Only scan containers, skip checking for updates")
+	flag.BoolVar(&clearCache, "clear-cache", false, "Clear the cache before running")
+	flag.BoolVar(&noCache, "no-cache", false, "Disable caching for this run")
 	flag.BoolVarP(&showVersion, "version", "v", false, "Show version")
 	flag.BoolVarP(&showHelp, "help", "h", false, "Show help")
 
@@ -47,6 +52,16 @@ func main() {
 	if showVersion {
 		fmt.Printf("docker-image-updater v%s\n", version)
 		os.Exit(0)
+	}
+
+	// Handle cache clearing
+	if clearCache {
+		c := cache.New("", cache.DefaultTTL)
+		if err := c.Clear(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Failed to clear cache: %v\n", err)
+		} else {
+			fmt.Println("Cache cleared")
+		}
 	}
 
 	// Determine config path
@@ -73,10 +88,10 @@ func main() {
 
 	if nonInteractive || !isTerminal {
 		// Run in batch/non-interactive mode
-		runBatch(configPath, hostFilter, limit, dryRun)
+		runBatch(configPath, hostFilter, limit, dryRun, noCache)
 	} else {
 		// Run interactive TUI
-		runInteractive(configPath, hostFilter, limit, dryRun)
+		runInteractive(configPath, hostFilter, limit, dryRun, noCache)
 	}
 }
 
@@ -93,6 +108,12 @@ Options:
     -v, --version       Show version
     --non-interactive   Run in non-interactive mode (just show updates)
     --dry-run           Only scan containers, skip checking for updates
+    --clear-cache       Clear the cache before running
+    --no-cache          Disable caching for this run
+
+Cache:
+    Results are cached for 24 hours to speed up repeated checks.
+    Cache location: ~/.local/state/docker-image-updater/
 
 Environment Variables:
     NIX_CONFIG_PATH     Alternative way to set the config path
@@ -104,15 +125,18 @@ Examples:
     docker-image-updater --limit 10
     docker-image-updater --host monolith --limit 5
     docker-image-updater --non-interactive
-    docker-image-updater --dry-run`)
+    docker-image-updater --dry-run
+    docker-image-updater --clear-cache
+    docker-image-updater --no-cache`)
 }
 
-func runInteractive(configPath, hostFilter string, limit int, dryRun bool) {
+func runInteractive(configPath, hostFilter string, limit int, dryRun bool, noCache bool) {
 	config := tui.Config{
 		ConfigPath: configPath,
 		HostFilter: hostFilter,
 		Limit:      limit,
 		DryRun:     dryRun,
+		NoCache:    noCache,
 	}
 
 	model := tui.NewModel(config)
@@ -124,7 +148,7 @@ func runInteractive(configPath, hostFilter string, limit int, dryRun bool) {
 	}
 }
 
-func runBatch(configPath, hostFilter string, limit int, dryRun bool) {
+func runBatch(configPath, hostFilter string, limit int, dryRun bool, noCache bool) {
 	// Print title
 	fmt.Println("=== Docker Image Updater ===")
 	fmt.Println("    for NixOS Configurations")
@@ -178,8 +202,20 @@ func runBatch(configPath, hostFilter string, limit int, dryRun bool) {
 	fmt.Println()
 	fmt.Println("Checking for updates...")
 
-	checker := registry.NewChecker("")
+	// Setup checker with cache
+	var checker *registry.Checker
+	if noCache {
+		checker = registry.NewChecker("")
+	} else {
+		c := cache.New("", cache.DefaultTTL)
+		if err := c.Load(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Failed to load cache: %v\n", err)
+		}
+		checker = registry.NewCheckerWithCache("", c)
+	}
+
 	var updateResults []registry.UpdateResult
+	cacheHits := 0
 
 	total := len(containers)
 	if limit > 0 && limit < total {
@@ -194,20 +230,42 @@ func runBatch(configPath, hostFilter string, limit int, dryRun bool) {
 
 		fmt.Printf("\r[%d/%d] Checking %s/%s...                    ", i+1, total, container.Host, container.Name)
 
+		// Check if result was from cache
+		wasCached := false
+		if checker.Cache() != nil {
+			_, wasCached = checker.Cache().Get(container.Image)
+		}
+
 		result := checker.CheckForUpdate(container)
+		if wasCached {
+			cacheHits++
+		}
 		if result.HasUpdate {
 			updateResults = append(updateResults, *result)
 		}
 	}
 
+	// Save cache
+	if err := checker.SaveCache(); err != nil {
+		fmt.Fprintf(os.Stderr, "\nWarning: Failed to save cache: %v\n", err)
+	}
+
 	fmt.Printf("\r%-80s\r", "") // Clear line
 
 	if len(updateResults) == 0 {
-		fmt.Printf("All %d checked images are up to date!\n", total)
+		fmt.Printf("All %d checked images are up to date!", total)
+		if cacheHits > 0 {
+			fmt.Printf(" (%d from cache)", cacheHits)
+		}
+		fmt.Println()
 		return
 	}
 
-	fmt.Printf("Found %d available updates (checked %d containers)\n", len(updateResults), total)
+	fmt.Printf("Found %d available updates (checked %d containers", len(updateResults), total)
+	if cacheHits > 0 {
+		fmt.Printf(", %d from cache", cacheHits)
+	}
+	fmt.Println(")")
 	fmt.Println()
 
 	// Display updates table

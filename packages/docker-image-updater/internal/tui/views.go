@@ -61,11 +61,77 @@ func (m Model) renderScanning() string {
 }
 
 func (m Model) renderChecking() string {
-	progress := ""
-	if m.checkTotal > 0 {
-		progress = fmt.Sprintf(" [%d/%d]", m.checkProgress, m.checkTotal)
+	var b strings.Builder
+
+	// Progress header
+	b.WriteString(fmt.Sprintf("%s Checking for updates... [%d/%d]", m.spinner.View(), m.checkProgress, m.checkTotal))
+	if len(m.updateResults) > 0 {
+		b.WriteString(SuccessStyle.Render(fmt.Sprintf(" (%d updates found)", len(m.updateResults))))
 	}
-	return fmt.Sprintf("%s Checking for updates...%s", m.spinner.View(), progress)
+	b.WriteString("\n\n")
+
+	// Table showing all containers with their check status
+	b.WriteString(m.renderCheckStatusTable())
+
+	return b.String()
+}
+
+func (m Model) renderCheckStatusTable() string {
+	var b strings.Builder
+
+	// Header
+	b.WriteString(TableHeaderStyle.Render(fmt.Sprintf("%-3s %-12s %-18s %-12s %-15s", "", "HOST", "CONTAINER", "CURRENT", "LATEST")))
+	b.WriteString("\n")
+	b.WriteString(MutedStyle.Render(fmt.Sprintf("%-3s %-12s %-18s %-12s %-15s", "", "----", "---------", "-------", "------")))
+	b.WriteString("\n")
+
+	// Rows - show all containers being checked with their status
+	for _, cr := range m.checkResults {
+		var statusIcon string
+		var latestDisplay string
+
+		switch cr.Status {
+		case CheckStatusPending:
+			statusIcon = MutedStyle.Render("○")
+			latestDisplay = MutedStyle.Render("pending")
+		case CheckStatusChecking:
+			statusIcon = m.spinner.View()
+			latestDisplay = MutedStyle.Render("checking...")
+		case CheckStatusDone:
+			if cr.HasUpdate {
+				statusIcon = WarningStyle.Render("↑")
+				latestDisplay = SuccessStyle.Render(truncate(cr.LatestTag, 15))
+			} else {
+				statusIcon = SuccessStyle.Render("✓")
+				if cr.LatestTag != "" {
+					latestDisplay = MutedStyle.Render(truncate(cr.LatestTag, 15))
+				} else {
+					latestDisplay = MutedStyle.Render("up to date")
+				}
+			}
+		case CheckStatusError:
+			statusIcon = ErrorStyle.Render("✗")
+			latestDisplay = ErrorStyle.Render("error")
+		}
+
+		row := fmt.Sprintf("%-3s %-12s %-18s %-12s %-15s",
+			statusIcon,
+			truncate(cr.Container.Host, 12),
+			truncate(cr.Container.Name, 18),
+			truncate(cr.Container.Tag, 12),
+			latestDisplay,
+		)
+
+		// Highlight rows with updates
+		if cr.Status == CheckStatusDone && cr.HasUpdate {
+			b.WriteString(BoldStyle.Render(row))
+		} else {
+			b.WriteString(row)
+		}
+		b.WriteString("\n")
+	}
+
+	return b.String()
 }
 
 func (m Model) renderDryRun() string {

@@ -1,9 +1,13 @@
 package tui
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/iamruinous/docker-image-updater/internal/cache"
 	"github.com/iamruinous/docker-image-updater/internal/registry"
 	"github.com/iamruinous/docker-image-updater/internal/scanner"
 	"github.com/iamruinous/docker-image-updater/internal/updater"
@@ -15,6 +19,26 @@ type Config struct {
 	HostFilter string
 	Limit      int
 	DryRun     bool
+	NoCache    bool
+}
+
+// CheckStatus represents the status of checking a container for updates.
+type CheckStatus int
+
+const (
+	CheckStatusPending CheckStatus = iota
+	CheckStatusChecking
+	CheckStatusDone
+	CheckStatusError
+)
+
+// ContainerCheckResult holds the check result for a single container.
+type ContainerCheckResult struct {
+	Container scanner.Container
+	Status    CheckStatus
+	LatestTag string
+	HasUpdate bool
+	Error     error
 }
 
 // Model is the main Bubbletea model.
@@ -23,30 +47,32 @@ type Model struct {
 	config Config
 
 	// Components
-	scanner  *scanner.Scanner
-	checker  *registry.Checker
-	updater  *updater.Updater
-	spinner  spinner.Model
-	keys     KeyMap
+	scanner *scanner.Scanner
+	checker *registry.Checker
+	updater *updater.Updater
+	spinner spinner.Model
+	keys    KeyMap
 
 	// Current state
 	state State
 
 	// Data
 	containers    []scanner.Container
-	updateResults []registry.UpdateResult
+	checkResults  []ContainerCheckResult // Check results for all containers (for display)
+	updateResults []registry.UpdateResult // Only containers with updates (for applying)
 	applyResults  []updater.ApplyResult
 	selected      map[string]bool // Map of selected container keys for multi-select
 
 	// Menu/selection state
-	menuCursor    int
-	cursor        int
-	hosts         []string      // Unique hosts with updates
-	selectedHost  string        // Currently selected host for by-host update
+	menuCursor   int
+	cursor       int
+	hosts        []string // Unique hosts with updates
+	selectedHost string   // Currently selected host for by-host update
 
 	// Progress tracking
-	checkProgress int
-	checkTotal    int
+	checkProgress     int
+	checkTotal        int
+	currentlyChecking string // Name of container being checked
 
 	// Results
 	errorMsg string
@@ -62,10 +88,22 @@ func NewModel(config Config) Model {
 	s.Spinner = spinner.Dot
 	s.Style = SpinnerStyle
 
+	// Setup checker with or without cache
+	var checker *registry.Checker
+	if config.NoCache {
+		checker = registry.NewChecker("")
+	} else {
+		c := cache.New("", cache.DefaultTTL)
+		if err := c.Load(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Failed to load cache: %v\n", err)
+		}
+		checker = registry.NewCheckerWithCache("", c)
+	}
+
 	return Model{
 		config:   config,
 		scanner:  scanner.NewScanner(config.ConfigPath),
-		checker:  registry.NewChecker(""),
+		checker:  checker,
 		updater:  updater.NewUpdater(config.ConfigPath),
 		spinner:  s,
 		keys:     DefaultKeyMap(),
@@ -91,15 +129,16 @@ type (
 		err        error
 	}
 
-	// checkProgressMsg indicates progress in checking.
-	checkProgressMsg struct {
-		current int
-		total   int
+	// checkOneMsg triggers checking a single container.
+	checkOneMsg struct {
+		index int
 	}
 
 	// checkResultMsg indicates a single check result.
 	checkResultMsg struct {
-		result registry.UpdateResult
+		index  int
+		result *registry.UpdateResult
+		err    error
 	}
 
 	// checkCompleteMsg indicates all checks are done.
@@ -123,33 +162,28 @@ func (m Model) startScanning() tea.Cmd {
 	}
 }
 
-func (m Model) startChecking() tea.Cmd {
+// checkOneContainer checks a single container and returns the result.
+func (m Model) checkOneContainer(index int) tea.Cmd {
 	return func() tea.Msg {
-		// This is a synchronous check for simplicity
-		// In a real app, you might want to use channels for progress updates
-		return checkCompleteMsg{}
-	}
-}
+		if index >= len(m.containers) {
+			return checkCompleteMsg{}
+		}
 
-func (m *Model) checkAllUpdates() tea.Cmd {
-	return func() tea.Msg {
+		// Apply limit
 		total := len(m.containers)
 		if m.config.Limit > 0 && m.config.Limit < total {
 			total = m.config.Limit
 		}
-
-		for i, container := range m.containers {
-			if m.config.Limit > 0 && i >= m.config.Limit {
-				break
-			}
-
-			result := m.checker.CheckForUpdate(container)
-			if result.HasUpdate {
-				m.updateResults = append(m.updateResults, *result)
-			}
+		if index >= total {
+			return checkCompleteMsg{}
 		}
 
-		return checkCompleteMsg{}
+		container := m.containers[index]
+		result := m.checker.CheckForUpdate(container)
+		return checkResultMsg{
+			index:  index,
+			result: result,
+		}
 	}
 }
 
@@ -213,20 +247,70 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.config.Limit > 0 && m.config.Limit < m.checkTotal {
 			m.checkTotal = m.config.Limit
 		}
-		return m, m.doCheckUpdates()
+		m.checkProgress = 0
 
-	case checkProgressMsg:
-		m.checkProgress = msg.current
-		m.checkTotal = msg.total
-		return m, nil
+		// Initialize check results for all containers we'll check
+		m.checkResults = make([]ContainerCheckResult, m.checkTotal)
+		for i := 0; i < m.checkTotal; i++ {
+			m.checkResults[i] = ContainerCheckResult{
+				Container: m.containers[i],
+				Status:    CheckStatusPending,
+			}
+		}
+
+		// Mark first container as checking and start
+		if m.checkTotal > 0 {
+			m.checkResults[0].Status = CheckStatusChecking
+			m.currentlyChecking = m.containers[0].Name
+		}
+		return m, tea.Batch(m.spinner.Tick, m.checkOneContainer(0))
 
 	case checkResultMsg:
-		if msg.result.HasUpdate {
-			m.updateResults = append(m.updateResults, msg.result)
+		// Update the check result for this container
+		if msg.index < len(m.checkResults) {
+			if msg.err != nil {
+				m.checkResults[msg.index].Status = CheckStatusError
+				m.checkResults[msg.index].Error = msg.err
+			} else {
+				m.checkResults[msg.index].Status = CheckStatusDone
+				if msg.result != nil {
+					m.checkResults[msg.index].LatestTag = msg.result.LatestTag
+					m.checkResults[msg.index].HasUpdate = msg.result.HasUpdate
+				}
+			}
 		}
-		return m, nil
+
+		// Store the result if it has an update (for applying later)
+		if msg.result != nil && msg.result.HasUpdate {
+			m.updateResults = append(m.updateResults, *msg.result)
+		}
+
+		// Update progress
+		m.checkProgress = msg.index + 1
+		nextIndex := msg.index + 1
+
+		// Check if we're done
+		if nextIndex >= m.checkTotal {
+			return m, func() tea.Msg { return checkCompleteMsg{} }
+		}
+
+		// Mark next container as checking
+		if nextIndex < len(m.checkResults) {
+			m.checkResults[nextIndex].Status = CheckStatusChecking
+		}
+
+		// Update the currently checking name
+		m.currentlyChecking = m.containers[nextIndex].Name
+
+		// Continue with the next container
+		return m, m.checkOneContainer(nextIndex)
 
 	case checkCompleteMsg:
+		// Save cache after checking completes
+		if err := m.checker.SaveCache(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Failed to save cache: %v\n", err)
+		}
+
 		if len(m.updateResults) == 0 {
 			m.state = StateDone
 			return m, nil
@@ -247,29 +331,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// doCheckUpdates performs the actual update checking.
-func (m *Model) doCheckUpdates() tea.Cmd {
-	return func() tea.Msg {
-		total := len(m.containers)
-		if m.config.Limit > 0 && m.config.Limit < total {
-			total = m.config.Limit
-		}
-
-		for i, container := range m.containers {
-			if m.config.Limit > 0 && i >= m.config.Limit {
-				break
-			}
-
-			result := m.checker.CheckForUpdate(container)
-			if result.HasUpdate {
-				m.updateResults = append(m.updateResults, *result)
-			}
-			m.checkProgress = i + 1
-		}
-
-		return checkCompleteMsg{}
-	}
-}
 
 // buildHostsList builds the list of unique hosts with updates.
 func (m *Model) buildHostsList() {
