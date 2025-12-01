@@ -4,8 +4,8 @@ This directory contains configurations for all systems managed by this flake. Ea
 
 ## Overview
 
-This infrastructure consists of 12 hosts spanning multiple platforms:
-- **6 NixOS servers** - Infrastructure and compute nodes
+This infrastructure consists of 13 hosts spanning multiple platforms:
+- **7 NixOS servers** - Infrastructure and compute nodes
 - **3 NixOS MicroVMs** - Ephemeral development environments
 - **3 macOS systems** - Development workstations
 
@@ -32,6 +32,14 @@ This infrastructure consists of 12 hosts spanning multiple platforms:
 - Intel i9-13900H (24 cores), 96 GB RAM
 - Docker, NFS, Restic backups
 - Tailscale, Grafana Alloy monitoring
+
+### ARM Servers
+
+#### [armistice](armistice/README.md)
+**Minisforum MS-R1** - ARM workstation server
+- ARM64 platform, 64 GB RAM, 2TB Samsung 990 NVMe
+- Btrfs with Disko, Docker/KVM storage subvolumes
+- UPS monitoring, Grafana Alloy observability
 
 ### Thin Clients (High Availability Pair)
 
@@ -144,6 +152,7 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 | monolith | Server | NixOS | i9-13900H | 96 GB | Infrastructure hub |
 | obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |
 | pilaster | Server | NixOS | i9-13900H | 96 GB | Containers |
+| armistice | Server | NixOS | ARM64 | 64 GB | ARM workstation |
 | void | Thin Client | NixOS | GX-424CC | 4 GB | HA master |
 | gap | Thin Client | NixOS | GX-424CC | 4 GB | HA backup |
 | tty-ruinous-social | VPS | NixOS | 4 cores | 8 GB | Cloud services |

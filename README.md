@@ -34,8 +34,8 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 
 ## Hosts
 
-This configuration manages 12 hosts across multiple platforms:
-- 6 NixOS servers (physical and cloud)
+This configuration manages 13 hosts across multiple platforms:
+- 7 NixOS servers (physical and cloud)
 - 3 NixOS MicroVMs (development environments)
 - 3 macOS systems (development workstations)
 
