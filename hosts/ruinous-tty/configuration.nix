@@ -21,8 +21,8 @@
   fileSystems."/persistent".neededForBoot = true;
 
   microvm = {
-    mem = 4095;
-    vcpu = 4;
+    mem = 8191;
+    vcpu = 16;
     hypervisor = "qemu";
     writableStoreOverlay = "/nix/.rw-store";
 
@@ -71,6 +71,8 @@
         ".cache"
         ".claude"
         ".npm"
+        ".config/gh"
+        ".config/tea"
       ];
       files = [
         ".claude.json"

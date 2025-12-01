@@ -20,6 +20,10 @@ in {
       };
 
       # svc
+      "armistice" = {
+        hostname = "armistice.svc.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
       "monolith" = {
         hostname = "monolith.svc.farmhouse.meskill.network";
         user = "jmeskill";

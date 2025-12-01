@@ -45,7 +45,7 @@
       };
       "40-svc" = {
         matchConfig.Name = "vlan2";
-        address = ["10.55.20.25/24"];
+        address = ["10.55.20.23/24"];
         gateway = ["10.55.20.1"];
       };
     };
@@ -57,5 +57,5 @@
   networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = false;
 
-  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+  nixpkgs.hostPlatform = "aarch64-linux";
 }
