@@ -20,32 +20,31 @@ DESCRIPTION:
     This must be run from a pane that has the correct SSH_AUTH_SOCK (typically
     a newly opened pane after reconnecting).
 
-    By default, only updates tmux's environment. New panes will automatically
-    inherit the updated value.
+    If no --pane is specified, an interactive menu lets you select which panes
+    to refresh. Use --pane to skip the menu and refresh a specific pane directly.
 
-    Use --pane to send a refresh command to a specific existing pane. The pane
-    can be specified as:
-    - A number (e.g., "0", "1") for panes in the current window
+    The pane can be specified as:
+    - A 1-indexed number (e.g., "1", "2") - converted to pane ID automatically
     - A pane ID (e.g., "%5") for any pane
     - A full target (e.g., "mysession:1.0")
 
 WORKFLOW:
     1. Open a new tmux pane (it will have the correct SSH_AUTH_SOCK)
     2. Run: ssh-agent-refresh
-    3. Optionally refresh other panes: ssh-agent-refresh --pane 0
+    3. Select panes to refresh from the interactive menu
 
 EXAMPLES:
     # Update tmux environment (run from a new pane)
     ssh-agent-refresh
 
-    # Also refresh pane 0 in current window
-    ssh-agent-refresh --pane 0
+    # Also refresh pane 1 (the first pane)
+    ssh-agent-refresh --pane 1
 
     # Refresh a specific pane by ID
     ssh-agent-refresh --pane %5
 
     # Silent mode
-    ssh-agent-refresh --quiet --pane 1
+    ssh-agent-refresh --quiet --pane 2
 EOF
 }
 
@@ -100,18 +99,74 @@ log "Current SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
 tmux set-environment SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
 log "Updated tmux environment"
 
+# The command to send - works for both bash/zsh and fish
+# shellcheck disable=SC2016 # Single quotes are intentional
+refresh_cmd='if test -n "$FISH_VERSION"; set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-); else eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)" 2>/dev/null; fi'
+
+# Function to send refresh command to a pane
+send_refresh() {
+  local pane="$1"
+  if tmux send-keys -t "$pane" "$refresh_cmd" Enter 2>/dev/null; then
+    log "Sent refresh command to pane: $pane"
+    return 0
+  else
+    echo "Error: Could not send to pane '$pane'" >&2
+    return 1
+  fi
+}
+
 # If a target pane was specified, send refresh command to it
 if [ -n "$TARGET_PANE" ]; then
-  # The command to send - works for both bash/zsh and fish
-  # shellcheck disable=SC2016 # Single quotes are intentional
-  refresh_cmd='if test -n "$FISH_VERSION"; set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-); else eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)" 2>/dev/null; fi'
-
-  if tmux send-keys -t "$TARGET_PANE" "$refresh_cmd" Enter 2>/dev/null; then
-    log "Sent refresh command to pane: $TARGET_PANE"
-  else
-    echo "Error: Could not send to pane '$TARGET_PANE'" >&2
-    exit 1
+  # If it's a plain integer, treat it as 1-indexed and convert to %id format
+  # e.g., "1" becomes "%0", "2" becomes "%1", etc.
+  if [[ "$TARGET_PANE" =~ ^[0-9]+$ ]]; then
+    pane_id=$((TARGET_PANE - 1))
+    TARGET_PANE="%${pane_id}"
+    log "Converted to pane ID: $TARGET_PANE"
   fi
+
+  send_refresh "$TARGET_PANE"
+else
+  # No pane specified - show interactive selection with gum
+  # Get current pane to exclude it from the list
+  current_pane="${TMUX_PANE:-}"
+
+  # Build list of panes with their info
+  # Format: %id | session:window.pane | current_command
+  pane_list=""
+  while IFS= read -r line; do
+    pane_id=$(echo "$line" | cut -d'|' -f1)
+    # Skip current pane
+    if [ "$pane_id" != "$current_pane" ]; then
+      if [ -n "$pane_list" ]; then
+        pane_list="$pane_list"$'\n'"$line"
+      else
+        pane_list="$line"
+      fi
+    fi
+  done < <(tmux list-panes -a -F '#{pane_id}|#{session_name}:#{window_index}.#{pane_index} #{pane_current_command}')
+
+  if [ -z "$pane_list" ]; then
+    log "No other panes to refresh"
+    log "Done!"
+    exit 0
+  fi
+
+  # Use gum to select panes
+  log "Select panes to refresh (space to select, enter to confirm):"
+  selected=$(echo "$pane_list" | gum choose --no-limit --header "Select panes to refresh:" || true)
+
+  if [ -z "$selected" ]; then
+    log "No panes selected"
+    log "Done!"
+    exit 0
+  fi
+
+  # Send refresh to each selected pane
+  while IFS= read -r line; do
+    pane_id=$(echo "$line" | cut -d'|' -f1)
+    send_refresh "$pane_id"
+  done <<< "$selected"
 fi
 
 log "Done!"

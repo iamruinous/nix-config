@@ -101,34 +101,35 @@ This script treats exit codes 0 and 1 as "working" (returns 0), and exit code 2 
 
 ## ssh-agent-refresh
 
-Updates `SSH_AUTH_SOCK` in tmux's global environment and optionally refreshes a specific pane.
+Updates `SSH_AUTH_SOCK` in tmux's global environment and refreshes selected panes.
 
 ### Usage
 
 ```bash
-# Update tmux environment (run from a new pane with valid SSH_AUTH_SOCK)
+# Interactive mode - select panes to refresh with gum
 ssh-agent-refresh
 
-# Also refresh a specific pane
-ssh-agent-refresh --pane 0
+# Refresh a specific pane (1-indexed)
+ssh-agent-refresh --pane 1
 
 # Refresh pane by ID
 ssh-agent-refresh --pane %5
 
-# Silent mode
-ssh-agent-refresh --quiet --pane 1
+# Silent mode (requires --pane)
+ssh-agent-refresh --quiet --pane 2
 ```
 
 ### Options
 
 - `-h, --help` - Show help message
 - `-q, --quiet` - Suppress output messages
-- `-p, --pane PANE` - Send refresh command to specified pane
+- `-p, --pane PANE` - Send refresh command to specified pane (1-indexed numbers are converted to pane IDs)
 
 ### How It Works
 
 1. Updates tmux's global environment with the current `SSH_AUTH_SOCK`
-2. If `--pane` is specified, sends a refresh command to that pane (works with bash, zsh, and fish)
+2. If `--pane` is specified, sends a refresh command to that pane
+3. If no `--pane` is specified, shows an interactive menu (using `gum`) to select panes to refresh
 
 ### Requirements
 
@@ -146,19 +147,17 @@ ssh-agent-check || echo "Agent not responding!"
 # 2. Open a new tmux pane (it will have the correct SSH_AUTH_SOCK)
 # Press: prefix + c (or your new pane shortcut)
 
-# 3. From the new pane, update tmux's environment
+# 3. From the new pane, run ssh-agent-refresh
 ssh-agent-refresh
+# Select panes to refresh from the interactive menu
 
-# 4. Optionally refresh your old pane (e.g., pane 0)
-ssh-agent-refresh --pane 0
-
-# 5. Switch back and verify
+# 4. Switch back and verify
 ssh-agent-check && echo "Agent is working!"
 ```
 
 ### Manual Refresh in Existing Panes
 
-If you prefer to refresh a pane manually instead of using `--pane`:
+If you prefer to refresh a pane manually:
 
 ```bash
 # For bash/zsh

@@ -10,7 +10,7 @@
   ssh-agent-refresh = pkgs.writeShellApplication {
     name = "ssh-agent-refresh";
 
-    runtimeInputs = [pkgs.tmux];
+    runtimeInputs = [pkgs.tmux pkgs.gum];
 
     text = builtins.readFile ./ssh-agent-refresh.sh;
   };

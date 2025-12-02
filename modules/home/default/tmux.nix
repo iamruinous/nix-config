@@ -45,6 +45,9 @@
       # Reload tmux config (prefix + r)
       bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded..."
 
+      # Refresh SSH_AUTH_SOCK - opens popup for interactive pane selection (prefix + S)
+      bind S display-popup -E "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh"
+
       # theme
       set -g status "on"
       set -g status-right-length 150
