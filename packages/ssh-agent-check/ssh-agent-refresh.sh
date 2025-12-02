@@ -99,9 +99,17 @@ log "Current SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
 tmux set-environment SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
 log "Updated tmux environment"
 
-# The command to send - works for both bash/zsh and fish
-# shellcheck disable=SC2016 # Single quotes are intentional
-refresh_cmd='if test -n "$FISH_VERSION"; set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-); else eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)" 2>/dev/null; fi'
+# Determine the refresh command based on current shell
+# Assumes all panes in the session use the same shell
+if [ -n "${FISH_VERSION:-}" ]; then
+  # Fish shell command
+  # shellcheck disable=SC2016 # Single quotes are intentional
+  refresh_cmd='set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-)'
+else
+  # POSIX shell command (bash/zsh)
+  # shellcheck disable=SC2016 # Single quotes are intentional
+  refresh_cmd='eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)"'
+fi
 
 # Function to send refresh command to a pane
 send_refresh() {
