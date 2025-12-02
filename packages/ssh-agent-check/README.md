@@ -101,12 +101,15 @@ This script treats exit codes 0 and 1 as "working" (returns 0), and exit code 2 
 
 ## ssh-agent-refresh
 
-Refreshes `SSH_AUTH_SOCK` across all tmux panes when the socket has changed.
+Refreshes `SSH_AUTH_SOCK` in tmux's environment and optionally across all panes.
 
 ### Usage
 
 ```bash
-# Refresh all tmux panes
+# Update tmux environment only (recommended for keybindings)
+ssh-agent-refresh --current
+
+# Refresh all tmux panes (works with bash, zsh, and fish)
 ssh-agent-refresh
 
 # Preview what would be refreshed (dry run)
@@ -121,17 +124,30 @@ ssh-agent-refresh --quiet
 - `-h, --help` - Show help message
 - `-q, --quiet` - Suppress output messages
 - `-n, --dry-run` - Show what would be done without executing
+- `-c, --current` - Only update tmux environment (don't send commands to panes)
 
 ### How It Works
 
 1. Updates tmux's stored environment with the current `SSH_AUTH_SOCK`
-2. Sends a refresh command to every tmux pane
-3. Each pane reads the new `SSH_AUTH_SOCK` from tmux's environment
+2. With `--current`: Stops here (new panes inherit automatically)
+3. Without `--current`: Sends a refresh command to every tmux pane that works with bash, zsh, and fish
 
 ### Requirements
 
-- Must be run inside a tmux session
+- Must be run inside a tmux session (or have `TMUX_PANE` set for `run-shell`)
 - `SSH_AUTH_SOCK` must be set and point to a valid socket
+
+### Tmux Keybinding
+
+The recommended way to use this is via a tmux keybinding with `--current`:
+
+```tmux
+# In tmux.conf - prefix + S to refresh
+bind S run-shell "ssh-agent-refresh --quiet --current"
+```
+
+This updates tmux's environment so new panes get the correct `SSH_AUTH_SOCK`.
+Existing panes can manually refresh with: `eval "$(tmux show-env -s)"`
 
 ### Example Workflow
 
@@ -141,32 +157,23 @@ When you reconnect to a remote session and your SSH agent socket has changed:
 # Check if agent is broken
 ssh-agent-check || echo "Agent not responding!"
 
-# Refresh all panes with the new socket
+# Option 1: Use tmux keybinding (prefix + S) to update tmux env
+
+# Option 2: Refresh all panes programmatically
 ssh-agent-refresh
 
 # Verify it's working now
 ssh-agent-check && echo "Agent is working!"
 ```
 
-### Automatic Refresh (Optional)
+### Manual Refresh in Existing Panes
 
-Add this to your shell config to auto-refresh on each prompt:
+If you used `--current` and need to refresh an existing pane:
 
 ```bash
-# For bash/zsh - add to .bashrc or .zshrc
-if [ -n "$TMUX" ]; then
-  _refresh_ssh_auth_sock() {
-    eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)" 2>/dev/null || true
-  }
-  PROMPT_COMMAND="_refresh_ssh_auth_sock${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
-fi
-```
+# For bash/zsh
+eval "$(tmux show-env -s)"
 
-```fish
-# For fish - add to config.fish
-if set -q TMUX
-  function __refresh_ssh_auth_sock --on-event fish_prompt
-    eval (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | string replace -r '^(-?)' 'set -gx ') 2>/dev/null
-  end
-end
+# For fish
+eval (tmux show-environment SSH_AUTH_SOCK | string replace '=' ' '); set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
 ```

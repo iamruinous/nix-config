@@ -1,8 +1,11 @@
 {
   lib,
   pkgs,
+  config,
   ...
-}: {
+}: let
+  ssh-agent-check = pkgs.ssh-agent-check;
+in {
   # Tmux terminal multiplexer configuration
   programs.tmux = {
     enable = lib.mkDefault true;
@@ -41,6 +44,10 @@
       bind -n S-PPage copy-mode -u
       bind -T copy-mode S-PPage send -X page-up
       bind -T copy-mode S-NPage send -X page-down
+
+      # Refresh SSH_AUTH_SOCK in tmux environment (prefix + S)
+      # Only updates tmux's env; new panes inherit automatically
+      bind S run-shell "${ssh-agent-check}/bin/ssh-agent-refresh --quiet --current"
 
       # theme
       set -g status "on"
