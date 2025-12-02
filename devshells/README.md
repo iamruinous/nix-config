@@ -80,6 +80,45 @@ use flake .#python313
 - Testing Python scripts with latest interpreter
 - Creating isolated Python environments
 
+---
+
+### n8n-node-dev
+
+Development environment for creating custom n8n nodes.
+
+**Activation**:
+```bash
+nix develop .#n8n-node-dev
+# or with direnv
+use flake .#n8n-node-dev
+```
+
+**Packages**:
+- **Node.js 22** - JavaScript runtime
+- **npm** and **pnpm** - Package managers
+- **TypeScript** - Type-safe JavaScript
+- **typescript-language-server** - IDE support
+- **ESLint** and **Prettier** - Linting and formatting
+- **Turbo** - Build system
+- **@n8n/node-cli** - Official n8n node development CLI (auto-installed)
+
+**Shell Hook**:
+- Displays environment info (Node, npm, pnpm, TypeScript versions)
+- Auto-installs `@n8n/node-cli` globally
+- Shows available commands
+
+**Use Cases**:
+- Creating custom n8n community nodes
+- Developing n8n integrations
+- Building and testing n8n node packages
+
+**Commands** (available after entering shell):
+```bash
+n8n-node new <name>   # Create a new node project
+n8n-node dev          # Run n8n with your node (hot reload)
+n8n-node build        # Build your node
+```
+
 ## Using Development Shells
 
 ### Manual Activation
@@ -93,6 +132,7 @@ nix develop
 # Specific shell
 nix develop .#pdftools
 nix develop .#python313
+nix develop .#n8n-node-dev
 ```
 
 Exit the shell with `exit` or `Ctrl+D`.

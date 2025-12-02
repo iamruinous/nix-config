@@ -162,6 +162,7 @@ Enter a development shell with project-specific tools:
 nix develop                    # Default development shell
 nix develop .#pdftools         # PDF manipulation tools
 nix develop .#python313        # Python 3.13 environment
+nix develop .#n8n-node-dev     # n8n custom node development
 ```
 
 For detailed information about available shells, direnv integration, and creating custom shells, see **[devshells/README.md](devshells/README.md)**.
