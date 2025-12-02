@@ -25,6 +25,11 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
+    # Set up local npm prefix to avoid polluting system
+    export NPM_CONFIG_PREFIX="$PWD/.npm-global"
+    export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+    mkdir -p "$NPM_CONFIG_PREFIX"
+
     echo "n8n Custom Node Development Environment"
     echo "========================================"
     echo "Node: $(node --version)"
@@ -32,8 +37,13 @@ pkgs.mkShell {
     echo "pnpm: $(pnpm --version)"
     echo "TypeScript: $(tsc --version)"
     echo ""
-    echo "Installing @n8n/node-cli globally..."
-    npm install -g @n8n/node-cli 2>/dev/null || true
+
+    # Install n8n-node CLI if not already present
+    if ! command -v n8n-node &> /dev/null; then
+      echo "Installing @n8n/node-cli..."
+      npm install -g @n8n/node-cli 2>/dev/null || true
+    fi
+
     echo ""
     echo "Commands:"
     echo "  n8n-node new <name>  - Create a new node project"
