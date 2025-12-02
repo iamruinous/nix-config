@@ -26,7 +26,8 @@ pkgs.mkShell {
 
   shellHook = ''
     # Set up local npm prefix to avoid polluting system
-    export NPM_CONFIG_PREFIX="$PWD/.npm-global"
+    # Use devshell-specific directory so multiple devshells don't conflict
+    export NPM_CONFIG_PREFIX="$PWD/.npm-devshells/n8n-node-dev"
     export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
     mkdir -p "$NPM_CONFIG_PREFIX"
 
