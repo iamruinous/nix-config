@@ -3,9 +3,7 @@
   pkgs,
   config,
   ...
-}: let
-  ssh-agent-check = pkgs.ssh-agent-check;
-in {
+}: {
   # Tmux terminal multiplexer configuration
   programs.tmux = {
     enable = lib.mkDefault true;
@@ -37,17 +35,19 @@ in {
       #set-option -ga terminal-overrides ",*256col*:RGB"
       set -as terminal-features ",xterm-256color:RGB"
 
-      bind R \
-        move-window -r\; \
-        display-message "Windows reordered..."
-
       bind -n S-PPage copy-mode -u
       bind -T copy-mode S-PPage send -X page-up
       bind -T copy-mode S-NPage send -X page-down
 
+      # Reorder windows
+      bind R move-window -r \; display-message "Windows reordered..."
+
       # Refresh SSH_AUTH_SOCK in tmux environment (prefix + S)
       # Only updates tmux's env; new panes inherit automatically
-      bind S run-shell "${ssh-agent-check}/bin/ssh-agent-refresh --quiet --current"
+      bind S run-shell "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh --quiet --current"
+
+      # Reload tmux config (prefix + r)
+      bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded..."
 
       # theme
       set -g status "on"
