@@ -99,11 +99,9 @@ if [ -z "${SSH_AUTH_SOCK:-}" ]; then
   exit 1
 fi
 
-# Check if the socket exists
-if [ ! -S "$SSH_AUTH_SOCK" ]; then
-  echo "Error: SSH_AUTH_SOCK ($SSH_AUTH_SOCK) is not a valid socket" >&2
-  exit 1
-fi
+# Note: We intentionally do NOT validate if the socket exists.
+# The whole point of this tool is to refresh a potentially stale socket path.
+# The current SSH_AUTH_SOCK value is what we want to propagate to tmux.
 
 log "Current SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
 
