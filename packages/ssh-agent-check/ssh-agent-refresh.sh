@@ -99,9 +99,9 @@ log "Current SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
 tmux set-environment SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
 log "Updated tmux environment"
 
-# Determine the refresh command based on current shell
+# Determine the refresh command based on user's shell
 # Assumes all panes in the session use the same shell
-if [ -n "${FISH_VERSION:-}" ]; then
+if [[ "${SHELL:-}" == */fish ]]; then
   # Fish shell command
   # shellcheck disable=SC2016 # Single quotes are intentional
   refresh_cmd='set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-)'
