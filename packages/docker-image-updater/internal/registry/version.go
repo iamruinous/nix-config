@@ -40,9 +40,37 @@ func IsSemverTag(tag string) bool {
 }
 
 // FilterSemverTags filters a list of tags to only include semantic version tags.
+// If currentTag is provided, it will only match tags with the same prefix pattern (v vs no-v).
 func FilterSemverTags(tags []string) []string {
 	var result []string
 	for _, tag := range tags {
+		if IsSemverTag(tag) {
+			result = append(result, tag)
+		}
+	}
+	return result
+}
+
+// FilterSemverTagsMatching filters tags to only include semantic version tags
+// that match the same prefix pattern as the current tag (v-prefixed or not).
+// This is more efficient when there are many non-matching tags.
+func FilterSemverTagsMatching(tags []string, currentTag string) []string {
+	hasVPrefix := strings.HasPrefix(currentTag, "v")
+	var result []string
+	for _, tag := range tags {
+		// Quick check: skip tags that don't start with digit or 'v'
+		if len(tag) == 0 {
+			continue
+		}
+		firstChar := tag[0]
+		if firstChar != 'v' && (firstChar < '0' || firstChar > '9') {
+			continue
+		}
+		// Match v-prefix pattern
+		tagHasV := strings.HasPrefix(tag, "v")
+		if hasVPrefix != tagHasV {
+			continue
+		}
 		if IsSemverTag(tag) {
 			result = append(result, tag)
 		}
@@ -132,7 +160,20 @@ func SortVersions(versions []string) {
 // FindLatestVersion finds the latest version from a list of version tags.
 // Returns empty string if no valid versions found.
 func FindLatestVersion(tags []string) string {
-	semverTags := FilterSemverTags(tags)
+	return FindLatestVersionMatching(tags, "")
+}
+
+// FindLatestVersionMatching finds the latest version from a list of version tags,
+// filtering to match the same prefix pattern as the current tag.
+// Returns empty string if no valid versions found.
+func FindLatestVersionMatching(tags []string, currentTag string) string {
+	var semverTags []string
+	if currentTag != "" {
+		semverTags = FilterSemverTagsMatching(tags, currentTag)
+	} else {
+		semverTags = FilterSemverTags(tags)
+	}
+
 	if len(semverTags) == 0 {
 		return ""
 	}

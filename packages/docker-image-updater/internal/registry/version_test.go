@@ -212,3 +212,47 @@ func TestSortVersions(t *testing.T) {
 		}
 	}
 }
+
+func TestFilterSemverTagsMatching(t *testing.T) {
+	// Simulate open-webui with many git-* tags
+	tags := []string{
+		"main", "latest", "git-abc123", "git-def456",
+		"v0.6.30", "v0.6.31", "v0.6.32", "v0.6.33",
+		"1.0.0", "1.0.1", "2.0.0",
+	}
+
+	// When current tag is v-prefixed, should only return v-prefixed semver tags
+	result := FilterSemverTagsMatching(tags, "v0.6.30")
+	expected := []string{"v0.6.30", "v0.6.31", "v0.6.32", "v0.6.33"}
+	if len(result) != len(expected) {
+		t.Errorf("FilterSemverTagsMatching(v-prefix) returned %d tags, expected %d: %v", len(result), len(expected), result)
+	}
+
+	// When current tag is not v-prefixed, should only return non-v-prefixed semver tags
+	result = FilterSemverTagsMatching(tags, "1.0.0")
+	expected = []string{"1.0.0", "1.0.1", "2.0.0"}
+	if len(result) != len(expected) {
+		t.Errorf("FilterSemverTagsMatching(no-v-prefix) returned %d tags, expected %d: %v", len(result), len(expected), result)
+	}
+}
+
+func TestFindLatestVersionMatching(t *testing.T) {
+	// Simulate open-webui tags
+	tags := []string{
+		"main", "latest", "git-abc123", "git-def456",
+		"v0.6.30", "v0.6.31", "v0.6.32", "v0.6.33",
+		"1.0.0", "1.0.1", "2.0.0",
+	}
+
+	// Should find latest v-prefixed version when current is v-prefixed
+	result := FindLatestVersionMatching(tags, "v0.6.30")
+	if result != "v0.6.33" {
+		t.Errorf("FindLatestVersionMatching(v0.6.30) = %q, expected v0.6.33", result)
+	}
+
+	// Should find latest non-v-prefixed version when current is not v-prefixed
+	result = FindLatestVersionMatching(tags, "1.0.0")
+	if result != "2.0.0" {
+		t.Errorf("FindLatestVersionMatching(1.0.0) = %q, expected 2.0.0", result)
+	}
+}

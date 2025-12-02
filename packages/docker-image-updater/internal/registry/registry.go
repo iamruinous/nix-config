@@ -138,7 +138,8 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 			return result
 		}
 
-		latestTag := FindLatestVersion(tags)
+		// Use optimized matching filter to skip non-semver tags quickly
+		latestTag := FindLatestVersionMatching(tags, currentTag)
 		if latestTag != "" {
 			result.LatestTag = latestTag
 			if IsNewerVersion(currentTag, latestTag) {

@@ -297,3 +297,4 @@ The changelog complements git history:
 ### Fixed
 - Container scanner now correctly parses quoted container names in Nix files
 ```
+- always use a limit when running docker-image-updater so we don't have to wait for 70+ checks
