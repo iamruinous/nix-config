@@ -20,7 +20,7 @@ DESCRIPTION:
     This must be run from a pane that has the correct SSH_AUTH_SOCK (typically
     a newly opened pane after reconnecting).
 
-    If no --pane is specified, an interactive menu lets you select which panes
+    If no --pane is specified, an interactive menu lets you select a pane
     to refresh. Use --pane to skip the menu and refresh a specific pane directly.
 
     The pane can be specified as:
@@ -152,21 +152,18 @@ else
     exit 0
   fi
 
-  # Use gum to select panes
-  log "Select panes to refresh (space to select, enter to confirm):"
-  selected=$(echo "$pane_list" | gum choose --no-limit --header "Select panes to refresh:" || true)
+  # Use gum to select a pane
+  selected=$(echo "$pane_list" | gum choose --header "Select pane to refresh:" || true)
 
   if [ -z "$selected" ]; then
-    log "No panes selected"
+    log "No pane selected"
     log "Done!"
     exit 0
   fi
 
-  # Send refresh to each selected pane
-  while IFS= read -r line; do
-    pane_id=$(echo "$line" | cut -d'|' -f1)
-    send_refresh "$pane_id"
-  done <<< "$selected"
+  # Send refresh to the selected pane
+  pane_id=$(echo "$selected" | cut -d'|' -f1)
+  send_refresh "$pane_id"
 fi
 
 log "Done!"

@@ -129,7 +129,7 @@ ssh-agent-refresh --quiet --pane 2
 
 1. Updates tmux's global environment with the current `SSH_AUTH_SOCK`
 2. If `--pane` is specified, sends a refresh command to that pane
-3. If no `--pane` is specified, shows an interactive menu (using `gum`) to select panes to refresh
+3. If no `--pane` is specified, shows an interactive menu (using `gum`) to select a pane to refresh
 
 ### Requirements
 
