@@ -1,58 +1,57 @@
 #!/usr/bin/env bash
-# Refresh SSH_AUTH_SOCK across all tmux panes
+# Refresh SSH_AUTH_SOCK in tmux environment and optionally in a specific pane
 
 set -euo pipefail
 
 show_help() {
   cat << 'EOF'
-ssh-agent-refresh - Refresh SSH_AUTH_SOCK across tmux panes
+ssh-agent-refresh - Refresh SSH_AUTH_SOCK in tmux
 
 USAGE:
     ssh-agent-refresh [OPTIONS]
 
 OPTIONS:
-    -h, --help      Show this help message and exit
-    -q, --quiet     Suppress output messages
-    -n, --dry-run   Show what would be done without executing
-    -c, --current   Only update tmux environment (for current pane via keybinding)
+    -h, --help          Show this help message and exit
+    -q, --quiet         Suppress output messages
+    -p, --pane PANE     Send refresh command to specified pane (e.g., "0", "1", "%5")
 
 DESCRIPTION:
-    Updates the SSH_AUTH_SOCK environment variable in tmux and optionally
-    across all tmux panes. This is useful when the SSH agent socket has
-    changed (e.g., after reconnecting to a remote session).
+    Updates the SSH_AUTH_SOCK environment variable in tmux's global environment.
+    This must be run from a pane that has the correct SSH_AUTH_SOCK (typically
+    a newly opened pane after reconnecting).
 
-    The command works by:
-    1. Updating tmux's stored environment with the current SSH_AUTH_SOCK
-    2. Optionally sending a command to each tmux pane to refresh its
-       SSH_AUTH_SOCK from tmux's environment
+    By default, only updates tmux's environment. New panes will automatically
+    inherit the updated value.
 
-    With --current, only step 1 is performed. New panes and shells will
-    automatically pick up the new SSH_AUTH_SOCK from tmux's environment.
-    Existing panes can refresh by running: eval "$(tmux show-env -s)"
+    Use --pane to send a refresh command to a specific existing pane. The pane
+    can be specified as:
+    - A number (e.g., "0", "1") for panes in the current window
+    - A pane ID (e.g., "%5") for any pane
+    - A full target (e.g., "mysession:1.0")
 
-REQUIREMENTS:
-    - Must be run inside a tmux session OR have TMUX_PANE set
-    - SSH_AUTH_SOCK must be set in the current environment
+WORKFLOW:
+    1. Open a new tmux pane (it will have the correct SSH_AUTH_SOCK)
+    2. Run: ssh-agent-refresh
+    3. Optionally refresh other panes: ssh-agent-refresh --pane 0
 
 EXAMPLES:
-    # Update tmux environment only (recommended for keybindings)
-    ssh-agent-refresh --current
-
-    # Refresh all panes after reconnecting
+    # Update tmux environment (run from a new pane)
     ssh-agent-refresh
 
-    # Preview what would be refreshed
-    ssh-agent-refresh --dry-run
+    # Also refresh pane 0 in current window
+    ssh-agent-refresh --pane 0
 
-    # Silent refresh (for scripts)
-    ssh-agent-refresh --quiet
+    # Refresh a specific pane by ID
+    ssh-agent-refresh --pane %5
+
+    # Silent mode
+    ssh-agent-refresh --quiet --pane 1
 EOF
 }
 
 # Defaults
 QUIET=false
-DRY_RUN=false
-CURRENT_ONLY=false
+TARGET_PANE=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -65,13 +64,9 @@ while [[ $# -gt 0 ]]; do
       QUIET=true
       shift
       ;;
-    -n|--dry-run)
-      DRY_RUN=true
-      shift
-      ;;
-    -c|--current)
-      CURRENT_ONLY=true
-      shift
+    -p|--pane)
+      TARGET_PANE="$2"
+      shift 2
       ;;
     *)
       echo "Unknown option: $1" >&2
@@ -99,53 +94,24 @@ if [ -z "${SSH_AUTH_SOCK:-}" ]; then
   exit 1
 fi
 
-# Note: We intentionally do NOT validate if the socket exists.
-# The whole point of this tool is to refresh a potentially stale socket path.
-# The current SSH_AUTH_SOCK value is what we want to propagate to tmux.
-
 log "Current SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
 
-# Update tmux's environment
-if [ "$DRY_RUN" = true ]; then
-  log "[dry-run] Would update tmux environment: SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
-else
-  tmux set-environment SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
-  log "Updated tmux environment"
-fi
+# Update tmux's global environment
+tmux set-environment SSH_AUTH_SOCK "$SSH_AUTH_SOCK"
+log "Updated tmux environment"
 
-# If --current flag is set, only update tmux environment and exit
-if [ "$CURRENT_ONLY" = true ]; then
-  if [ "$DRY_RUN" = false ]; then
-    log "Done! Tmux environment updated. New shells will use the new SSH_AUTH_SOCK."
-    log "Run 'eval \"\$(tmux show-env -s)\"' in existing shells to refresh."
-  fi
-  exit 0
-fi
+# If a target pane was specified, send refresh command to it
+if [ -n "$TARGET_PANE" ]; then
+  # The command to send - works for both bash/zsh and fish
+  # shellcheck disable=SC2016 # Single quotes are intentional
+  refresh_cmd='if test -n "$FISH_VERSION"; set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-); else eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)" 2>/dev/null; fi'
 
-# Get list of all panes
-panes=$(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index}')
-pane_count=$(echo "$panes" | wc -l)
-
-log "Refreshing $pane_count pane(s)..."
-
-# The command to send to each pane - must work for both bash/zsh and fish
-# We use tmux show-env -s which outputs shell-compatible format for POSIX shells
-# For fish, we need a different approach
-# shellcheck disable=SC2016 # Single quotes are intentional - we want literal string sent to panes
-refresh_cmd='if test -n "$FISH_VERSION"; set -gx SSH_AUTH_SOCK (tmux show-environment SSH_AUTH_SOCK 2>/dev/null | cut -d= -f2-); else eval "$(tmux show-environment SSH_AUTH_SOCK 2>/dev/null)" 2>/dev/null; fi'
-
-# Send command to each pane
-for pane in $panes; do
-  if [ "$DRY_RUN" = true ]; then
-    log "[dry-run] Would refresh pane: $pane"
+  if tmux send-keys -t "$TARGET_PANE" "$refresh_cmd" Enter 2>/dev/null; then
+    log "Sent refresh command to pane: $TARGET_PANE"
   else
-    tmux send-keys -t "$pane" "$refresh_cmd" Enter
-    log "Refreshed pane: $pane"
+    echo "Error: Could not send to pane '$TARGET_PANE'" >&2
+    exit 1
   fi
-done
-
-if [ "$DRY_RUN" = true ]; then
-  log "[dry-run] No changes made"
-else
-  log "Done! All panes have been sent the refresh command."
 fi
+
+log "Done!"

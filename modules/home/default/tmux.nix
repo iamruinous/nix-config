@@ -42,10 +42,6 @@
       # Reorder windows
       bind R move-window -r \; display-message "Windows reordered..."
 
-      # Refresh SSH_AUTH_SOCK in tmux environment (prefix + S)
-      # Only updates tmux's env; new panes inherit automatically
-      bind S run-shell "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh --quiet --current"
-
       # Reload tmux config (prefix + r)
       bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded..."
 
