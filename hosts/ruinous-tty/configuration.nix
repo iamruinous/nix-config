@@ -71,6 +71,7 @@
         ".cache"
         ".claude"
         ".npm"
+        ".npm-devshells"
         ".config/gh"
         ".config/tea"
       ];
