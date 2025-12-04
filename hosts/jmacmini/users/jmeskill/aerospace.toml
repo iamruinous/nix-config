@@ -63,6 +63,8 @@ M = 'main'
 O = 'main'
 S = 'secondary'
 T = 'secondary'
+X = 'main'
+Y = 'main'
 W = 'main'
 
 [gaps]
@@ -151,8 +153,8 @@ alt-t = 'workspace T'
 ## alt-u = 'workspace U'
 ## alt-v = 'workspace V'
 alt-w = 'workspace W'
-## alt-x = 'workspace X'
-## alt-y = 'workspace Y'
+alt-x = 'workspace X'
+alt-y = 'workspace Y'
 ## alt-z = 'workspace Z'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
@@ -184,8 +186,8 @@ alt-shift-t = 'move-node-to-workspace T'
 ## alt-shift-u = 'move-node-to-workspace U'
 ## alt-shift-v = 'move-node-to-workspace V'
 alt-shift-w = 'move-node-to-workspace W'
-## alt-shift-x = 'move-node-to-workspace X'
-## alt-shift-y = 'move-node-to-workspace Y'
+alt-shift-x = 'move-node-to-workspace X'
+alt-shift-y = 'move-node-to-workspace Y'
 ## alt-shift-z = 'move-node-to-workspace Z'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
@@ -242,7 +244,32 @@ if.window-title-regex-substring = '^Todoist$'
 run = 'layout floating'
 check-further-callbacks = true
 
-## Chrome and related
+
+# 1 - 1st Space
+
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
+run = 'move-node-to-workspace 1'
+
+# 2 - 2nd Space
+
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome.app.ljlamgbgefobjkjkepgbmbebcoaheadj' # Glance
+run = 'move-node-to-workspace 2'
+
+# A - AI Space
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome.app.gdfaincndogidkdcdkhapmbffkckdkhn' # Gemini
+run = 'move-node-to-workspace A'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace A'
 
 # B - Browser Space 
 
@@ -257,58 +284,23 @@ if.window-title-regex-substring = 'Picture in Picture'
 run = 'layout floating'
 check-further-callbacks = true
 
-# Personal Browser Window (Glance Space)
+# C - Chat Space
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Chat
+run = 'move-node-to-workspace C'
+
+# G - Personal Browsers 
 
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome'
 if.window-title-regex-substring = '- Jade$'
 run = 'move-node-to-workspace G'
 
-# G - Glance Space
-
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.ljlamgbgefobjkjkepgbmbebcoaheadj' # Glance
-run = 'move-node-to-workspace 2'
-
-## Full Screen
-
-# W - WezTerm Space
-
-[[on-window-detected]]
-if.app-id = 'com.github.wez.wezterm'
-run = 'move-node-to-workspace W'
-
-## Wide Screen
-
-# 1 - 1st Space
-
-[[on-window-detected]]
-if.app-id = 'com.apple.MobileSMS'
-run = 'move-node-to-workspace 1'
-
-[[on-window-detected]]
-if.app-id = 'com.spotify.client'
-run = 'move-node-to-workspace 2'
-
-# A - AI Space
-
-[[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.gdfaincndogidkdcdkhapmbffkckdkhn' # Gemini
-run = 'move-node-to-workspace A'
-
-[[on-window-detected]]
-if.app-id = 'com.anthropic.claudefordesktop'
-run = 'move-node-to-workspace A'
-
-# C - Chat Space
-
-[[on-window-detected]]
-if.app-id = 'com.tinyspeck.slackmacgap'
-run = 'move-node-to-workspace C'
-
-[[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Chat
-run = 'move-node-to-workspace C'
+if.app-id = 'com.google.Chrome'
+if.window-title-regex-substring = '- JadeM$'
+run = 'move-node-to-workspace G'
 
 # M - Mail Space
 
@@ -329,3 +321,13 @@ run = 'move-node-to-workspace T'
 [[on-window-detected]]
 if.app-id = 'com.todoist.mac.Todoist'
 run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'ru.keepcoder.Telegram'
+run = 'move-node-to-workspace T'
+
+# W - WezTerm Space
+
+[[on-window-detected]]
+if.app-id = 'com.github.wez.wezterm'
+run = 'move-node-to-workspace W'

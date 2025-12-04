@@ -28,6 +28,7 @@
       set-option -g visual-activity off
       set-option -g visual-bell off
       set-option -g visual-silence off
+      set-option -g focus-events on
       set-window-option -g monitor-activity on
       set-option -g bell-action none
 

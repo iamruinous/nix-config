@@ -20,7 +20,7 @@
 
   networking.hostName = "obelisk"; # Define your hostname.
 
-  virtualisation.libvirtd.enable = true;
+  # virtualisation.libvirtd.enable = true;
   virtualisation.docker.enable = true;
   services.printing.enable = true;
 
