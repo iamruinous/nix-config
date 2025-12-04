@@ -109,6 +109,9 @@
 
     # claude-code-nix
     claude-code.url = "github:sadjow/claude-code-nix";
+
+    # nixos-raspberrypi
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
 
   # Load the blueprint
@@ -133,6 +136,7 @@
         "walker.cachix.org-1:fG8q+uAaMqhsMxWjwvk0IMb4mFPFLqHjuvfwQxE4oJM="
         "walker-git.cachix.org-1:vmC0ocfPWh0S/vRAQGtChuiZBTAe4wiKDeyyXM0/7pM="
         "claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk="
+        "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
       ];
 
       # Expose agenix-rekey configuration
