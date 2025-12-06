@@ -264,7 +264,11 @@ run = 'move-node-to-workspace 2'
 # A - AI Space
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.gdfaincndogidkdcdkhapmbffkckdkhn' # Gemini
+if.app-id = 'com.google.Chrome.app.caidcmannjgahlnbpmidmiecjcoiiigg' # Gemini
+run = 'move-node-to-workspace A'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome.app.gdfaincndogidkdcdkhapmbffkckdkhn' # Gemini Magic Leap
 run = 'move-node-to-workspace A'
 
 [[on-window-detected]]
