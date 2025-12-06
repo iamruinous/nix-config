@@ -464,6 +464,13 @@
       #     "supabase-analytics"
       #   ];
       # };
+      music-assistant-alexa = {
+        image = "ghcr.io/alams154/music-assistant-alexa-api:latest";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_music_assistant_alexa.path];
+        networks = [
+          "servicenet"
+        ];
+      };
       mcp-gateway = {
         image = "docker/mcp-gateway";
         cmd = [
@@ -536,6 +543,10 @@
   };
   age.secrets.pilaster_docker_env_mcp_gateway = {
     rekeyFile = ./files/docker/env/mcp-gateway.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_music_assistant_alexa = {
+    rekeyFile = ./files/docker/env/music-assistant-alexa.env.age;
     mode = "600";
   };
 }
