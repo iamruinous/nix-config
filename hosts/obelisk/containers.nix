@@ -40,7 +40,7 @@
     backend = "docker";
     containers = {
       caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10";
+        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
         capabilities = {
           "NET_ADMIN" = true;
         };
@@ -75,7 +75,7 @@
         ];
       };
       open-webui = {
-        image = "ghcr.io/open-webui/open-webui:v0.6.33";
+        image = "ghcr.io/open-webui/open-webui:v0.6.41";
         environment = {
           OLLAMA_BASE_URL = "http://ollama:11434";
         };
@@ -85,7 +85,7 @@
         ];
       };
       ollama = {
-        image = "docker.io/ollama/ollama:0.12.5";
+        image = "docker.io/ollama/ollama:0.13.1";
         devices = ["nvidia.com/gpu=all"];
         networks = ["servicenet"];
         volumes = [

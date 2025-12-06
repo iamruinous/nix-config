@@ -199,7 +199,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch m.state {
-		case StateMainMenu:
+		case StateShowUpdates, StateMainMenu:
 			return m.handleMainMenuKey(msg)
 		case StateHostSelect:
 			return m.handleHostSelectKey(msg)
