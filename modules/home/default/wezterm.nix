@@ -40,6 +40,9 @@ in {
         font_size = 13,
       }
 
+      -- Show notifications if not currently focused
+      config.notification_handling = 'AlwaysShow'
+
       local function segments_for_right_status(window)
         return {
           -- window:active_workspace(),

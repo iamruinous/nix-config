@@ -13,6 +13,7 @@
     flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
+    ./cloudflared.nix
     ./containers.nix
     ./disko.nix
     ./nfs.nix
