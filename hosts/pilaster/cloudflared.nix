@@ -7,6 +7,11 @@
         ingress = {"ma-alexa.meskill.farm" = "https://ma-alexa-int.meskill.farm";};
         default = "http_status:404";
       };
+      "7991e506-c522-4db9-b08f-f6533f1cd8f6" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_music_assistant.path}";
+        ingress = {"ma.meskill.farm" = "https://ma-int.meskill.farm";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -18,6 +23,11 @@
 
   age.secrets.pilaster_cloudflared_ma_alexa = {
     rekeyFile = ./files/cloudflared/ma-alexa.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_music_assistant = {
+    rekeyFile = ./files/cloudflared/music-assistant.json.age;
     mode = "644";
   };
 }
