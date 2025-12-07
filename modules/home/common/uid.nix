@@ -1,7 +1,8 @@
 {
   osConfig,
   config,
+  lib,
   ...
 }: {
-  home.uid = osConfig.users.users.${config.home.username}.uid;
+  home.uid = lib.mkDefault osConfig.users.users.${config.home.username}.uid;
 }

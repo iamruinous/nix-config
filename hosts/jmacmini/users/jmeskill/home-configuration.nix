@@ -14,6 +14,7 @@
   home.sessionPath = [
     "/opt/homebrew/bin/"
   ];
+  home.uid = 502;
 
   xdg.configFile."aerospace/aerospace.toml".source = ./aerospace.toml;
 

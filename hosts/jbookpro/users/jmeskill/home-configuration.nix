@@ -14,6 +14,7 @@
   home.sessionPath = [
     "/opt/homebrew/bin/"
   ];
+  home.uid = 502;
 
   # this system has a battery
   ruinous.starship.battery.enable = true;
