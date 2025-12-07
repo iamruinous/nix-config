@@ -75,6 +75,7 @@
         ".npm"
       ];
       files = [
+        ".envrc"
         ".claude.json"
         ".cfcli.yml"
         ".ssh/known_hosts"

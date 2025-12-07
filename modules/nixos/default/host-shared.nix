@@ -93,6 +93,7 @@
   environment.systemPackages = with pkgs; [
     btop
     pciutils
+    usbutils
     isd
   ];
 }

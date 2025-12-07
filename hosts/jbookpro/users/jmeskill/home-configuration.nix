@@ -23,5 +23,5 @@
   programs.wezterm.enable = true;
   ruinous.openssh.remote.forwarding.enable = true;
 
-  home.stateVersion = "25.05";
+  home.stateVersion = "26.05";
 }
