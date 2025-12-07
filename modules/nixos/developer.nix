@@ -84,6 +84,7 @@
       claude-code
       codex
       crush
+      gemini-cli
       gemini-cli-preview
       opencode
 
