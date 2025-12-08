@@ -76,6 +76,7 @@
         ".config/tea"
       ];
       files = [
+        ".envrc"
         ".claude.json"
         ".ssh/known_hosts"
       ];

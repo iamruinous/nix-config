@@ -7,6 +7,7 @@
 
   nixpkgs.overlays = [
     flake.inputs.claude-code.overlays.default
+    flake.inputs.gemini-cli.overlays.default
     flake.inputs.fenix.overlays.default
   ];
 
@@ -84,6 +85,7 @@
       codex
       crush
       gemini-cli
+      gemini-cli-preview
       opencode
 
       # sandboxing

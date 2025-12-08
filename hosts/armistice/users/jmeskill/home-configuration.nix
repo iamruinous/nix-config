@@ -13,5 +13,5 @@
   #   "L+    /home/jmeskill/.local/bin/op-ssh-sign -    -    -     - ${pkgs.openssh}/bin/ssh-keygen"
   # ];
 
-  home.stateVersion = "25.05";
+  home.stateVersion = "26.05";
 }

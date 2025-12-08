@@ -63,6 +63,7 @@
     # Agenix for secrets
     # <https://github.com/ryantm/agenix>
     agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
 
     # Agenix-rekey for improved secret management
     # <https://github.com/oddlama/agenix-rekey>
@@ -89,10 +90,6 @@
     microvm.url = "github:astro/microvm.nix";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
 
-    # # ai coding agents
-    # # <https://github.com/numtide/nix-ai-tools>
-    # nix-ai-tools.url = "github:numtide/nix-ai-tools";
-
     # # nixos-lima VM builders
     # # <https://github.com/ciderale/nixos-lima>
     # nixos-lima.url = "github:ciderale/nixos-lima";
@@ -108,10 +105,20 @@
     impermanence.url = "github:nix-community/impermanence";
 
     # claude-code-nix
+    # <https://github.com/sadjow/claude-code-nix/>
     claude-code.url = "github:sadjow/claude-code-nix";
 
+    # gemini-cli-nix
+    # <https://github.com/iamruinous/gemini-cli-nix/>
+    gemini-cli.url = "github:iamruinous/gemini-cli-nix";
+
     # nixos-raspberrypi
+    # <https://https://github.com/nvmd/nixos-raspberrypi>
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
+
+    # Nix User Repository
+    # <https://nur.nix-community.org>
+    # nur.url = "github:nix-community/NUR";
   };
 
   # Load the blueprint
@@ -137,6 +144,7 @@
         "walker-git.cachix.org-1:vmC0ocfPWh0S/vRAQGtChuiZBTAe4wiKDeyyXM0/7pM="
         "claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk="
         "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+        "gemini-cli.cachix.org-1:UgcVYrQrbEktUBlGpoEmTLqZ05LK9xhRfkzzTgli1rM="
       ];
 
       # Expose agenix-rekey configuration
