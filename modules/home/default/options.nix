@@ -16,5 +16,7 @@
     ruinous.todoist.sync.enable = lib.mkEnableOption "Whether to enable todoist auto-sync";
 
     ruinous.vdirsyncer.sync.enable = lib.mkEnableOption "Whether to enable vdirsyncer auto-sync";
+
+    ruinous.tea.enable = lib.mkEnableOption "Whether to enable tea (Gitea CLI) with encrypted config";
   };
 }
