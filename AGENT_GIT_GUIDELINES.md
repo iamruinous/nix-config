@@ -1,5 +1,40 @@
 # Git Behavior Guidelines for AI Agents
 
+> **⚠️ CRITICAL: The main branch is protected and does not accept direct commits.**
+>
+> You MUST use feature branches and pull requests for ALL changes. Direct commits to main will be rejected. See the [Branching Strategy](#branching-strategy) section for required workflow.
+
+## Pre-Change Checklist
+
+**Before making ANY code changes, verify:**
+
+1. [ ] **Am I on a feature branch?** Run `git branch --show-current`
+   - If on `main` → create a feature branch first
+   - If on a feature branch → proceed
+
+2. [ ] **Does a draft PR exist for this branch?**
+   - If no → create one after your first commit with `gh pr create --draft`
+   - If yes → continue working
+
+3. [ ] **Is the PR task list up to date?**
+   - Mark completed tasks with `[x]`
+   - Add new tasks discovered during implementation
+   - Use `gh pr edit --body "..."` to update
+
+**Quick start for new work:**
+```bash
+git checkout main && git pull origin main
+git checkout -b feat/my-feature
+# make changes, then:
+git add <files> && git commit -m "feat: initial work"
+git push -u origin feat/my-feature
+gh pr create --draft --title "feat: my feature" --body "## Tasks
+- [ ] First task
+- [ ] Second task"
+```
+
+---
+
 This document provides comprehensive guidance for AI coding assistants on how to handle git commits, following the [Conventional Commits](https://www.conventionalcommits.org/) specification.
 
 ## Commit Message Format
@@ -257,7 +292,15 @@ with full delivery tracking and user preference management.
 
 ## Branching Strategy
 
-**IMPORTANT**: Never commit directly to the main/master branch. Always use feature branches and pull requests.
+> **⚠️ MANDATORY: The main branch is protected. Direct commits will be rejected.**
+
+All changes MUST go through the following workflow:
+1. Create a feature branch from main
+2. Make commits on the feature branch
+3. Push the branch and create a pull request
+4. Merge via the pull request after review
+
+There are NO exceptions to this rule. Do not attempt to commit directly to main.
 
 ### Branch Naming Conventions
 
@@ -285,27 +328,69 @@ refactor/database-connection-pooling
 
 ### Feature Branch Workflow
 
-1. **Ensure you're on the latest main branch:**
+**IMPORTANT:** Create a draft pull request early in your workflow. This provides visibility into work in progress and ensures all changes go through the PR process.
+
+1. **Check current branch and ensure you're not on main:**
+   ```bash
+   git branch --show-current
+   # If on main, proceed to step 2. If already on a feature branch, skip to step 4.
+   ```
+
+2. **Update main and create a new feature branch:**
    ```bash
    git checkout main
    git pull origin main
-   ```
-
-2. **Create a new feature branch:**
-   ```bash
    git checkout -b feat/my-new-feature
    ```
 
-3. **Make commits on the feature branch** following the commit guidelines above
-
-4. **Push the feature branch:**
+3. **Make your first commit on the feature branch:**
    ```bash
-   git push -u origin feat/my-new-feature
+   git add <files>
+   git commit -m "feat(scope): initial implementation"
    ```
 
-5. **Create a pull request** (see platform-specific instructions below)
+4. **Push and create a DRAFT pull request with a task list:**
+   ```bash
+   git push -u origin feat/my-new-feature
+   gh pr create --draft --title "feat(scope): description" --body "$(cat <<'EOF'
+   ## Summary
+   Brief description of what this PR accomplishes.
 
-6. **After PR is merged**, clean up:
+   ## Tasks
+   - [ ] Task 1
+   - [ ] Task 2
+   - [ ] Task 3
+   EOF
+   )"
+   ```
+
+   > **Why draft PRs?** They signal work is in progress, enable early feedback, and ensure the PR process is followed from the start.
+
+5. **Continue making commits on the feature branch** following the commit guidelines above
+
+6. **Update the PR task list as you work:**
+   - Mark tasks complete as you finish them
+   - Add new tasks discovered during implementation
+   ```bash
+   gh pr edit --body "$(cat <<'EOF'
+   ## Summary
+   Brief description of what this PR accomplishes.
+
+   ## Tasks
+   - [x] Task 1 (completed)
+   - [x] Task 2 (completed)
+   - [ ] Task 3
+   - [ ] New task discovered during implementation
+   EOF
+   )"
+   ```
+
+7. **When work is complete, mark the PR ready for review:**
+   ```bash
+   gh pr ready
+   ```
+
+8. **After PR is merged**, clean up:
    ```bash
    git checkout main
    git pull origin main
@@ -423,12 +508,14 @@ Forgejo uses the same API as Gitea. You can use either:
 
 ### When NOT to Create a PR
 
-In rare cases, direct commits to main may be acceptable:
-- Emergency hotfixes when PR review would cause unacceptable delay (document afterwards)
-- Trivial typo fixes (though PRs are still preferred)
-- Initial repository setup
+**With protected branches, there are NO cases where direct commits to main are acceptable.**
 
-**Always prefer PRs** - they provide documentation, enable review, and create a clear audit trail.
+The main branch is protected and will reject all direct commits. Even for:
+- Emergency hotfixes → create a `fix/` branch and expedited PR
+- Trivial typo fixes → still requires a branch and PR
+- Initial repository setup → only applies to new repos before protection is enabled
+
+**All changes require PRs** - they provide documentation, enable review, and create a clear audit trail.
 
 ## Git Commands Workflow
 

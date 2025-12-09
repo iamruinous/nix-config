@@ -153,13 +153,58 @@ To create your own custom agents:
 
 ## Git Workflow
 
-This project follows the git behavior guidelines defined in [AGENT_GIT_GUIDELINES.md](./AGENT_GIT_GUIDELINES.md).
+**⚠️ IMPORTANT: The main branch is protected and does not allow direct commits.**
 
-See that file for comprehensive guidance on:
-- Conventional Commits format
-- When and how to commit
-- Commit message examples
-- Handling commit failures
+**Before making any code changes**, you MUST:
+1. **Check if you're on a feature branch** - if on `main`, create a new branch first
+2. **Create a draft pull request** immediately after creating the branch and making your first commit
+3. **Never commit directly to main** - all commits must go through pull requests
+4. **Follow the branching conventions** in the guidelines (e.g., `feat/`, `fix/`, `docs/`)
+
+**Recommended workflow:**
+```bash
+# 1. Create feature branch
+git checkout -b feat/my-feature
+
+# 2. Make initial changes and commit
+git add <files>
+git commit -m "feat: initial implementation"
+
+# 3. Push and create draft PR with task list
+git push -u origin feat/my-feature
+gh pr create --draft --title "feat: my feature" --body "$(cat <<'EOF'
+## Summary
+Brief description of the changes.
+
+## Tasks
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
+EOF
+)"
+
+# 4. Continue making commits on the branch
+# 5. Update PR description to mark tasks complete or add new tasks
+gh pr edit --body "$(cat <<'EOF'
+## Summary
+Brief description of the changes.
+
+## Tasks
+- [x] Task 1 (completed)
+- [ ] Task 2
+- [ ] Task 3
+- [ ] New task discovered during implementation
+EOF
+)"
+
+# 6. Mark PR ready for review when complete
+gh pr ready
+```
+
+**Keep the PR updated:** As you work, update the PR description to reflect progress by marking tasks complete (`- [x]`) and adding any new tasks discovered during implementation.
+
+This project follows the git behavior guidelines defined in [AGENT_GIT_GUIDELINES.md](./AGENT_GIT_GUIDELINES.md). You must read this before making any git commits.
+
 
 ### Project-Specific Notes
 
