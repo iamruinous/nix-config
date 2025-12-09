@@ -3,10 +3,18 @@
     flake.homeModules.common
   ];
 
-  age.secrets.monolith_git_id_ed25519 = {
-    rekeyFile = flake + /users/git/id_ed25519.age;
-    path = "/home/git/.ssh/id_ed25519";
-    mode = "600";
+  home.file.".ssh/id_ed25519.pub".source = flake + /users/git/id_ed25519.pub;
+
+  # Install git via home-manager module
+  programs.git = {
+    enable = true;
+    settings = {
+      user.name = "Farmforge Git";
+      user.email = "git@meskill.farm";
+      user.signingkey = "/home/git/.ssh/id_ed25519.pub";
+      commit.gpgsign = true;
+      gpg.format = "ssh";
+    };
   };
 
   home.stateVersion = "26.05";

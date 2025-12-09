@@ -1,5 +1,6 @@
 {
   config,
+  flake,
   pkgs,
   ...
 }: {
@@ -223,7 +224,7 @@
         ];
       };
       adminer = {
-        image = "docker.io/adminer:5";
+        image = "docker.io/adminer:5.4.1";
         environment = {
           TZ = "America/Phoenix";
         };
@@ -237,7 +238,7 @@
         ];
       };
       apprise = {
-        image = "lscr.io/linuxserver/apprise-api:1.2.0";
+        image = "lscr.io/linuxserver/apprise-api:1.2.6";
         environment = {
           TZ = "America/Phoenix";
         };
@@ -427,6 +428,8 @@
         volumes = [
           "/data/docker/forgejo/data:/data"
           "/home/git/.ssh:/data/git/.ssh"
+          "${config.age.secrets.monolith_git_id_ed25519.path}:/data/git/.ssh/id_ed25519:ro"
+          "${flake + /users/git/id_ed25519.pub}:/data/git/.ssh/id_ed25519.pub:ro"
           "/home/git/.gnupg:/data/git/.gnupg"
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
@@ -540,7 +543,7 @@
         ];
       };
       n8n = {
-        image = "docker.n8n.io/n8nio/n8n:1.119.0";
+        image = "docker.n8n.io/n8nio/n8n:1.121.3";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -550,6 +553,7 @@
           DB_TYPE = "postgresdb";
           WEBHOOK_URL = "https://n8h.meskill.farm";
           N8N_EDITOR_BASE_URL = "https://n8n.meskill.farm";
+          N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE = "true";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
@@ -959,6 +963,14 @@
     rekeyFile = ./files/docker/env/stepca.env.age;
     mode = "600";
   };
+  age.secrets.monolith_git_id_ed25519 = {
+    rekeyFile = flake + /users/git/id_ed25519.age;
+    path = "/home/git/.ssh/id_ed25519";
+    mode = "600";
+    symlink = false;
+    owner = "git";
+  };
+
   # age.secrets.monolith_docker_env_weatherflow = {
   #   file = ./files/docker/env/weatherflow.env.age;
   #   mode = "600";
