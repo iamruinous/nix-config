@@ -511,6 +511,23 @@
           "${config.age.secrets.pilaster_docker_env_mcp_gateway.path}:/secrets/mcp.env:ro"
         ];
       };
+      wikijs = {
+        image = "ghcr.io/requarks/wiki:2";
+        environment = {
+          DB_TYPE = "postgres";
+          DB_HOST = "postgres";
+          DB_PORT = "5432";
+        };
+        environmentFiles = [config.age.secrets.pilaster_docker_env_wikijs.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres"];
+        volumes = [
+          "/data/docker/wikijs/data:/wiki/data"
+        ];
+      };
     };
   };
 
@@ -561,6 +578,10 @@
   };
   age.secrets.pilaster_docker_env_music_assistant_alexa = {
     rekeyFile = ./files/docker/env/music-assistant-alexa.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_wikijs = {
+    rekeyFile = ./files/docker/env/wikijs.env.age;
     mode = "600";
   };
 }
