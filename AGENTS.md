@@ -218,6 +218,11 @@ In addition to the general guidelines, this NixOS configuration repository has t
    ```
 
 2. **Secrets**: Never commit unencrypted secrets; always use agenix
+   - When creating `.env.template` files for Docker containers, after the user has filled in the secret values, encrypt using:
+     ```bash
+     agenix edit -i input.env.template output.env.age
+     ```
+   - This encrypts non-interactively, reading from the template file
 
 3. **Check SSH/GPG agent** before committing:
    ```bash
