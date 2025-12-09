@@ -223,13 +223,27 @@ In addition to the general guidelines, this NixOS configuration repository has t
      agenix edit -i input.env.template output.env.age
      ```
    - This encrypts non-interactively, reading from the template file
+   - To view an encrypted file: `agenix view path/to/file.age`
+   - To update an existing encrypted file (e.g., Caddyfile):
+     1. View current contents: `agenix view path/to/file.age > /tmp/file.txt`
+     2. Edit the temporary file
+     3. Remove old encrypted file: `rm path/to/file.age`
+     4. Re-encrypt: `agenix edit -i /tmp/file.txt path/to/file.age`
+     5. Clean up: `rm /tmp/file.txt`
 
-3. **Check SSH/GPG agent** before committing:
+3. **Adding Docker containers with reverse proxy**:
+   - Add container definition to `hosts/<host>/containers.nix`
+   - Create encrypted env file in `hosts/<host>/files/docker/env/<service>.env.age`
+   - Add agenix secret definition in the same containers.nix file
+   - Update Caddyfile at `hosts/<host>/files/caddy/Caddyfile.age` to add reverse proxy entry
+   - Container names on `servicenet` are resolvable as hostnames in Caddy (e.g., `reverse_proxy wikijs:3000`)
+
+4. **Check SSH/GPG agent** before committing:
    ```bash
    ssh-agent-check || echo "Warning: SSH agent not responding"
    ```
 
-4. **All commits must be GPG signed** - never use `--no-gpg-sign`
+5. **All commits must be GPG signed** - never use `--no-gpg-sign`
 
 ## Changelog
 
