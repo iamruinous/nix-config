@@ -237,13 +237,39 @@ In addition to the general guidelines, this NixOS configuration repository has t
    - Add agenix secret definition in the same containers.nix file
    - Update Caddyfile at `hosts/<host>/files/caddy/Caddyfile.age` to add reverse proxy entry
    - Container names on `servicenet` are resolvable as hostnames in Caddy (e.g., `reverse_proxy wikijs:3000`)
+   - **Create DNS entry for the service** (see DNS Management below)
 
-4. **Check SSH/GPG agent** before committing:
+4. **DNS Management**:
+   Each container host has a DNS entry `<hostname>.meskill.farm` that can be used as a CNAME target. When adding a new service to Caddy, you must create a corresponding DNS entry.
+
+   **DNS Naming Convention:**
+   - Each service should have its own DNS entry: `<service>.meskill.farm`
+   - Use CNAME records pointing to the host's DNS entry: `<hostname>.meskill.farm`
+
+   **Using cfcli to manage DNS:**
+   The `cfcli` tool (available in the devshell) can be used to create DNS records:
+   ```bash
+   # List existing DNS records
+   cfcli --domain meskill.farm ls
+
+   # Add a CNAME record for a new service
+   cfcli --domain meskill.farm --type CNAME add <name> <container_hostname>.meskill.farm
+
+   # Example: Adding docs.meskill.farm pointing to pilaster.meskill.farm
+   cfcli --domain meskill.farm --type CNAME add docs pilaster.meskill.farm
+
+   # Edit an existing record (e.g., if a container moved to a different host)
+   cfcli --domain meskill.farm --type CNAME edit <name> <container_hostname>.meskill.farm
+   ```
+
+   **When adding a new service to Caddy, always offer to create the DNS entry using cfcli.**
+
+5. **Check SSH/GPG agent** before committing:
    ```bash
    ssh-agent-check || echo "Warning: SSH agent not responding"
    ```
 
-5. **All commits must be GPG signed** - never use `--no-gpg-sign`
+6. **All commits must be GPG signed** - never use `--no-gpg-sign`
 
 ## Changelog
 
