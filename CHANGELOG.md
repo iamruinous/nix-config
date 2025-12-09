@@ -7,10 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- `docker-image-updater` v2.0.0: Complete rewrite in Go with Bubbletea TUI framework
-  - Container scanning from `hosts/**/containers.nix` files
-  - CLI flags: `--path`, `--host`, `--limit`, `--dry-run`, `--non-interactive`
-  - Note: Update checking and applying updates not yet implemented (see `packages/docker-image-updater/NEXT_STEPS.md`)
+- `docker-image-updater` v2.2.0: Added `--apply-all` flag for automated updates
+  - New `--apply-all` flag automatically applies all available container image updates
+  - Suitable for CI/CD and automated workflows
+- GitHub Actions workflow for automated Docker image update checks
+  - Runs weekly on Mondays at 9:00 UTC
+  - Automatically creates PRs when container image updates are available
+  - Can also be triggered manually via workflow_dispatch
 
 ### Changed
 - Migrated session logging from `SESSION_LOG.md` to `CHANGELOG.md` following Keep a Changelog format

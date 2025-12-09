@@ -1,0 +1,95 @@
+name: Check Docker Image Updates
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    # Allow manual triggering
+
+jobs:
+  check-updates:
+    name: Check for Docker image updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free up disk space
+        uses: wimpysworld/nothing-but-nix@main
+        with:
+          hatchet-protocol: 'holster'
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Cache Nix
+        uses: DeterminateSystems/flakehub-cache-action@v2
+
+      - name: Build docker-image-updater
+        run: nix build .#docker-image-updater
+
+      - name: Check for updates and apply
+        id: check-updates
+        run: |
+          # Run the updater and capture output
+          set +e
+          OUTPUT=$(./result/bin/docker-image-updater --apply-all --no-cache 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "$OUTPUT"
+
+          # Check if any updates were applied
+          if echo "$OUTPUT" | grep -q "Summary:"; then
+            APPLIED=$(echo "$OUTPUT" | grep "Summary:" | sed -E 's/.*: ([0-9]+) applied.*/\1/')
+            if [ "$APPLIED" -gt 0 ]; then
+              echo "has_updates=true" >> $GITHUB_OUTPUT
+              echo "update_count=$APPLIED" >> $GITHUB_OUTPUT
+            else
+              echo "has_updates=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update Docker container images"
+          title: "chore: update Docker container images"
+          body: |
+            ## Summary
+            Automated weekly check found Docker container image updates.
+
+            This PR updates container image tags in `hosts/**/containers.nix` files to their latest versions.
+
+            ## Changes
+            ${{ steps.check-updates.outputs.update_count }} container image(s) updated.
+
+            ## Review Checklist
+            - [ ] Review the image version changes
+            - [ ] Verify no breaking changes in the updated images
+            - [ ] Test deployment on a non-critical host first if needed
+
+            ---
+            🤖 Generated automatically by the Docker Image Updates workflow
+          branch: chore/docker-image-updates
+          delete-branch: true
+          labels: |
+            automated
+            dependencies
