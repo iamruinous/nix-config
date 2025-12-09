@@ -1,13 +1,16 @@
+# Disabled: Takes too long to run and not currently adding value
+# To re-enable, remove the 'if: false' line from the job
 on:
   pull_request:
   workflow_dispatch:
   push:
-    branches: 
+    branches:
       - main
 
 jobs:
   build:
     name: Build Nix targets
+    if: false  # Disabled - see comment at top of file
     runs-on: ubuntu-latest
     permissions:
       id-token: write

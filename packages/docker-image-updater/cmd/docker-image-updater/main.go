@@ -16,7 +16,7 @@ import (
 	"github.com/iamruinous/docker-image-updater/internal/updater"
 )
 
-var version = "2.1.0"
+var version = "2.2.0"
 
 func main() {
 	// Command line flags
@@ -25,6 +25,7 @@ func main() {
 		hostFilter     string
 		limit          int
 		nonInteractive bool
+		applyAll       bool
 		dryRun         bool
 		clearCache     bool
 		noCache        bool
@@ -36,6 +37,7 @@ func main() {
 	flag.StringVarP(&hostFilter, "host", "H", "", "Only check containers for a specific host")
 	flag.IntVarP(&limit, "limit", "l", 0, "Limit the number of containers to check")
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Run in non-interactive mode (just show updates)")
+	flag.BoolVar(&applyAll, "apply-all", false, "Apply all available updates (implies --non-interactive)")
 	flag.BoolVar(&dryRun, "dry-run", false, "Only scan containers, skip checking for updates")
 	flag.BoolVar(&clearCache, "clear-cache", false, "Clear the cache before running")
 	flag.BoolVar(&noCache, "no-cache", false, "Disable caching for this run")
@@ -86,9 +88,14 @@ func main() {
 	// Check if we should run in interactive mode
 	isTerminal := term.IsTerminal(int(os.Stdin.Fd()))
 
+	// --apply-all implies --non-interactive
+	if applyAll {
+		nonInteractive = true
+	}
+
 	if nonInteractive || !isTerminal {
 		// Run in batch/non-interactive mode
-		runBatch(configPath, hostFilter, limit, dryRun, noCache)
+		runBatch(configPath, hostFilter, limit, dryRun, noCache, applyAll)
 	} else {
 		// Run interactive TUI
 		runInteractive(configPath, hostFilter, limit, dryRun, noCache)
@@ -107,6 +114,7 @@ Options:
     -h, --help          Show this help message
     -v, --version       Show version
     --non-interactive   Run in non-interactive mode (just show updates)
+    --apply-all         Apply all available updates (implies --non-interactive)
     --dry-run           Only scan containers, skip checking for updates
     --clear-cache       Clear the cache before running
     --no-cache          Disable caching for this run
@@ -125,6 +133,7 @@ Examples:
     docker-image-updater --limit 10
     docker-image-updater --host monolith --limit 5
     docker-image-updater --non-interactive
+    docker-image-updater --apply-all
     docker-image-updater --dry-run
     docker-image-updater --clear-cache
     docker-image-updater --no-cache`)
@@ -148,7 +157,7 @@ func runInteractive(configPath, hostFilter string, limit int, dryRun bool, noCac
 	}
 }
 
-func runBatch(configPath, hostFilter string, limit int, dryRun bool, noCache bool) {
+func runBatch(configPath, hostFilter string, limit int, dryRun bool, noCache bool, applyAll bool) {
 	// Print title
 	fmt.Println("=== Docker Image Updater ===")
 	fmt.Println("    for NixOS Configurations")
@@ -283,17 +292,50 @@ func runBatch(configPath, hostFilter string, limit int, dryRun bool, noCache boo
 		)
 	}
 
-	// Show commands
-	fmt.Println()
-	fmt.Println("=== Update Commands ===")
-	fmt.Println()
-
 	u := updater.NewUpdater(configPath)
-	for _, r := range updateResults {
-		info := u.GenerateUpdateInfo(r)
-		fmt.Println(info)
-		fmt.Println("---")
+
+	// Apply updates if --apply-all was specified
+	if applyAll {
 		fmt.Println()
+		fmt.Println("=== Applying Updates ===")
+		fmt.Println()
+
+		applied := 0
+		skipped := 0
+		failed := 0
+
+		for _, r := range updateResults {
+			result := u.Apply(r)
+			if result.Success {
+				fmt.Printf("✓ %s/%s: %s\n", r.Container.Host, r.Container.Name, result.Message)
+				applied++
+			} else if result.Skipped {
+				fmt.Printf("⊘ %s/%s: %s\n", r.Container.Host, r.Container.Name, result.Message)
+				skipped++
+			} else {
+				fmt.Printf("✗ %s/%s: %s\n", r.Container.Host, r.Container.Name, result.Message)
+				failed++
+			}
+		}
+
+		fmt.Println()
+		fmt.Printf("Summary: %d applied, %d skipped, %d failed\n", applied, skipped, failed)
+
+		if failed > 0 {
+			os.Exit(1)
+		}
+	} else {
+		// Show commands for manual updates
+		fmt.Println()
+		fmt.Println("=== Update Commands ===")
+		fmt.Println()
+
+		for _, r := range updateResults {
+			info := u.GenerateUpdateInfo(r)
+			fmt.Println(info)
+			fmt.Println("---")
+			fmt.Println()
+		}
 	}
 }
 
