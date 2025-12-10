@@ -132,6 +132,16 @@ Cache:
     Results are cached for 24 hours to speed up repeated checks.
     Cache location: ~/.local/state/docker-image-updater/
 
+Skipping Images:
+    Add "# IMAGECHECK: disabled" comment to skip checking specific images:
+
+    # On the same line:
+    image = "legacy-app:1.0"; # IMAGECHECK: disabled
+
+    # Or on the line before:
+    # IMAGECHECK: disabled
+    image = "custom-image:latest";
+
 Environment Variables:
     NIX_CONFIG_PATH     Alternative way to set the config path
 
