@@ -69,7 +69,7 @@
     backend = "docker";
     containers = {
       caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.0";
+        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
         networks = [
           "proxynet"
           "servicenet"
@@ -146,7 +146,7 @@
         ];
       };
       albyhub = {
-        image = "ghcr.io/getalby/hub:v1.19.3";
+        image = "ghcr.io/getalby/hub:v1.21.0";
         environment = {
           WORK_DIR = "/data/albyhub";
           TZ = "America/Phoenix";
@@ -207,7 +207,7 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.13.3";
+        image = "docker.io/getmeili/meilisearch:v1.29";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
@@ -215,7 +215,7 @@
         ];
       };
       "mastodon-sidekiq" = {
-        image = "ghcr.io/mastodon/mastodon:v4.4";
+        image = "ghcr.io/mastodon/mastodon:v4.5.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
         cmd = [
@@ -238,7 +238,7 @@
         ];
       };
       "mastodon-streaming" = {
-        image = "ghcr.io/mastodon/mastodon-streaming:v4.4";
+        image = "ghcr.io/mastodon/mastodon-streaming:v4.5.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
         cmd = [
@@ -257,7 +257,7 @@
         # };
       };
       "mastodon-web" = {
-        image = "ghcr.io/mastodon/mastodon:v4.4";
+        image = "ghcr.io/mastodon/mastodon:v4.5.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
         cmd = [

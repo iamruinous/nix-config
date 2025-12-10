@@ -185,7 +185,7 @@
         ];
       };
       prometheus = {
-        image = "docker.io/prom/prometheus:v3.6.0";
+        image = "docker.io/prom/prometheus:v3.8.0";
         ports = ["9090:9090"];
         networks = [
           "datanet"
@@ -261,7 +261,7 @@
         ];
       };
       bazarr = {
-        image = "lscr.io/linuxserver/bazarr:1.5.2";
+        image = "lscr.io/linuxserver/bazarr:1.5.3";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -346,7 +346,7 @@
         ];
       };
       deluge = {
-        image = "lscr.io/linuxserver/deluge:2.2.0";
+        image = "lscr.io/linuxserver/deluge:18.04.1";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -365,7 +365,7 @@
         ];
       };
       ersatztv = {
-        image = "docker.io/jasongdove/ersatztv:v25.8.0";
+        image = "docker.io/jasongdove/ersatztv:v25.9.0";
         ports = ["8409:8409"];
         environment = {
           TZ = "America/Phoenix";
@@ -505,7 +505,7 @@
         ];
       };
       kavita = {
-        image = "lscr.io/linuxserver/kavita:0.8.7";
+        image = "lscr.io/linuxserver/kavita:0.8.8";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -543,7 +543,7 @@
         ];
       };
       n8n = {
-        image = "docker.n8n.io/n8nio/n8n:1.121.3";
+        image = "docker.n8n.io/n8nio/n8n:2.0.0";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -580,7 +580,7 @@
         ];
       };
       "paperless-ngx" = {
-        image = "ghcr.io/paperless-ngx/paperless-ngx:2.18";
+        image = "ghcr.io/paperless-ngx/paperless-ngx:2.20.1";
         environment = {
           PAPERLESS_REDIS = "redis://redis:6379";
           PAPERLESS_DBHOST = "postgres";
@@ -606,7 +606,7 @@
         ];
       };
       "gotenberg" = {
-        image = "docker.io/gotenberg/gotenberg:8.24";
+        image = "docker.io/gotenberg/gotenberg:8.25.1";
         cmd = [
           "gotenberg"
           "--chromium-disable-javascript=true"
@@ -619,7 +619,7 @@
         networks = ["servicenet"];
       };
       phpldapadmin = {
-        image = "docker.io/phpldapadmin/phpldapadmin:2.2.2";
+        image = "docker.io/phpldapadmin/phpldapadmin:2.3.5";
         environment = {
           PHPLDAPADMIN_HTTPS = "false";
           PHPLDAPADMIN_LDAP_HOSTS = "#PYTHON2BASH:[{'openldap': [{'server': [{'tls': False}]},{'login': [{'bind_id': 'cn=admin,dc=meskill-farmhouse,dc=lan'}]}]}]";
@@ -704,7 +704,7 @@
         ];
       };
       "alert-manager" = {
-        image = "docker.io/prom/alertmanager:v0.28.1";
+        image = "docker.io/prom/alertmanager:v0.29.0";
         networks = [
           "datanet"
           "servicenet"
@@ -726,7 +726,7 @@
         ];
       };
       "node-exporter" = {
-        image = "docker.io/prom/node-exporter:v1.9.1";
+        image = "docker.io/prom/node-exporter:v1.10.2";
         networks = [
           "datanet"
           "servicenet"
@@ -757,7 +757,7 @@
         ];
       };
       radarr = {
-        image = "lscr.io/linuxserver/radarr:5.26.2";
+        image = "lscr.io/linuxserver/radarr:6.0.4";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -818,7 +818,7 @@
         ];
       };
       sabnzbd = {
-        image = "lscr.io/linuxserver/sabnzbd:4.5.2";
+        image = "lscr.io/linuxserver/sabnzbd:4.5.5";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -835,7 +835,7 @@
         ];
       };
       sonarr = {
-        image = "lscr.io/linuxserver/sonarr:4.0.15";
+        image = "lscr.io/linuxserver/sonarr:5.14";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -852,7 +852,7 @@
         ];
       };
       stepca = {
-        image = "docker.io/smallstep/step-ca:0.28.4";
+        image = "docker.io/smallstep/step-ca:0.29.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_stepca.path];
         networks = ["servicenet"];
         capabilities = {
@@ -863,7 +863,7 @@
         ];
       };
       tasktrove = {
-        image = "ghcr.io/dohsimpson/tasktrove:v0.8.0";
+        image = "ghcr.io/dohsimpson/tasktrove:v0.11.1";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/tasktrove/config:/app/data"
