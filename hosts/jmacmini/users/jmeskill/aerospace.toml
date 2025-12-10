@@ -258,7 +258,7 @@ if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace 2'
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.ljlamgbgefobjkjkepgbmbebcoaheadj' # Glance
+if.app-id = 'com.google.Chrome.app.cmeodllendljmgnfaopchncmnpgaocab' # Glance
 run = 'move-node-to-workspace 2'
 
 # A - AI Space

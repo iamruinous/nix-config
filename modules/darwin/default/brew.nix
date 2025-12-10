@@ -43,6 +43,7 @@
       "codex"
       "cyberduck"
       "deskpad"
+      "discord"
       "dropbox"
       "element"
       "gog-galaxy"

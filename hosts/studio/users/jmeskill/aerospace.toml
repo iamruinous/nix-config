@@ -249,7 +249,7 @@ run = 'move-node-to-workspace 2'
 # G - Glance Space
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.ljlamgbgefobjkjkepgbmbebcoaheadj' # Glance
+if.app-id = 'com.google.Chrome.app.cmeodllendljmgnfaopchncmnpgaocab' # Glance
 run = 'move-node-to-workspace G'
 
 ## Full Screen
