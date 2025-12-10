@@ -230,6 +230,27 @@ func extractImageBase(image string) string {
 	return image
 }
 
+// ParseImageRef parses a Docker image reference string into a Container struct.
+// This is useful for checking a single image without needing a containers.nix file.
+// Examples:
+//   - "nginx:1.25.0" -> Container{Image: "nginx:1.25.0", Tag: "1.25.0", ImageBase: "nginx"}
+//   - "lscr.io/linuxserver/deluge:2.2.0" -> Container{Image: "lscr.io/...", Tag: "2.2.0", ...}
+func ParseImageRef(imageRef string) Container {
+	// Normalize the image reference
+	normalized := NormalizeImage(imageRef)
+	tag := extractTag(imageRef)
+	imageBase := extractImageBase(imageRef)
+
+	return Container{
+		Host:      "cli",
+		Name:      imageBase,
+		Image:     normalized,
+		Tag:       tag,
+		ImageBase: imageBase,
+		FilePath:  "",
+	}
+}
+
 // NormalizeImage converts an image reference to its fully qualified form.
 // - "nginx" -> "docker.io/library/nginx"
 // - "user/repo" -> "docker.io/user/repo"

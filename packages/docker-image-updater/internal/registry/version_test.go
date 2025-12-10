@@ -256,3 +256,79 @@ func TestFindLatestVersionMatching(t *testing.T) {
 		t.Errorf("FindLatestVersionMatching(1.0.0) = %q, expected 2.0.0", result)
 	}
 }
+
+func TestFilterOutDateBasedVersions(t *testing.T) {
+	tests := []struct {
+		name       string
+		tags       []string
+		currentTag string
+		expected   []string
+	}{
+		{
+			name:       "linuxserver deluge with Ubuntu-style version",
+			tags:       []string{"2.0.5", "2.1.1", "2.2.0", "18.04.1"},
+			currentTag: "2.2.0",
+			expected:   []string{"2.0.5", "2.1.1", "2.2.0"},
+		},
+		{
+			name:       "multiple Ubuntu-style versions",
+			tags:       []string{"1.0.0", "2.0.0", "18.04.1", "20.04.1", "22.04.1"},
+			currentTag: "1.0.0",
+			expected:   []string{"1.0.0", "2.0.0"},
+		},
+		{
+			name:       "high major version should not be filtered when current is also high",
+			tags:       []string{"18.0.0", "18.1.0", "19.0.0"},
+			currentTag: "18.0.0",
+			expected:   []string{"18.0.0", "18.1.0", "19.0.0"},
+		},
+		{
+			name:       "version with month-like minor (not .04 or .10)",
+			tags:       []string{"1.0.0", "2.0.0", "18.5.0"},
+			currentTag: "1.0.0",
+			expected:   []string{"1.0.0", "2.0.0"},
+		},
+		{
+			name:       "preserve non-Ubuntu style high versions",
+			tags:       []string{"1.0.0", "2.0.0", "18.15.0"},
+			currentTag: "1.0.0",
+			expected:   []string{"1.0.0", "2.0.0", "18.15.0"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := filterOutDateBasedVersions(tc.tags, tc.currentTag)
+			if len(result) != len(tc.expected) {
+				t.Errorf("filterOutDateBasedVersions(%v, %q) returned %d tags, expected %d: got %v",
+					tc.tags, tc.currentTag, len(result), len(tc.expected), result)
+				return
+			}
+			for i, tag := range result {
+				if tag != tc.expected[i] {
+					t.Errorf("filterOutDateBasedVersions[%d] = %q, expected %q", i, tag, tc.expected[i])
+				}
+			}
+		})
+	}
+}
+
+func TestFindLatestVersionMatchingWithDateBasedVersions(t *testing.T) {
+	// Simulate linuxserver/deluge tags (real-world case)
+	tags := []string{
+		"2.0.5", "2.1.1", "2.2.0", "18.04.1",
+		"latest", "stable",
+	}
+
+	// Should find 2.2.0, NOT 18.04.1
+	result := FindLatestVersionMatching(tags, "2.2.0")
+	if result != "2.2.0" {
+		t.Errorf("FindLatestVersionMatching with Ubuntu-style version = %q, expected 2.2.0", result)
+	}
+
+	// Test upgrade from older version
+	result = FindLatestVersionMatching(tags, "2.0.5")
+	if result != "2.2.0" {
+		t.Errorf("FindLatestVersionMatching(2.0.5) = %q, expected 2.2.0", result)
+	}
+}

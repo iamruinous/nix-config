@@ -24,6 +24,7 @@ func main() {
 		configPath     string
 		hostFilter     string
 		limit          int
+		checkImage     string
 		nonInteractive bool
 		applyAll       bool
 		dryRun         bool
@@ -36,6 +37,7 @@ func main() {
 	flag.StringVarP(&configPath, "path", "p", "", "Path to nix-config directory (default: current directory)")
 	flag.StringVarP(&hostFilter, "host", "H", "", "Only check containers for a specific host")
 	flag.IntVarP(&limit, "limit", "l", 0, "Limit the number of containers to check")
+	flag.StringVarP(&checkImage, "check-image", "i", "", "Check a single Docker image for updates (e.g., 'nginx:1.25.0')")
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Run in non-interactive mode (just show updates)")
 	flag.BoolVar(&applyAll, "apply-all", false, "Apply all available updates (implies --non-interactive)")
 	flag.BoolVar(&dryRun, "dry-run", false, "Only scan containers, skip checking for updates")
@@ -64,6 +66,12 @@ func main() {
 		} else {
 			fmt.Println("Cache cleared")
 		}
+	}
+
+	// Handle single image check mode
+	if checkImage != "" {
+		checkSingleImage(checkImage, noCache)
+		return
 	}
 
 	// Determine config path
@@ -108,16 +116,17 @@ func printHelp() {
 Usage: docker-image-updater [OPTIONS]
 
 Options:
-    -p, --path PATH     Path to nix-config directory (default: current directory)
-    -H, --host HOST     Only check containers for a specific host
-    -l, --limit N       Limit the number of containers to check
-    -h, --help          Show this help message
-    -v, --version       Show version
-    --non-interactive   Run in non-interactive mode (just show updates)
-    --apply-all         Apply all available updates (implies --non-interactive)
-    --dry-run           Only scan containers, skip checking for updates
-    --clear-cache       Clear the cache before running
-    --no-cache          Disable caching for this run
+    -p, --path PATH       Path to nix-config directory (default: current directory)
+    -H, --host HOST       Only check containers for a specific host
+    -l, --limit N         Limit the number of containers to check
+    -i, --check-image IMG Check a single Docker image for updates
+    -h, --help            Show this help message
+    -v, --version         Show version
+    --non-interactive     Run in non-interactive mode (just show updates)
+    --apply-all           Apply all available updates (implies --non-interactive)
+    --dry-run             Only scan containers, skip checking for updates
+    --clear-cache         Clear the cache before running
+    --no-cache            Disable caching for this run
 
 Cache:
     Results are cached for 24 hours to speed up repeated checks.
@@ -136,7 +145,73 @@ Examples:
     docker-image-updater --apply-all
     docker-image-updater --dry-run
     docker-image-updater --clear-cache
-    docker-image-updater --no-cache`)
+    docker-image-updater --no-cache
+
+Single Image Check:
+    docker-image-updater -i nginx:1.25.0
+    docker-image-updater -i lscr.io/linuxserver/deluge:2.2.0
+    docker-image-updater --check-image ghcr.io/org/repo:v1.0.0`)
+}
+
+func checkSingleImage(imageRef string, noCache bool) {
+	// Parse the image reference into a Container struct
+	container := scanner.ParseImageRef(imageRef)
+
+	fmt.Println("=== Docker Image Update Check ===")
+	fmt.Println()
+	fmt.Printf("Image:     %s\n", container.Image)
+	fmt.Printf("Base:      %s\n", container.ImageBase)
+	fmt.Printf("Tag:       %s\n", container.Tag)
+	fmt.Println()
+
+	// Setup checker
+	var checker *registry.Checker
+	if noCache {
+		checker = registry.NewChecker("")
+	} else {
+		c := cache.New("", cache.DefaultTTL)
+		if err := c.Load(); err != nil {
+			// Ignore cache load errors for single image check
+			checker = registry.NewChecker("")
+		} else {
+			checker = registry.NewCheckerWithCache("", c)
+		}
+	}
+
+	fmt.Print("Checking for updates... ")
+
+	result := checker.CheckForUpdate(container)
+
+	// Save cache if used
+	if err := checker.SaveCache(); err != nil {
+		// Ignore cache save errors
+	}
+
+	if result.Error != nil {
+		fmt.Println("ERROR")
+		fmt.Fprintf(os.Stderr, "\nError: %v\n", result.Error)
+		os.Exit(1)
+	}
+
+	fmt.Println("done")
+	fmt.Println()
+
+	if result.HasUpdate {
+		fmt.Println("=== Update Available ===")
+		fmt.Printf("Current:  %s\n", container.Tag)
+		fmt.Printf("Latest:   %s\n", result.LatestTag)
+		if result.IsDigestOnly {
+			fmt.Println("Type:     Digest update (same tag, new content)")
+		}
+		fmt.Println()
+		fmt.Printf("Update command:\n")
+		fmt.Printf("  sed -i 's/%s:%s/%s:%s/g' <file>\n",
+			container.ImageBase, container.Tag,
+			container.ImageBase, result.LatestTag)
+	} else {
+		fmt.Println("✓ Image is up to date!")
+		fmt.Printf("  Current version: %s\n", container.Tag)
+	}
 }
 
 func runInteractive(configPath, hostFilter string, limit int, dryRun bool, noCache bool) {
