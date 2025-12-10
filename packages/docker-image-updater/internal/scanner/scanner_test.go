@@ -236,3 +236,142 @@ func TestContainerKey(t *testing.T) {
 		t.Errorf("Key() = %q, expected %q", c.Key(), expected)
 	}
 }
+
+func TestIsImageCheckDisabled(t *testing.T) {
+	tests := []struct {
+		name         string
+		currentLine  string
+		previousLine string
+		expected     bool
+	}{
+		{
+			name:         "disabled on same line",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK: disabled`,
+			previousLine: "",
+			expected:     true,
+		},
+		{
+			name:         "disabled on previous line",
+			currentLine:  `image = "nginx:1.0";`,
+			previousLine: `# IMAGECHECK: disabled`,
+			expected:     true,
+		},
+		{
+			name:         "disabled with no space",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK:disabled`,
+			previousLine: "",
+			expected:     true,
+		},
+		{
+			name:         "disabled lowercase",
+			currentLine:  `image = "nginx:1.0"; # imagecheck: disabled`,
+			previousLine: "",
+			expected:     true,
+		},
+		{
+			name:         "not disabled",
+			currentLine:  `image = "nginx:1.0";`,
+			previousLine: `# some other comment`,
+			expected:     false,
+		},
+		{
+			name:         "empty lines",
+			currentLine:  `image = "nginx:1.0";`,
+			previousLine: "",
+			expected:     false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isImageCheckDisabled(tc.currentLine, tc.previousLine)
+			if result != tc.expected {
+				t.Errorf("isImageCheckDisabled(%q, %q) = %v, expected %v",
+					tc.currentLine, tc.previousLine, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestParseContainerFileWithImageCheckDisabled(t *testing.T) {
+	// Create a temporary directory with a test containers.nix file
+	tmpDir, err := os.MkdirTemp("", "scanner-disabled-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create host directory structure
+	hostDir := filepath.Join(tmpDir, "hosts", "testhost")
+	if err := os.MkdirAll(hostDir, 0755); err != nil {
+		t.Fatalf("Failed to create host dir: %v", err)
+	}
+
+	// Create test containers.nix content with IMAGECHECK: disabled
+	// Note: The directive must be on the same line as the image definition,
+	// or on the immediately preceding line (no blank lines in between)
+	testContent := `{ config, ... }: {
+  virtualisation.oci-containers = {
+    backend = "docker";
+    containers = {
+      # This one should be checked
+      postgres = {
+        image = "postgres:17";
+      };
+
+      legacy-app = {
+        # IMAGECHECK: disabled
+        image = "legacy:1.0";
+      };
+
+      nginx = {
+        image = "nginx:1.27.0"; # IMAGECHECK: disabled
+      };
+
+      # This one should also be checked
+      redis = {
+        image = "redis:7";
+      };
+    };
+  };
+}`
+
+	containerFile := filepath.Join(hostDir, "containers.nix")
+	if err := os.WriteFile(containerFile, []byte(testContent), 0644); err != nil {
+		t.Fatalf("Failed to write containers.nix: %v", err)
+	}
+
+	// Test parsing
+	s := NewScanner(tmpDir)
+	containers, err := s.Scan("")
+	if err != nil {
+		t.Fatalf("Scan failed: %v", err)
+	}
+
+	// Should only have 2 containers (postgres and redis), not legacy-app or nginx
+	if len(containers) != 2 {
+		t.Errorf("Expected 2 containers (disabled ones filtered), got %d", len(containers))
+		for _, c := range containers {
+			t.Logf("  Found: %s", c.Name)
+		}
+	}
+
+	// Verify the correct containers were parsed
+	containerMap := make(map[string]Container)
+	for _, c := range containers {
+		containerMap[c.Name] = c
+	}
+
+	if _, ok := containerMap["postgres"]; !ok {
+		t.Error("postgres container should be present")
+	}
+	if _, ok := containerMap["redis"]; !ok {
+		t.Error("redis container should be present")
+	}
+	if _, ok := containerMap["legacy-app"]; ok {
+		t.Error("legacy-app container should be filtered out (IMAGECHECK: disabled on previous line)")
+	}
+	if _, ok := containerMap["nginx"]; ok {
+		t.Error("nginx container should be filtered out (IMAGECHECK: disabled on same line)")
+	}
+}

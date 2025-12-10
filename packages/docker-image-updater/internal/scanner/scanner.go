@@ -105,8 +105,14 @@ func (s *Scanner) listAvailableHosts() ([]string, error) {
 	return hosts, nil
 }
 
+// imageCheckDisabledRe matches the IMAGECHECK: disabled directive in comments.
+// Supports variations like "# IMAGECHECK: disabled", "# IMAGECHECK:disabled", "# imagecheck: disabled"
+var imageCheckDisabledRe = regexp.MustCompile(`#\s*IMAGECHECK:\s*disabled`)
+
 // parseContainerFile parses a single containers.nix file and extracts container definitions.
 // This implements a state machine similar to the AWK logic in the shell script.
+// Lines with "# IMAGECHECK: disabled" comment (on the same line or the preceding line)
+// will be skipped from update checking.
 func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -125,6 +131,7 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 	depth := 0
 	currentContainer := ""
 	containerDepth := 0
+	previousLine := ""
 
 	// Regex patterns
 	containersStartRe := regexp.MustCompile(`^\s*containers\s*=\s*\{`)
@@ -139,10 +146,12 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 		if !inContainers && containersStartRe.MatchString(line) {
 			inContainers = true
 			depth = 1 // We're inside the containers block
+			previousLine = line
 			continue
 		}
 
 		if !inContainers {
+			previousLine = line
 			continue
 		}
 
@@ -154,6 +163,7 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 		// Check for end of containers block
 		if depth <= 0 && containersEndRe.MatchString(line) {
 			inContainers = false
+			previousLine = line
 			continue
 		}
 
@@ -166,18 +176,22 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 		// Look for image definition within a container block
 		if currentContainer != "" {
 			if matches := imageDefRe.FindStringSubmatch(line); matches != nil {
-				image := matches[1]
-				tag := extractTag(image)
-				imageBase := extractImageBase(image)
+				// Check if this image should be skipped
+				// Look for IMAGECHECK: disabled on this line or the previous line
+				if !isImageCheckDisabled(line, previousLine) {
+					image := matches[1]
+					tag := extractTag(image)
+					imageBase := extractImageBase(image)
 
-				containers = append(containers, Container{
-					Host:      hostName,
-					Name:      currentContainer,
-					Image:     image,
-					Tag:       tag,
-					ImageBase: imageBase,
-					FilePath:  filePath,
-				})
+					containers = append(containers, Container{
+						Host:      hostName,
+						Name:      currentContainer,
+						Image:     image,
+						Tag:       tag,
+						ImageBase: imageBase,
+						FilePath:  filePath,
+					})
+				}
 				currentContainer = ""
 			}
 		}
@@ -186,6 +200,8 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 		if currentContainer != "" && depth < containerDepth {
 			currentContainer = ""
 		}
+
+		previousLine = line
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -193,6 +209,17 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 	}
 
 	return containers, nil
+}
+
+// isImageCheckDisabled checks if the IMAGECHECK: disabled directive is present
+// on the current line or the previous line.
+func isImageCheckDisabled(currentLine, previousLine string) bool {
+	// Case-insensitive check
+	currentLower := strings.ToLower(currentLine)
+	previousLower := strings.ToLower(previousLine)
+
+	return strings.Contains(currentLower, "imagecheck:") && strings.Contains(currentLower, "disabled") ||
+		strings.Contains(previousLower, "imagecheck:") && strings.Contains(previousLower, "disabled")
 }
 
 // extractTag extracts the tag from an image reference.
