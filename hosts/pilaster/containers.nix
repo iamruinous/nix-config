@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 3493 5050 8095 8097 9000];
+  networking.firewall.allowedTCPPorts = [80 443 3493 5050 5432 8095 8097 9000];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
