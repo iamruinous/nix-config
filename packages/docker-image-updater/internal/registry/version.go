@@ -178,8 +178,59 @@ func FindLatestVersionMatching(tags []string, currentTag string) string {
 		return ""
 	}
 
+	// Filter out tags that look like date-based versions (e.g., 18.04.1, 20.04.1)
+	// when the current tag has a small major version (< 15).
+	// This handles LinuxServer images that have Ubuntu-derived version tags.
+	if currentTag != "" {
+		semverTags = filterOutDateBasedVersions(semverTags, currentTag)
+	}
+
+	if len(semverTags) == 0 {
+		return ""
+	}
+
 	SortVersions(semverTags)
 	return semverTags[len(semverTags)-1]
+}
+
+// filterOutDateBasedVersions removes tags that appear to be date-based versions
+// (like Ubuntu versions 18.04.1, 20.04.1, etc.) when the current version
+// suggests a normal semver scheme with a small major version.
+func filterOutDateBasedVersions(tags []string, currentTag string) []string {
+	currentMajor, _, _, ok := ParseVersion(currentTag)
+	if !ok {
+		return tags
+	}
+
+	// If current major version is already high (>= 15), don't filter
+	// This threshold is chosen because:
+	// - Most software has major versions < 15
+	// - Ubuntu date-based versions start at 18.xx
+	if currentMajor >= 15 {
+		return tags
+	}
+
+	var result []string
+	for _, tag := range tags {
+		tagMajor, tagMinor, _, ok := ParseVersion(tag)
+		if !ok {
+			result = append(result, tag)
+			continue
+		}
+
+		// Filter out tags where:
+		// 1. Major version is >= 15 (likely a date-based version like 18.xx, 20.xx)
+		// 2. Minor version looks like a month (1-12) or Ubuntu-style (.04, .10)
+		// This catches Ubuntu-style versions like 18.04.1, 20.04.1, 22.04.1
+		if tagMajor >= 15 && (tagMinor == 4 || tagMinor == 10 || tagMinor <= 12) {
+			// Skip this tag - it's likely a date-based version
+			continue
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
 }
 
 // IsNewerVersion returns true if newVersion is newer than currentVersion.

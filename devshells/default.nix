@@ -9,12 +9,16 @@ pkgs.mkShell {
   packages = with pkgs; [
     cloudflare-cli
     doggo # Modern DNS client for lookups
+    go # Go compiler for building/testing Go packages
     pnpm # For running Node.js-based MCP servers
     uv # Provides uvx for running Python-based MCP servers
     # perSystem.nixos-lima.nixos-lima
   ];
 
   shellHook = ''
+    # Set GOPATH to avoid "relative path" errors when running Go tools
+    export GOPATH="$HOME/go"
+
     # Alias dig to doggo for modern DNS lookups
     alias dig='doggo'
 
