@@ -70,6 +70,7 @@
         ".local" # keep vim state
         ".cache"
         ".claude"
+        ".go"
         ".npm"
         ".npm-devshells"
         ".config/gh"
