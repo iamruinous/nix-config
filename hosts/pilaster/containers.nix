@@ -131,6 +131,7 @@
         ];
       };
       nutify-netrack = {
+        # IMAGECHECK: disabled - no semver tags, only latest-style tags
         image = "dartsteven/nutify:amd64-latest";
         extraOptions = [
           "--privileged"
@@ -160,6 +161,7 @@
         ];
       };
       nutify-servers = {
+        # IMAGECHECK: disabled - no semver tags, only latest-style tags
         image = "dartsteven/nutify:amd64-latest";
         extraOptions = [
           "--privileged"
@@ -189,7 +191,7 @@
         ];
       };
       qdrant = {
-        image = "qdrant/qdrant";
+        image = "qdrant/qdrant:v1.16.2";
         environmentFiles = [config.age.secrets.pilaster_docker_env_qdrant.path];
         networks = [
           "datanet"
@@ -465,6 +467,7 @@
       #   ];
       # };
       music-assistant = {
+        # IMAGECHECK: disabled - only beta/dev versions available, no stable releases
         image = "ghcr.io/music-assistant/server:latest";
         extraOptions = [
           "--network=host"
@@ -479,6 +482,7 @@
         ];
       };
       music-assistant-alexa = {
+        # IMAGECHECK: disabled - no semver tags available
         image = "ghcr.io/alams154/music-assistant-alexa-api:latest";
         environmentFiles = [config.age.secrets.pilaster_docker_env_music_assistant_alexa.path];
         networks = [
@@ -486,7 +490,7 @@
         ];
       };
       mcp-gateway = {
-        image = "docker/mcp-gateway";
+        image = "docker/mcp-gateway:v0.32.0";
         cmd = [
           "--catalog=/mcp/catalogs/docker-mcp.yaml"
           "--config=/mcp/config.yaml"
