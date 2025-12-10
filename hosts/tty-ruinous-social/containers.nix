@@ -187,6 +187,7 @@
       #   ];
       # };
       karakeep = {
+        # IMAGECHECK: disabled - uses release tag, no semver versions
         image = "ghcr.io/karakeep-app/karakeep:release";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
@@ -282,7 +283,7 @@
         ];
       };
       mealie = {
-        image = "ghcr.io/mealie-recipes/mealie:latest";
+        image = "ghcr.io/mealie-recipes/mealie:v3.6.1";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mealie.path];
         networks = ["servicenet"];
         volumes = [
@@ -290,7 +291,7 @@
         ];
       };
       synapse = {
-        image = "ghcr.io/element-hq/synapse:latest";
+        image = "ghcr.io/element-hq/synapse:v1.144.0";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_synapse.path];
         networks = ["datanet" "servicenet"];
         volumes = [
@@ -298,14 +299,14 @@
         ];
       };
       "maubot" = {
-        image = "dock.mau.dev/maubot/maubot:latest";
+        image = "dock.mau.dev/maubot/maubot:v0.6.0";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/maubot/data:/data"
         ];
       };
       writefreely = {
-        image = "docker.io/writeas/writefreely:latest";
+        image = "docker.io/writeas/writefreely:0.16.0";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/writefreely/keys:/go/keys"
@@ -315,7 +316,7 @@
       };
       # remotenet
       rustdesk-hbbr = {
-        image = "docker.io/rustdesk/rustdesk-server:latest";
+        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
         cmd = ["hbbr"];
         networks = ["remotenet"];
         ports = [
@@ -329,7 +330,7 @@
         ];
       };
       rustdesk-hbbs = {
-        image = "docker.io/rustdesk/rustdesk-server:latest";
+        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
         cmd = ["hbbs"];
         networks = ["remotenet"];
         ports = [

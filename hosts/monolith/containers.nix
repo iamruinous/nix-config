@@ -216,7 +216,7 @@
         ];
       };
       acme-dns = {
-        image = "docker.io/joohoi/acme-dns";
+        image = "docker.io/joohoi/acme-dns:v1.0";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/acme-dns/config:/etc/acme-dns:ro"
@@ -248,7 +248,7 @@
         ];
       };
       autobrr = {
-        image = "ghcr.io/autobrr/autobrr:latest";
+        image = "ghcr.io/autobrr/autobrr:v1.70.0";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -281,7 +281,7 @@
         ];
       };
       calibre = {
-        image = "lscr.io/linuxserver/calibre:latest";
+        image = "lscr.io/linuxserver/calibre:8.16.2";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -297,7 +297,7 @@
         ];
       };
       calibre-automated = {
-        image = "ghcr.io/crocodilestick/calibre-web-automated:latest";
+        image = "ghcr.io/crocodilestick/calibre-web-automated:V3.1.4";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -313,6 +313,7 @@
         ];
       };
       calibre-automated-dl = {
+        # IMAGECHECK: disabled - no semver tags available
         image = "ghcr.io/calibrain/calibre-web-automated-book-downloader:latest";
         environment = {
           UID = "4000";
@@ -336,7 +337,7 @@
         ];
       };
       changedetection = {
-        image = "ghcr.io/dgtlmoon/changedetection.io";
+        image = "ghcr.io/dgtlmoon/changedetection.io:0.51.4";
         environment = {
           TZ = "America/Phoenix";
         };
@@ -346,7 +347,7 @@
         ];
       };
       deluge = {
-        image = "lscr.io/linuxserver/deluge:18.04.1";
+        image = "lscr.io/linuxserver/deluge:2.2.0";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -399,7 +400,7 @@
         ];
       };
       flaresolverr = {
-        image = "ghcr.io/flaresolverr/flaresolverr:latest";
+        image = "ghcr.io/flaresolverr/flaresolverr:v3.4.6";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -436,7 +437,7 @@
         ];
       };
       frigate = {
-        image = "ghcr.io/blakeblackshear/frigate:stable";
+        image = "ghcr.io/blakeblackshear/frigate:0.16.3";
         networks = ["servicenet"];
         capabilities = {
           "CAP_PERFMON" = true;
@@ -481,7 +482,7 @@
         ];
       };
       "loki" = {
-        image = "docker.io/grafana/loki:latest";
+        image = "docker.io/grafana/loki:3.6.2";
         cmd = ["-config.file=/mnt/config/loki-config.yaml"];
         networks = [
           "datanet"
@@ -567,7 +568,7 @@
         ];
       };
       "paperless-ai" = {
-        image = "docker.io/clusterzx/paperless-ai:latest";
+        image = "docker.io/clusterzx/paperless-ai:2.2.1";
         environment = {
           PUID = "4000";
           PGUID = "4000";
@@ -615,7 +616,7 @@
         networks = ["servicenet"];
       };
       "tika" = {
-        image = "docker.io/apache/tika:latest";
+        image = "docker.io/apache/tika:2.5.0";
         networks = ["servicenet"];
       };
       phpldapadmin = {
@@ -630,7 +631,7 @@
         ];
       };
       gluetun = {
-        image = "docker.io/qmcgaw/gluetun:latest";
+        image = "docker.io/qmcgaw/gluetun:v3.40.3";
         environmentFiles = [config.age.secrets.monolith_docker_env_gluetun.path];
         ports = [
           "8080:8080"
@@ -693,7 +694,7 @@
       #   ];
       # };
       pinchflat = {
-        image = "ghcr.io/kieraneglin/pinchflat:latest";
+        image = "ghcr.io/kieraneglin/pinchflat:v2025.6.6";
         environment = {
           TZ = "America/Phoenix";
         };
@@ -733,6 +734,7 @@
         ];
       };
       "plex-exporter" = {
+        # IMAGECHECK: disabled - no semver tags available
         image = "ghcr.io/timothystewart6/prometheus-plex-exporter:latest";
         networks = [
           "datanet"
