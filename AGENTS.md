@@ -71,6 +71,55 @@ nix run 'github:numtide/system-manager' -- switch --flake .#pit
 
 This repository includes custom AI agents that provide specialized expertise for specific tasks. Agents are defined in `.claude/agents/` and are automatically available to Claude Code.
 
+### Agent Workflow Requirements
+
+**Before making any code changes**, all AI agents MUST follow this workflow:
+
+1. **Create a plan with todos**
+   - Use the TodoWrite tool to create a structured task list
+   - Break down the work into clear, actionable steps
+   - Include research/exploration tasks before implementation tasks
+
+2. **Maintain a progress log**
+   - Update todo status as you work (pending → in_progress → completed)
+   - Only mark tasks complete when fully finished
+   - Add new tasks discovered during implementation
+
+3. **Confirm the plan with the user before taking action**
+   - Present the plan to the user for review
+   - Wait for explicit approval before making changes
+   - Adjust the plan based on user feedback
+
+**Example workflow:**
+```
+User: "Add a new Docker container for WikiJS"
+
+Agent:
+1. Creates todo list:
+   - [ ] Research existing container patterns in hosts/
+   - [ ] Identify target host for deployment
+   - [ ] Plan container configuration
+   - [ ] Plan Caddy reverse proxy entry
+   - [ ] Plan DNS entry
+
+2. Presents plan to user:
+   "Here's my plan for adding WikiJS:
+   - Add container to hosts/monolith/containers.nix
+   - Create env file at hosts/monolith/files/docker/env/wikijs.env.age
+   - Add reverse proxy entry to Caddyfile
+   - Create DNS entry wikijs.meskill.farm → monolith.meskill.farm
+
+   Does this look correct? Should I proceed?"
+
+3. Waits for user confirmation before implementing
+```
+
+**Why this matters:**
+- Prevents wasted effort on misunderstood requirements
+- Gives the user visibility into planned changes
+- Catches errors before they're made
+- Creates a clear audit trail of work
+
 ### Available Agents
 
 #### nix-packager
