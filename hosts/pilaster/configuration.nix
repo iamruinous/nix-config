@@ -32,6 +32,11 @@
   programs.nix-ld.enable = true;
   power.ups.enable = true;
 
+  # Set permissions on USB serial device for meshtastic relay
+  services.udev.extraRules = ''
+    KERNEL=="ttyUSB0", MODE="0666"
+  '';
+
   environment.systemPackages = with pkgs; [
     docker-mcp-gateway
   ];

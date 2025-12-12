@@ -532,17 +532,35 @@
           "/data/docker/wikijs/data:/wiki/data"
         ];
       };
+      meshtastic-message-relay = {
+        image = "ghcr.io/iamruinous/meshtastic-message-relay:0.1.1";
+        cmd = ["run" "--config" "/etc/meshtastic-relay/config.yaml"];
+        extraOptions = [
+          "--device=/dev/ttyUSB0:/dev/ttyUSB0"
+        ];
+        networks = [
+          "servicenet"
+        ];
+        volumes = [
+          "${config.age.secrets.pilaster_meshtastic_relay_config.path}:/etc/meshtastic-relay/config.yaml:ro"
+          "/data/docker/meshtastic-relay/logs:/var/log/meshtastic"
+        ];
+      };
     };
-  };
-
-  age.secrets.pilaster_caddy_caddyfile = {
-    rekeyFile = ./files/caddy/Caddyfile.age;
-    mode = "600";
   };
 
   # Restart docker-caddy service when Caddyfile secret changes
   systemd.services.docker-caddy = {
     restartTriggers = [config.age.secrets.pilaster_caddy_caddyfile.path];
+  };
+  # Restart docker-meshtastic-message-relay service when config secret changes
+  systemd.services.docker-meshtastic-message-relay = {
+    restartTriggers = [config.age.secrets.pilaster_meshtastic_relay_config.path];
+  };
+
+  age.secrets.pilaster_caddy_caddyfile = {
+    rekeyFile = ./files/caddy/Caddyfile.age;
+    mode = "600";
   };
   age.secrets.pilaster_docker_env_authentik = {
     rekeyFile = ./files/docker/env/authentik.env.age;
@@ -587,5 +605,9 @@
   age.secrets.pilaster_docker_env_wikijs = {
     rekeyFile = ./files/docker/env/wikijs.env.age;
     mode = "600";
+  };
+  age.secrets.pilaster_meshtastic_relay_config = {
+    rekeyFile = ./files/meshtastic-message-relay/config.yaml.age;
+    mode = "666";
   };
 }
