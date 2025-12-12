@@ -9,6 +9,7 @@
     flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
+    ./containers.nix
     ./disko.nix
   ];
 
@@ -16,6 +17,7 @@
 
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
+  virtualisation.docker.enable = true;
   power.ups.enable = true;
 
   # This value determines the NixOS release from which the default
