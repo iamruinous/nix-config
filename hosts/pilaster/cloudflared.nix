@@ -12,6 +12,20 @@
         ingress = {"ma.meskill.farm" = "https://ma-int.meskill.farm";};
         default = "http_status:404";
       };
+      # TODO: Create tunnel with: cloudflared tunnel create monica
+      # Then replace TUNNEL_ID_HERE with the tunnel ID and encrypt the JSON credentials
+      # "TUNNEL_ID_HERE" = {
+      #   credentialsFile = "${config.age.secrets.pilaster_cloudflared_monica.path}";
+      #   ingress = {"monica.meskill.farm" = "https://monica-int.meskill.farm";};
+      #   default = "http_status:404";
+      # };
+      # TODO: Create tunnel with: cloudflared tunnel create twenty
+      # Then replace TUNNEL_ID_HERE with the tunnel ID and encrypt the JSON credentials
+      # "TUNNEL_ID_HERE" = {
+      #   credentialsFile = "${config.age.secrets.pilaster_cloudflared_twenty.path}";
+      #   ingress = {"twenty.meskill.farm" = "https://twenty-int.meskill.farm";};
+      #   default = "http_status:404";
+      # };
     };
   };
 
@@ -30,4 +44,14 @@
     rekeyFile = ./files/cloudflared/music-assistant.json.age;
     mode = "644";
   };
+
+  # Uncomment after creating tunnels and encrypting credentials:
+  # age.secrets.pilaster_cloudflared_monica = {
+  #   rekeyFile = ./files/cloudflared/monica.json.age;
+  #   mode = "644";
+  # };
+  # age.secrets.pilaster_cloudflared_twenty = {
+  #   rekeyFile = ./files/cloudflared/twenty.json.age;
+  #   mode = "644";
+  # };
 }
