@@ -316,14 +316,111 @@ In addition to the general guidelines, this NixOS configuration repository has t
 
    **When adding a new service to Caddy, always offer to create the DNS entry using cfcli.**
 
-5. **Check SSH/GPG agent** before committing:
+5. **Cloudflare Tunnels**:
+   Cloudflare Tunnels allow exposing services to the internet without opening ports. See existing examples in `hosts/monolith/cloudflared.nix` and `hosts/pilaster/cloudflared.nix`.
+
+   **References:**
+   - [NixOS Wiki - Cloudflared](https://wiki.nixos.org/wiki/Cloudflared)
+   - [Blog: Nix Cloudflare Tunnels](https://olai.dev/blog/nix-cloudflare-tunnels/)
+
+   **Step 1: Authenticate with Cloudflare (one-time per host)**
+   ```bash
+   # Run on the target host or any machine, then copy cert.pem
+   nix run nixpkgs#cloudflared -- tunnel login
+   ```
+   This opens a browser to authenticate. After success, it creates `~/.cloudflared/cert.pem`.
+
+   **Step 2: Create a tunnel**
+   ```bash
+   # Create the tunnel (use a descriptive name)
+   cloudflared tunnel create <tunnel-name>
+   ```
+   This outputs:
+   - A **tunnel ID** (UUID like `9b4d96ca-4911-46d3-979e-38f3d6dae733`)
+   - A **credentials JSON file** at `~/.cloudflared/<tunnel-id>.json`
+
+   **Keep both the cert.pem and JSON file secure** - they grant tunnel access.
+
+   **Step 3: Encrypt secrets with agenix**
+   ```bash
+   # Create the cloudflared directory for the host
+   mkdir -p hosts/<hostname>/files/cloudflared
+
+   # Encrypt the cert.pem (one per host, can be reused for multiple tunnels)
+   agenix edit -i ~/.cloudflared/cert.pem hosts/<hostname>/files/cloudflared/cert.pem.age
+
+   # Encrypt the tunnel credentials JSON
+   agenix edit -i ~/.cloudflared/<tunnel-id>.json hosts/<hostname>/files/cloudflared/<tunnel-name>.json.age
+
+   # Clean up unencrypted files
+   rm ~/.cloudflared/cert.pem ~/.cloudflared/<tunnel-id>.json
+   ```
+
+   **Step 4: Create cloudflared.nix**
+   Create `hosts/<hostname>/cloudflared.nix`:
+   ```nix
+   {config, ...}: {
+     services.cloudflared = {
+       enable = true;
+       tunnels = {
+         "<tunnel-id>" = {
+           credentialsFile = "${config.age.secrets.<hostname>_cloudflared_<tunnel_name>.path}";
+           ingress = {"<subdomain>.meskill.farm" = "https://<internal-service>:port";};
+           default = "http_status:404";
+         };
+       };
+     };
+
+     # cert.pem is required for tunnel management (creating/deleting tunnels)
+     age.secrets.<hostname>_cloudflared_cert_pem = {
+       rekeyFile = ./files/cloudflared/cert.pem.age;
+       path = "/etc/cloudflared/cert.pem";
+       mode = "644";
+     };
+
+     # Tunnel credentials JSON
+     age.secrets.<hostname>_cloudflared_<tunnel_name> = {
+       rekeyFile = ./files/cloudflared/<tunnel-name>.json.age;
+       mode = "644";
+     };
+   }
+   ```
+
+   **Step 5: Import in configuration.nix**
+   Add to the host's `configuration.nix`:
+   ```nix
+   imports = [
+     ./cloudflared.nix
+     # ... other imports
+   ];
+   ```
+
+   **Step 6: Configure DNS in Cloudflare**
+   Add a CNAME record pointing to the tunnel:
+   ```
+   <subdomain>.meskill.farm -> <tunnel-id>.cfargotunnel.com
+   ```
+   This can be done via the Cloudflare dashboard or API.
+
+   **Adding additional tunnels to an existing host:**
+   1. Create the new tunnel: `cloudflared tunnel create <new-tunnel-name>`
+   2. Encrypt the new JSON: `agenix edit -i ~/.cloudflared/<new-tunnel-id>.json hosts/<hostname>/files/cloudflared/<new-tunnel-name>.json.age`
+   3. Add a new entry to the `tunnels` attribute set in cloudflared.nix
+   4. Add a new `age.secrets` entry for the credentials
+   5. Add the DNS CNAME record
+
+   **Naming conventions:**
+   - Secret names: `<hostname>_cloudflared_<purpose>` (e.g., `monolith_cloudflared_n8n_webhook`)
+   - Tunnel names: Descriptive of the service (e.g., `n8n-webhook`, `music-assistant`)
+
+6. **Check SSH/GPG agent** before committing:
    ```bash
    ssh-agent-check || echo "Warning: SSH agent not responding"
    ```
 
-6. **All commits must be GPG signed** - never use `--no-gpg-sign`
+7. **All commits must be GPG signed** - never use `--no-gpg-sign`
 
-7. **Documentation Updates**:
+8. **Documentation Updates**:
    When adding containers, services, or making significant changes to a host, update the relevant documentation:
 
    **Host-specific README (`hosts/<host>/README.md`):**
