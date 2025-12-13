@@ -7,6 +7,7 @@
 }:
 pkgs.mkShell {
   packages = with pkgs; [
+    cloudflared
     cloudflare-cli
     doggo # Modern DNS client for lookups
     go # Go compiler for building/testing Go packages

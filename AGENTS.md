@@ -441,14 +441,15 @@ In addition to the general guidelines, this NixOS configuration repository has t
 
    **Step 1: Authenticate with Cloudflare (one-time per host)**
    ```bash
-   # Run on the target host or any machine, then copy cert.pem
-   nix run nixpkgs#cloudflared -- tunnel login
+   # cloudflared is available in the devshell
+   cloudflared tunnel login
    ```
    This opens a browser to authenticate. After success, it creates `~/.cloudflared/cert.pem`.
 
    **Step 2: Create a tunnel**
    ```bash
    # Create the tunnel (use a descriptive name)
+   # cloudflared is available in the devshell
    cloudflared tunnel create <tunnel-name>
    ```
    This outputs:
@@ -512,18 +513,18 @@ In addition to the general guidelines, this NixOS configuration repository has t
    ```
 
    **Step 6: Configure DNS in Cloudflare**
-   Add a CNAME record pointing to the tunnel:
+   Add a CNAME record pointing to the tunnel using cfcli (available in devshell):
+   ```bash
+   cfcli --domain meskill.farm --type CNAME add <subdomain> <tunnel-id>.cfargotunnel.com
    ```
-   <subdomain>.meskill.farm -> <tunnel-id>.cfargotunnel.com
-   ```
-   This can be done via the Cloudflare dashboard or API.
+   Or via the Cloudflare dashboard: `<subdomain>.meskill.farm -> <tunnel-id>.cfargotunnel.com`
 
    **Adding additional tunnels to an existing host:**
    1. Create the new tunnel: `cloudflared tunnel create <new-tunnel-name>`
    2. Encrypt the new JSON: `agenix edit -i ~/.cloudflared/<new-tunnel-id>.json hosts/<hostname>/files/cloudflared/<new-tunnel-name>.json.age`
    3. Add a new entry to the `tunnels` attribute set in cloudflared.nix
    4. Add a new `age.secrets` entry for the credentials
-   5. Add the DNS CNAME record
+   5. Add the DNS CNAME record: `cfcli --domain meskill.farm --type CNAME add <subdomain> <tunnel-id>.cfargotunnel.com`
 
    **Naming conventions:**
    - Secret names: `<hostname>_cloudflared_<purpose>` (e.g., `monolith_cloudflared_n8n_webhook`)
