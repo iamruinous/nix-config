@@ -282,14 +282,130 @@ In addition to the general guidelines, this NixOS configuration repository has t
      4. Re-encrypt: `agenix edit -i /tmp/file.txt path/to/file.age`
      5. Clean up: `rm /tmp/file.txt`
 
-3. **Adding Docker containers with reverse proxy**:
-   - Add container definition to `hosts/<host>/containers.nix`
-   - Create encrypted env file in `hosts/<host>/files/docker/env/<service>.env.age`
-   - Add agenix secret definition in the same containers.nix file
-   - Update Caddyfile at `hosts/<host>/files/caddy/Caddyfile.age` to add reverse proxy entry
-   - Container names on `servicenet` are resolvable as hostnames in Caddy (e.g., `reverse_proxy wikijs:3000`)
-   - **Create DNS entry for the service** (see DNS Management below)
-   - **Update documentation** (see Documentation Updates below)
+3. **Adding Docker Containers**:
+   When adding a new Docker container, follow this comprehensive workflow.
+
+   **Questions to Ask the User:**
+   Before implementing, gather the following information:
+
+   1. **Which host should run this container?** (e.g., monolith, pilaster, zenith)
+   2. **Does this container require environment variables or secrets?**
+      - If yes: Create a `.env.template` file for the user to fill in
+   3. **Does this container need a reverse proxy (Caddy)?**
+      - If yes: What domain name? (e.g., `myservice.meskill.farm`)
+      - If no: What port(s) should be opened in the firewall?
+   4. **Will this container be accessible over a Cloudflare Tunnel?**
+      - If yes: Follow the Cloudflare Tunnels setup (item 5 below)
+   5. **Does this container need to communicate with other containers?**
+      - Database access → use `datanet` network
+      - Service-to-service → use `servicenet` network
+      - Direct host port binding → use `proxynet` network
+
+   **Step 1: Unlock agenix (if working with secrets)**
+   ```bash
+   agenix-helper unlock
+   ```
+
+   **Step 2: Create directory structure**
+   ```bash
+   mkdir -p hosts/<hostname>/files/docker/env
+   ```
+
+   **Step 3: Create environment template (if needed)**
+   Create `hosts/<hostname>/files/docker/env/<service>.env.template`:
+   ```env
+   # Example template - user fills in actual values
+   DB_PASSWORD=
+   API_KEY=
+   SECRET_TOKEN=
+   ```
+   Ask the user to fill in the values, then encrypt:
+   ```bash
+   agenix edit -i hosts/<hostname>/files/docker/env/<service>.env.template \
+               hosts/<hostname>/files/docker/env/<service>.env.age
+   rm hosts/<hostname>/files/docker/env/<service>.env.template
+   ```
+
+   **Step 4: Add container definition to containers.nix**
+   ```nix
+   virtualisation.oci-containers.containers.<service> = {
+     image = "registry/image:tag";
+     environmentFiles = [config.age.secrets.<hostname>_docker_env_<service>.path];
+     networks = ["servicenet"];  # or datanet, proxynet as needed
+     volumes = [
+       "/data/docker/<service>/data:/app/data"
+     ];
+     # For services behind Caddy, no ports needed
+     # For direct access, add: ports = ["8080:8080"];
+   };
+   ```
+
+   **Step 5: Add age.secrets definition**
+   Add at the end of `containers.nix`:
+   ```nix
+   age.secrets.<hostname>_docker_env_<service> = {
+     rekeyFile = ./files/docker/env/<service>.env.age;
+     mode = "600";
+   };
+   ```
+
+   **Step 6: Rekey secrets**
+   ```bash
+   agenix rekey -a
+   ```
+
+   **Step 7: Configure access (choose one)**
+
+   **Option A: Reverse Proxy (Caddy)**
+   - Update Caddyfile:
+     ```bash
+     # View current Caddyfile
+     agenix view hosts/<hostname>/files/caddy/Caddyfile.age > /tmp/Caddyfile
+
+     # Edit to add new entry:
+     # <service>.meskill.farm {
+     #   reverse_proxy <service>:8080
+     # }
+
+     # Re-encrypt
+     rm hosts/<hostname>/files/caddy/Caddyfile.age
+     agenix edit -i /tmp/Caddyfile hosts/<hostname>/files/caddy/Caddyfile.age
+     rm /tmp/Caddyfile
+     ```
+   - Container names on `servicenet` are resolvable as hostnames in Caddy
+   - Create DNS entry (see DNS Management below)
+
+   **Option B: Direct Port Access**
+   - Add port to container definition: `ports = ["8080:8080"];`
+   - Add to firewall in containers.nix:
+     ```nix
+     networking.firewall.allowedTCPPorts = [80 443 8080];  # add your port
+     ```
+
+   **Option C: Cloudflare Tunnel**
+   - See Cloudflare Tunnels documentation (item 5 below)
+   - No firewall ports needed - tunnel handles external access
+
+   **Step 8: Lock agenix when done**
+   ```bash
+   agenix-helper lock
+   ```
+
+   **Step 9: Update documentation**
+   - Add service to `hosts/<hostname>/README.md`
+   - Update `hosts/README.md` if adding significant new capability
+
+   **Naming Conventions:**
+   - Secret names: `<hostname>_docker_env_<service>` (e.g., `pilaster_docker_env_wikijs`)
+   - Env files: `hosts/<hostname>/files/docker/env/<service>.env.age`
+   - Data volumes: `/data/docker/<service>/`
+
+   **Network Reference:**
+   | Network | Purpose | Use When |
+   |---------|---------|----------|
+   | `servicenet` | Container-to-container communication | Services accessed via Caddy |
+   | `datanet` | Internal-only (no external access) | Databases, caches |
+   | `proxynet` | Host port binding | Caddy, UDP services, special protocols |
 
 4. **DNS Management**:
    Each container host has a DNS entry `<hostname>.meskill.farm` that can be used as a CNAME target. When adding a new service to Caddy, you must create a corresponding DNS entry.
