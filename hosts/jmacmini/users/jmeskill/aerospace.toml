@@ -294,6 +294,10 @@ check-further-callbacks = true
 if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Chat
 run = 'move-node-to-workspace C'
 
+[[on-window-detected]]
+if.app-id = 'com.hnc.Discord'
+run = 'move-node-to-workspace C'
+
 # G - Personal Browsers 
 
 [[on-window-detected]]
