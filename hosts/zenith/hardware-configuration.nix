@@ -24,37 +24,37 @@
   networking.firewall.enable = true;
   networking.nftables.enable = true;
   systemd.network.wait-online.enable = false;
-  # systemd.network = {
-  #   enable = true;
-  #   netdevs = {
-  #     "20-vlan2" = {
-  #       netdevConfig = {
-  #         Kind = "vlan";
-  #         Name = "vlan2";
-  #       };
-  #       vlanConfig.Id = 2;
-  #     };
-  #   };
-  #   networks = {
-  #     "30-manage" = {
-  #       matchConfig.Name = "enp1s0";
-  #       networkConfig.DHCP = false;
-  #       dns = ["10.55.10.35"];
-  #       vlan = ["vlan2"];
-  #       linkConfig.RequiredForOnline = "carrier";
-  #     };
-  #     "40-svc" = {
-  #       matchConfig.Name = "vlan2";
-  #       address = ["10.55.20.22/24"];
-  #       gateway = ["10.55.20.1"];
-  #     };
-  #   };
-  # };
+  systemd.network = {
+    enable = true;
+    netdevs = {
+      "20-vlan2" = {
+        netdevConfig = {
+          Kind = "vlan";
+          Name = "vlan2";
+        };
+        vlanConfig.Id = 2;
+      };
+    };
+    networks = {
+      "30-manage" = {
+        matchConfig.Name = "enp194s0";
+        networkConfig.DHCP = false;
+        dns = ["10.55.10.35"];
+        vlan = ["vlan2"];
+        linkConfig.RequiredForOnline = "carrier";
+      };
+      "40-svc" = {
+        matchConfig.Name = "vlan2";
+        address = ["10.55.20.21/24"];
+        gateway = ["10.55.20.1"];
+      };
+    };
+  };
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  networking.useDHCP = lib.mkDefault true;
+  networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = false;
 
   nixpkgs.hostPlatform = "x86_64-linux";
