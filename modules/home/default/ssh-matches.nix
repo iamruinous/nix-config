@@ -54,6 +54,10 @@ in {
         hostname = "tip.svc.farmhouse.meskill.network";
         user = "root";
       };
+      "zenith" = {
+        hostname = "zenith.svc.farmhouse.meskill.network";
+        user = "jmeskill";
+      };
 
       # ttys
       "mtty" = {
