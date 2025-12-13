@@ -533,7 +533,7 @@
         ];
       };
       meshtastic-message-relay = {
-        image = "ghcr.io/iamruinous/meshtastic-message-relay:0.1.1";
+        image = "ghcr.io/iamruinous/meshtastic-message-relay:v0.2.0";
         cmd = ["run" "--config" "/etc/meshtastic-relay/config.yaml"];
         extraOptions = [
           "--device=/dev/ttyUSB0:/dev/ttyUSB0"
