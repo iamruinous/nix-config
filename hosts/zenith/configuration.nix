@@ -17,6 +17,8 @@
   # services.alloy.enable = true;
   # ruinous.alloy.journal.enable = true;
   # power.ups.enable = true;
+  services.tailscale.enable = true;
+  services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
