@@ -28,6 +28,7 @@
       ripgrep
 
       # languages
+      bun
       go
       nodejs
       (python3.withPackages (ps:
