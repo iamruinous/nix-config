@@ -4,8 +4,8 @@ This directory contains configurations for all systems managed by this flake. Ea
 
 ## Overview
 
-This infrastructure consists of 13 hosts spanning multiple platforms:
-- **7 NixOS servers** - Infrastructure and compute nodes
+This infrastructure consists of 14 hosts spanning multiple platforms:
+- **8 NixOS servers** - Infrastructure and compute nodes
 - **3 NixOS MicroVMs** - Ephemeral development environments
 - **3 macOS systems** - Development workstations
 
@@ -15,7 +15,8 @@ This infrastructure consists of 13 hosts spanning multiple platforms:
 
 #### [monolith](monolith/README.md)
 **Minisforum MS-01** - Primary infrastructure server
-- Intel i9-13900H (24 cores), 96 GB RAM
+- Intel i9-13900H (14 cores, 20 threads), 96 GB DDR5
+- 2x 10GbE SFP+, 2x 2.5GbE RJ45, 2x USB4
 - Docker containers, NFS, printing, backups
 - Tailscale subnet routing, Cloudflared tunnels
 - RTL_433 SDR, Grafana Alloy monitoring
@@ -29,9 +30,17 @@ This infrastructure consists of 13 hosts spanning multiple platforms:
 
 #### [pilaster](pilaster/README.md)
 **Minisforum MS-01** - Container server
-- Intel i9-13900H (24 cores), 96 GB RAM
+- Intel i9-13900H (14 cores, 20 threads), 96 GB DDR5
+- 2x 10GbE SFP+, 2x 2.5GbE RJ45, 2x USB4
 - Docker, NFS, Restic backups
 - Tailscale, Grafana Alloy monitoring
+
+#### [zenith](zenith/README.md)
+**Minisforum MS-S1 MAX** - AI-capable container server
+- AMD Ryzen AI Max+ 395 (16 cores, 32 threads), 128 GB LPDDR5x
+- Radeon 8060S GPU, 50 TOPS NPU (126 TOPS total)
+- Dual 10GbE networking, Docker containers
+- Tailscale subnet routing, Caddy reverse proxy
 
 ### ARM Servers
 
@@ -113,11 +122,11 @@ This infrastructure consists of 13 hosts spanning multiple platforms:
 
 ### VLAN Configuration
 - **Management Network** (10.55.10.0/24) - gap, void
-- **Services Network** (10.55.20.0/24 - VLAN 2) - monolith, obelisk, pilaster, MicroVMs
+- **Services Network** (10.55.20.0/24 - VLAN 2) - monolith, obelisk, pilaster, zenith, MicroVMs
 
 ### Tailscale VPN
 Multiple hosts advertise subnet routes (10.55.0.0/16):
-- monolith, obelisk, pilaster (on-premises)
+- monolith, obelisk, pilaster, zenith (on-premises)
 - tty-ruinous-social (cloud access)
 
 ### High Availability
@@ -137,7 +146,7 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 - **Prometheus Node Exporter**: obelisk
 
 ### Container Orchestration
-- **Docker** on: monolith, obelisk, pilaster, tty-ruinous-social
+- **Docker** on: monolith, obelisk, pilaster, zenith, tty-ruinous-social
 - **MicroVM** on: obelisk (hosts 2 VMs)
 
 ### Network Services
@@ -149,16 +158,17 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 
 | Host | Type | Platform | CPU | RAM | Primary Role |
 |------|------|----------|-----|-----|--------------|
-| monolith | Server | NixOS | i9-13900H | 96 GB | Infrastructure hub |
-| obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |
-| pilaster | Server | NixOS | i9-13900H | 96 GB | Containers |
 | armistice | Server | NixOS | ARM64 | 64 GB | ARM workstation |
+| monolith | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Infrastructure hub |
+| obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |
+| pilaster | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Containers |
+| zenith | Server | NixOS | Ryzen AI Max+ 395 | 128 GB | AI + Containers |
 | void | Thin Client | NixOS | GX-424CC | 4 GB | HA master |
 | gap | Thin Client | NixOS | GX-424CC | 4 GB | HA backup |
 | tty-ruinous-social | VPS | NixOS | 4 cores | 8 GB | Cloud services |
-| framework | Laptop | NixOS | Ultra 5 125H | 32 GB | Desktop/dev |
 | ruinous-tty | MicroVM | NixOS | 2 cores | 2 GB | Dev (jmeskill) |
 | messy-tty | MicroVM | NixOS | 2 cores | 2 GB | Dev (messy) |
+| framework | Laptop | NixOS | Ultra 5 125H | 32 GB | Desktop/dev |
 | jbookpro | MacBook Pro | macOS | M4 | 32 GB | Development |
 | jmacmini | Mac mini | macOS | M2 Pro | 16 GB | Development |
 | studio | iMac Pro | macOS | Xeon W | 32 GB | Development |

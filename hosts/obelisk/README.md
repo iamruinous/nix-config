@@ -33,9 +33,13 @@ NixOS server with NVIDIA GPU for containers, virtualization, and compute workloa
 - nftables firewall
 - Tailscale VPN with subnet routing (10.55.0.0/16)
 
+### Containerized Services
+- **Caddy**: Reverse proxy with Cloudflare DNS and HTTPS
+- **Ollama**: LLM inference server (GPU-accelerated)
+- **Open WebUI**: Web interface for Ollama
+
 ### Services
 - **Printing**: CUPS with network printer discovery
-- **Containers**: Multiple containerized services
 - **NFS**: Network file storage
 - **SSH**: Custom SSH configuration
 - **Backup**: Restic backups to terranas

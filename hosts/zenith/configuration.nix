@@ -9,11 +9,13 @@
     flake.inputs.disko.nixosModules.disko
 
     ./hardware-configuration.nix
+    ./containers.nix
     ./disko.nix
   ];
 
   networking.hostName = "zenith"; # Define your hostname.
 
+  virtualisation.docker.enable = true;
   # services.alloy.enable = true;
   # ruinous.alloy.journal.enable = true;
   # power.ups.enable = true;

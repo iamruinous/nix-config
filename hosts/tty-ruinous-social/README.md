@@ -28,9 +28,30 @@ NixOS VPS server running containerized services with backup and monitoring.
 - GRUB with serial console support
 - Configured for headless operation via serial port
 
+### Containerized Services
+
+**Infrastructure:**
+- **Caddy**: Reverse proxy with Cloudflare DNS and HTTPS
+- **PostgreSQL 17**: Relational database
+- **Redis**: In-memory data store
+
+**Social & Communication:**
+- **Mastodon**: Federated social network (web, streaming, sidekiq)
+- **Matrix Synapse**: Federated chat server with Maubot
+- **WriteFreely**: Federated blogging platform
+
+**Productivity:**
+- **Baikal**: CalDAV/CardDAV server
+- **Mealie**: Recipe manager
+- **Karakeep**: Bookmark manager with Meilisearch
+
+**Remote Access:**
+- **RustDesk**: Self-hosted remote desktop (hbbs + hbbr)
+
+**Other:**
+- **AlbyHub**: Bitcoin Lightning wallet
+
 ### Services
-- **Docker**: Container orchestration
-- **Containers**: Multiple containerized services
 - **Backup**: PostgreSQL Docker backup with Restic to terranas
 - **Monitoring**: Grafana Alloy for observability and journal logging
 - **VPN**: Tailscale client for secure access

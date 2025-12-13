@@ -6,10 +6,11 @@ Lightweight NixOS server for Docker containers and network services.
 
 - **Model**: Minisforum MS-01
 - **Platform**: x86_64-linux
-- **CPU**: Intel 13th Gen i9-13900H (24 cores, KVM support)
-- **Memory**: 96 GB RAM
-- **Network**: Dual 2.5GbE ethernet, VLAN 2 support, Thunderbolt
-- **Storage**: NVMe with Disko management
+- **CPU**: Intel Core i9-13900H (14 cores: 6P+8E, 20 threads, up to 5.4 GHz, KVM support)
+- **Memory**: 96 GB DDR5-5200 (dual channel SODIMM)
+- **GPU**: Intel Iris Xe Graphics (up to 1.5 GHz)
+- **Network**: 2x 10Gbps SFP+, 2x 2.5Gbps RJ45 (I226-LM/I226-V), 2x USB4 (40Gbps), VLAN support
+- **Storage**: Disko-managed NVMe, 3x M.2 slots, U.2 support, PCIe 4.0 x16 slot
 - **IP Address**: 10.55.20.25/24 (VLAN 2)
 
 ## Key Features
@@ -20,8 +21,28 @@ Lightweight NixOS server for Docker containers and network services.
 - nftables firewall
 - Tailscale VPN with subnet routing (10.55.0.0/16)
 
+### Containerized Services
+
+**Infrastructure:**
+- **Caddy**: Reverse proxy with Cloudflare DNS and HTTPS
+- **PostgreSQL 18**: Relational database
+- **Qdrant**: Vector database for AI/ML
+
+**Authentication & Identity:**
+- **Authentik**: Identity provider and SSO
+
+**Media & Smart Home:**
+- **Music Assistant**: Multi-room audio with Alexa integration
+- **Meshtastic Message Relay**: LoRa mesh networking relay
+
+**Development & Tools:**
+- **WikiJS**: Documentation wiki
+- **MCP Gateway**: Model Context Protocol gateway
+
+**UPS Monitoring:**
+- **Nutify**: UPS monitoring (dual instances for different UPS units)
+
 ### Services
-- **Docker**: Container runtime
 - **NFS**: Network file storage
 - **Backup**: Restic backups to terranas
 - **Monitoring**: Grafana Alloy for observability and journal logging

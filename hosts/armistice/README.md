@@ -25,6 +25,11 @@ NixOS ARM server with development tools and monitoring.
 - DNS: 10.55.10.35
 - systemd-networkd with nftables firewall
 
+### Containerized Services
+- **Caddy**: Reverse proxy with Cloudflare DNS and HTTPS
+- Docker with btrfs storage driver
+- Container networks: servicenet, proxynet, datanet
+
 ### Services
 - Grafana Alloy for observability
 - Journal logging integration

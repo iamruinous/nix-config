@@ -101,6 +101,7 @@ Agent:
    - [ ] Plan container configuration
    - [ ] Plan Caddy reverse proxy entry
    - [ ] Plan DNS entry
+   - [ ] Update host README documentation
 
 2. Presents plan to user:
    "Here's my plan for adding WikiJS:
@@ -108,6 +109,7 @@ Agent:
    - Create env file at hosts/monolith/files/docker/env/wikijs.env.age
    - Add reverse proxy entry to Caddyfile
    - Create DNS entry wikijs.meskill.farm → monolith.meskill.farm
+   - Update hosts/monolith/README.md with new service
 
    Does this look correct? Should I proceed?"
 
@@ -287,6 +289,7 @@ In addition to the general guidelines, this NixOS configuration repository has t
    - Update Caddyfile at `hosts/<host>/files/caddy/Caddyfile.age` to add reverse proxy entry
    - Container names on `servicenet` are resolvable as hostnames in Caddy (e.g., `reverse_proxy wikijs:3000`)
    - **Create DNS entry for the service** (see DNS Management below)
+   - **Update documentation** (see Documentation Updates below)
 
 4. **DNS Management**:
    Each container host has a DNS entry `<hostname>.meskill.farm` that can be used as a CNAME target. When adding a new service to Caddy, you must create a corresponding DNS entry.
@@ -319,6 +322,30 @@ In addition to the general guidelines, this NixOS configuration repository has t
    ```
 
 6. **All commits must be GPG signed** - never use `--no-gpg-sign`
+
+7. **Documentation Updates**:
+   When adding containers, services, or making significant changes to a host, update the relevant documentation:
+
+   **Host-specific README (`hosts/<host>/README.md`):**
+   - Add new services to the "Services" section
+   - Update container lists if adding Docker containers
+   - Document any new network configurations or ports
+
+   **Hosts overview (`hosts/README.md`):**
+   - Update host descriptions if adding major new capabilities
+   - Update the "Container Orchestration" section if adding Docker to a new host
+   - Update the "Infrastructure Services" section for new backup, monitoring, or network services
+   - Keep the "Platform Summary" table current
+
+   **Main README (`README.md`):**
+   - Update host counts if adding a new host
+   - Add new packages to the "Custom Packages" section if applicable
+
+   **Example: Adding a WikiJS container to monolith:**
+   ```markdown
+   # In hosts/monolith/README.md, add to Services section:
+   - **WikiJS**: Documentation wiki (wikijs.meskill.farm)
+   ```
 
 ## Changelog
 
