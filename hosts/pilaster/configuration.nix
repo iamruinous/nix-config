@@ -3,6 +3,7 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
   pkgs,
+  config,
   flake,
   ...
 }: {
@@ -21,8 +22,11 @@
 
   networking.hostName = "pilaster"; # Define your hostname.
 
+  systemd.services.mariadb-backup.serviceConfig.EnvironmentFile = config.age.secrets.pilaster_docker_env_mariadb.path;
+
   virtualisation.docker.enable = true;
   ruinous.postgres.docker.backup.enable = true;
+  ruinous.mariadb.docker.backup.enable = true;
   ruinous.restic.terranas.enable = true;
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
