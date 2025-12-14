@@ -54,7 +54,7 @@
       set -g status-right-length 150
       set -g status-justify left
 
-      set -g status-left "#[fg=black,bg=blue,bold]#{?client_prefix,, tmux  #[fg=blue,bg=black,nobold,nounderscore,noitalics]}#[fg=black,bg=#41a6b5,bold]#{?client_prefix, tmux 󰘳 #[fg=#41a6b5 bg=black nobold nounderscore noitalics],}#[fg=blue,bg=default,nobold,noitalics,nounderscore] "
+      set -g status-left "#[fg=black,bg=blue,bold]#{?client_prefix,, tmux  #[fg=blue bg=black nobold nounderscore noitalics]}#[fg=black,bg=#41a6b5,bold]#{?client_prefix, tmux 󰘳 #[fg=#41a6b5 bg=black nobold nounderscore noitalics],}#[fg=blue,bg=default,nobold,noitalics,nounderscore] "
 
       set -g window-status-current-format "#[fg=#dddddd,bg=#1F2335]   #I #W  #{?window_last_flag,,} "
       set -g window-status-format "#[fg=brightwhite,bg=#1a1b26,nobold,noitalics,nounderscore]   #I #W #F  "
