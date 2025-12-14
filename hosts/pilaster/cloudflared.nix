@@ -12,6 +12,16 @@
         ingress = {"ma.meskill.farm" = "https://ma-int.meskill.farm";};
         default = "http_status:404";
       };
+      "d8d6be85-1f3c-4853-82c6-a9875430ee84" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_monica.path}";
+        ingress = {"monica.meskill.farm" = "https://monica-int.meskill.farm";};
+        default = "http_status:404";
+      };
+      "41238cf1-06ab-47e6-ba9c-eb6238a7534c" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_twenty.path}";
+        ingress = {"twenty.meskill.farm" = "https://twenty-int.meskill.farm";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -28,6 +38,16 @@
 
   age.secrets.pilaster_cloudflared_music_assistant = {
     rekeyFile = ./files/cloudflared/music-assistant.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_monica = {
+    rekeyFile = ./files/cloudflared/monica.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_twenty = {
+    rekeyFile = ./files/cloudflared/twenty.json.age;
     mode = "644";
   };
 }

@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 3493 5050 5432 8095 8097 9000];
+  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8095 8097 9000];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
@@ -546,6 +546,79 @@
           "/data/docker/meshtastic-relay/logs:/var/log/meshtastic"
         ];
       };
+      mariadb = {
+        image = "docker.io/mariadb:11";
+        ports = ["3306:3306"];
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mariadb.path];
+        networks = [
+          "datanet"
+          "proxynet"
+        ];
+        volumes = [
+          "/data/docker/mariadb/data:/var/lib/mysql"
+          "/data/backup/mariadb:/backup"
+        ];
+      };
+      # Personal CRM Evaluation
+      monica = {
+        image = "docker.io/monica:4";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_monica.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["mariadb" "redis"];
+        volumes = [
+          "/data/docker/monica/storage:/var/www/html/storage"
+        ];
+      };
+      redis = {
+        image = "docker.io/redis:7";
+        cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
+        networks = ["datanet"];
+        volumes = [
+          "/data/docker/redis/data:/data"
+        ];
+      };
+      twenty = {
+        image = "docker.io/twentycrm/twenty:v1.12";
+        environment = {
+          REDIS_URL = "redis://redis:6379";
+          STORAGE_TYPE = "local";
+          STORAGE_LOCAL_PATH = "/app/docker-data";
+          ENABLE_DB_MIGRATIONS = "true";
+          SIGN_IN_PREFILLED = "false";
+          SERVER_URL = "https://twenty.meskill.farm";
+        };
+        environmentFiles = [config.age.secrets.pilaster_docker_env_twenty.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        volumes = [
+          "/data/docker/twenty/data:/app/docker-data"
+        ];
+      };
+      twenty-worker = {
+        image = "docker.io/twentycrm/twenty:v1.12";
+        cmd = ["yarn" "worker:prod"];
+        environment = {
+          REDIS_URL = "redis://redis:6379";
+          STORAGE_TYPE = "local";
+          STORAGE_LOCAL_PATH = "/app/docker-data";
+          ENABLE_DB_MIGRATIONS = "false";
+        };
+        environmentFiles = [config.age.secrets.pilaster_docker_env_twenty.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis" "twenty"];
+        volumes = [
+          "/data/docker/twenty/data:/app/docker-data"
+        ];
+      };
     };
   };
 
@@ -609,5 +682,17 @@
   age.secrets.pilaster_meshtastic_relay_config = {
     rekeyFile = ./files/meshtastic-message-relay/config.yaml.age;
     mode = "666";
+  };
+  age.secrets.pilaster_docker_env_mariadb = {
+    rekeyFile = ./files/docker/env/mariadb.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_monica = {
+    rekeyFile = ./files/docker/env/monica.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_twenty = {
+    rekeyFile = ./files/docker/env/twenty.env.age;
+    mode = "600";
   };
 }
