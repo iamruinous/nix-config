@@ -537,7 +537,7 @@ In addition to the general guidelines, this NixOS configuration repository has t
 
    2. **External domain** - CNAME pointing to the tunnel (for Cloudflare routing):
       ```bash
-      cfcli --domain meskill.farm --type CNAME add <service> <tunnel-id>.cfargotunnel.com
+      cfcli --domain meskill.farm --type CNAME --activate add <service> <tunnel-id>.cfargotunnel.com
       ```
 
    **Adding additional tunnels to an existing host:**
@@ -547,7 +547,7 @@ In addition to the general guidelines, this NixOS configuration repository has t
    4. Add a new `age.secrets` entry for the credentials
    5. Update Caddyfile with both domains: `<service>-int.meskill.farm <service>.meskill.farm { ... }`
    6. Add the internal DNS CNAME: `cfcli --domain meskill.farm --type CNAME add <service>-int <hostname>.meskill.farm`
-   7. Add the external DNS CNAME: `cfcli --domain meskill.farm --type CNAME add <service> <tunnel-id>.cfargotunnel.com`
+   7. Add the external DNS CNAME: `cfcli --domain meskill.farm --type CNAME --activate add <service> <tunnel-id>.cfargotunnel.com`
 
    **Naming conventions:**
    - Secret names: `<hostname>_cloudflared_<purpose>` (e.g., `monolith_cloudflared_n8n_webhook`)

@@ -562,57 +562,49 @@
       # Personal CRM Evaluation
       monica = {
         image = "docker.io/monica:4";
-        environment = {
-          DB_HOST = "mariadb";
-          DB_DATABASE = "monica";
-          DB_USERNAME = "monica";
-        };
         environmentFiles = [config.age.secrets.pilaster_docker_env_monica.path];
         networks = [
           "datanet"
           "servicenet"
         ];
-        dependsOn = ["mariadb"];
+        dependsOn = ["mariadb" "redis"];
         volumes = [
           "/data/docker/monica/storage:/var/www/html/storage"
         ];
       };
-      twenty-redis = {
+      redis = {
         image = "docker.io/redis:7";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
-          "/data/docker/twenty-redis/data:/data"
+          "/data/docker/redis/data:/data"
         ];
       };
       twenty = {
-        image = "docker.io/twentycrm/twenty:v0.52.2";
+        image = "docker.io/twentycrm/twenty:v1.12";
         environment = {
-          PG_DATABASE_HOST = "postgres";
-          PG_DATABASE_PORT = "5432";
-          REDIS_URL = "redis://twenty-redis:6379";
+          REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
           STORAGE_LOCAL_PATH = "/app/docker-data";
           ENABLE_DB_MIGRATIONS = "true";
           SIGN_IN_PREFILLED = "false";
+          SERVER_URL = "https://twenty.meskill.farm";
         };
         environmentFiles = [config.age.secrets.pilaster_docker_env_twenty.path];
         networks = [
           "datanet"
           "servicenet"
         ];
-        dependsOn = ["postgres" "twenty-redis"];
+        dependsOn = ["postgres" "redis"];
         volumes = [
           "/data/docker/twenty/data:/app/docker-data"
         ];
       };
       twenty-worker = {
-        image = "docker.io/twentycrm/twenty:v0.52.2";
+        image = "docker.io/twentycrm/twenty:v1.12";
         cmd = ["yarn" "worker:prod"];
         environment = {
-          PG_DATABASE_HOST = "postgres";
-          PG_DATABASE_PORT = "5432";
-          REDIS_URL = "redis://twenty-redis:6379";
+          REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
           STORAGE_LOCAL_PATH = "/app/docker-data";
           ENABLE_DB_MIGRATIONS = "false";
@@ -622,7 +614,7 @@
           "datanet"
           "servicenet"
         ];
-        dependsOn = ["postgres" "twenty-redis" "twenty"];
+        dependsOn = ["postgres" "redis" "twenty"];
         volumes = [
           "/data/docker/twenty/data:/app/docker-data"
         ];
