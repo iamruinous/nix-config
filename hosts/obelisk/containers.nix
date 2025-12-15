@@ -85,7 +85,7 @@
         ];
       };
       ollama = {
-        image = "docker.io/ollama/ollama:0.13.2";
+        image = "docker.io/ollama/ollama:0.13.3";
         devices = ["nvidia.com/gpu=all"];
         networks = ["servicenet"];
         volumes = [
