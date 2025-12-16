@@ -70,19 +70,13 @@
   systemd.services.forgejo-runner-register = {
     description = "Register Forgejo Actions runner";
     wantedBy = ["multi-user.target"];
-    after = ["docker-forgejo-runner.service"];
+    after = ["docker-forgejo-runner.service" "docker-forgejo.service"];
     requires = ["docker-forgejo-runner.service"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = pkgs.writeShellScript "forgejo-runner-register" ''
-        # Wait for container to be running
-        for i in $(seq 1 30); do
-          if ${pkgs.docker}/bin/docker inspect forgejo-runner >/dev/null 2>&1; then
-            break
-          fi
-          sleep 2
-        done
+        set -e
 
         # Check if already registered
         if [ -f /data/docker/forgejo-runner/data/.runner ]; then
@@ -90,12 +84,23 @@
           exit 0
         fi
 
-        # Wait for Forgejo to be available
-        echo "Waiting for Forgejo to be available..."
-        for i in $(seq 1 60); do
-          if ${pkgs.curl}/bin/curl -sf http://forgejo:3000/api/v1/version >/dev/null 2>&1; then
+        # Wait for forgejo-runner container to be running
+        echo "Waiting for forgejo-runner container..."
+        for i in $(seq 1 30); do
+          if ${pkgs.docker}/bin/docker inspect -f '{{.State.Running}}' forgejo-runner 2>/dev/null | grep -q true; then
             break
           fi
+          sleep 2
+        done
+
+        # Wait for Forgejo to be available (check from within the container network)
+        echo "Waiting for Forgejo to be available..."
+        for i in $(seq 1 60); do
+          if ${pkgs.docker}/bin/docker exec forgejo-runner wget -q --spider http://forgejo:3000/api/v1/version 2>/dev/null; then
+            echo "Forgejo is available"
+            break
+          fi
+          echo "Attempt $i: Forgejo not ready yet..."
           sleep 5
         done
 
@@ -109,8 +114,7 @@
           --name monolith-runner \
           --labels ubuntu-latest:docker://node:20-bookworm,docker:docker://docker:dind
 
-        # Restart the runner container to pick up registration
-        ${pkgs.docker}/bin/docker restart forgejo-runner
+        echo "Registration complete! Runner daemon will start automatically."
       '';
     };
   };
@@ -527,7 +531,8 @@
           "/data/docker/forgejo-runner/data:/data"
           "${./files/forgejo-runner/config.yaml}:/data/config.yaml:ro"
         ];
-        cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
+        entrypoint = ["/bin/sh" "-c"];
+        cmd = ["echo 'Waiting for registration...' && while [ ! -f /data/.runner ]; do sleep 5; done && echo 'Starting daemon...' && forgejo-runner daemon --config /data/config.yaml"];
       };
       frigate = {
         image = "ghcr.io/blakeblackshear/frigate:0.16.3";
