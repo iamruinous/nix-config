@@ -21,6 +21,13 @@
   boot.loader.systemd-boot.enable = lib.mkDefault true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  hardware.graphics = {
+    enable = lib.mkDefault true;
+    enable32Bit = lib.mkDefault true;
+  };
+
+  hardware.amdgpu.initrd.enable = lib.mkDefault true;
+
   networking.firewall.enable = true;
   networking.nftables.enable = true;
   systemd.network.wait-online.enable = false;
