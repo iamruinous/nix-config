@@ -12,32 +12,13 @@
     flake.nixosModules.default
     # flake.nixosModules.developer
     # flake.nixosModules.kde
-    flake.inputs.lanzaboote.nixosModules.lanzaboote
-    inputs.hardware.nixosModules.framework-desktop-amd-ai-max-300-series
+    flake.inputs.disko.nixosModules.disko
 
     ./disko.nix
     ./hardware-configuration.nix
   ];
 
   networking.hostName = "chassis"; # Define your hostname.
-
-  # Lanzaboote currently replaces the systemd-boot module.
-  # This setting is usually set to true in configuration.nix
-  # generated at installation time. So we force it to false
-  # for now.
-  boot.loader.systemd-boot.enable = lib.mkForce false;
-
-  boot.lanzaboote = {
-    enable = true;
-    pkiBundle = "/var/lib/sbctl";
-    #    settings.reboot-for-bitlocker = true;
-  };
-
-  # Bootloader.
-  # boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/efi";
-  boot.loader.systemd-boot.xbootldrMountPoint = "/boot";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

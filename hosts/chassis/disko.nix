@@ -20,14 +20,6 @@
                 mountOptions = ["umask=0077"];
               };
             };
-            win = {
-              size = "200G";
-              content = {
-                type = "filesystem";
-                format = "ntfs";
-                mountPoint = "/windows";
-              };
-            };
             root = {
               size = "100%";
               content = {

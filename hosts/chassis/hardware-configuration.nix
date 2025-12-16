@@ -4,14 +4,20 @@
 {
   config,
   lib,
+  inputs,
   ...
 }: {
+  imports = [
+    inputs.hardware.nixosModules.framework-desktop-amd-ai-max-300-series
+  ];
+
   services.fwupd.enable = true;
-  # time.hardwareClockInLocalTime = true;
+  hardware.enableRedistributableFirmware = true;
+
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
   swapDevices = [];
-
-  hardware.enableRedistributableFirmware = true;
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's

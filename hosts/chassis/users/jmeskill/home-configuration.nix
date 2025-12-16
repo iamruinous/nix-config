@@ -4,18 +4,18 @@
 in {
   imports = [
     # flake.inputs.plasma-manager.homeModules.plasma-manager
-    flake.homeModules.default
+    # flake.homeModules.default
     # flake.homeModules.hyprland
   ];
 
   # Enable todoist
-  ruinous.todoist.sync.enable = true;
+  # ruinous.todoist.sync.enable = true;
 
   # Enable vdirsyncer
-  ruinous.vdirsyncer.sync.enable = true;
+  # ruinous.vdirsyncer.sync.enable = true;
 
   # programs.wezterm.enable = true;
-  ruinous.openssh.remote.forwarding.enable = true;
+  # ruinous.openssh.remote.forwarding.enable = true;
 
   # programs.plasma = {
   #   enable = true;
