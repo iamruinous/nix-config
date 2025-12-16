@@ -19,7 +19,7 @@ cache:
   port: 0
 
 container:
-  network: "forgejo-actions"
+  network: ""
   privileged: false
   options: ""
   workdir_parent: ""
