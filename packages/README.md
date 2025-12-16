@@ -112,28 +112,6 @@ SSH shell wrapper for Forgejo Git hosting in Docker.
 
 ---
 
-### [messy-discord-bot](messy-discord-bot/README.md)
-
-Discord bot that forwards messages to n8n webhook for Messy assistant.
-
-**Purpose**: Provides a bridge between Discord and n8n, enabling the Messy personal assistant to receive and respond to messages from Discord.
-
-**Key Features**:
-- Connects to Discord via Gateway WebSocket
-- Listens for messages in a configured channel
-- Shows typing indicator while processing
-- Forwards message content and metadata to n8n webhook
-- Sends n8n responses back to Discord
-- Handles long messages by splitting into chunks
-
-**Used By**: monolith (containerized service)
-
-**Dependencies**: Node.js, discord.js
-
-**Version**: 1.0.0
-
----
-
 ### [messy-restricted-shell](messy-restricted-shell/README.md)
 
 Restricted shell with whitelisted commands for limited SSH access.
