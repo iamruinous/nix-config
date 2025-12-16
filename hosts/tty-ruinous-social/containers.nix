@@ -283,7 +283,7 @@
         ];
       };
       mealie = {
-        image = "ghcr.io/mealie-recipes/mealie:v3.6.1";
+        image = "ghcr.io/mealie-recipes/mealie:v3.7.0";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mealie.path];
         networks = ["servicenet"];
         volumes = [

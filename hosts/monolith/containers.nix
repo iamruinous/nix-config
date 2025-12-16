@@ -238,7 +238,7 @@
         ];
       };
       apprise = {
-        image = "lscr.io/linuxserver/apprise-api:1.2.6";
+        image = "lscr.io/linuxserver/apprise-api:1.3.0";
         environment = {
           TZ = "America/Phoenix";
         };
@@ -248,7 +248,7 @@
         ];
       };
       autobrr = {
-        image = "ghcr.io/autobrr/autobrr:v1.70.0";
+        image = "ghcr.io/autobrr/autobrr:v1.71.0";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -482,7 +482,7 @@
         ];
       };
       "loki" = {
-        image = "docker.io/grafana/loki:3.6.2";
+        image = "docker.io/grafana/loki:3.6.3";
         cmd = ["-config.file=/mnt/config/loki-config.yaml"];
         networks = [
           "datanet"
@@ -544,7 +544,7 @@
         ];
       };
       n8n = {
-        image = "docker.n8n.io/n8nio/n8n:2.0.0";
+        image = "docker.n8n.io/n8nio/n8n:2.0.2";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -568,7 +568,7 @@
         ];
       };
       "paperless-ai" = {
-        image = "docker.io/clusterzx/paperless-ai:2.2.1";
+        image = "docker.io/clusterzx/paperless-ai:3.0.9";
         environment = {
           PUID = "4000";
           PGUID = "4000";
@@ -581,7 +581,7 @@
         ];
       };
       "paperless-ngx" = {
-        image = "ghcr.io/paperless-ngx/paperless-ngx:2.20.1";
+        image = "ghcr.io/paperless-ngx/paperless-ngx:2.20.2";
         environment = {
           PAPERLESS_REDIS = "redis://redis:6379";
           PAPERLESS_DBHOST = "postgres";
