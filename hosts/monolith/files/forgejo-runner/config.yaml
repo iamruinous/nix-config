@@ -1,0 +1,31 @@
+log:
+  level: info
+
+runner:
+  file: .runner
+  capacity: 2
+  envs:
+    DOCKER_HOST: tcp://forgejo-dind:2375
+  env_file: .env
+  timeout: 3h
+  insecure: false
+  fetch_timeout: 5s
+  fetch_interval: 2s
+
+cache:
+  enabled: true
+  dir: ""
+  host: ""
+  port: 0
+
+container:
+  network: "forgejo-actions"
+  privileged: false
+  options: ""
+  workdir_parent: ""
+  valid_volumes: []
+  docker_host: tcp://forgejo-dind:2375
+  force_pull: false
+
+host:
+  workdir_parent: ""

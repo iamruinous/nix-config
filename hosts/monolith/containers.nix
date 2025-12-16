@@ -52,6 +52,69 @@
     };
   };
 
+  systemd.services.docker-forgejo-actions-network = {
+    description = "create docker forgejo-actions network for CI runners";
+    wantedBy = ["multi-user.target"];
+    after = ["docker.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "create-forgejo-actions-network" ''
+        if ! ${pkgs.docker}/bin/docker network inspect forgejo-actions >/dev/null 2>&1; then
+          ${pkgs.docker}/bin/docker network create forgejo-actions
+        fi
+      '';
+    };
+  };
+
+  # Register Forgejo runner if not already registered
+  systemd.services.forgejo-runner-register = {
+    description = "Register Forgejo Actions runner";
+    wantedBy = ["multi-user.target"];
+    after = ["docker-forgejo-runner.service"];
+    requires = ["docker-forgejo-runner.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "forgejo-runner-register" ''
+        # Wait for container to be running
+        for i in $(seq 1 30); do
+          if ${pkgs.docker}/bin/docker inspect forgejo-runner >/dev/null 2>&1; then
+            break
+          fi
+          sleep 2
+        done
+
+        # Check if already registered
+        if [ -f /data/docker/forgejo-runner/data/.runner ]; then
+          echo "Runner already registered"
+          exit 0
+        fi
+
+        # Wait for Forgejo to be available
+        echo "Waiting for Forgejo to be available..."
+        for i in $(seq 1 60); do
+          if ${pkgs.curl}/bin/curl -sf http://forgejo:3000/api/v1/version >/dev/null 2>&1; then
+            break
+          fi
+          sleep 5
+        done
+
+        # Register the runner
+        echo "Registering Forgejo runner..."
+        ${pkgs.docker}/bin/docker exec forgejo-runner \
+          forgejo-runner register \
+          --no-interactive \
+          --instance http://forgejo:3000 \
+          --token "$(cat ${config.age.secrets.monolith_forgejo_runner_token.path})" \
+          --name monolith-runner \
+          --labels ubuntu-latest:docker://node:20-bookworm,docker:docker://docker:dind
+
+        # Restart the runner container to pick up registration
+        ${pkgs.docker}/bin/docker restart forgejo-runner
+      '';
+    };
+  };
+
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
@@ -435,6 +498,36 @@
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
         ];
+      };
+      "forgejo-dind" = {
+        image = "docker.io/docker:dind";
+        environment = {
+          DOCKER_TLS_CERTDIR = "";
+        };
+        extraOptions = [
+          "--privileged"
+        ];
+        networks = ["forgejo-actions"];
+        volumes = [
+          "/data/docker/forgejo-dind/docker:/var/lib/docker"
+        ];
+        cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false"];
+      };
+      "forgejo-runner" = {
+        image = "code.forgejo.org/forgejo/runner:6.0.0";
+        dependsOn = ["forgejo-dind" "forgejo"];
+        environment = {
+          DOCKER_HOST = "tcp://forgejo-dind:2375";
+        };
+        networks = [
+          "forgejo-actions"
+          "servicenet"
+        ];
+        volumes = [
+          "/data/docker/forgejo-runner/data:/data"
+          "${./files/forgejo-runner/config.yaml}:/data/config.yaml:ro"
+        ];
+        cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
       };
       frigate = {
         image = "ghcr.io/blakeblackshear/frigate:0.16.3";
@@ -963,6 +1056,10 @@
   };
   age.secrets.monolith_docker_env_stepca = {
     rekeyFile = ./files/docker/env/stepca.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_forgejo_runner_token = {
+    rekeyFile = ./files/forgejo-runner/token.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {
