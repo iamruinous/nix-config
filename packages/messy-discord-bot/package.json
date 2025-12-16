@@ -1,0 +1,17 @@
+{
+  "name": "messy-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot that forwards messages to n8n webhook for Messy assistant",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Josh Meskill",
+  "license": "MIT"
+}
