@@ -115,6 +115,7 @@
           "/Applications/Spotify.app"
           "/Applications/Fantastical.app"
           "/Users/jmeskill/Applications/Chrome Apps.localized/Glance.app"
+          "/Applications/Discord.app"
           "/Applications/Telegram.app"
           "/Users/jmeskill/Applications/Chrome Apps.localized/Gemini.app"
           "/Users/jmeskill/Applications/Chrome Apps.localized/Gemini Magic Leap.app"

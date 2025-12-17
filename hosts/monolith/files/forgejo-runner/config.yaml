@@ -1,0 +1,34 @@
+log:
+  level: info
+
+runner:
+  file: .runner
+  capacity: 4
+  envs:
+    DOCKER_HOST: tcp://forgejo-dind:2375
+  labels:
+    - "docker:docker://ghcr.io/catthehacker/ubuntu:act-latest"
+    - "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest"
+  env_file: .env
+  timeout: 3h
+  insecure: true
+  fetch_timeout: 5s
+  fetch_interval: 2s
+
+cache:
+  enabled: true
+  dir: ""
+  host: ""
+  port: 0
+
+container:
+  network: host
+  privileged: false
+  options: ""
+  workdir_parent: ""
+  valid_volumes: []
+  docker_host: tcp://forgejo-dind:2375
+  force_pull: false
+
+host:
+  workdir_parent: ""
