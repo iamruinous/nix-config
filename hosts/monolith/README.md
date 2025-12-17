@@ -65,6 +65,9 @@ Primary NixOS server for infrastructure services, containers, and network servic
 - **FlareSolverr**: Cloudflare bypass
 - **Autobrr**: Torrent automation
 
+**AI & Automation:**
+- **Messy Discord Bot**: Discord bot forwarding messages to n8n for Messy assistant
+
 **Other:**
 - **Adminer**: Database management
 - **Apprise**: Notification service

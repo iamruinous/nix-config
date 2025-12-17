@@ -936,6 +936,11 @@
           "/data/docker/zigbee2mqtt/data:/app/data"
         ];
       };
+      messy-discord-bot = {
+        image = "forge.meskill.farm/iamruinous/n8n-messy-discord-bot:1.0.0";
+        environmentFiles = [config.age.secrets.monolith_docker_env_messy_discord_bot.path];
+        networks = ["servicenet"];
+      };
     };
   };
 
@@ -1009,6 +1014,10 @@
   };
   age.secrets.monolith_docker_env_stepca = {
     rekeyFile = ./files/docker/env/stepca.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_messy_discord_bot = {
+    rekeyFile = ./files/docker/env/messy-discord-bot.env.age;
     mode = "600";
   };
   age.secrets.monolith_forgejo_runner_token = {

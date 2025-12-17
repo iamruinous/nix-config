@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `messy-discord-bot` container on monolith for Messy personal assistant
+  - Forwards Discord messages to n8n webhook
+  - Source maintained in separate repo: forge.meskill.farm/iamruinous/n8n-messy-discord-bot
 - `docker-image-updater` v2.2.0: Added `--apply-all` flag for automated updates
   - New `--apply-all` flag automatically applies all available container image updates
   - Suitable for CI/CD and automated workflows
