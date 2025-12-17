@@ -3,12 +3,15 @@ log:
 
 runner:
   file: .runner
-  capacity: 2
+  capacity: 4
   envs:
     DOCKER_HOST: tcp://forgejo-dind:2375
+  labels:
+    - "docker:docker://ghcr.io/catthehacker/ubuntu:act-latest"
+    - "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest"
   env_file: .env
   timeout: 3h
-  insecure: false
+  insecure: true
   fetch_timeout: 5s
   fetch_interval: 2s
 
@@ -19,7 +22,7 @@ cache:
   port: 0
 
 container:
-  network: ""
+  network: host
   privileged: false
   options: ""
   workdir_parent: ""

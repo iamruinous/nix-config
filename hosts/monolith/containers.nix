@@ -436,6 +436,7 @@
           "proxynet"
           "datanet"
           "servicenet"
+          "forgejo-actions"
         ];
         ports = [
           "127.0.0.1:2222:22"
@@ -451,28 +452,29 @@
         ];
       };
       "forgejo-dind" = {
-        image = "docker.io/docker:dind";
+        image = "code.forgejo.org/oci/docker:dind";
         environment = {
-          DOCKER_TLS_CERTDIR = "";
+          DOCKER_TLS_CERTDIR = "/certs";
         };
         extraOptions = [
           "--privileged"
+          # "--hostname=docker"
         ];
         networks = ["forgejo-actions"];
         volumes = [
           "/data/docker/forgejo-dind/docker:/var/lib/docker"
+          "/data/docker/forgejo-dind/certs:/certs"
         ];
-        cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false"];
+        cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false" "--insecure-registry=forgejo:3000"];
       };
       "forgejo-runner" = {
-        image = "code.forgejo.org/forgejo/runner:6.0.0";
+        image = "code.forgejo.org/forgejo/runner:12.0.1";
         dependsOn = ["forgejo-dind" "forgejo"];
         environment = {
           DOCKER_HOST = "tcp://forgejo-dind:2375";
         };
         networks = [
           "forgejo-actions"
-          "servicenet"
         ];
         volumes = [
           "/data/docker/forgejo-runner/data:/data"
