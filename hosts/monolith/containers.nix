@@ -52,20 +52,6 @@
     };
   };
 
-  systemd.services.docker-forgejo-actions-network = {
-    description = "create docker forgejo-actions network for CI runners";
-    wantedBy = ["multi-user.target"];
-    after = ["docker.service"];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "create-forgejo-actions-network" ''
-        if ! ${pkgs.docker}/bin/docker network inspect forgejo-actions >/dev/null 2>&1; then
-          ${pkgs.docker}/bin/docker network create forgejo-actions
-        fi
-      '';
-    };
-  };
-
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
@@ -436,7 +422,6 @@
           "proxynet"
           "datanet"
           "servicenet"
-          "forgejo-actions"
         ];
         ports = [
           "127.0.0.1:2222:22"
@@ -450,37 +435,6 @@
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
         ];
-      };
-      "forgejo-dind" = {
-        image = "code.forgejo.org/oci/docker:dind";
-        environment = {
-          DOCKER_TLS_CERTDIR = "/certs";
-        };
-        extraOptions = [
-          "--privileged"
-          # "--hostname=docker"
-        ];
-        networks = ["forgejo-actions"];
-        volumes = [
-          "/data/docker/forgejo-dind/docker:/var/lib/docker"
-          "/data/docker/forgejo-dind/certs:/certs"
-        ];
-        cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false" "--insecure-registry=forgejo:3000"];
-      };
-      "forgejo-runner" = {
-        image = "code.forgejo.org/forgejo/runner:12.0.1";
-        dependsOn = ["forgejo-dind" "forgejo"];
-        environment = {
-          DOCKER_HOST = "tcp://forgejo-dind:2375";
-        };
-        networks = [
-          "forgejo-actions"
-        ];
-        volumes = [
-          "/data/docker/forgejo-runner/data:/data"
-          "${./files/forgejo-runner/config.yaml}:/data/config.yaml:ro"
-        ];
-        cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
       };
       frigate = {
         image = "ghcr.io/blakeblackshear/frigate:0.16.3";
@@ -1018,10 +972,6 @@
   };
   age.secrets.monolith_docker_env_messy_discord_bot = {
     rekeyFile = ./files/docker/env/messy-discord-bot.env.age;
-    mode = "600";
-  };
-  age.secrets.monolith_forgejo_runner_token = {
-    rekeyFile = ./files/forgejo-runner/token.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {
