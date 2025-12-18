@@ -49,6 +49,10 @@
       # Refresh SSH_AUTH_SOCK - opens popup for interactive pane selection
       bind u display-popup -E "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh"
 
+      # session management
+      bind S command-prompt -p "New Session:" "new-session -A -s '%%'"
+      bind K confirm kill-session
+
       # theme
       set -g status "on"
       set -g status-right-length 150
