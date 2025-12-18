@@ -4,9 +4,10 @@ This directory contains configurations for all systems managed by this flake. Ea
 
 ## Overview
 
-This infrastructure consists of 14 hosts spanning multiple platforms:
+This infrastructure consists of 15 hosts spanning multiple platforms:
 - **8 NixOS servers** - Infrastructure and compute nodes
-- **3 NixOS MicroVMs** - Ephemeral development environments
+- **2 NixOS MicroVMs** - Ephemeral development environments
+- **2 NixOS workstations** - Desktop and laptop
 - **3 macOS systems** - Development workstations
 
 ## Physical Infrastructure
@@ -89,6 +90,15 @@ This infrastructure consists of 14 hosts spanning multiple platforms:
 - Ephemeral root with selective persistence
 - Cloudflare CLI tools
 
+### Desktop
+
+#### [chassis](chassis/README.md)
+**Framework Desktop Max+ 395** - High-performance workstation
+- AMD Ryzen AI Max+ 395 (16 cores, 32 threads), 128 GB LPDDR5x
+- Radeon 8060S GPU, 50 TOPS NPU (126 TOPS total)
+- Btrfs with Disko, dual-boot with Windows
+- Lanzaboote secure boot, fwupd firmware updates
+
 ### Laptop
 
 #### [framework](framework/README.md)
@@ -168,6 +178,7 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 | tty-ruinous-social | VPS | NixOS | 4 cores | 8 GB | Cloud services |
 | ruinous-tty | MicroVM | NixOS | 2 cores | 2 GB | Dev (jmeskill) |
 | messy-tty | MicroVM | NixOS | 2 cores | 2 GB | Dev (messy) |
+| chassis | Desktop | NixOS | Ryzen AI Max+ 395 | 128 GB | Workstation |
 | framework | Laptop | NixOS | Ultra 5 125H | 32 GB | Desktop/dev |
 | jbookpro | MacBook Pro | macOS | M4 | 32 GB | Development |
 | jmacmini | Mac mini | macOS | M2 Pro | 16 GB | Development |
