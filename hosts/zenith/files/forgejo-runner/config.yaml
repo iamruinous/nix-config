@@ -11,7 +11,7 @@ runner:
     - "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest"
   env_file: .env
   timeout: 3h
-  insecure: true
+  insecure: false
   fetch_timeout: 5s
   fetch_interval: 2s
 

@@ -4,10 +4,10 @@ set -euo pipefail
 # Forgejo Runner Registration Script
 # Run this once to register the runner, then start the forgejo-runner container
 
-TOKEN_FILE="/run/agenix/monolith_forgejo_runner_token"
+TOKEN_FILE="/run/agenix/zenith_forgejo_runner_token"
 DATA_DIR="/data/docker/forgejo-runner/data"
-FORGEJO_URL="http://forgejo:3000"
-RUNNER_NAME="monolith-runner"
+FORGEJO_URL="https://forge.meskill.farm"
+RUNNER_NAME="zenith-runner"
 LABELS="ubuntu-latest:docker://node:20-bookworm,docker:docker://docker:dind"
 
 # Check if already registered
@@ -32,10 +32,10 @@ echo "  Labels: $LABELS"
 
 # Run registration in a temporary container on the same networks
 docker run --rm -it \
-    --network servicenet \
+    --network forgejo-actions \
     -v "$DATA_DIR:/data" \
     -e DOCKER_HOST=tcp://forgejo-dind:2375 \
-    code.forgejo.org/forgejo/runner:6.0.0 \
+    code.forgejo.org/forgejo/runner:12.0.1 \
     forgejo-runner register \
     --no-interactive \
     --instance "$FORGEJO_URL" \
