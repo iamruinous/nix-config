@@ -3,8 +3,8 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8095 8097 9000];
-  networking.firewall.allowedUDPPorts = [443];
+  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8080 8095 8097 9000];
+  networking.firewall.allowedUDPPorts = [69 443];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -617,6 +617,26 @@
         dependsOn = ["postgres" "redis" "twenty"];
         volumes = [
           "/data/docker/twenty/data:/app/docker-data"
+        ];
+      };
+      netbootxyz = {
+        image = "lscr.io/linuxserver/netbootxyz:0.7.3";
+        environment = {
+          PUID = "1000";
+          PGID = "1000";
+          TZ = "America/Phoenix";
+        };
+        networks = [
+          "servicenet"
+          "proxynet"
+        ];
+        ports = [
+          "69:69/udp"
+          "8080:80"
+        ];
+        volumes = [
+          "/data/docker/netbootxyz/config:/config"
+          "/data/docker/netbootxyz/assets:/assets"
         ];
       };
     };
