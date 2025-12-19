@@ -69,7 +69,7 @@ in {
   users.users = lib.genAttrs userNames mkUser // mkRoot;
 
   # Disallow modifying users outside of this config
-  users.mutableUsers = false;
+  users.mutableUsers = lib.mkDefault false;
   users.defaultUserShell = pkgs.fish;
 
   # Define age secrets for each user's password.age file
@@ -84,20 +84,23 @@ in {
       mode = "600";
     });
 
-  # Hook into agenixInstall to hash passwords immediately after secrets are decrypted
-  # This runs as part of agenix's activation, ensuring passwords are available on boot
-  system.activationScripts.agenixInstall.text = lib.mkIf (usersWithPasswords != []) (lib.mkAfter (let
-    mkpasswd = "${pkgs.mkpasswd}/bin/mkpasswd";
-    hashPassword = userName: ''
-      # Create /run/user directory if it doesn't exist
-      mkdir -p /run/user
+  # Create a separate activation script to hash passwords from agenix secrets
+  # This runs after agenix has decrypted secrets, ensuring passwords are available on boot
+  system.activationScripts.hashUserPasswords = lib.mkIf (usersWithPasswords != []) {
+    deps = ["agenix"];
+    text = let
+      mkpasswd = "${pkgs.mkpasswd}/bin/mkpasswd";
+      hashPassword = userName: ''
+        # Create /run/user directory if it doesn't exist
+        mkdir -p /run/user
 
-      # Read plaintext password from agenix secret and hash it
-      if [ -f "${config.age.secrets."user_password_${userName}".path}" ]; then
-        ${mkpasswd} -m sha-512 "$(cat ${config.age.secrets."user_password_${userName}".path})" > /run/user/${userName}
-        chmod 600 /run/user/${userName}
-      fi
-    '';
-  in
-    lib.concatMapStringsSep "\n" hashPassword usersWithPasswords));
+        # Read plaintext password from agenix secret and hash it
+        if [ -f "${config.age.secrets."user_password_${userName}".path}" ]; then
+          ${mkpasswd} -m sha-512 "$(cat ${config.age.secrets."user_password_${userName}".path})" > /run/user/${userName}
+          chmod 600 /run/user/${userName}
+        fi
+      '';
+    in
+      lib.concatMapStringsSep "\n" hashPassword usersWithPasswords;
+  };
 }

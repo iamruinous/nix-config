@@ -114,6 +114,8 @@
 
     # nixos-raspberrypi
     # <https://https://github.com/nvmd/nixos-raspberrypi>
+    # Note: Do NOT follow nixpkgs - nixos-raspberrypi has its own pinned nixpkgs
+    # that's compatible with its boot.loader.raspberryPi options
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
 
     # Nix User Repository
@@ -132,6 +134,17 @@
     # Raspberry Pi hosts (using nixos-raspberrypi's nixosSystem for proper kernel/bootloader support)
     piHosts = {
       rp500 = inputs.nixos-raspberrypi.lib.nixosSystem {
+        # specialArgs is required by nixos-raspberrypi and must include nixos-raspberrypi
+        specialArgs = {
+          inherit inputs;
+          flake = inputs.self;
+          nixos-raspberrypi = inputs.nixos-raspberrypi;
+          # Provide perSystem for overlay module (blueprint normally provides this)
+          # perSystem.self contains the flake's packages for the current system
+          perSystem = {
+            self = blueprintOutputs.packages.aarch64-linux;
+          };
+        };
         modules = [
           # RPi 5 hardware modules
           inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
@@ -139,15 +152,6 @@
 
           # Host configuration
           ./hosts/rp500/configuration.nix
-
-          # Pass flake and inputs to modules
-          {
-            _module.args = {
-              flake = inputs.self;
-              inherit inputs;
-              nixos-raspberrypi = inputs.nixos-raspberrypi;
-            };
-          }
         ];
       };
     };

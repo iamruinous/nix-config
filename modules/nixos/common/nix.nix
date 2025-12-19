@@ -85,7 +85,8 @@ in {
 
   # Add each flake input as a registry
   # To make nix3 commands consistent with the flake
-  nix.registry = mapAttrs (_: value: {flake = value;}) flake.inputs;
+  # Use mkDefault to allow overriding (e.g., when using nixos-raspberrypi's separate nixpkgs)
+  nix.registry = mapAttrs (_: value: {flake = lib.mkDefault value;}) flake.inputs;
 
   # Map registries to channels
   nix.nixPath = ["repl=${flake}/repl.nix" "nixpkgs=${flake.inputs.nixpkgs}"];
