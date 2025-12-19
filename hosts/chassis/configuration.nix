@@ -23,6 +23,9 @@
   programs.steam.enable = true;
   services.flatpak.enable = true;
   services.desktopManager.plasma6.enable = true;
+
+  # Enable power management (suspend/sleep support)
+  powerManagement.enable = true;
   boot.plymouth.enable = true;
   users.mutableUsers = false;
 
