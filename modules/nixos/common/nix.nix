@@ -6,7 +6,13 @@
   ...
 }: let
   inherit (lib) mapAttrs imap1;
-  inherit (flake.lib) cacheUrl;
+
+  # Convert cache public key to substituter URL
+  # e.g., "nix-community.cachix.org-1:..." -> "https://nix-community.cachix.org?priority=1"
+  cacheUrl = index: pubKey: let
+    beforeColon = builtins.head (lib.splitString ":" pubKey);
+    name = lib.concatStringsSep "-" (lib.init (lib.splitString "-" beforeColon));
+  in "https://${name}?priority=${toString index}";
 in {
   # Nix Settings
   nix.settings = {
