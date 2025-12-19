@@ -1,15 +1,14 @@
 {
   config,
-  flake,
   pkgs,
   lib,
   ...
 }: let
+  # Path to users directory
+  usersDir = ../../../users;
+
   # User names with home-manager config
   userNames = builtins.attrNames (config.home-manager.users or {});
-
-  # Path to users directory in the flake
-  usersDir = ../../../users;
 
   # Check if a user has a password.age file
   hasPasswordFile = name: builtins.pathExists (usersDir + "/${name}/password.age");
@@ -17,52 +16,57 @@
   # Get all user names (including root) that have password.age files
   allUserNames = userNames ++ ["root"];
   usersWithPasswords = builtins.filter hasPasswordFile allUserNames;
-in {
-  # Update users with details found in flake.users
-  users.users = let
-    # Filter list of groups to only those which exist
-    ifTheyExist = groups:
-      builtins.filter
-      (group: builtins.hasAttr group config.users.groups)
-      groups;
 
-    # Get a user by name from the flake
-    flakeUser = name: rec {
-      inherit name;
-      user = flake.users."${name}" or {};
-      openssh = user.openssh or {};
-      extraGroups = (user.extraGroups or []) ++ ifTheyExist ["media" "photos"];
-    };
+  # Filter list of groups to only those which exist
+  ifTheyExist = groups:
+    builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
 
-    # Each user account found in flake.users
-    userAccounts = lib.genAttrs userNames (name: let
-      u = flakeUser name;
-    in
-      u.user
-      // {
-        inherit (u) extraGroups openssh;
-        hashedPasswordFile =
-          if hasPasswordFile name
-          then "/run/user/${u.name}"
-          else null;
-      });
-
-    # Special case for flake.users.root
-    rootAccount = let
-      u = flakeUser "root";
-    in {
-      "${u.name}" =
-        u.user
-        // {
-          inherit (u) openssh;
-          hashedPasswordFile =
-            if hasPasswordFile "root"
-            then "/run/user/${u.name}"
-            else null;
-        };
-    };
+  # Import and normalize a user config from users/<name>/default.nix
+  mkUser = name: let
+    userPath = usersDir + "/${name}";
+    raw = import (userPath + "/default.nix");
+    hasPassword = hasPasswordFile name;
   in
-    userAccounts // rootAccount;
+    raw
+    // {
+      inherit name;
+      isNormalUser = !(raw.isSystemUser or false);
+      extraGroups = (raw.extraGroups or []) ++ ifTheyExist ["media" "photos"];
+      openssh = {
+        authorizedKeys = raw.openssh.authorizedKeys or {};
+        authorizedPrincipals = raw.openssh.authorizedPrincipals or [];
+      };
+      hashedPasswordFile =
+        if hasPassword
+        then "/run/user/${name}"
+        else null;
+    };
+
+  # Root account (if users/root exists)
+  mkRoot = let
+    rootPath = usersDir + "/root";
+    hasRoot = builtins.pathExists (rootPath + "/default.nix");
+    raw =
+      if hasRoot
+      then import (rootPath + "/default.nix")
+      else {};
+    hasPassword = hasPasswordFile "root";
+  in {
+    root =
+      raw
+      // {
+        openssh = {
+          authorizedKeys = raw.openssh.authorizedKeys or {};
+          authorizedPrincipals = raw.openssh.authorizedPrincipals or [];
+        };
+        hashedPasswordFile =
+          if hasPassword
+          then "/run/user/root"
+          else null;
+      };
+  };
+in {
+  users.users = lib.genAttrs userNames mkUser // mkRoot;
 
   # Disallow modifying users outside of this config
   users.mutableUsers = false;
