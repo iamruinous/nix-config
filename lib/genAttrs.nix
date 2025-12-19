@@ -1,32 +1,26 @@
 # Extend nixpkgs' genAttrs to first convert provided paths or attrs to a list
-{
-  lib,
-  flake,
-  ...
-}: x: fn: let
+{lib, ...}: x: fn: let
   # Ensure string and strip .nix suffix from any entries
   fromList = list: map (name: lib.removeSuffix ".nix" (toString name)) list;
 
-  # List of directory and filenames in given path
-  fromPath = path:
-    fromList (flake.lib.ls {
-      inherit path;
-      asPath = false;
-      dirsExcept = [];
-    });
+  # List of subdirectory names in given path (excludes hidden dirs)
+  fromPath = path: let
+    contents = builtins.readDir path;
+    dirs = lib.filterAttrs (n: v: v == "directory" && !lib.hasPrefix "." n) contents;
+  in
+    builtins.attrNames dirs;
 
   # List of attribute names in given attr set
   fromAttrs = attrs: fromList (builtins.attrNames attrs);
 
   inherit (builtins) isAttrs isPath isList;
   list =
-    if (isPath x)
-    then (fromPath x)
-    else if (isList x)
-    then (fromList x)
-    else if (isAttrs x)
-    then (fromAttrs x)
+    if isPath x
+    then fromPath x
+    else if isList x
+    then fromList x
+    else if isAttrs x
+    then fromAttrs x
     else [];
-  # Pass along modified list and provided function to nixpkgs's genAttrs
 in
   lib.genAttrs list fn

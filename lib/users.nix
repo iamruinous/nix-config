@@ -2,37 +2,34 @@
 flake.lib.genAttrs ../users (
   dir: let
     user = import ../users/${dir};
+    isRoot = dir == "root";
+
+    # Common openssh handling for all users
+    openssh = {
+      authorizedKeys = user.openssh.authorizedKeys or {};
+      authorizedPrincipals = user.openssh.authorizedPrincipals or [];
+    };
   in
     user
+    // {inherit openssh;}
     // (
-      # Special case for root user
-      if dir == "root"
-      then rec {
+      if isRoot
+      then {
         name = "root";
         uid = 0;
         description = "System administrator";
         isSystemUser = true;
         isNormalUser = false;
         linger = false;
-        openssh = {
-          authorizedKeys = user.openssh.authorizedKeys or {};
-          authorizedPrincipals = user.openssh.authorizedPrincipals or [];
-        };
-
-        # Normal users with custom defaults
       }
       else rec {
         name = user.name or dir;
         uid = user.uid or null;
         description = user.description or name;
         isSystemUser = user.isSystemUser or false;
-        isNormalUser = ! isSystemUser;
+        isNormalUser = !isSystemUser;
         useDefaultShell = user.useDefaultShell or true;
         linger = user.linger or true;
-        openssh = {
-          authorizedKeys = user.openssh.authorizedKeys or {};
-          authorizedPrincipals = user.openssh.authorizedPrincipals or [];
-        };
       }
     )
 )
