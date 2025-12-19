@@ -31,7 +31,7 @@
     // {
       inherit name;
       isNormalUser = !(raw.isSystemUser or false);
-      extraGroups = (raw.extraGroups or []) ++ ifTheyExist ["media" "photos"];
+      extraGroups = (raw.extraGroups or []) ++ ifTheyExist ["media" "photos" "dialout"];
       openssh = {
         authorizedKeys = raw.openssh.authorizedKeys or {};
         authorizedPrincipals = raw.openssh.authorizedPrincipals or [];
@@ -73,7 +73,8 @@ in {
   users.defaultUserShell = pkgs.fish;
 
   # Define age secrets for each user's password.age file
-  age.secrets = lib.genAttrs
+  age.secrets =
+    lib.genAttrs
     (map (name: "user_password_${name}") usersWithPasswords)
     (secretName: let
       # Extract username from secret name (remove "user_password_" prefix)
