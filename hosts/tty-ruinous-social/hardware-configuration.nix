@@ -76,5 +76,5 @@
   # networking.interfaces.enp0s5.useDHCP = lib.mkDefault true;
   networking.interfaces.eth0.useDHCP = true;
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  nixpkgs.hostPlatform = "x86_64-linux";
 }
