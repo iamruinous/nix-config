@@ -79,22 +79,20 @@ in {
       mode = "600";
     });
 
-  # Activation script to hash passwords and write to /run/user/<username>
-  system.activationScripts.userPasswords = lib.mkIf (usersWithPasswords != []) {
-    deps = ["agenix"];
-    text = let
-      mkpasswd = "${pkgs.mkpasswd}/bin/mkpasswd";
-      hashPassword = userName: ''
-        # Create /run/user directory if it doesn't exist
-        mkdir -p /run/user
+  # Hook into agenixInstall to hash passwords immediately after secrets are decrypted
+  # This runs as part of agenix's activation, ensuring passwords are available on boot
+  system.activationScripts.agenixInstall.text = lib.mkIf (usersWithPasswords != []) (lib.mkAfter (let
+    mkpasswd = "${pkgs.mkpasswd}/bin/mkpasswd";
+    hashPassword = userName: ''
+      # Create /run/user directory if it doesn't exist
+      mkdir -p /run/user
 
-        # Read plaintext password from agenix secret and hash it
-        if [ -f "${config.age.secrets."user_password_${userName}".path}" ]; then
-          ${mkpasswd} -m sha-512 "$(cat ${config.age.secrets."user_password_${userName}".path})" > /run/user/${userName}
-          chmod 600 /run/user/${userName}
-        fi
-      '';
-    in
-      lib.concatMapStringsSep "\n" hashPassword usersWithPasswords;
-  };
+      # Read plaintext password from agenix secret and hash it
+      if [ -f "${config.age.secrets."user_password_${userName}".path}" ]; then
+        ${mkpasswd} -m sha-512 "$(cat ${config.age.secrets."user_password_${userName}".path})" > /run/user/${userName}
+        chmod 600 /run/user/${userName}
+      fi
+    '';
+  in
+    lib.concatMapStringsSep "\n" hashPassword usersWithPasswords));
 }
