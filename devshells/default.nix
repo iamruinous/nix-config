@@ -1,10 +1,6 @@
 # devshell.nix
 # Using mkShell from nixpkgs
-{
-  pkgs,
-  perSystem,
-  ...
-}:
+{pkgs, ...}:
 pkgs.mkShell {
   packages = with pkgs; [
     cloudflared
@@ -13,7 +9,6 @@ pkgs.mkShell {
     go # Go compiler for building/testing Go packages
     pnpm # For running Node.js-based MCP servers
     uv # Provides uvx for running Python-based MCP servers
-    # perSystem.nixos-lima.nixos-lima
   ];
 
   shellHook = ''
