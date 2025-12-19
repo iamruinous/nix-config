@@ -36,7 +36,7 @@ in {
       kdePackages.krohnkite
       (sddm-astronaut.override
         {
-          embeddedTheme = "pixel_sakura";
+          embeddedTheme = "black_hole";
         })
     ];
   };

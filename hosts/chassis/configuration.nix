@@ -10,8 +10,8 @@
 }: {
   imports = [
     flake.nixosModules.default
-    # flake.nixosModules.developer
-    # flake.nixosModules.kde
+    flake.nixosModules.developer
+    flake.nixosModules.kde
     flake.inputs.disko.nixosModules.disko
 
     ./disko.nix
@@ -19,6 +19,15 @@
   ];
 
   networking.hostName = "chassis"; # Define your hostname.
+  programs._1password.enable = true;
+  programs.steam.enable = true;
+  services.flatpak.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  boot.plymouth.enable = true;
+  users.mutableUsers = false;
+
+  # hint about wayland
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
