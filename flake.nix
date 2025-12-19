@@ -128,9 +128,34 @@
       inherit inputs;
       nixpkgs.config.allowUnfree = true;
     };
+
+    # Raspberry Pi hosts (using nixos-raspberrypi's nixosSystem for proper kernel/bootloader support)
+    piHosts = {
+      rp500 = inputs.nixos-raspberrypi.lib.nixosSystem {
+        modules = [
+          # RPi 5 hardware modules
+          inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
+          inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
+
+          # Host configuration
+          ./hosts/rp500/configuration.nix
+
+          # Pass flake and inputs to modules
+          {
+            _module.args = {
+              flake = inputs.self;
+              inherit inputs;
+            };
+          }
+        ];
+      };
+    };
   in
     blueprintOutputs
     // {
+      # Merge Pi hosts with blueprint nixosConfigurations
+      nixosConfigurations = blueprintOutputs.nixosConfigurations // piHosts;
+
       # packages = pkgs.perSystem.default;
       caches = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
@@ -150,7 +175,7 @@
       #        nix run .#agenix-rekey -- rekey --all
       agenix-rekey = inputs.agenix-rekey.configure {
         userFlake = inputs.self;
-        nixosConfigurations = blueprintOutputs.nixosConfigurations // blueprintOutputs.darwinConfigurations or {};
+        nixosConfigurations = blueprintOutputs.nixosConfigurations // piHosts // blueprintOutputs.darwinConfigurations or {};
         homeConfigurations = blueprintOutputs.homeConfigurations or {};
       };
     };
