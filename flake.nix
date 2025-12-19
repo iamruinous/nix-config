@@ -145,6 +145,7 @@
             _module.args = {
               flake = inputs.self;
               inherit inputs;
+              nixos-raspberrypi = inputs.nixos-raspberrypi;
             };
           }
         ];
