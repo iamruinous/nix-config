@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   # shell packages
   environment.systemPackages = with pkgs; [
     # prompt stuff

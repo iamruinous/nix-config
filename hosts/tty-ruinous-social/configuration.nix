@@ -9,6 +9,7 @@
   imports = [
     flake.nixosModules.default
     flake.nixosModules.developer
+    flake.nixosModules.server
     ./hardware-configuration.nix
     ./containers.nix
     #./disko.nix

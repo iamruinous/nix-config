@@ -555,6 +555,7 @@
           WEBHOOK_URL = "https://n8h.meskill.farm";
           N8N_EDITOR_BASE_URL = "https://n8n.meskill.farm";
           N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE = "true";
+          N8N_BLOCK_ENV_ACCESS_IN_NODE = "false";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
@@ -907,6 +908,11 @@
   systemd.services.docker-caddy = {
     restartTriggers = [config.age.secrets.monolith_caddy_caddyfile.path];
   };
+  # Restart docker-n8n service when env secret changes
+  systemd.services.docker-n8n = {
+    restartTriggers = [config.age.secrets.monolith_docker_env_n8n.path];
+  };
+
   age.secrets.monolith_glance_config = {
     rekeyFile = ./files/glance/glance.yml.age;
     path = "/data/docker/glance/config/glance.yml";
