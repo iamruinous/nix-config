@@ -1,5 +1,4 @@
 {
-  hostName,
   pkgs,
   lib,
   flake,
@@ -50,17 +49,6 @@ in {
     trusted-public-keys = flake.caches;
   };
 
-  # nix.sshServe = {
-  #   enable = true;
-  #   keys = let
-  #     userKeys = ls {
-  #       path = flake + /users;
-  #       dirsWith = ["id_ed25519.pub"];
-  #     };
-  #   in
-  #     map (key: builtins.readFile key) userKeys;
-  # };
-
   # Automatic garbage collection
   nix.gc =
     {
@@ -90,26 +78,4 @@ in {
 
   # Map registries to channels
   nix.nixPath = ["repl=${flake}/repl.nix" "nixpkgs=${flake.inputs.nixpkgs}"];
-
-  # Nixpkgs configuration
-  nixpkgs.config = {
-    allowUnfree = true;
-  };
-
-  # # Automatically upgrade this system while I sleep
-  # system.autoUpgrade = {
-  #   enable = false;
-  #   dates = "04:00";
-  #   flake = "/etc/nixos#${hostName}";
-  #   flags = [
-  #     # "--update-input" "nixpkgs"
-  #     # "--update-input" "unstable"
-  #     # "--update-input" "nur"
-  #     # "--update-input" "home-manager"
-  #     # "--update-input" "agenix"
-  #     # "--update-input" "impermanence"
-  #     # "--commit-lock-file"
-  #   ];
-  #   allowReboot = true;
-  # };
 }
