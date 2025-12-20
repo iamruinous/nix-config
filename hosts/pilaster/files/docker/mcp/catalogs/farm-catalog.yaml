@@ -368,4 +368,63 @@ registry:
         - database
       license: MIT License
       owner: redis
+  time:
+    description: Time and timezone conversion capabilities.
+    title: Time (Reference)
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/time@sha256:9c46a918633fb474bf8035e3ee90ebac6bcf2b18ccb00679ac4c179cba0ebfcf
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/time.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/time.json
+    source: https://github.com/modelcontextprotocol/servers/tree/b4ee623039a6c60053ce67269701ad9e95073306/src/time
+    upstream: https://github.com/modelcontextprotocol/servers
+    icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+    tools:
+      - name: convert_time
+      - name: get_current_time
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 74721
+      category: devops
+      tags:
+        - time
+        - devops
+      license: MIT License
+      owner: modelcontextprotocol
+  wikipedia-mcp:
+    description: A Model Context Protocol (MCP) server that retrieves information from Wikipedia to provide context to LLMs.
+    title: Wikipedia
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/wikipedia-mcp@sha256:047f17273bae96828903cfd12f13c7a64951b54e537530ecb6678fff5204a584
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/wikipedia-mcp.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/wikipedia-mcp.json
+    source: https://github.com/Rudra-ravi/wikipedia-mcp/tree/2553fd47a9ebf3fa6cf994f1be44b87e4fda2c94
+    upstream: https://github.com/Rudra-ravi/wikipedia-mcp
+    icon: https://avatars.githubusercontent.com/u/56668?s=200&v=4
+    tools:
+      - name: extract_key_facts
+      - name: get_article
+      - name: get_coordinates
+      - name: get_links
+      - name: get_related_topics
+      - name: get_sections
+      - name: get_summary
+      - name: search_wikipedia
+      - name: summarize_article_for_query
+      - name: summarize_article_section
+      - name: test_wikipedia_connectivity
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 159
+      category: devops
+      tags:
+        - wikipedia-mcp
+        - devops
+      license: MIT License
+      owner: Rudra-ravi
 

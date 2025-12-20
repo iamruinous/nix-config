@@ -610,6 +610,8 @@ In addition to the general guidelines, this NixOS configuration repository has t
    | google-flights | travel | Search for flights between airports |
    | postgres | database | Read-only access to PostgreSQL databases |
    | redis | database | Access to Redis database operations |
+   | time | devops | Time and timezone conversion capabilities |
+   | wikipedia-mcp | devops | Retrieve information from Wikipedia |
 
    **Catalog Format (version 2):**
    ```yaml

@@ -17,3 +17,7 @@ registry:
     ref: ""
   redis:
     ref: ""
+  time:
+    ref: ""
+  wikipedia-mcp:
+    ref: ""
