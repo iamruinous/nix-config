@@ -625,28 +625,35 @@ In addition to the general guidelines, this NixOS configuration repository has t
 
    **Adding a New MCP Server:**
 
-   1. **Research the MCP server** - Find the Docker image and required environment variables
-      - Check Docker Hub, ghcr.io, or the project's GitHub for the image
-      - Identify required secrets (API keys, tokens, etc.)
+   1. **Find the server in the official catalog or Docker Hub**
+      - **Official catalog**: Check `hosts/pilaster/files/docker/mcp/catalogs/docker-mcp.yaml` first
+      - **Docker Hub MCP**: Browse https://hub.docker.com/mcp for additional servers
+      - Copy the server definition exactly from the official source (including sha256 digest)
 
    2. **Add the server to farm-catalog.yaml**
+      Copy the entry from docker-mcp.yaml or create one matching the official format:
       ```yaml
       # In hosts/pilaster/files/docker/mcp/catalogs/farm-catalog.yaml
       registry:
         # ... existing servers ...
         new-server:
-          description: "What this server does"
-          title: "Server Name"
-          type: "server"
-          image: "registry/image:tag"
-          secrets:
-            - name: "new-server.api_key"
-              env: "API_KEY"
-              example: "your-api-key-here"
+          description: "Description from official catalog"
+          title: "Server Title"
+          type: server
+          image: mcp/server-name@sha256:abc123...  # Use digest, not :latest
+          source: https://github.com/org/repo
+          upstream: https://github.com/org/repo
+          secrets:  # Only if required
+            - name: new-server.api_key
+              env: API_KEY
+              example: <YOUR_TOKEN>
           metadata:
-            category: "development"
-            tags: ["relevant", "tags"]
-          source: "https://github.com/org/repo"
+            category: category-name
+            tags:
+              - tag1
+              - tag2
+            license: MIT License
+            owner: owner-name
       ```
 
    3. **Register the server in registry.yaml**
@@ -687,17 +694,15 @@ In addition to the general guidelines, this NixOS configuration repository has t
    - The `name` in the catalog's `secrets` array must match the key in the env file
    - The `env` field specifies the environment variable name passed to the container
 
-   **Common MCP Server Images:**
-   | Server | Image | Required Secrets |
-   |--------|-------|------------------|
-   | GitHub | `ghcr.io/github/github-mcp-server:latest` | `github.personal_access_token` |
-   | Filesystem | `mcp/filesystem:latest` | None (uses volumes) |
-   | Postgres | `mcp/postgres:latest` | `postgres.connection_string` |
+   **Finding MCP Servers:**
+   - **Official catalog** (local): `hosts/pilaster/files/docker/mcp/catalogs/docker-mcp.yaml`
+   - **Docker Hub MCP**: https://hub.docker.com/mcp (browse all available servers)
+   - Always use the `@sha256:...` digest from the official catalog, not `:latest`
 
    **References:**
    - [Docker MCP Gateway Docs](https://docs.docker.com/ai/mcp-catalog-and-toolkit/mcp-gateway/)
    - [MCP Catalog Format](https://github.com/docker/mcp-gateway/blob/main/docs/catalog.md)
-   - [GitHub MCP Server](https://github.com/github/github-mcp-server)
+   - [Docker Hub MCP Catalog](https://hub.docker.com/mcp)
 
 ## Changelog
 

@@ -1,35 +1,55 @@
 version: 2
 name: farm-catalog
 displayName: Meskill Farm Catalog
+# Server definitions copied from official docker-mcp.yaml catalog
+# Reference: hosts/pilaster/files/docker/mcp/catalogs/docker-mcp.yaml
+# Browse more: https://hub.docker.com/mcp
 registry:
-  github:
-    description: "GitHub repository management, file operations, and GitHub API integration"
-    title: "GitHub"
-    type: "server"
-    image: "ghcr.io/github/github-mcp-server:latest"
+  github-official:
+    description: "Official GitHub MCP Server, by GitHub. Provides seamless integration with GitHub APIs, enabling advanced automation and interaction capabilities for developers and tools."
+    title: "GitHub Official"
+    type: server
+    image: ghcr.io/github/github-mcp-server@sha256:26c7b1b8ac6e3e85f02a5dbd3b2061686d1fd2f6c8191ef29a2ab548f2c5404f
+    source: https://github.com/github/github-mcp-server
+    upstream: https://github.com/github/github-mcp-server
     secrets:
-      - name: "github.personal_access_token"
-        env: "GITHUB_PERSONAL_ACCESS_TOKEN"
-        example: "ghp_xxxxxxxxxxxx"
+      - name: github.personal_access_token
+        env: GITHUB_PERSONAL_ACCESS_TOKEN
+        example: <YOUR_TOKEN>
+        description: "You can create a GitHub personal access token [on GitHub](https://github.com/settings/personal-access-tokens/new)"
     metadata:
-      category: "development"
-      tags: ["github", "git", "repositories", "issues", "pull-requests"]
-    source: "https://github.com/github/github-mcp-server"
+      category: devops
+      tags:
+        - github
+        - devops
+      license: MIT License
+      owner: github
   gemini-api-docs:
-    description: "Search and retrieve Google Gemini API documentation"
+    description: "Provides tools to search and retrieve Google Gemini API documentation."
     title: "Gemini API Docs"
-    type: "server"
-    image: "mcp/gemini-api-docs-mcp:latest"
+    type: server
+    image: mcp/gemini-api-docs-mcp@sha256:ba912546626d7bb5acdbcca0af56a9afb00cc2015013edd0f5ec2f68a6d45c52
+    source: https://github.com/kgprs/gemini-api-docs-mcp
+    upstream: https://github.com/kgprs/gemini-api-docs-mcp
     metadata:
-      category: "documentation"
-      tags: ["gemini", "google", "api", "docs", "documentation"]
-    source: "https://github.com/philschmid/gemini-api-docs-mcp"
+      category: ai
+      tags:
+        - ai
+      license: MIT License
+      owner: kgprs
   google-flights:
-    description: "Search flights across date ranges and find round-trip options"
+    description: "Interact with Google Flights data to search for one-way, round-trip, and date range flight options between airports."
     title: "Google Flights"
-    type: "server"
-    image: "mcp/google-flights:latest"
+    type: server
+    image: mcp/google-flights@sha256:8ecfd55f5aff8f0fc322778d98708e0b031f00dc1c8b3244d877c4492b429543
+    source: https://github.com/kgprs/Google-Flights-MCP-Server
+    upstream: https://github.com/kgprs/Google-Flights-MCP-Server
     metadata:
-      category: "travel"
-      tags: ["flights", "travel", "google", "search"]
-    source: "https://github.com/kgprs/Google-Flights-MCP-Server"
+      category: travel
+      tags:
+        - travel
+        - flights
+        - google-flights
+        - search
+      license: MIT License
+      owner: kgprs

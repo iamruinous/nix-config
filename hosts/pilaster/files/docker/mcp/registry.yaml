@@ -3,7 +3,7 @@
 # This file is managed by nix-config
 # Keys must match server names in farm-catalog.yaml
 registry:
-  github:
+  github-official:
     ref: ""
   gemini-api-docs:
     ref: ""
