@@ -12,7 +12,7 @@ in {
     virtualisation.docker.autoPrune.enable = true;
 
     environment.systemPackages = with pkgs; [
-      docker-credential-helpers
+      # docker-credential-helpers
       lazydocker
     ];
   };

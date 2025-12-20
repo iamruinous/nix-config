@@ -544,7 +544,7 @@
         ];
       };
       n8n = {
-        image = "docker.n8n.io/n8nio/n8n:2.0.2";
+        image = "docker.io/n8nio/n8n:2.0.2";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -572,7 +572,7 @@
         ];
       };
       n8n-runner = {
-        image = "docker.n8n.io/n8nio/n8n-task-runners:2.0.2";
+        image = "docker.io/n8nio/runners:2.0.2";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
