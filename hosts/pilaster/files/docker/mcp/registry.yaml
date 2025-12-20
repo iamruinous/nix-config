@@ -1,6 +1,7 @@
 # MCP Gateway Registry
 # Active server instances are tracked here
 # This file is managed by nix-config
+# Keys must match server names in farm-catalog.yaml
 registry:
-  github-official:
+  github:
     ref: ""

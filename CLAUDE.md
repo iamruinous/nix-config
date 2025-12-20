@@ -649,7 +649,20 @@ In addition to the general guidelines, this NixOS configuration repository has t
           source: "https://github.com/org/repo"
       ```
 
-   3. **Add secrets to mcp-gateway.env.age** (if required)
+   3. **Register the server in registry.yaml**
+      The registry tracks which servers are active. Add an entry for each server you want enabled:
+      ```yaml
+      # In hosts/pilaster/files/docker/mcp/registry.yaml
+      registry:
+        # ... existing servers ...
+        new-server:
+          ref: ""
+      ```
+      - The key must match the server name in farm-catalog.yaml
+      - The `ref` field can be empty for the default/latest version
+      - Without a registry entry, the server won't be available to clients
+
+   4. **Add secrets to mcp-gateway.env.age** (if required)
       ```bash
       # View current secrets
       agenix view hosts/pilaster/files/docker/env/mcp-gateway.env.age > /tmp/mcp.env
@@ -663,7 +676,7 @@ In addition to the general guidelines, this NixOS configuration repository has t
       rm /tmp/mcp.env
       ```
 
-   4. **Deploy changes**
+   5. **Deploy changes**
       The gateway uses `--watch=true`, so changes to the catalog file are picked up automatically after deployment:
       ```bash
       sudo nixos-rebuild switch --flake .#pilaster
