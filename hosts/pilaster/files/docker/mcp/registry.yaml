@@ -3,9 +3,17 @@
 # This file is managed by nix-config
 # Keys must match server names in farm-catalog.yaml
 registry:
-  github-official:
+  docker:
     ref: ""
   gemini-api-docs:
     ref: ""
+  git:
+    ref: ""
+  github-official:
+    ref: ""
   google-flights:
+    ref: ""
+  postgres:
+    ref: ""
+  redis:
     ref: ""

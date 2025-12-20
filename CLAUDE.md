@@ -591,13 +591,25 @@ In addition to the general guidelines, this NixOS configuration repository has t
    ```
    hosts/pilaster/files/docker/mcp/
    ├── catalogs/
-   │   └── farm-catalog.yaml    # Custom MCP server definitions
+   │   ├── docker-mcp.yaml      # Official Docker MCP catalog (reference)
+   │   └── farm-catalog.yaml    # Our custom MCP server definitions
    ├── config.yaml              # Gateway configuration
    ├── registry.yaml            # Active server registry
    └── tools.yaml               # Tool configurations
    ```
 
    These files are copied (not symlinked) to `~/.docker/mcp/` on pilaster via a home-manager activation script. Symlinks won't work because Docker containers can't follow symlinks to paths outside their mounted volumes (like `/nix/store`). See `hosts/pilaster/users/jmeskill/home-configuration.nix`.
+
+   **Current Servers in farm-catalog:**
+   | Server | Category | Description |
+   |--------|----------|-------------|
+   | docker | devops | Use the Docker CLI |
+   | gemini-api-docs | ai | Search and retrieve Google Gemini API documentation |
+   | git | devops | Git repository interaction and automation |
+   | github-official | devops | Official GitHub MCP Server by GitHub |
+   | google-flights | travel | Search for flights between airports |
+   | postgres | database | Read-only access to PostgreSQL databases |
+   | redis | database | Access to Redis database operations |
 
    **Catalog Format (version 2):**
    ```yaml
