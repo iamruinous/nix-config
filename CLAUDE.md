@@ -597,7 +597,7 @@ In addition to the general guidelines, this NixOS configuration repository has t
    └── tools.yaml               # Tool configurations
    ```
 
-   These files are symlinked to `~/.docker/mcp/` on pilaster via home-manager (see `hosts/pilaster/users/jmeskill/home-configuration.nix`).
+   These files are copied (not symlinked) to `~/.docker/mcp/` on pilaster via home-manager. Symlinks won't work because Docker containers can't follow symlinks to paths outside their mounted volumes. See `hosts/pilaster/users/jmeskill/home-configuration.nix`.
 
    **Catalog Format (version 2):**
    ```yaml
