@@ -492,7 +492,7 @@
       mcp-gateway = {
         image = "docker/mcp-gateway:v0.32.0";
         cmd = [
-          "--catalog=/mcp/catalogs/docker-mcp.yaml"
+          "--catalog=/mcp/catalogs/farm-catalog.yaml"
           "--config=/mcp/config.yaml"
           "--registry=/mcp/registry.yaml"
           "--tools-config=/mcp/tools.yaml"

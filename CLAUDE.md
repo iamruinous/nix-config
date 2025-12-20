@@ -584,6 +584,108 @@ In addition to the general guidelines, this NixOS configuration repository has t
    - **WikiJS**: Documentation wiki (wikijs.meskill.farm)
    ```
 
+9. **MCP Gateway Catalog Management**:
+   The MCP Gateway on pilaster uses a custom catalog called `farm-catalog` to define available MCP servers. The catalog and configuration files are managed from this repository.
+
+   **File Locations:**
+   ```
+   hosts/pilaster/files/docker/mcp/
+   ├── catalogs/
+   │   └── farm-catalog.yaml    # Custom MCP server definitions
+   ├── config.yaml              # Gateway configuration
+   ├── registry.yaml            # Active server registry
+   └── tools.yaml               # Tool configurations
+   ```
+
+   These files are symlinked to `~/.docker/mcp/` on pilaster via home-manager (see `hosts/pilaster/users/jmeskill/home-configuration.nix`).
+
+   **Catalog Format (version 2):**
+   ```yaml
+   version: 2
+   name: farm-catalog
+   displayName: Meskill Farm Catalog
+   registry:
+     server-name:
+       description: "Short description (max 125 chars)"
+       title: "Display Name"
+       type: "server"
+       image: "registry/image:tag"
+       secrets:
+         - name: "server-name.secret_key"
+           env: "SECRET_ENV_VAR"
+           example: "example_value"
+       env:
+         - name: "CONFIG_VAR"
+           value: "{{server-name.config_value}}"
+       metadata:
+         category: "category-name"
+         tags: ["tag1", "tag2"]
+       source: "https://github.com/org/repo"
+   ```
+
+   **Adding a New MCP Server:**
+
+   1. **Research the MCP server** - Find the Docker image and required environment variables
+      - Check Docker Hub, ghcr.io, or the project's GitHub for the image
+      - Identify required secrets (API keys, tokens, etc.)
+
+   2. **Add the server to farm-catalog.yaml**
+      ```yaml
+      # In hosts/pilaster/files/docker/mcp/catalogs/farm-catalog.yaml
+      registry:
+        # ... existing servers ...
+        new-server:
+          description: "What this server does"
+          title: "Server Name"
+          type: "server"
+          image: "registry/image:tag"
+          secrets:
+            - name: "new-server.api_key"
+              env: "API_KEY"
+              example: "your-api-key-here"
+          metadata:
+            category: "development"
+            tags: ["relevant", "tags"]
+          source: "https://github.com/org/repo"
+      ```
+
+   3. **Add secrets to mcp-gateway.env.age** (if required)
+      ```bash
+      # View current secrets
+      agenix view hosts/pilaster/files/docker/env/mcp-gateway.env.age > /tmp/mcp.env
+
+      # Add new secret (use the format: server-name.secret_key=value)
+      echo 'new-server.api_key=your-actual-key' >> /tmp/mcp.env
+
+      # Re-encrypt
+      rm hosts/pilaster/files/docker/env/mcp-gateway.env.age
+      agenix edit -i /tmp/mcp.env hosts/pilaster/files/docker/env/mcp-gateway.env.age
+      rm /tmp/mcp.env
+      ```
+
+   4. **Deploy changes**
+      The gateway uses `--watch=true`, so changes to the catalog file are picked up automatically after deployment:
+      ```bash
+      sudo nixos-rebuild switch --flake .#pilaster
+      ```
+
+   **Secret Naming Convention:**
+   - Format: `server-name.secret_key` (e.g., `github.personal_access_token`)
+   - The `name` in the catalog's `secrets` array must match the key in the env file
+   - The `env` field specifies the environment variable name passed to the container
+
+   **Common MCP Server Images:**
+   | Server | Image | Required Secrets |
+   |--------|-------|------------------|
+   | GitHub | `ghcr.io/github/github-mcp-server:latest` | `github.personal_access_token` |
+   | Filesystem | `mcp/filesystem:latest` | None (uses volumes) |
+   | Postgres | `mcp/postgres:latest` | `postgres.connection_string` |
+
+   **References:**
+   - [Docker MCP Gateway Docs](https://docs.docker.com/ai/mcp-catalog-and-toolkit/mcp-gateway/)
+   - [MCP Catalog Format](https://github.com/docker/mcp-gateway/blob/main/docs/catalog.md)
+   - [GitHub MCP Server](https://github.com/github/github-mcp-server)
+
 ## Changelog
 
 This repository maintains a changelog in `CHANGELOG.md` following the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.

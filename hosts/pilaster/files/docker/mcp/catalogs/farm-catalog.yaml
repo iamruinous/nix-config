@@ -1,0 +1,17 @@
+version: 2
+name: farm-catalog
+displayName: Meskill Farm Catalog
+registry:
+  github:
+    description: "GitHub repository management, file operations, and GitHub API integration"
+    title: "GitHub"
+    type: "server"
+    image: "ghcr.io/github/github-mcp-server:latest"
+    secrets:
+      - name: "github.personal_access_token"
+        env: "GITHUB_PERSONAL_ACCESS_TOKEN"
+        example: "ghp_xxxxxxxxxxxx"
+    metadata:
+      category: "development"
+      tags: ["github", "git", "repositories", "issues", "pull-requests"]
+    source: "https://github.com/github/github-mcp-server"
