@@ -550,12 +550,15 @@
           GENERIC_TIMEZONE = "America/Phoenix";
           N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = "true";
           N8N_RUNNERS_ENABLED = "true";
+          N8N_RUNNERS_MODE = "external";
+          N8N_RUNNERS_BROKER_LISTEN_ADDRESS = "0.0.0.0";
           N8N_PROXY_HOPS = "1";
           DB_TYPE = "postgresdb";
           WEBHOOK_URL = "https://n8h.meskill.farm";
           N8N_EDITOR_BASE_URL = "https://n8n.meskill.farm";
           N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE = "true";
           N8N_BLOCK_ENV_ACCESS_IN_NODE = "false";
+          N8N_NATIVE_PYTHON_RUNNER = "true";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
@@ -567,6 +570,17 @@
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
         ];
+      };
+      n8n-runner = {
+        image = "docker.n8n.io/n8nio/n8n-task-runners:2.0.2";
+        environment = {
+          TZ = "America/Phoenix";
+          N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "15";
+        };
+        environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
+        networks = ["servicenet"];
+        dependsOn = ["n8n"];
       };
       "paperless-ai" = {
         image = "docker.io/clusterzx/paperless-ai:3.0.9";
@@ -946,6 +960,10 @@
   };
   age.secrets.monolith_docker_env_n8n = {
     rekeyFile = ./files/docker/env/n8n.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_n8n_runner = {
+    rekeyFile = ./files/docker/env/n8n-runner.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_gluetun = {
