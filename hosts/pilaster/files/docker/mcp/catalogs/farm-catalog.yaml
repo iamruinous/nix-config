@@ -15,3 +15,21 @@ registry:
       category: "development"
       tags: ["github", "git", "repositories", "issues", "pull-requests"]
     source: "https://github.com/github/github-mcp-server"
+  gemini-api-docs:
+    description: "Search and retrieve Google Gemini API documentation"
+    title: "Gemini API Docs"
+    type: "server"
+    image: "mcp/gemini-api-docs-mcp:latest"
+    metadata:
+      category: "documentation"
+      tags: ["gemini", "google", "api", "docs", "documentation"]
+    source: "https://github.com/philschmid/gemini-api-docs-mcp"
+  google-flights:
+    description: "Search flights across date ranges and find round-trip options"
+    title: "Google Flights"
+    type: "server"
+    image: "mcp/google-flights:latest"
+    metadata:
+      category: "travel"
+      tags: ["flights", "travel", "google", "search"]
+    source: "https://github.com/kgprs/Google-Flights-MCP-Server"
