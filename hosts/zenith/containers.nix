@@ -135,8 +135,8 @@
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
-          "--group-add=video"
-          "--group-add=render"
+          # "--group-add=video"
+          # "--group-add=render"
         ];
         networks = ["servicenet"];
         volumes = [
@@ -170,5 +170,36 @@
   # Restart docker-caddy service when Caddyfile secret changes
   systemd.services.docker-caddy = {
     restartTriggers = [config.age.secrets.zenith_caddy_caddyfile.path];
+  };
+
+  # Pull optimized models for zenith's 96GB VRAM after ollama starts
+  systemd.services.ollama-pull-models = {
+    description = "Pull Ollama models optimized for zenith";
+    wantedBy = ["multi-user.target"];
+    after = ["docker-ollama.service"];
+    requires = ["docker-ollama.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "ollama-pull-models" ''
+        # Wait for ollama to be ready
+        echo "Waiting for ollama to be ready..."
+        for i in $(seq 1 30); do
+          if ${pkgs.docker}/bin/docker exec ollama ollama list >/dev/null 2>&1; then
+            break
+          fi
+          sleep 2
+        done
+
+        echo "Pulling gemma3:27b (largest Gemma 3, 128K context, multimodal)..."
+        ${pkgs.docker}/bin/docker exec ollama ollama pull gemma3:27b
+
+        echo "Pulling glm4:latest (GLM-4 9B, 128K context, multilingual)..."
+        ${pkgs.docker}/bin/docker exec ollama ollama pull glm4:latest
+
+        echo "Models pulled successfully!"
+        ${pkgs.docker}/bin/docker exec ollama ollama list
+      '';
+    };
   };
 }
