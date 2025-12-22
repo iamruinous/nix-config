@@ -131,18 +131,18 @@
         cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
       };
       ollama = {
-        image = "docker.io/ollama/ollama:0.13.3-rocm";
+        image = "docker.io/ollama/ollama:0.13.4-rocm";
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
-          "--group-add=video"
-          "--group-add=render"
+          # "--group-add=video"
+          # "--group-add=render"
           "--security-opt=seccomp=unconfined"
         ];
         environment = {
           # Strix Halo (gfx1151) workarounds
-          OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
-          HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
+          # OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
+          # HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
         };
         networks = ["servicenet"];
         volumes = [
@@ -150,50 +150,43 @@
         ];
       };
       open-webui = {
-        image = "ghcr.io/open-webui/open-webui:v0.6.41";
+        image = "ghcr.io/open-webui/open-webui:v0.6.42";
         dependsOn = ["ollama"];
         environment = {
           OLLAMA_BASE_URL = "http://ollama:11434";
+          # OPENAI_API_BASE_URL = "http://vllm:8080/v1";
         };
         networks = ["servicenet"];
         volumes = [
           "/data/docker/open-webui/data:/app/backend/data"
         ];
       };
-      vllm = {
-        image = "rocm/vllm-dev:rocm7.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
-        extraOptions = [
-          "--device=/dev/kfd"
-          "--device=/dev/dri"
-          "--group-add=video"
-          "--group-add=render"
-          "--shm-size=16g"
-          "--security-opt=seccomp=unconfined"
-          "--ipc=host"
-        ];
-        environment = {
-          HF_HOME = "/data/huggingface";
-          # Strix Halo (gfx1151) workarounds
-          HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Use gfx1100 kernels (more stable, 2-6x faster)
-        };
-        networks = ["servicenet"];
-        volumes = [
-          "/data/docker/vllm/huggingface:/data/huggingface"
-        ];
-        cmd = [
-          "vllm"
-          "serve"
-          "Qwen/Qwen2.5-32B-Instruct"
-          "--host"
-          "0.0.0.0"
-          "--port"
-          "8000"
-          "--tensor-parallel-size"
-          "1"
-          "--max-model-len"
-          "32768"
-        ];
-      };
+      # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
+      # See: https://github.com/ROCm/ROCm/issues/4909
+      # Re-enable when ROCm properly supports Strix Halo
+      # vllm = {
+      #   image = "rocm/vllm-dev:rocm7.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
+      #   extraOptions = [
+      #     "--device=/dev/kfd"
+      #     "--device=/dev/dri"
+      #     "--group-add=video"
+      #     "--group-add=render"
+      #     "--shm-size=16g"
+      #     "--security-opt=seccomp=unconfined"
+      #     "--ipc=host"
+      #   ];
+      #   environment = {
+      #     HF_HOME = "/data/huggingface";
+      #     HSA_OVERRIDE_GFX_VERSION = "11.0.0";
+      #   };
+      #   networks = ["servicenet"];
+      #   volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
+      #   cmd = [
+      #     "vllm" "serve" "Qwen/Qwen2.5-32B-Instruct"
+      #     "--host" "0.0.0.0" "--port" "8000"
+      #     "--tensor-parallel-size" "1" "--max-model-len" "32768"
+      #   ];
+      # };
     };
   };
 
