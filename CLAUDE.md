@@ -166,6 +166,60 @@ Agent:
 and integrate it with the overlay so it's available on all hosts"
 ```
 
+#### agenix
+
+**Location:** `.claude/agents/agenix.md`
+
+**Purpose:** Expert in agenix secrets management for NixOS, specializing in:
+- Viewing, creating, and editing encrypted `.age` files
+- Managing Docker environment secrets
+- Updating Caddyfile configurations
+- Setting up Cloudflare tunnel credentials
+- Rekeying secrets after changes
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Encrypting files with agenix
+- Updating Caddyfiles or other encrypted configs
+- Managing Docker environment secrets (`.env.age` files)
+- Working with cloudflared credentials
+- Any operation on `.age` files
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the agenix agent to add a new environment file for the wikijs container"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (with `dangerouslyDisableSandbox: true` for agenix commands)
+
+**Key Commands:**
+```bash
+agenix-helper unlock          # Unlock before working with secrets
+agenix view file.age          # View encrypted file
+agenix edit -i input output.age  # Encrypt file non-interactively
+agenix rekey -a               # Rekey all secrets after changes
+agenix-helper lock            # Lock when done
+```
+
+**Common Patterns:**
+- Caddyfiles: `hosts/<hostname>/files/caddy/Caddyfile.age`
+- Docker env: `hosts/<hostname>/files/docker/env/<service>.env.age`
+- Cloudflared: `hosts/<hostname>/files/cloudflared/*.age`
+- Secret naming: `<hostname>_<purpose>` (e.g., `zenith_caddy_caddyfile`)
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Update the Caddyfile on zenith to add a new service"
+
+# Explicit invocation:
+"Use the agenix agent to create an encrypted environment file for the new database"
+
+# Complex task:
+"Set up Cloudflare tunnel credentials for the new service with proper encryption"
+```
+
 ### Creating Additional Custom Agents
 
 To create your own custom agents:
