@@ -166,6 +166,182 @@ Agent:
 and integrate it with the overlay so it's available on all hosts"
 ```
 
+#### agenix
+
+**Location:** `.claude/agents/agenix.md`
+
+**Purpose:** Expert in agenix secrets management for NixOS, specializing in:
+- Viewing, creating, and editing encrypted `.age` files
+- Managing Docker environment secrets
+- Updating Caddyfile configurations
+- Setting up Cloudflare tunnel credentials
+- Rekeying secrets after changes
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Encrypting files with agenix
+- Updating Caddyfiles or other encrypted configs
+- Managing Docker environment secrets (`.env.age` files)
+- Working with cloudflared credentials
+- Any operation on `.age` files
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the agenix agent to add a new environment file for the wikijs container"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (with `dangerouslyDisableSandbox: true` for agenix commands)
+
+**Key Commands:**
+```bash
+agenix-helper unlock          # Unlock before working with secrets
+agenix view file.age          # View encrypted file
+agenix edit -i input output.age  # Encrypt file non-interactively
+agenix rekey -a               # Rekey all secrets after changes
+agenix-helper lock            # Lock when done
+```
+
+**Common Patterns:**
+- Caddyfiles: `hosts/<hostname>/files/caddy/Caddyfile.age`
+- Docker env: `hosts/<hostname>/files/docker/env/<service>.env.age`
+- Cloudflared: `hosts/<hostname>/files/cloudflared/*.age`
+- Secret naming: `<hostname>_<purpose>` (e.g., `zenith_caddy_caddyfile`)
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Update the Caddyfile on zenith to add a new service"
+
+# Explicit invocation:
+"Use the agenix agent to create an encrypted environment file for the new database"
+
+# Complex task:
+"Set up Cloudflare tunnel credentials for the new service with proper encryption"
+```
+
+#### containnix
+
+**Location:** `.claude/agents/containnix.md`
+
+**Purpose:** Expert in containerizing services using NixOS OCI containers, specializing in:
+- Docker container definitions in `containers.nix`
+- Network configuration (servicenet, proxynet, datanet)
+- Caddy reverse proxy setup
+- DNS management with cfcli
+- Environment secrets integration
+- GPU passthrough (NVIDIA and AMD ROCm)
+- Cloudflare tunnel configuration
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Adding Docker containers to hosts
+- Configuring container networks
+- Setting up reverse proxies
+- Managing container environment files
+- Deploying containerized services
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the containnix agent to add a new WikiJS container to pilaster"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (for docker, cfcli, etc.)
+
+**Network Architecture:**
+```
+┌─────────────┐
+│   Caddy     │ ← proxynet + servicenet (ports 80, 443)
+└──────┬──────┘
+       │
+┌──────▼──────┐
+│  servicenet │ ← Apps accessible via Caddy
+└──────┬──────┘
+       │
+┌──────▼──────┐
+│   datanet   │ ← Databases (internal only)
+└─────────────┘
+```
+
+**Common Patterns:**
+- Web app + DB: App on servicenet+datanet, DB on datanet only
+- GPU container: Add device mounts for `/dev/kfd`, `/dev/dri` (AMD) or `nvidia.com/gpu=all` (NVIDIA)
+- Reverse proxy: Add service to Caddyfile, create DNS CNAME
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Add an n8n container to monolith with postgres database"
+
+# Explicit invocation:
+"Use the containnix agent to deploy Ollama with GPU support on zenith"
+
+# Complex task:
+"Set up a new service with Cloudflare tunnel for external access"
+```
+
+#### cfnix
+
+**Location:** `.claude/agents/cfnix.md`
+
+**Purpose:** Expert in Cloudflare integration with NixOS, specializing in:
+- DNS management with cfcli
+- Cloudflare Tunnels setup and configuration
+- Domain naming conventions (production vs staging)
+- SSL/TLS configuration
+- External service exposure
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Creating or modifying DNS records
+- Setting up Cloudflare tunnels
+- Configuring external access to services
+- Managing the meskill.farm domain
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the cfnix agent to set up a Cloudflare tunnel for the new service"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (with `dangerouslyDisableSandbox: true` for cfcli)
+
+**Environment Pattern:**
+```
+Production:      <service>.meskill.farm     → production host
+Testing/Staging: <service>.x.meskill.farm   → zenith (testing)
+```
+
+**Key Commands:**
+```bash
+cfcli --domain meskill.farm ls                    # List records
+cfcli --domain meskill.farm --type CNAME add ...  # Add record
+cfcli --domain meskill.farm --type CNAME edit ... # Edit record
+cfcli --domain meskill.farm --type CNAME rm ...   # Delete record
+```
+
+**Tunnel DNS Pattern:**
+```bash
+# Internal (for Caddy)
+cfcli --domain meskill.farm --type CNAME add <service>-int <host>.meskill.farm
+
+# External (proxied through tunnel)
+cfcli --domain meskill.farm --type CNAME --activate add <service> <tunnel-id>.cfargotunnel.com
+```
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Create a DNS entry for the new documentation site"
+
+# Explicit invocation:
+"Use the cfnix agent to set up external access via Cloudflare tunnel"
+
+# Complex task:
+"Migrate the service from pilaster to monolith and update all DNS records"
+```
+
 ### Creating Additional Custom Agents
 
 To create your own custom agents:
@@ -411,8 +587,17 @@ In addition to the general guidelines, this NixOS configuration repository has t
    Each container host has a DNS entry `<hostname>.meskill.farm` that can be used as a CNAME target. When adding a new service to Caddy, you must create a corresponding DNS entry.
 
    **DNS Naming Convention:**
-   - Each service should have its own DNS entry: `<service>.meskill.farm`
+   - Production services: `<service>.meskill.farm`
+   - Testing/Staging services: `<service>.x.meskill.farm`
    - Use CNAME records pointing to the host's DNS entry: `<hostname>.meskill.farm`
+
+   **Environment Pattern:**
+   | Environment | Domain Pattern | Example |
+   |-------------|----------------|---------|
+   | Production | `<service>.meskill.farm` | `ai.meskill.farm` → obelisk |
+   | Testing/Staging | `<service>.x.meskill.farm` | `ai.x.meskill.farm` → zenith |
+
+   The `x.meskill.farm` subdomain is used for testing new services or configurations before promoting to production. This allows side-by-side testing without affecting production traffic.
 
    **Using cfcli to manage DNS:**
    The `cfcli` tool (available in the devshell) can be used to create DNS records:

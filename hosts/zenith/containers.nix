@@ -130,6 +130,63 @@
         ];
         cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
       };
+      ollama = {
+        image = "docker.io/ollama/ollama:0.13.4-rocm";
+        extraOptions = [
+          "--device=/dev/kfd"
+          "--device=/dev/dri"
+          # "--group-add=video"
+          # "--group-add=render"
+          "--security-opt=seccomp=unconfined"
+        ];
+        environment = {
+          # Strix Halo (gfx1151) workarounds
+          # OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
+          # HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/ollama/config:/root/.ollama"
+        ];
+      };
+      open-webui = {
+        image = "ghcr.io/open-webui/open-webui:v0.6.42";
+        dependsOn = ["ollama"];
+        environment = {
+          OLLAMA_BASE_URL = "http://ollama:11434";
+          # OPENAI_API_BASE_URL = "http://vllm:8080/v1";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/open-webui/data:/app/backend/data"
+        ];
+      };
+      # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
+      # See: https://github.com/ROCm/ROCm/issues/4909
+      # Re-enable when ROCm properly supports Strix Halo
+      # vllm = {
+      #   image = "rocm/vllm-dev:rocm7.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
+      #   extraOptions = [
+      #     "--device=/dev/kfd"
+      #     "--device=/dev/dri"
+      #     "--group-add=video"
+      #     "--group-add=render"
+      #     "--shm-size=16g"
+      #     "--security-opt=seccomp=unconfined"
+      #     "--ipc=host"
+      #   ];
+      #   environment = {
+      #     HF_HOME = "/data/huggingface";
+      #     HSA_OVERRIDE_GFX_VERSION = "11.0.0";
+      #   };
+      #   networks = ["servicenet"];
+      #   volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
+      #   cmd = [
+      #     "vllm" "serve" "Qwen/Qwen2.5-32B-Instruct"
+      #     "--host" "0.0.0.0" "--port" "8000"
+      #     "--tensor-parallel-size" "1" "--max-model-len" "32768"
+      #   ];
+      # };
     };
   };
 
@@ -146,5 +203,36 @@
   # Restart docker-caddy service when Caddyfile secret changes
   systemd.services.docker-caddy = {
     restartTriggers = [config.age.secrets.zenith_caddy_caddyfile.path];
+  };
+
+  # Pull optimized models for zenith's 96GB VRAM after ollama starts
+  systemd.services.ollama-pull-models = {
+    description = "Pull Ollama models optimized for zenith";
+    wantedBy = ["multi-user.target"];
+    after = ["docker-ollama.service"];
+    requires = ["docker-ollama.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "ollama-pull-models" ''
+        # Wait for ollama to be ready
+        echo "Waiting for ollama to be ready..."
+        for i in $(seq 1 30); do
+          if ${pkgs.docker}/bin/docker exec ollama ollama list >/dev/null 2>&1; then
+            break
+          fi
+          sleep 2
+        done
+
+        echo "Pulling gemma3:27b (largest Gemma 3, 128K context, multimodal)..."
+        ${pkgs.docker}/bin/docker exec ollama ollama pull gemma3:27b
+
+        echo "Pulling glm4:latest (GLM-4 9B, 128K context, multilingual)..."
+        ${pkgs.docker}/bin/docker exec ollama ollama pull glm4:latest
+
+        echo "Models pulled successfully!"
+        ${pkgs.docker}/bin/docker exec ollama ollama list
+      '';
+    };
   };
 }
