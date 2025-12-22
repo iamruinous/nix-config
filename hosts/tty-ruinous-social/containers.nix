@@ -146,7 +146,7 @@
         ];
       };
       albyhub = {
-        image = "ghcr.io/getalby/hub:v1.21.0";
+        image = "ghcr.io/getalby/hub:v1.21.2";
         environment = {
           WORK_DIR = "/data/albyhub";
           TZ = "America/Phoenix";
@@ -208,7 +208,7 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.29";
+        image = "docker.io/getmeili/meilisearch:v1.30.1";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
@@ -283,7 +283,7 @@
         ];
       };
       mealie = {
-        image = "ghcr.io/mealie-recipes/mealie:v3.7.0";
+        image = "ghcr.io/mealie-recipes/mealie:v3.8.0";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mealie.path];
         networks = ["servicenet"];
         volumes = [

@@ -185,7 +185,7 @@
         ];
       };
       prometheus = {
-        image = "docker.io/prom/prometheus:v3.8.0";
+        image = "docker.io/prom/prometheus:v3.8.1";
         ports = ["9090:9090"];
         networks = [
           "datanet"
@@ -470,7 +470,7 @@
         ];
       };
       grafana = {
-        image = "docker.io/grafana/grafana-oss:12.1.1";
+        image = "docker.io/grafana/grafana-oss:12.3.1";
         networks = [
           "datanet"
           "servicenet"
@@ -544,7 +544,7 @@
         ];
       };
       n8n = {
-        image = "docker.io/n8nio/n8n:2.0.2";
+        image = "docker.io/n8nio/n8n:2.1.1";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -572,7 +572,7 @@
         ];
       };
       n8n-runner = {
-        image = "docker.io/n8nio/runners:2.0.2";
+        image = "docker.io/n8nio/runners:2.1.1";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -596,7 +596,7 @@
         ];
       };
       "paperless-ngx" = {
-        image = "ghcr.io/paperless-ngx/paperless-ngx:2.20.2";
+        image = "ghcr.io/paperless-ngx/paperless-ngx:2.20.3";
         environment = {
           PAPERLESS_REDIS = "redis://redis:6379";
           PAPERLESS_DBHOST = "postgres";
@@ -635,7 +635,7 @@
         networks = ["servicenet"];
       };
       phpldapadmin = {
-        image = "docker.io/phpldapadmin/phpldapadmin:2.3.5";
+        image = "docker.io/phpldapadmin/phpldapadmin:2.3.7";
         environment = {
           PHPLDAPADMIN_HTTPS = "false";
           PHPLDAPADMIN_LDAP_HOSTS = "#PYTHON2BASH:[{'openldap': [{'server': [{'tls': False}]},{'login': [{'bind_id': 'cn=admin,dc=meskill-farmhouse,dc=lan'}]}]}]";
@@ -720,7 +720,7 @@
         ];
       };
       "alert-manager" = {
-        image = "docker.io/prom/alertmanager:v0.29.0";
+        image = "docker.io/prom/alertmanager:v0.30.0";
         networks = [
           "datanet"
           "servicenet"

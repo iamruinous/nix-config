@@ -75,7 +75,7 @@
         ];
       };
       open-webui = {
-        image = "ghcr.io/open-webui/open-webui:v0.6.41";
+        image = "ghcr.io/open-webui/open-webui:v0.6.43";
         environment = {
           OLLAMA_BASE_URL = "http://ollama:11434";
         };
@@ -85,7 +85,7 @@
         ];
       };
       ollama = {
-        image = "docker.io/ollama/ollama:0.13.3";
+        image = "docker.io/ollama/ollama:0.13.5";
         devices = ["nvidia.com/gpu=all"];
         networks = ["servicenet"];
         volumes = [
