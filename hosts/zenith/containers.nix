@@ -130,6 +130,30 @@
         ];
         cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
       };
+      ollama = {
+        image = "docker.io/ollama/ollama:0.13.3-rocm";
+        extraOptions = [
+          "--device=/dev/kfd"
+          "--device=/dev/dri"
+          "--group-add=video"
+          "--group-add=render"
+        ];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/ollama/config:/root/.ollama"
+        ];
+      };
+      open-webui = {
+        image = "ghcr.io/open-webui/open-webui:v0.6.41";
+        dependsOn = ["ollama"];
+        environment = {
+          OLLAMA_BASE_URL = "http://ollama:11434";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/open-webui/data:/app/backend/data"
+        ];
+      };
     };
   };
 
