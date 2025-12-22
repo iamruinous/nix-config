@@ -135,9 +135,15 @@
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
-          # "--group-add=video"
-          # "--group-add=render"
+          "--group-add=video"
+          "--group-add=render"
+          "--security-opt=seccomp=unconfined"
         ];
+        environment = {
+          # Strix Halo (gfx1151) workarounds
+          OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
+          HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
+        };
         networks = ["servicenet"];
         volumes = [
           "/data/docker/ollama/config:/root/.ollama"
@@ -159,13 +165,16 @@
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
+          "--group-add=video"
+          "--group-add=render"
           "--shm-size=16g"
           "--security-opt=seccomp=unconfined"
           "--ipc=host"
         ];
         environment = {
-          # Use Qwen2.5-32B-Instruct (Apache 2.0, no auth required, fits in 96GB VRAM)
           HF_HOME = "/data/huggingface";
+          # Strix Halo (gfx1151) workarounds
+          HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Use gfx1100 kernels (more stable, 2-6x faster)
         };
         networks = ["servicenet"];
         volumes = [
