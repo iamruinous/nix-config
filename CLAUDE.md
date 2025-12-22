@@ -526,8 +526,17 @@ In addition to the general guidelines, this NixOS configuration repository has t
    Each container host has a DNS entry `<hostname>.meskill.farm` that can be used as a CNAME target. When adding a new service to Caddy, you must create a corresponding DNS entry.
 
    **DNS Naming Convention:**
-   - Each service should have its own DNS entry: `<service>.meskill.farm`
+   - Production services: `<service>.meskill.farm`
+   - Testing/Staging services: `<service>.x.meskill.farm`
    - Use CNAME records pointing to the host's DNS entry: `<hostname>.meskill.farm`
+
+   **Environment Pattern:**
+   | Environment | Domain Pattern | Example |
+   |-------------|----------------|---------|
+   | Production | `<service>.meskill.farm` | `ai.meskill.farm` → obelisk |
+   | Testing/Staging | `<service>.x.meskill.farm` | `ai.x.meskill.farm` → zenith |
+
+   The `x.meskill.farm` subdomain is used for testing new services or configurations before promoting to production. This allows side-by-side testing without affecting production traffic.
 
    **Using cfcli to manage DNS:**
    The `cfcli` tool (available in the devshell) can be used to create DNS records:
