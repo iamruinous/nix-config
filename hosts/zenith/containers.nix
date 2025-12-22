@@ -154,6 +154,37 @@
           "/data/docker/open-webui/data:/app/backend/data"
         ];
       };
+      vllm = {
+        image = "rocm/vllm-dev:rocm7.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
+        extraOptions = [
+          "--device=/dev/kfd"
+          "--device=/dev/dri"
+          "--shm-size=16g"
+          "--security-opt=seccomp=unconfined"
+          "--ipc=host"
+        ];
+        environment = {
+          # Use Qwen2.5-32B-Instruct (Apache 2.0, no auth required, fits in 96GB VRAM)
+          HF_HOME = "/data/huggingface";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/vllm/huggingface:/data/huggingface"
+        ];
+        cmd = [
+          "vllm"
+          "serve"
+          "Qwen/Qwen2.5-32B-Instruct"
+          "--host"
+          "0.0.0.0"
+          "--port"
+          "8000"
+          "--tensor-parallel-size"
+          "1"
+          "--max-model-len"
+          "32768"
+        ];
+      };
     };
   };
 
