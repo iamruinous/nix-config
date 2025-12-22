@@ -281,6 +281,67 @@ agenix-helper lock            # Lock when done
 "Set up a new service with Cloudflare tunnel for external access"
 ```
 
+#### cfnix
+
+**Location:** `.claude/agents/cfnix.md`
+
+**Purpose:** Expert in Cloudflare integration with NixOS, specializing in:
+- DNS management with cfcli
+- Cloudflare Tunnels setup and configuration
+- Domain naming conventions (production vs staging)
+- SSL/TLS configuration
+- External service exposure
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Creating or modifying DNS records
+- Setting up Cloudflare tunnels
+- Configuring external access to services
+- Managing the meskill.farm domain
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the cfnix agent to set up a Cloudflare tunnel for the new service"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (with `dangerouslyDisableSandbox: true` for cfcli)
+
+**Environment Pattern:**
+```
+Production:      <service>.meskill.farm     → production host
+Testing/Staging: <service>.x.meskill.farm   → zenith (testing)
+```
+
+**Key Commands:**
+```bash
+cfcli --domain meskill.farm ls                    # List records
+cfcli --domain meskill.farm --type CNAME add ...  # Add record
+cfcli --domain meskill.farm --type CNAME edit ... # Edit record
+cfcli --domain meskill.farm --type CNAME rm ...   # Delete record
+```
+
+**Tunnel DNS Pattern:**
+```bash
+# Internal (for Caddy)
+cfcli --domain meskill.farm --type CNAME add <service>-int <host>.meskill.farm
+
+# External (proxied through tunnel)
+cfcli --domain meskill.farm --type CNAME --activate add <service> <tunnel-id>.cfargotunnel.com
+```
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Create a DNS entry for the new documentation site"
+
+# Explicit invocation:
+"Use the cfnix agent to set up external access via Cloudflare tunnel"
+
+# Complex task:
+"Migrate the service from pilaster to monolith and update all DNS records"
+```
+
 ### Creating Additional Custom Agents
 
 To create your own custom agents:
