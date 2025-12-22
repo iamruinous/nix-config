@@ -220,6 +220,67 @@ agenix-helper lock            # Lock when done
 "Set up Cloudflare tunnel credentials for the new service with proper encryption"
 ```
 
+#### containnix
+
+**Location:** `.claude/agents/containnix.md`
+
+**Purpose:** Expert in containerizing services using NixOS OCI containers, specializing in:
+- Docker container definitions in `containers.nix`
+- Network configuration (servicenet, proxynet, datanet)
+- Caddy reverse proxy setup
+- DNS management with cfcli
+- Environment secrets integration
+- GPU passthrough (NVIDIA and AMD ROCm)
+- Cloudflare tunnel configuration
+
+**Automatic Invocation:** Claude Code will automatically delegate to this agent when you ask for help with:
+- Adding Docker containers to hosts
+- Configuring container networks
+- Setting up reverse proxies
+- Managing container environment files
+- Deploying containerized services
+
+**Explicit Invocation:** You can explicitly request this agent:
+```
+"Use the containnix agent to add a new WikiJS container to pilaster"
+```
+
+**Tools Available:**
+- File operations: Read, Grep, Glob, Edit, Write
+- Shell commands: Bash (for docker, cfcli, etc.)
+
+**Network Architecture:**
+```
+┌─────────────┐
+│   Caddy     │ ← proxynet + servicenet (ports 80, 443)
+└──────┬──────┘
+       │
+┌──────▼──────┐
+│  servicenet │ ← Apps accessible via Caddy
+└──────┬──────┘
+       │
+┌──────▼──────┐
+│   datanet   │ ← Databases (internal only)
+└─────────────┘
+```
+
+**Common Patterns:**
+- Web app + DB: App on servicenet+datanet, DB on datanet only
+- GPU container: Add device mounts for `/dev/kfd`, `/dev/dri` (AMD) or `nvidia.com/gpu=all` (NVIDIA)
+- Reverse proxy: Add service to Caddyfile, create DNS CNAME
+
+**Example Usage:**
+```
+# Automatic delegation:
+"Add an n8n container to monolith with postgres database"
+
+# Explicit invocation:
+"Use the containnix agent to deploy Ollama with GPU support on zenith"
+
+# Complex task:
+"Set up a new service with Cloudflare tunnel for external access"
+```
+
 ### Creating Additional Custom Agents
 
 To create your own custom agents:
