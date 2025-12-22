@@ -584,6 +584,140 @@ In addition to the general guidelines, this NixOS configuration repository has t
    - **WikiJS**: Documentation wiki (wikijs.meskill.farm)
    ```
 
+9. **MCP Gateway Catalog Management**:
+   The MCP Gateway on pilaster uses a custom catalog called `farm-catalog` to define available MCP servers. The catalog and configuration files are managed from this repository.
+
+   **File Locations:**
+   ```
+   hosts/pilaster/files/docker/mcp/
+   ├── catalogs/
+   │   ├── docker-mcp.yaml      # Official Docker MCP catalog (reference)
+   │   └── farm-catalog.yaml    # Our custom MCP server definitions
+   ├── config.yaml              # Gateway configuration
+   ├── registry.yaml            # Active server registry
+   └── tools.yaml               # Tool configurations
+   ```
+
+   These files are copied (not symlinked) to `~/.docker/mcp/` on pilaster via a home-manager activation script. Symlinks won't work because Docker containers can't follow symlinks to paths outside their mounted volumes (like `/nix/store`). See `hosts/pilaster/users/jmeskill/home-configuration.nix`.
+
+   **Current Servers in farm-catalog:**
+   | Server | Category | Description |
+   |--------|----------|-------------|
+   | docker | devops | Use the Docker CLI |
+   | gemini-api-docs | ai | Search and retrieve Google Gemini API documentation |
+   | git | devops | Git repository interaction and automation |
+   | github-official | devops | Official GitHub MCP Server by GitHub |
+   | google-flights | travel | Search for flights between airports |
+   | postgres | database | Read-only access to PostgreSQL databases |
+   | redis | database | Access to Redis database operations |
+   | time | devops | Time and timezone conversion capabilities |
+   | wikipedia-mcp | devops | Retrieve information from Wikipedia |
+
+   **Catalog Format (version 2):**
+   ```yaml
+   version: 2
+   name: farm-catalog
+   displayName: Meskill Farm Catalog
+   registry:
+     server-name:
+       description: "Short description (max 125 chars)"
+       title: "Display Name"
+       type: "server"
+       image: "registry/image:tag"
+       secrets:
+         - name: "server-name.secret_key"
+           env: "SECRET_ENV_VAR"
+           example: "example_value"
+       env:
+         - name: "CONFIG_VAR"
+           value: "{{server-name.config_value}}"
+       metadata:
+         category: "category-name"
+         tags: ["tag1", "tag2"]
+       source: "https://github.com/org/repo"
+   ```
+
+   **Adding a New MCP Server:**
+
+   1. **Find the server in the official catalog or Docker Hub**
+      - **Official catalog**: Check `hosts/pilaster/files/docker/mcp/catalogs/docker-mcp.yaml` first
+      - **Docker Hub MCP**: Browse https://hub.docker.com/mcp for additional servers
+      - Copy the server definition exactly from the official source (including sha256 digest)
+
+   2. **Add the server to farm-catalog.yaml**
+      Copy the entry from docker-mcp.yaml or create one matching the official format:
+      ```yaml
+      # In hosts/pilaster/files/docker/mcp/catalogs/farm-catalog.yaml
+      registry:
+        # ... existing servers ...
+        new-server:
+          description: "Description from official catalog"
+          title: "Server Title"
+          type: server
+          image: mcp/server-name@sha256:abc123...  # Use digest, not :latest
+          source: https://github.com/org/repo
+          upstream: https://github.com/org/repo
+          secrets:  # Only if required
+            - name: new-server.api_key
+              env: API_KEY
+              example: <YOUR_TOKEN>
+          metadata:
+            category: category-name
+            tags:
+              - tag1
+              - tag2
+            license: MIT License
+            owner: owner-name
+      ```
+
+   3. **Register the server in registry.yaml**
+      The registry tracks which servers are active. Add an entry for each server you want enabled:
+      ```yaml
+      # In hosts/pilaster/files/docker/mcp/registry.yaml
+      registry:
+        # ... existing servers ...
+        new-server:
+          ref: ""
+      ```
+      - The key must match the server name in farm-catalog.yaml
+      - The `ref` field can be empty for the default/latest version
+      - Without a registry entry, the server won't be available to clients
+
+   4. **Add secrets to mcp-gateway.env.age** (if required)
+      ```bash
+      # View current secrets
+      agenix view hosts/pilaster/files/docker/env/mcp-gateway.env.age > /tmp/mcp.env
+
+      # Add new secret (use the format: server-name.secret_key=value)
+      echo 'new-server.api_key=your-actual-key' >> /tmp/mcp.env
+
+      # Re-encrypt
+      rm hosts/pilaster/files/docker/env/mcp-gateway.env.age
+      agenix edit -i /tmp/mcp.env hosts/pilaster/files/docker/env/mcp-gateway.env.age
+      rm /tmp/mcp.env
+      ```
+
+   5. **Deploy changes**
+      The gateway uses `--watch=true`, so changes to the catalog file are picked up automatically after deployment:
+      ```bash
+      sudo nixos-rebuild switch --flake .#pilaster
+      ```
+
+   **Secret Naming Convention:**
+   - Format: `server-name.secret_key` (e.g., `github.personal_access_token`)
+   - The `name` in the catalog's `secrets` array must match the key in the env file
+   - The `env` field specifies the environment variable name passed to the container
+
+   **Finding MCP Servers:**
+   - **Official catalog** (local): `hosts/pilaster/files/docker/mcp/catalogs/docker-mcp.yaml`
+   - **Docker Hub MCP**: https://hub.docker.com/mcp (browse all available servers)
+   - Always use the `@sha256:...` digest from the official catalog, not `:latest`
+
+   **References:**
+   - [Docker MCP Gateway Docs](https://docs.docker.com/ai/mcp-catalog-and-toolkit/mcp-gateway/)
+   - [MCP Catalog Format](https://github.com/docker/mcp-gateway/blob/main/docs/catalog.md)
+   - [Docker Hub MCP Catalog](https://hub.docker.com/mcp)
+
 ## Changelog
 
 This repository maintains a changelog in `CHANGELOG.md` following the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.

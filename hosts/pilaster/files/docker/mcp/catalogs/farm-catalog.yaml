@@ -1,0 +1,430 @@
+version: 2
+name: farm-catalog
+displayName: Meskill Farm Catalog
+# Server definitions copied from official docker-mcp.yaml catalog
+# Reference: hosts/pilaster/files/docker/mcp/catalogs/docker-mcp.yaml
+# Browse more: https://hub.docker.com/mcp
+registry:
+  docker:
+    description: Use the Docker CLI.
+    title: Docker
+    type: poci
+    dateAdded: "2025-05-05T20:04:34Z"
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/docker.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/docker.json
+    source: ""
+    icon: https://avatars.githubusercontent.com/u/5429470?s=200&v=4
+    tools:
+      - name: docker
+        description: use the docker cli
+        parameters:
+          type: object
+          properties:
+            args:
+              type: array
+              description: Arguments to pass to the Docker command
+              items:
+                type: string
+          required:
+            - args
+        container:
+          image: docker:cli@sha256:4fa0ee1f3a7e4354c4ea34558b6d4ee32859baf4973d4c8ccc8e7fe3dd730c04
+          command:
+            - '{{args|into}}'
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+    prompts: 0
+    resources: {}
+    metadata:
+      category: devops
+      tags:
+        - docker
+      license: Apache License 2.0
+      owner: docker
+  github-official:
+    description: Official GitHub MCP Server, by GitHub. Provides seamless integration with GitHub APIs, enabling advanced automation and interaction capabilities for developers and tools.
+    title: GitHub Official
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: ghcr.io/github/github-mcp-server@sha256:26c7b1b8ac6e3e85f02a5dbd3b2061686d1fd2f6c8191ef29a2ab548f2c5404f
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/github-official.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/github-official.json
+    source: https://github.com/github/github-mcp-server/tree/23fa0dd1a821d1346c1de2abafe7327d26981606
+    upstream: https://github.com/github/github-mcp-server
+    icon: https://avatars.githubusercontent.com/u/9919?s=200&v=4
+    tools:
+      - name: add_comment_to_pending_review
+      - name: add_issue_comment
+      - name: assign_copilot_to_issue
+      - name: create_branch
+      - name: create_or_update_file
+      - name: create_pull_request
+      - name: create_repository
+      - name: delete_file
+      - name: fork_repository
+      - name: get_commit
+      - name: get_file_contents
+      - name: get_label
+      - name: get_latest_release
+      - name: get_me
+      - name: get_release_by_tag
+      - name: get_tag
+      - name: get_team_members
+      - name: get_teams
+      - name: issue_read
+      - name: issue_write
+      - name: list_branches
+      - name: list_commits
+      - name: list_issue_types
+      - name: list_issues
+      - name: list_pull_requests
+      - name: list_releases
+      - name: list_tags
+      - name: merge_pull_request
+      - name: pull_request_read
+      - name: pull_request_review_write
+      - name: push_files
+      - name: request_copilot_review
+      - name: search_code
+      - name: search_issues
+      - name: search_pull_requests
+      - name: search_repositories
+      - name: search_users
+      - name: sub_issue_write
+      - name: update_pull_request
+      - name: update_pull_request_branch
+    secrets:
+      - name: github.personal_access_token
+        env: GITHUB_PERSONAL_ACCESS_TOKEN
+        example: <YOUR_TOKEN>
+        description: You can create a GitHub personal access token [on GitHub](https://github.com/settings/personal-access-tokens/new)
+    allowHosts:
+      - api.github.com:443
+      - github.com:443
+      - raw.githubusercontent.com:443
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 25298
+      category: devops
+      tags:
+        - github
+        - devops
+      license: MIT License
+      owner: github
+    oauth:
+      providers:
+        - provider: github
+          secret: github.personal_access_token
+          env: GITHUB_PERSONAL_ACCESS_TOKEN
+  gemini-api-docs:
+    description: Provides tools to search and retrieve Google Gemini API documentation.
+    title: Gemini API Docs
+    type: server
+    dateAdded: "2025-11-03T22:03:45Z"
+    image: mcp/gemini-api-docs-mcp@sha256:ba912546626d7bb5acdbcca0af56a9afb00cc2015013edd0f5ec2f68a6d45c52
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/gemini-api-docs.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/gemini-api-docs.json
+    source: https://github.com/kgprs/gemini-api-docs-mcp/tree/8e8aa1543e1cb5f0bc0b1d5056da48f07a8e6332
+    upstream: https://github.com/kgprs/gemini-api-docs-mcp
+    icon: https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64
+    tools:
+      - name: get_capability_page
+      - name: get_current_model
+      - name: search_documentation
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 1
+      category: ai
+      tags:
+        - ai
+      license: MIT License
+      owner: kgprs
+  git:
+    description: Git repository interaction and automation.
+    title: Git (Reference)
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/git@sha256:ad6af958e79466a14b895891e772fdda28fdc12c06fff4a70637b66773303a2c
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/git.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/git.json
+    source: https://github.com/modelcontextprotocol/servers/tree/b4ee623039a6c60053ce67269701ad9e95073306/src/git
+    upstream: https://github.com/modelcontextprotocol/servers
+    icon: https://avatars.githubusercontent.com/u/18133?s=200&v=4
+    tools:
+      - name: git_add
+      - name: git_checkout
+      - name: git_commit
+      - name: git_create_branch
+      - name: git_diff
+      - name: git_diff_staged
+      - name: git_diff_unstaged
+      - name: git_init
+      - name: git_log
+      - name: git_reset
+      - name: git_show
+      - name: git_status
+    volumes:
+      - '{{git.paths|volume|into}}'
+    prompts: 0
+    resources: {}
+    config:
+      - name: git
+        description: The MCP server is allowed to access these paths
+        type: object
+        properties:
+          paths:
+            type: array
+            items:
+              type: string
+        required:
+          - paths
+    metadata:
+      githubStars: 74721
+      category: devops
+      tags:
+        - gitl
+        - devops
+      license: MIT License
+      owner: modelcontextprotocol
+  google-flights:
+    description: Interact with Google Flights data to search for one-way, round-trip, and date range flight options between airports.
+    title: Google Flights
+    type: server
+    dateAdded: "2025-11-19T23:18:01Z"
+    image: mcp/google-flights@sha256:8ecfd55f5aff8f0fc322778d98708e0b031f00dc1c8b3244d877c4492b429543
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/google-flights.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/google-flights.json
+    source: https://github.com/kgprs/Google-Flights-MCP-Server/tree/a0d0a88ee8b1f2ef9ef42f89a399b9e2512ab11e
+    upstream: https://github.com/kgprs/Google-Flights-MCP-Server
+    icon: https://www.google.com/s2/favicons?domain=google.com/travel/flights&sz=64
+    tools:
+      - name: find_all_flights_in_range
+      - name: get_flights_on_date
+      - name: get_round_trip_flights
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 1
+      category: travel
+      tags:
+        - travel
+        - flights
+        - google-flights
+        - search
+      license: MIT License
+      owner: kgprs
+  postgres:
+    description: Connect with read-only access to PostgreSQL databases. This server enables LLMs to inspect database schemas and execute read-only queries.
+    title: PostgreSQL read-only (Archived)
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/postgres@sha256:b72c08f19e864b3e8beea8e90d048b9271924e704113345a29683f6d1e95a8f0
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/postgres.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/postgres.json
+    source: https://github.com/modelcontextprotocol/servers/tree/b4ee623039a6c60053ce67269701ad9e95073306
+    upstream: https://github.com/modelcontextprotocol/servers
+    icon: https://avatars.githubusercontent.com/u/177543?s=200&v=4
+    tools:
+      - name: query
+    secrets:
+      - name: postgres.url
+        env: POSTGRES_URL
+        example: postgresql://host.docker.internal:5432/mydb
+    command:
+      - $POSTGRES_URL
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 74721
+      category: database
+      tags:
+        - postgres
+        - database
+      license: MIT License
+      owner: modelcontextprotocol
+  redis:
+    description: Access to Redis database operations.
+    title: Redis
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/redis@sha256:c9162917b62dda5495feb9a2ca277564269cf2bfbe6d468b851a9dcb6c88d686
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/redis.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/redis.json
+    source: https://github.com/redis/mcp-redis/tree/1f35871886f39736a2924cfd5f346eef5adc387b
+    upstream: https://github.com/redis/mcp-redis
+    icon: https://avatars.githubusercontent.com/u/1529926?v=4
+    tools:
+      - name: client_list
+      - name: create_vector_index_hash
+      - name: dbsize
+      - name: delete
+      - name: expire
+      - name: get
+      - name: get_index_info
+      - name: get_indexed_keys_number
+      - name: get_indexes
+      - name: get_vector_from_hash
+      - name: hdel
+      - name: hexists
+      - name: hget
+      - name: hgetall
+      - name: hset
+      - name: info
+      - name: json_del
+      - name: json_get
+      - name: json_set
+      - name: llen
+      - name: lpop
+      - name: lpush
+      - name: lrange
+      - name: publish
+      - name: rename
+      - name: rpop
+      - name: rpush
+      - name: sadd
+      - name: scan_all_keys
+      - name: scan_keys
+      - name: search_redis_documents
+      - name: set
+      - name: set_vector_in_hash
+      - name: smembers
+      - name: srem
+      - name: subscribe
+      - name: type
+      - name: unsubscribe
+      - name: vector_search_hash
+      - name: xadd
+      - name: xdel
+      - name: xrange
+      - name: zadd
+      - name: zrange
+      - name: zrem
+    secrets:
+      - name: redis.password
+        env: REDIS_PWD
+        example: ""
+    env:
+      - name: REDIS_HOST
+        value: '{{redis.host}}'
+      - name: REDIS_PORT
+        value: '{{redis.port}}'
+      - name: REDIS_USERNAME
+        value: '{{redis.username}}'
+      - name: REDIS_SSL
+        value: '{{redis.ssl}}'
+      - name: REDIS_CA_PATH
+        value: '{{redis.ca_path}}'
+      - name: REDIS_SSL_KEYFILE
+        value: '{{redis.ssl_keyfile}}'
+      - name: REDIS_SSL_CERTFILE
+        value: '{{redis.ssl_certfile}}'
+      - name: REDIS_CERT_REQS
+        value: '{{redis.cert_reqs}}'
+      - name: REDIS_CA_CERTS
+        value: '{{redis.ca_certs}}'
+      - name: REDIS_CLUSTER_MODE
+        value: '{{redis.cluster_mode}}'
+    prompts: 0
+    resources: {}
+    config:
+      - name: redis
+        description: Configure the connection to Redis
+        type: object
+        properties:
+          host:
+            type: string
+          port:
+            type: integer
+          username:
+            type: string
+          ssl:
+            type: boolean
+          ca_path:
+            type: string
+          ssl_keyfile:
+            type: string
+          ssl_certfile:
+            type: string
+          cert_reqs:
+            type: string
+          ca_certs:
+            type: string
+          cluster_mode:
+            type: boolean
+    metadata:
+      githubStars: 367
+      category: database
+      tags:
+        - redis
+        - database
+      license: MIT License
+      owner: redis
+  time:
+    description: Time and timezone conversion capabilities.
+    title: Time (Reference)
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/time@sha256:9c46a918633fb474bf8035e3ee90ebac6bcf2b18ccb00679ac4c179cba0ebfcf
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/time.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/time.json
+    source: https://github.com/modelcontextprotocol/servers/tree/b4ee623039a6c60053ce67269701ad9e95073306/src/time
+    upstream: https://github.com/modelcontextprotocol/servers
+    icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+    tools:
+      - name: convert_time
+      - name: get_current_time
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 74721
+      category: devops
+      tags:
+        - time
+        - devops
+      license: MIT License
+      owner: modelcontextprotocol
+  wikipedia-mcp:
+    description: A Model Context Protocol (MCP) server that retrieves information from Wikipedia to provide context to LLMs.
+    title: Wikipedia
+    type: server
+    dateAdded: "2025-05-05T20:08:35Z"
+    image: mcp/wikipedia-mcp@sha256:047f17273bae96828903cfd12f13c7a64951b54e537530ecb6678fff5204a584
+    ref: ""
+    readme: http://desktop.docker.com/mcp/catalog/v3/readme/wikipedia-mcp.md
+    toolsUrl: http://desktop.docker.com/mcp/catalog/v3/tools/wikipedia-mcp.json
+    source: https://github.com/Rudra-ravi/wikipedia-mcp/tree/2553fd47a9ebf3fa6cf994f1be44b87e4fda2c94
+    upstream: https://github.com/Rudra-ravi/wikipedia-mcp
+    icon: https://avatars.githubusercontent.com/u/56668?s=200&v=4
+    tools:
+      - name: extract_key_facts
+      - name: get_article
+      - name: get_coordinates
+      - name: get_links
+      - name: get_related_topics
+      - name: get_sections
+      - name: get_summary
+      - name: search_wikipedia
+      - name: summarize_article_for_query
+      - name: summarize_article_section
+      - name: test_wikipedia_connectivity
+    prompts: 0
+    resources: {}
+    metadata:
+      githubStars: 159
+      category: devops
+      tags:
+        - wikipedia-mcp
+        - devops
+      license: MIT License
+      owner: Rudra-ravi
+

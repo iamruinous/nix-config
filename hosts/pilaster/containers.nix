@@ -490,9 +490,9 @@
         ];
       };
       mcp-gateway = {
-        image = "docker/mcp-gateway:v0.32.0";
+        image = "docker/mcp-gateway:v2";
         cmd = [
-          "--catalog=/mcp/catalogs/docker-mcp.yaml"
+          "--catalog=/mcp/catalogs/farm-catalog.yaml"
           "--config=/mcp/config.yaml"
           "--registry=/mcp/registry.yaml"
           "--tools-config=/mcp/tools.yaml"
@@ -649,6 +649,10 @@
   # Restart docker-meshtastic-message-relay service when config secret changes
   systemd.services.docker-meshtastic-message-relay = {
     restartTriggers = [config.age.secrets.pilaster_meshtastic_relay_config.path];
+  };
+  # Restart docker-mcp-gateway service when config secret changes
+  systemd.services.docker-mcp-gateway = {
+    restartTriggers = [config.age.secrets.pilaster_docker_env_mcp_gateway.path];
   };
 
   age.secrets.pilaster_caddy_caddyfile = {
