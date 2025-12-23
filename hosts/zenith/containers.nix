@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443];
+  networking.firewall.allowedTCPPorts = [80 443 5432];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
@@ -161,6 +161,22 @@
           "/data/docker/open-webui/data:/app/backend/data"
         ];
       };
+      postgres = {
+        image = "docker.io/postgres:18";
+        ports = ["5432:5432"];
+        environment = {
+          PGDATA = "/var/lib/postgresql/18/docker";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_postgres.path];
+        networks = [
+          "datanet"
+          "proxynet"
+        ];
+        volumes = [
+          "/data/docker/postgres/pgdata:/var/lib/postgresql/18/docker"
+          "/data/backup/postgres:/backup"
+        ];
+      };
       # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
       # See: https://github.com/ROCm/ROCm/issues/4909
       # Re-enable when ROCm properly supports Strix Halo
@@ -197,6 +213,11 @@
 
   age.secrets.zenith_forgejo_runner_token = {
     rekeyFile = ./files/forgejo-runner/token.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_postgres = {
+    rekeyFile = ./files/docker/env/postgres.env.age;
     mode = "600";
   };
 

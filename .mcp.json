@@ -11,6 +11,36 @@
     "mcp-farm": {
       "type": "sse",
       "url": "https://mcp.meskill.farm/sse"
+    },
+    "postgres-pilaster": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "DATABASE_URI",
+        "crystaldba/postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${PILASTER_POSTGRES_DATABASE_URI}"
+      }
+    },
+    "postgres-zenith": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "DATABASE_URI",
+        "crystaldba/postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${ZENITH_POSTGRES_DATABASE_URI}"
+      }
     }
   }
 }
