@@ -13,33 +13,43 @@
       "url": "https://mcp.meskill.farm/sse"
     },
     "postgres-pilaster": {
-      "command": "docker",
+      "command": "uvx",
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "DATABASE_URI",
-        "crystaldba/postgres-mcp",
+        "postgres-mcp",
         "--access-mode=unrestricted"
       ],
       "env": {
         "DATABASE_URI": "${PILASTER_POSTGRES_DATABASE_URI}"
       }
     },
-    "postgres-zenith": {
-      "command": "docker",
+    "postgres-tty-ruinous-social": {
+      "command": "uvx",
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "DATABASE_URI",
-        "crystaldba/postgres-mcp",
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${TTY_RUINOUS_SOCIAL_POSTGRES_DATABASE_URI}"
+      }
+    },
+    "postgres-zenith": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
         "--access-mode=unrestricted"
       ],
       "env": {
         "DATABASE_URI": "${ZENITH_POSTGRES_DATABASE_URI}"
+      }
+    },
+    "postgres-monolith": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${MONOLITH_POSTGRES_DATABASE_URI}"
       }
     }
   }

@@ -9,6 +9,7 @@ pkgs.mkShell {
     go # Go compiler for building/testing Go packages
     pnpm # For running Node.js-based MCP servers
     uv # Provides uvx for running Python-based MCP servers
+    postgresql # cli for postgres
   ];
 
   shellHook = ''
