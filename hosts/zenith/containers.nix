@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443];
+  networking.firewall.allowedTCPPorts = [80 443 5432];
   networking.firewall.allowedUDPPorts = [443];
 
   virtualisation.docker.storageDriver = "btrfs";
@@ -161,6 +161,56 @@
           "/data/docker/open-webui/data:/app/backend/data"
         ];
       };
+      postgres = {
+        image = "docker.io/postgres:18";
+        ports = ["5432:5432"];
+        environment = {
+          PGDATA = "/var/lib/postgresql/18/docker";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_postgres.path];
+        networks = [
+          "datanet"
+          "proxynet"
+        ];
+        volumes = [
+          "/data/docker/postgres/pgdata:/var/lib/postgresql/18/docker"
+          "/data/backup/postgres:/backup"
+        ];
+      };
+      redis = {
+        image = "docker.io/redis:7";
+        cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
+        networks = ["datanet"];
+        volumes = [
+          "/data/docker/redis/data:/data"
+        ];
+      };
+      mcp-gateway = {
+        image = "docker/mcp-gateway:v2";
+        cmd = [
+          "--catalog=/mcp/catalogs/farm-catalog.yaml"
+          "--config=/mcp/config.yaml"
+          "--registry=/mcp/registry.yaml"
+          "--tools-config=/mcp/tools.yaml"
+          "--watch=true"
+          "--secrets=/secrets/mcp.env"
+          "--transport=sse"
+          "--port=8811"
+        ];
+        extraOptions = [
+          "--use-api-socket"
+        ];
+        networks = [
+          "servicenet"
+        ];
+        environmentFiles = [
+          config.age.secrets.zenith_docker_env_mcp_gateway.path
+        ];
+        volumes = [
+          "/home/jmeskill/.docker/mcp:/mcp:ro"
+          "${config.age.secrets.zenith_docker_env_mcp_gateway.path}:/secrets/mcp.env:ro"
+        ];
+      };
       # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
       # See: https://github.com/ROCm/ROCm/issues/4909
       # Re-enable when ROCm properly supports Strix Halo
@@ -200,9 +250,24 @@
     mode = "600";
   };
 
+  age.secrets.zenith_docker_env_postgres = {
+    rekeyFile = ./files/docker/env/postgres.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_mcp_gateway = {
+    rekeyFile = ./files/docker/env/mcp-gateway.env.age;
+    mode = "600";
+  };
+
   # Restart docker-caddy service when Caddyfile secret changes
   systemd.services.docker-caddy = {
     restartTriggers = [config.age.secrets.zenith_caddy_caddyfile.path];
+  };
+
+  # Restart docker-mcp-gateway service when config secret changes
+  systemd.services.docker-mcp-gateway = {
+    restartTriggers = [config.age.secrets.zenith_docker_env_mcp_gateway.path];
   };
 
   # Pull optimized models for zenith's 96GB VRAM after ollama starts

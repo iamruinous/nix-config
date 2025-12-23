@@ -11,6 +11,46 @@
     "mcp-farm": {
       "type": "sse",
       "url": "https://mcp.meskill.farm/sse"
+    },
+    "postgres-pilaster": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${PILASTER_POSTGRES_DATABASE_URI}"
+      }
+    },
+    "postgres-tty-ruinous-social": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${TTY_RUINOUS_SOCIAL_POSTGRES_DATABASE_URI}"
+      }
+    },
+    "postgres-zenith": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${ZENITH_POSTGRES_DATABASE_URI}"
+      }
+    },
+    "postgres-monolith": {
+      "command": "uvx",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${MONOLITH_POSTGRES_DATABASE_URI}"
+      }
     }
   }
 }

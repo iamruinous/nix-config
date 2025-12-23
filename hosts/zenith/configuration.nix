@@ -1,7 +1,7 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{flake, ...}: {
+{flake, pkgs, ...}: {
   imports = [
     flake.nixosModules.default
     flake.nixosModules.developer
@@ -16,6 +16,10 @@
   networking.hostName = "zenith"; # Define your hostname.
 
   virtualisation.docker.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    docker-mcp-gateway
+  ];
   # services.alloy.enable = true;
   # ruinous.alloy.journal.enable = true;
   # power.ups.enable = true;
