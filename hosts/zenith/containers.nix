@@ -116,7 +116,7 @@
         cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false"];
       };
       "forgejo-runner" = {
-        image = "code.forgejo.org/forgejo/runner:12.0.1";
+        image = "code.forgejo.org/forgejo/runner:12.3";
         dependsOn = ["forgejo-dind"];
         environment = {
           DOCKER_HOST = "tcp://forgejo-dind:2375";
@@ -150,7 +150,7 @@
         ];
       };
       open-webui = {
-        image = "ghcr.io/open-webui/open-webui:v0.6.42";
+        image = "ghcr.io/open-webui/open-webui:v0.6.43";
         dependsOn = ["ollama"];
         environment = {
           OLLAMA_BASE_URL = "http://ollama:11434";

@@ -103,7 +103,7 @@
       };
       # services
       authentik = {
-        image = "ghcr.io/goauthentik/server:2025.10.2";
+        image = "ghcr.io/goauthentik/server:2025.10.3";
         cmd = ["server"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_authentik.path];
         networks = [
@@ -116,7 +116,7 @@
         ];
       };
       authentik-worker = {
-        image = "ghcr.io/goauthentik/server:2025.10.2";
+        image = "ghcr.io/goauthentik/server:2025.10.3";
         cmd = ["worker"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_authentik.path];
         networks = [
@@ -191,7 +191,7 @@
         ];
       };
       qdrant = {
-        image = "qdrant/qdrant:v1.16.2";
+        image = "qdrant/qdrant:v1.16.3";
         environmentFiles = [config.age.secrets.pilaster_docker_env_qdrant.path];
         networks = [
           "datanet"
@@ -581,7 +581,7 @@
         ];
       };
       twenty = {
-        image = "docker.io/twentycrm/twenty:v1.12";
+        image = "docker.io/twentycrm/twenty:v1.13.7";
         environment = {
           REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
@@ -601,7 +601,7 @@
         ];
       };
       twenty-worker = {
-        image = "docker.io/twentycrm/twenty:v1.12";
+        image = "docker.io/twentycrm/twenty:v1.13.7";
         cmd = ["yarn" "worker:prod"];
         environment = {
           REDIS_URL = "redis://redis:6379";
@@ -620,7 +620,7 @@
         ];
       };
       netbootxyz = {
-        image = "lscr.io/linuxserver/netbootxyz:0.7.3";
+        image = "lscr.io/linuxserver/netbootxyz:2.0.53";
         environment = {
           PUID = "1000";
           PGID = "1000";
