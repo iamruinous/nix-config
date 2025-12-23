@@ -177,6 +177,32 @@
           "/data/backup/postgres:/backup"
         ];
       };
+      mcp-gateway = {
+        image = "docker/mcp-gateway:v2";
+        cmd = [
+          "--catalog=/mcp/catalogs/farm-catalog.yaml"
+          "--config=/mcp/config.yaml"
+          "--registry=/mcp/registry.yaml"
+          "--tools-config=/mcp/tools.yaml"
+          "--watch=true"
+          "--secrets=/secrets/mcp.env"
+          "--transport=sse"
+          "--port=8811"
+        ];
+        extraOptions = [
+          "--use-api-socket"
+        ];
+        networks = [
+          "servicenet"
+        ];
+        environmentFiles = [
+          config.age.secrets.zenith_docker_env_mcp_gateway.path
+        ];
+        volumes = [
+          "/home/jmeskill/.docker/mcp:/mcp:ro"
+          "${config.age.secrets.zenith_docker_env_mcp_gateway.path}:/secrets/mcp.env:ro"
+        ];
+      };
       # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
       # See: https://github.com/ROCm/ROCm/issues/4909
       # Re-enable when ROCm properly supports Strix Halo
@@ -221,9 +247,19 @@
     mode = "600";
   };
 
+  age.secrets.zenith_docker_env_mcp_gateway = {
+    rekeyFile = ./files/docker/env/mcp-gateway.env.age;
+    mode = "600";
+  };
+
   # Restart docker-caddy service when Caddyfile secret changes
   systemd.services.docker-caddy = {
     restartTriggers = [config.age.secrets.zenith_caddy_caddyfile.path];
+  };
+
+  # Restart docker-mcp-gateway service when config secret changes
+  systemd.services.docker-mcp-gateway = {
+    restartTriggers = [config.age.secrets.zenith_docker_env_mcp_gateway.path];
   };
 
   # Pull optimized models for zenith's 96GB VRAM after ollama starts

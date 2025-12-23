@@ -31,6 +31,9 @@ NixOS server for Docker containers and network services.
 
 ### Services
 - **Caddy**: Reverse proxy with Cloudflare DNS and HTTPS
+- **MCP Gateway**: Model Context Protocol gateway for AI tool integration (mcp.x.meskill.farm)
+- **Open WebUI**: Web interface for Ollama (ai.x.meskill.farm)
+- **Ollama**: Local LLM inference with AMD ROCm GPU support (ollama.x.meskill.farm)
 
 ### Development
 - Developer tools and environment
