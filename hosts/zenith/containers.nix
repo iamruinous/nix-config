@@ -177,6 +177,14 @@
           "/data/backup/postgres:/backup"
         ];
       };
+      redis = {
+        image = "docker.io/redis:7";
+        cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
+        networks = ["datanet"];
+        volumes = [
+          "/data/docker/redis/data:/data"
+        ];
+      };
       mcp-gateway = {
         image = "docker/mcp-gateway:v2";
         cmd = [
