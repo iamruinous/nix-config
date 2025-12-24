@@ -208,7 +208,7 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.30.1";
+        image = "docker.io/getmeili/meilisearch:v1.31.0";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
