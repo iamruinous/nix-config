@@ -37,13 +37,6 @@
                     ];
                     mountpoint = "/nix";
                   };
-                  # Subvolume name is the same as the mountpoint
-                  "/data" = {
-                    mountOptions = ["compress=zstd"];
-                    mountpoint = "/data";
-                  };
-                  # Sub(sub)volume doesn't need a mountpoint as its parent is mounted
-                  "/data/docker" = {};
                   # Subvolume for the swapfile
                   "/swap" = {
                     mountpoint = "/.swapvol";
@@ -64,6 +57,33 @@
                     size = "20M";
                   };
                 };
+              };
+            };
+          };
+        };
+      };
+    };
+    data = {
+      type = "disk";
+      device = "/dev/disk/by-id/scsi-0Linode_Volume_data";
+      content = {
+        type = "gpt";
+        partitions = {
+          root = {
+            size = "100%";
+            content = {
+              type = "btrfs";
+              extraArgs = ["-f"]; # Override existing partition
+              # Subvolumes must set a mountpoint in order to be mounted,
+              # unless their parent is mounted
+              subvolumes = {
+                # Subvolume name is the same as the mountpoint
+                "/data" = {
+                  mountOptions = ["compress=zstd"];
+                  mountpoint = "/data";
+                };
+                # Sub(sub)volume doesn't need a mountpoint as its parent is mounted
+                "/data/docker" = {};
               };
             };
           };

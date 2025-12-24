@@ -50,7 +50,7 @@
   };
 
   fileSystems."/data" = {
-    device = "/dev/sda";
+    device = "/dev/sdb";
     fsType = "btrfs";
     options = ["compress=zstd" "subvol=data"];
   };
