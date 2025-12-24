@@ -581,7 +581,7 @@
         ];
       };
       twenty = {
-        image = "docker.io/twentycrm/twenty:v1.13.7";
+        image = "docker.io/twentycrm/twenty:v1.14";
         environment = {
           REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
@@ -601,7 +601,7 @@
         ];
       };
       twenty-worker = {
-        image = "docker.io/twentycrm/twenty:v1.13.7";
+        image = "docker.io/twentycrm/twenty:v1.14";
         cmd = ["yarn" "worker:prod"];
         environment = {
           REDIS_URL = "redis://redis:6379";
