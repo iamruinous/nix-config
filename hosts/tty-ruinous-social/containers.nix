@@ -106,12 +106,11 @@
       };
       postgres = {
         image = "docker.io/postgres:17";
-        ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/17/docker";
         };
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_postgres.path];
-        networks = ["datanet" "proxynet"];
+        networks = ["datanet" "servicenet"];
         # healthcheck = {
         #   test = [
         #     "CMD-SHELL"
@@ -125,6 +124,26 @@
         volumes = [
           "/data/docker/postgres/pgdata:/var/lib/postgresql/17/docker"
           "/data/backup/postgres:/backup"
+        ];
+      };
+      # Tailscale sidecar for secure postgres access without exposing port 5432
+      # Shares network namespace with postgres - connect via Tailscale IP:5432
+      tailscale-postgres = {
+        image = "tailscale/tailscale:stable";
+        dependsOn = ["postgres"];
+        environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_tailscale_postgres.path];
+        environment = {
+          TS_STATE_DIR = "/var/lib/tailscale";
+          TS_HOSTNAME = "tty-ruinous-social-postgres";
+        };
+        volumes = [
+          "/data/docker/tailscale-postgres/state:/var/lib/tailscale"
+          "/dev/net/tun:/dev/net/tun"
+        ];
+        extraOptions = [
+          "--network=container:postgres"
+          "--cap-add=NET_ADMIN"
+          "--cap-add=NET_RAW"
         ];
       };
       redis = {
@@ -386,6 +405,10 @@
   };
   age.secrets.tty_ruinous_social_docker_env_synapse = {
     rekeyFile = ./files/docker/env/synapse.env.age;
+    mode = "600";
+  };
+  age.secrets.tty_ruinous_social_docker_env_tailscale_postgres = {
+    rekeyFile = ./files/docker/env/tailscale-postgres.env.age;
     mode = "600";
   };
 }
