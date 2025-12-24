@@ -22,6 +22,12 @@
         ingress = {"twenty.meskill.farm" = "https://twenty-int.meskill.farm";};
         default = "http_status:404";
       };
+      # Migrated from tty-ruinous-social
+      "89b669e6-32ac-4063-a030-dc6b98c61bdf" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_alby_ruinous.path}";
+        ingress = {"alby.ruinous.social" = "https://alby-int.ruinous.social";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -48,6 +54,11 @@
 
   age.secrets.pilaster_cloudflared_twenty = {
     rekeyFile = ./files/cloudflared/twenty.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_alby_ruinous = {
+    rekeyFile = ./files/cloudflared/alby-ruinous.json.age;
     mode = "644";
   };
 }

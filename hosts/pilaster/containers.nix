@@ -639,6 +639,18 @@
           "/data/docker/netbootxyz/assets:/assets"
         ];
       };
+      # Migrated from tty-ruinous-social
+      albyhub = {
+        image = "ghcr.io/getalby/hub:v1.21.2";
+        environment = {
+          WORK_DIR = "/data/albyhub";
+          TZ = "America/Phoenix";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/albyhub/data:/data"
+        ];
+      };
     };
   };
 
