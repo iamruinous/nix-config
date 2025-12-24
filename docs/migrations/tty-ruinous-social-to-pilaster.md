@@ -15,7 +15,7 @@ Migrate containers from tty-ruinous-social (Linode VPS at tty.ruinous.social) to
 
 | Service | Database | Domains | Complexity | Status |
 |---------|----------|---------|------------|--------|
-| albyhub | SQLite (local) | alby.ruinous.social | Simple | Pending |
+| albyhub | SQLite (local) | alby.ruinous.social | Simple | Config Complete |
 | baikal | SQLite (local) | dav.ruinous.social | Simple | Pending |
 | mealie | SQLite (local) | meals.ruinous.social | Simple | Pending |
 | writefreely | SQLite (local) | blog.ruinous.social | Simple | Pending |
