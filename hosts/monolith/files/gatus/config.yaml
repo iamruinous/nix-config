@@ -584,3 +584,37 @@ endpoints:
     alerts:
       - type: discord
       - type: email
+
+  # ===========================
+  # TERRANAS SERVICES
+  # ===========================
+
+  - name: "Plex (terranas)"
+    group: "Media"
+    url: "https://plex.meskill.farm/web/index.html"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Jellyfin (terranas)"
+    group: "Media"
+    url: "https://jellyfin.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Audiobookshelf (terranas)"
+    group: "Media"
+    url: "https://audiobooks.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
