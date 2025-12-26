@@ -260,6 +260,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Home Assistant"
+    group: "Home Automation"
+    url: "https://ha.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # === Monitoring ===
   - name: "Grafana (monolith)"
     group: "Monitoring"
@@ -620,7 +630,7 @@ endpoints:
       - type: email
 
   - name: "RustFS (terranas)"
-    group: "Media"
+    group: "Infrastructure"
     url: "https://s3.meskill.farm:30292"
     interval: 5m
     conditions:
@@ -630,7 +640,7 @@ endpoints:
       - type: email
 
   - name: "RustFS Console (terranas)"
-    group: "Media"
+    group: "Infrastructure"
     url: "https://s3.meskill.farm:30292"
     interval: 5m
     conditions:
