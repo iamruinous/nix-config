@@ -57,6 +57,11 @@
         ingress = {"matrix.ruinous.social" = "https://matrix-int.ruinous.social";};
         default = "http_status:404";
       };
+      "24beff9c-420f-4274-97b6-9eee990e0c17" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_mastodon_ruinous.path}";
+        ingress = {"ruinous.social" = "https://ruinous-int.ruinous.social";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -113,6 +118,11 @@
 
   age.secrets.pilaster_cloudflared_matrix_ruinous = {
     rekeyFile = ./files/cloudflared/matrix-ruinous.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_mastodon_ruinous = {
+    rekeyFile = ./files/cloudflared/mastodon-ruinous.json.age;
     mode = "644";
   };
 }

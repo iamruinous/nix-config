@@ -22,7 +22,7 @@ Migrate containers from tty-ruinous-social (Linode VPS at tty.ruinous.social) to
 | karakeep (3 containers) | SQLite + Meilisearch | keep/hoarder/karakeep.ruinous.social | Medium | Config Complete |
 | synapse + maubot (2 containers) | PostgreSQL | matrix.ruinous.social | Medium | Config Complete |
 | rustdesk (2 containers) | None | Direct ports (21115-21117) | Simple | Config Complete |
-| mastodon (3 containers) | PostgreSQL + Redis | ruinous.social (root) | Complex | Pending |
+| mastodon (3 containers) | PostgreSQL + Redis | ruinous.social (root) | Complex | Config Complete |
 
 ## Migration Strategy
 

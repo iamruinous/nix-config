@@ -753,6 +753,42 @@
           "/data/docker/rustdesk/config:/root"
         ];
       };
+      "mastodon-web" = {
+        image = "ghcr.io/mastodon/mastodon:v4.5.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        cmd = ["bundle" "exec" "puma" "-C" "config/puma.rb"];
+        volumes = [
+          "/data/docker/mastodon/public/system:/mastodon/public/system"
+        ];
+      };
+      "mastodon-streaming" = {
+        image = "ghcr.io/mastodon/mastodon-streaming:v4.5.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        cmd = ["node" "./streaming/index.js"];
+      };
+      "mastodon-sidekiq" = {
+        image = "ghcr.io/mastodon/mastodon:v4.5.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        cmd = ["bundle" "exec" "sidekiq"];
+        volumes = [
+          "/data/docker/mastodon/public/system:/mastodon/public/system"
+        ];
+      };
     };
   };
 
@@ -844,6 +880,10 @@
   };
   age.secrets.pilaster_docker_env_synapse = {
     rekeyFile = ./files/docker/env/synapse.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_mastodon = {
+    rekeyFile = ./files/docker/env/mastodon.env.age;
     mode = "600";
   };
 }
