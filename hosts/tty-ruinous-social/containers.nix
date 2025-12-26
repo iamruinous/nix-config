@@ -210,6 +210,7 @@
         image = "ghcr.io/karakeep-app/karakeep:release";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
+        dependsOn = ["karakeep-chrome" "karakeep-meilisearch"];
         volumes = [
           "/data/docker/karakeep/data:/data"
         ];
@@ -238,6 +239,7 @@
         image = "ghcr.io/mastodon/mastodon:v4.5.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
+        dependsOn = ["postgres" "redis"];
         cmd = [
           "bundle"
           "exec"
@@ -261,6 +263,7 @@
         image = "ghcr.io/mastodon/mastodon-streaming:v4.5.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
+        dependsOn = ["postgres" "redis"];
         cmd = [
           "node"
           "./streaming/index.js"
@@ -280,6 +283,7 @@
         image = "ghcr.io/mastodon/mastodon:v4.5.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_mastodon.path];
         networks = ["datanet" "servicenet"];
+        dependsOn = ["postgres" "redis"];
         cmd = [
           "bundle"
           "exec"
@@ -313,6 +317,7 @@
         image = "ghcr.io/element-hq/synapse:v1.144.0";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_synapse.path];
         networks = ["datanet" "servicenet"];
+        dependsOn = ["postgres"];
         volumes = [
           "/data/docker/synapse/data:/data"
         ];
@@ -320,6 +325,7 @@
       "maubot" = {
         image = "dock.mau.dev/maubot/maubot:v0.6.0";
         networks = ["servicenet"];
+        dependsOn = ["synapse"];
         volumes = [
           "/data/docker/maubot/data:/data"
         ];

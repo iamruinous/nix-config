@@ -423,6 +423,7 @@
           "datanet"
           "servicenet"
         ];
+        dependsOn = ["postgres"];
         ports = [
           "127.0.0.1:2222:22"
         ];
@@ -475,6 +476,7 @@
           "datanet"
           "servicenet"
         ];
+        dependsOn = ["prometheus" "loki"];
         volumes = [
           "/data/docker/grafana/data:/var/lib/grafana"
           "${./files/grafana/datasources}:/etc/grafana/provisioning/datasources"
@@ -565,6 +567,7 @@
           "servicenet"
           "datanet"
         ];
+        dependsOn = ["postgres" "redis"];
         volumes = [
           "/data/docker/n8n/config:/home/node/.n8n"
           "/etc/timezone:/etc/timezone:ro"
@@ -614,6 +617,7 @@
           "servicenet"
           "datanet"
         ];
+        dependsOn = ["postgres" "redis" "gotenberg" "tika"];
         volumes = [
           "/data/docker/paperless-ngx/data:/usr/src/paperless/data"
           "/nas/paperless/media:/usr/src/paperless/media"

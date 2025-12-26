@@ -80,6 +80,7 @@
           OLLAMA_BASE_URL = "http://ollama:11434";
         };
         networks = ["servicenet"];
+        dependsOn = ["ollama"];
         volumes = [
           "/data/docker/open-webui/data:/app/backend/data"
         ];
