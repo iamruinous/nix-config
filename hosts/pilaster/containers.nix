@@ -724,35 +724,35 @@
           "/data/docker/maubot/data:/data"
         ];
       };
-      "rustdesk-hbbr" = {
-        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
-        cmd = ["hbbr"];
-        networks = ["proxynet"];
-        ports = ["21117:21117"];
-        environment = {
-          ALWAYS_USE_RELAY = "Y";
-        };
-        volumes = [
-          "/data/docker/rustdesk/config:/root"
-        ];
-      };
-      "rustdesk-hbbs" = {
-        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
-        cmd = ["hbbs"];
-        networks = ["proxynet"];
-        ports = [
-          "21115:21115"
-          "21116:21116"
-          "21116:21116/udp"
-        ];
-        dependsOn = ["rustdesk-hbbr"];
-        environment = {
-          ALWAYS_USE_RELAY = "Y";
-        };
-        volumes = [
-          "/data/docker/rustdesk/config:/root"
-        ];
-      };
+      # "rustdesk-hbbr" = {
+      #   image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+      #   cmd = ["hbbr"];
+      #   networks = ["proxynet"];
+      #   ports = ["21117:21117"];
+      #   environment = {
+      #     ALWAYS_USE_RELAY = "Y";
+      #   };
+      #   volumes = [
+      #     "/data/docker/rustdesk/config:/root"
+      #   ];
+      # };
+      # "rustdesk-hbbs" = {
+      #   image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+      #   cmd = ["hbbs"];
+      #   networks = ["proxynet"];
+      #   ports = [
+      #     "21115:21115"
+      #     "21116:21116"
+      #     "21116:21116/udp"
+      #   ];
+      #   dependsOn = ["rustdesk-hbbr"];
+      #   environment = {
+      #     ALWAYS_USE_RELAY = "Y";
+      #   };
+      #   volumes = [
+      #     "/data/docker/rustdesk/config:/root"
+      #   ];
+      # };
       "mastodon-web" = {
         image = "ghcr.io/mastodon/mastodon:v4.5.3";
         environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
