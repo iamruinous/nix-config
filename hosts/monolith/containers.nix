@@ -197,6 +197,15 @@
           "${./files/prometheus/rules.yml}:/etc/prometheus/rules.yml"
         ];
       };
+      gatus = {
+        image = "docker.io/twinproduction/gatus:v5.17.0";
+        environmentFiles = [config.age.secrets.monolith_docker_env_gatus.path];
+        networks = ["servicenet"];
+        volumes = [
+          "${./files/gatus/config.yaml}:/config/config.yaml:ro"
+          "/data/docker/gatus/data:/data"
+        ];
+      };
       redis = {
         image = "docker.io/redis:8-alpine";
         networks = ["datanet"];
@@ -925,12 +934,20 @@
   };
 
   # Restart docker-caddy service when Caddyfile secret changes
+  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
   systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.monolith_caddy_caddyfile.path];
+    restartTriggers = [config.age.secrets.monolith_caddy_caddyfile.rekeyFile];
   };
   # Restart docker-n8n service when env secret changes
   systemd.services.docker-n8n = {
-    restartTriggers = [config.age.secrets.monolith_docker_env_n8n.path];
+    restartTriggers = [config.age.secrets.monolith_docker_env_n8n.rekeyFile];
+  };
+  # Restart docker-gatus service when config or env changes
+  systemd.services.docker-gatus = {
+    restartTriggers = [
+      ./files/gatus/config.yaml
+      config.age.secrets.monolith_docker_env_gatus.rekeyFile
+    ];
   };
 
   age.secrets.monolith_glance_config = {
@@ -1002,6 +1019,10 @@
   };
   age.secrets.monolith_docker_env_messy_discord_bot = {
     rekeyFile = ./files/docker/env/messy-discord-bot.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_gatus = {
+    rekeyFile = ./files/docker/env/gatus.env.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {

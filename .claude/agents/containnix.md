@@ -482,18 +482,55 @@ systemd.services.ollama-pull-models = {
    cfcli --domain meskill.farm --type CNAME add <service> <hostname>.meskill.farm
    ```
 
-9. **Lock agenix:**
-   ```bash
-   agenix-helper lock
+9. **Add to Gatus monitoring:**
+   Update `hosts/monolith/files/gatus/config.yaml` to monitor the new service:
+   ```yaml
+   - name: "<Service Name>"
+     group: "<Category>"
+     url: "https://<service>.meskill.farm"
+     interval: 5m
+     conditions:
+       - "[STATUS] == 200"
+     alerts:
+       - type: discord
+       - type: email
    ```
+   Categories: Monitoring, Productivity, Development, Documentation, Security, Archiving, Social, Communication, Home, AI, Infrastructure
 
-10. **Commit and deploy:**
+10. **Lock agenix:**
+    ```bash
+    agenix-helper lock
+    ```
+
+11. **Commit and deploy:**
     ```bash
     git add .
     git commit -m "feat: add <service> container to <hostname>"
     git push
-    # Then deploy on host
-    nixos-rebuild switch --flake .#<hostname>
+    ```
+
+12. **Deploy to host:**
+
+    **Option A: Remote deployment (recommended)**
+    Deploy from your local machine to the target host over SSH:
+    ```bash
+    make remote-rebuild remotehost=<hostname>
+    ```
+    This runs `nixos-rebuild switch` on the remote host via SSH.
+
+    **Option B: Local deployment**
+    SSH into the host and deploy locally:
+    ```bash
+    ssh <hostname>
+    cd /path/to/nix-config
+    git pull
+    sudo nixos-rebuild switch --flake .#<hostname>
+    ```
+
+    **Option C: Dry-build first**
+    Test the configuration before deploying:
+    ```bash
+    make remote-dry-build remotehost=<hostname>
     ```
 
 ## Common Issues and Solutions
@@ -544,3 +581,4 @@ systemd.services.ollama-pull-models = {
 6. **Create data directories** - Ensure `/data/docker/<service>/` exists before deployment
 7. **Test locally first** - Use `docker run` to validate before adding to Nix
 8. **Monitor logs** - Set up log aggregation for containerized services
+9. **Add to Gatus** - Every new web service should be added to `hosts/monolith/files/gatus/config.yaml` for uptime monitoring

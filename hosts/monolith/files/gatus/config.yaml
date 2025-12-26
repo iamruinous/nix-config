@@ -1,0 +1,576 @@
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+ui:
+  title: "Meskill Farm Status"
+  header: "Service Status"
+
+alerting:
+  discord:
+    webhook-url: "${DISCORD_WEBHOOK_URL}"
+    default-alert:
+      enabled: true
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+      description: "Health check failed"
+
+  email:
+    from: "${ALERT_EMAIL_FROM}"
+    host: "${SMTP_HOST}"
+    port: ${SMTP_PORT}
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    to: "${ALERT_EMAIL_TO}"
+    default-alert:
+      enabled: true
+      failure-threshold: 5
+      success-threshold: 2
+      send-on-resolved: true
+      description: "Health check failed"
+
+endpoints:
+  # ===========================
+  # MONOLITH SERVICES
+  # ===========================
+
+  # === Media Management ===
+  - name: "Radarr (monolith)"
+    group: "Media"
+    url: "https://radarr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Sonarr (monolith)"
+    group: "Media"
+    url: "https://sonarr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Readarr (monolith)"
+    group: "Media"
+    url: "https://readarr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Bazarr (monolith)"
+    group: "Media"
+    url: "https://bazarr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Prowlarr (monolith)"
+    group: "Media"
+    url: "https://prowlarr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Jellyseerr (monolith)"
+    group: "Media"
+    url: "https://seerr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Pinchflat (monolith)"
+    group: "Media"
+    url: "https://pinchflat.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "ErsatzTV (monolith)"
+    group: "Media"
+    url: "https://etv.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Downloads ===
+  - name: "SABnzbd (monolith)"
+    group: "Downloads"
+    url: "https://sabnzbd.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Deluge (monolith)"
+    group: "Downloads"
+    url: "https://deluge.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Autobrr (monolith)"
+    group: "Downloads"
+    url: "https://autobrr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Books & Reading ===
+  - name: "Calibre (monolith)"
+    group: "Books"
+    url: "https://calibre.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Calibre Web (monolith)"
+    group: "Books"
+    url: "https://books.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Calibre Desktop (monolith)"
+    group: "Books"
+    url: "https://calibre-dt.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Calibre Download (monolith)"
+    group: "Books"
+    url: "https://calibre-dl.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Kavita (monolith)"
+    group: "Books"
+    url: "https://kavita.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Gaming ===
+  - name: "ROMM (monolith)"
+    group: "Gaming"
+    url: "https://romm.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Home Automation ===
+  - name: "Frigate (monolith)"
+    group: "Home Automation"
+    url: "https://frigate.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Zigbee2MQTT (monolith)"
+    group: "Home Automation"
+    url: "https://zigbee.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "MQTT Explorer (monolith)"
+    group: "Home Automation"
+    url: "https://mqtt-explorer.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "RTL 433 (monolith)"
+    group: "Home Automation"
+    url: "https://rtl433.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "RTL 915 (monolith)"
+    group: "Home Automation"
+    url: "https://rtl915.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Monitoring ===
+  - name: "Grafana (monolith)"
+    group: "Monitoring"
+    url: "https://grafana.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2000"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Prometheus (monolith)"
+    group: "Monitoring"
+    url: "https://prometheus.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Loki (monolith)"
+    group: "Monitoring"
+    url: "https://loki.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Change Detection (monolith)"
+    group: "Monitoring"
+    url: "https://changes.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Glance (monolith)"
+    group: "Monitoring"
+    url: "https://glance.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Productivity ===
+  - name: "Paperless (monolith)"
+    group: "Productivity"
+    url: "https://paperless.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Paperless AI (monolith)"
+    group: "Productivity"
+    url: "https://paperless-ai.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "TaskTrove (monolith)"
+    group: "Productivity"
+    url: "https://tasks.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Automation ===
+  - name: "n8n (monolith)"
+    group: "Automation"
+    url: "https://n8n.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "n8h Webhooks (monolith)"
+    group: "Automation"
+    url: "https://n8h.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Apprise (monolith)"
+    group: "Automation"
+    url: "https://apprise.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Development ===
+  - name: "Forgejo (monolith)"
+    group: "Development"
+    url: "https://forge.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Gotenberg (monolith)"
+    group: "Development"
+    url: "https://gotenberg.meskill.farm/health"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Infrastructure ===
+  - name: "Step CA (monolith)"
+    group: "Infrastructure"
+    url: "https://ca.meskill.farm/health"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Adminer (monolith)"
+    group: "Infrastructure"
+    url: "https://adminer.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "LDAP Admin (monolith)"
+    group: "Infrastructure"
+    url: "https://ldap.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # ===========================
+  # PILASTER SERVICES
+  # ===========================
+
+  - name: "WikiJS (pilaster)"
+    group: "Documentation"
+    url: "https://docs.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Authentik (pilaster)"
+    group: "Security"
+    url: "https://auth.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Archive Box (pilaster)"
+    group: "Archiving"
+    url: "https://archive.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Twenty CRM (pilaster)"
+    group: "Productivity"
+    url: "https://twenty.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Monica CRM (pilaster)"
+    group: "Productivity"
+    url: "https://monica.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "MCP Gateway (pilaster)"
+    group: "Infrastructure"
+    url: "https://mcp.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # === Social (pilaster via Cloudflare tunnel) ===
+  - name: "Mastodon (pilaster)"
+    group: "Social"
+    url: "https://ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "WriteFreely (pilaster)"
+    group: "Social"
+    url: "https://blog.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Matrix (pilaster)"
+    group: "Communication"
+    url: "https://matrix.ruinous.social/_matrix/client/versions"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Mealie (pilaster)"
+    group: "Home"
+    url: "https://meals.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Karakeep (pilaster)"
+    group: "Productivity"
+    url: "https://keep.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Baikal (pilaster)"
+    group: "Productivity"
+    url: "https://dav.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  # ===========================
+  # AI SERVICES
+  # ===========================
+
+  - name: "Open WebUI (zenith)"
+    group: "AI"
+    url: "https://ai.x.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Open WebUI (obelisk)"
+    group: "AI"
+    url: "https://ai.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email

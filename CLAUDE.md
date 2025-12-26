@@ -444,7 +444,8 @@ In addition to the general guidelines, this NixOS configuration repository has t
 
 1. **Verify builds before committing**:
    ```bash
-   nixos-rebuild dry-build --flake .#<hostname>
+   # For remote NixOS hosts
+   make remote-dry-build remotehost=<hostname>
    # or for packages
    nix build .#<package-name>
    ```
@@ -575,6 +576,24 @@ In addition to the general guidelines, this NixOS configuration repository has t
    **Step 9: Update documentation**
    - Add service to `hosts/<hostname>/README.md`
    - Update `hosts/README.md` if adding significant new capability
+
+   **Step 10: Add to Gatus monitoring**
+   If the service has a web interface, add it to uptime monitoring:
+   - Edit `hosts/monolith/files/gatus/config.yaml`
+   - Add a new endpoint entry:
+     ```yaml
+     - name: "<Service Name>"
+       group: "<Category>"
+       url: "https://<service>.meskill.farm"
+       interval: 5m
+       conditions:
+         - "[STATUS] == 200"
+       alerts:
+         - type: discord
+         - type: email
+     ```
+   - Categories: Monitoring, Productivity, Development, Documentation, Security, Archiving, Social, Communication, Home, AI, Infrastructure
+   - Gatus status page: https://uptime.meskill.farm
 
    **Naming Conventions:**
    - Secret names: `<hostname>_docker_env_<service>` (e.g., `pilaster_docker_env_wikijs`)

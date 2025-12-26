@@ -847,16 +847,17 @@
   };
 
   # Restart docker-caddy service when Caddyfile secret changes
+  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
   systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.pilaster_caddy_caddyfile.path];
+    restartTriggers = [config.age.secrets.pilaster_caddy_caddyfile.rekeyFile];
   };
   # Restart docker-meshtastic-message-relay service when config secret changes
   systemd.services.docker-meshtastic-message-relay = {
-    restartTriggers = [config.age.secrets.pilaster_meshtastic_relay_config.path];
+    restartTriggers = [config.age.secrets.pilaster_meshtastic_relay_config.rekeyFile];
   };
   # Restart docker-mcp-gateway service when config secret changes
   systemd.services.docker-mcp-gateway = {
-    restartTriggers = [config.age.secrets.pilaster_docker_env_mcp_gateway.path];
+    restartTriggers = [config.age.secrets.pilaster_docker_env_mcp_gateway.rekeyFile];
   };
 
   age.secrets.pilaster_caddy_caddyfile = {

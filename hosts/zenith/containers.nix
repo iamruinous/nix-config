@@ -261,13 +261,14 @@
   };
 
   # Restart docker-caddy service when Caddyfile secret changes
+  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
   systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.zenith_caddy_caddyfile.path];
+    restartTriggers = [config.age.secrets.zenith_caddy_caddyfile.rekeyFile];
   };
 
   # Restart docker-mcp-gateway service when config secret changes
   systemd.services.docker-mcp-gateway = {
-    restartTriggers = [config.age.secrets.zenith_docker_env_mcp_gateway.path];
+    restartTriggers = [config.age.secrets.zenith_docker_env_mcp_gateway.rekeyFile];
   };
 
   # Pull optimized models for zenith's 96GB VRAM after ollama starts

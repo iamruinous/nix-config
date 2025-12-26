@@ -380,8 +380,9 @@
   };
 
   # Restart docker-caddy service when Caddyfile secret changes
+  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
   systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.tty_ruinous_social_caddy_caddyfile.path];
+    restartTriggers = [config.age.secrets.tty_ruinous_social_caddy_caddyfile.rekeyFile];
   };
 
   # mosquitto container chowns the file
