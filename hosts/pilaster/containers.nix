@@ -110,6 +110,7 @@
           "datanet"
           "servicenet"
         ];
+        dependsOn = ["postgres" "redis"];
         volumes = [
           "/data/docker/authentik/media:/media"
           "/data/docker/authentik/templates:/templates"
@@ -123,6 +124,7 @@
           "datanet"
           "servicenet"
         ];
+        dependsOn = ["authentik"];
         volumes = [
           "/var/run/docker.sock:/var/run/docker.sock"
           "/data/docker/authentik/certs:/certs"
@@ -197,7 +199,6 @@
           "datanet"
           "servicenet"
         ];
-        dependsOn = ["postgres"];
         volumes = [
           "/data/docker/qdrant/data:/qdrant/storage"
         ];
@@ -488,6 +489,7 @@
         networks = [
           "servicenet"
         ];
+        dependsOn = ["music-assistant"];
       };
       mcp-gateway = {
         image = "docker/mcp-gateway:v2";
@@ -681,6 +683,7 @@
         image = "ghcr.io/karakeep-app/karakeep:release";
         environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
         networks = ["servicenet"];
+        dependsOn = ["karakeep-chrome" "karakeep-meilisearch"];
         volumes = [
           "/data/docker/karakeep/data:/data"
         ];
@@ -720,6 +723,7 @@
       maubot = {
         image = "dock.mau.dev/maubot/maubot:v0.6.0";
         networks = ["servicenet"];
+        dependsOn = ["synapse"];
         volumes = [
           "/data/docker/maubot/data:/data"
         ];
