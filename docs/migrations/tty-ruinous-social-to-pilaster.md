@@ -19,7 +19,7 @@ Migrate containers from tty-ruinous-social (Linode VPS at tty.ruinous.social) to
 | baikal | SQLite (local) | dav.ruinous.social | Simple | Config Complete |
 | mealie | SQLite (local) | meals.ruinous.social | Simple | Config Complete |
 | writefreely | SQLite (local) | blog.ruinous.social | Simple | Config Complete |
-| karakeep (3 containers) | SQLite + Meilisearch | hoarder/karakeep.ruinous.social | Medium | Pending |
+| karakeep (3 containers) | SQLite + Meilisearch | keep/hoarder/karakeep.ruinous.social | Medium | Config Complete |
 | mastodon (3 containers) | PostgreSQL + Redis | ruinous.social (root) | Complex | Pending |
 
 ## Migration Strategy

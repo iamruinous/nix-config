@@ -43,6 +43,15 @@
         ingress = {"blog.ruinous.social" = "https://blog-int.ruinous.social";};
         default = "http_status:404";
       };
+      "195e5cd1-5efb-4c18-b603-443a96be3ca6" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_keep_ruinous.path}";
+        ingress = {
+          "keep.ruinous.social" = "https://keep-int.ruinous.social";
+          "hoarder.ruinous.social" = "https://keep-int.ruinous.social";
+          "karakeep.ruinous.social" = "https://keep-int.ruinous.social";
+        };
+        default = "http_status:404";
+      };
     };
   };
 
@@ -89,6 +98,11 @@
 
   age.secrets.pilaster_cloudflared_blog_ruinous = {
     rekeyFile = ./files/cloudflared/blog-ruinous.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_keep_ruinous = {
+    rekeyFile = ./files/cloudflared/keep-ruinous.json.age;
     mode = "644";
   };
 }

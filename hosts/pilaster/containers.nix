@@ -676,6 +676,35 @@
           "/data/docker/writefreely/config.ini:/go/config.ini"
         ];
       };
+      karakeep = {
+        # IMAGECHECK: disabled - uses release tag, no semver versions
+        image = "ghcr.io/karakeep-app/karakeep:release";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/karakeep/data:/data"
+        ];
+      };
+      "karakeep-chrome" = {
+        image = "gcr.io/zenika-hub/alpine-chrome:124";
+        networks = ["servicenet"];
+        cmd = [
+          "--no-sandbox"
+          "--disable-gpu"
+          "--disable-dev-shm-usage"
+          "--remote-debugging-address=0.0.0.0"
+          "--remote-debugging-port=9222"
+          "--hide-scrollbars"
+        ];
+      };
+      "karakeep-meilisearch" = {
+        image = "docker.io/getmeili/meilisearch:v1.31.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/karakeep/meili_data:/meili_data"
+        ];
+      };
     };
   };
 
@@ -759,6 +788,10 @@
   # Migrated from tty-ruinous-social
   age.secrets.pilaster_docker_env_mealie = {
     rekeyFile = ./files/docker/env/mealie.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_karakeep = {
+    rekeyFile = ./files/docker/env/karakeep.env.age;
     mode = "600";
   };
 }
