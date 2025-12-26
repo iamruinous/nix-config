@@ -789,6 +789,18 @@
           "/data/docker/mastodon/public/system:/mastodon/public/system"
         ];
       };
+      azimutt = {
+        image = "ghcr.io/azimuttapp/azimutt:main";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_azimutt.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres"];
+        volumes = [
+          "/data/docker/azimutt/data:/app/data"
+        ];
+      };
     };
   };
 
@@ -884,6 +896,10 @@
   };
   age.secrets.pilaster_docker_env_mastodon = {
     rekeyFile = ./files/docker/env/mastodon.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_azimutt = {
+    rekeyFile = ./files/docker/env/azimutt.env.age;
     mode = "600";
   };
 }

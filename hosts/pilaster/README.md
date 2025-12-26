@@ -36,6 +36,7 @@ Lightweight NixOS server for Docker containers and network services.
 - **Meshtastic Message Relay**: LoRa mesh networking relay
 
 **Development & Tools:**
+- **Azimutt**: Database schema exploration and visualization
 - **WikiJS**: Documentation wiki
 - **MCP Gateway**: Model Context Protocol gateway
 
