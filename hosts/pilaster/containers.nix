@@ -667,6 +667,15 @@
           "/data/docker/mealie/data:/app/data"
         ];
       };
+      writefreely = {
+        image = "docker.io/writeas/writefreely:0.16.0";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/writefreely/keys:/go/keys"
+          "/data/docker/writefreely/db:/db"
+          "/data/docker/writefreely/config.ini:/go/config.ini"
+        ];
+      };
     };
   };
 

@@ -38,6 +38,11 @@
         ingress = {"meals.ruinous.social" = "https://meals-int.ruinous.social";};
         default = "http_status:404";
       };
+      "dbca8b29-fd35-41d2-8ef8-57eeb179a8f5" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_blog_ruinous.path}";
+        ingress = {"blog.ruinous.social" = "https://blog-int.ruinous.social";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -79,6 +84,11 @@
 
   age.secrets.pilaster_cloudflared_meals_ruinous = {
     rekeyFile = ./files/cloudflared/meals-ruinous.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_blog_ruinous = {
+    rekeyFile = ./files/cloudflared/blog-ruinous.json.age;
     mode = "644";
   };
 }

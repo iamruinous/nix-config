@@ -195,12 +195,17 @@ and integrate it with the overlay so it's available on all hosts"
 
 **Key Commands:**
 ```bash
-agenix-helper unlock          # Unlock before working with secrets
+agenix-helper unlock          # Unlock before working with secrets (USER MUST RUN - do not run from agents)
 agenix view file.age          # View encrypted file
 agenix edit -i input output.age  # Encrypt file non-interactively
 agenix rekey -a               # Rekey all secrets after changes
-agenix-helper lock            # Lock when done
+agenix-helper lock            # Lock when done (USER MUST RUN - do not run from agents)
 ```
+
+**IMPORTANT for AI agents:**
+- Never run `agenix-helper unlock` or `agenix-helper lock` directly - the user must run these commands
+- All `agenix` commands (view, edit, rekey) must be run outside the sandbox with `dangerouslyDisableSandbox: true` since they need to access files in /tmp
+- If agenix commands fail with identity errors, ask the user to run `agenix-helper unlock`
 
 **Common Patterns:**
 - Caddyfiles: `hosts/<hostname>/files/caddy/Caddyfile.age`
