@@ -195,12 +195,17 @@ and integrate it with the overlay so it's available on all hosts"
 
 **Key Commands:**
 ```bash
-agenix-helper unlock          # Unlock before working with secrets
+agenix-helper unlock          # Unlock before working with secrets (USER MUST RUN - do not run from agents)
 agenix view file.age          # View encrypted file
 agenix edit -i input output.age  # Encrypt file non-interactively
 agenix rekey -a               # Rekey all secrets after changes
-agenix-helper lock            # Lock when done
+agenix-helper lock            # Lock when done (USER MUST RUN - do not run from agents)
 ```
+
+**IMPORTANT for AI agents:**
+- Never run `agenix-helper unlock` or `agenix-helper lock` directly - the user must run these commands
+- All `agenix` commands (view, edit, rekey) must be run outside the sandbox with `dangerouslyDisableSandbox: true` since they need to access files in /tmp
+- If agenix commands fail with identity errors, ask the user to run `agenix-helper unlock`
 
 **Common Patterns:**
 - Caddyfiles: `hosts/<hostname>/files/caddy/Caddyfile.age`
@@ -623,6 +628,17 @@ In addition to the general guidelines, this NixOS configuration repository has t
    **References:**
    - [NixOS Wiki - Cloudflared](https://wiki.nixos.org/wiki/Cloudflared)
    - [Blog: Nix Cloudflare Tunnels](https://olai.dev/blog/nix-cloudflare-tunnels/)
+
+   **Recommended: Use the cfnix agent for tunnel creation**
+   When creating new Cloudflare tunnels, use the `cfnix` agent which automates the entire process:
+   - Creates the tunnel with `cloudflared tunnel create`
+   - Encrypts credentials with agenix
+   - Adds tunnel configuration to cloudflared.nix
+   - Creates both internal and external DNS entries
+
+   Simply invoke: "Use the cfnix agent to create a Cloudflare tunnel for <service>.<domain>"
+
+   **Manual Steps (if not using cfnix agent):**
 
    **Step 1: Authenticate with Cloudflare (one-time per host)**
    ```bash

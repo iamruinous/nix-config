@@ -12,6 +12,7 @@ in {
   ];
 
   ruinous.openssh.tmux.attach.enable = true;
+  ruinous.openssh.remote.forwarding.enable = true;
 
   home.file.".docker/cli-plugins/docker-mcp".source = config.lib.file.mkOutOfStoreSymlink "${pkgs.docker-mcp-gateway}/bin/docker-mcp";
 

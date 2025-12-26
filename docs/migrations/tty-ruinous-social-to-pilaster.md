@@ -15,12 +15,14 @@ Migrate containers from tty-ruinous-social (Linode VPS at tty.ruinous.social) to
 
 | Service | Database | Domains | Complexity | Status |
 |---------|----------|---------|------------|--------|
-| albyhub | SQLite (local) | alby.ruinous.social | Simple | Pending |
-| baikal | SQLite (local) | dav.ruinous.social | Simple | Pending |
-| mealie | SQLite (local) | meals.ruinous.social | Simple | Pending |
-| writefreely | SQLite (local) | blog.ruinous.social | Simple | Pending |
-| karakeep (3 containers) | SQLite + Meilisearch | hoarder/karakeep.ruinous.social | Medium | Pending |
-| mastodon (3 containers) | PostgreSQL + Redis | ruinous.social (root) | Complex | Pending |
+| albyhub | SQLite (local) | alby.ruinous.social | Simple | Config Complete |
+| baikal | SQLite (local) | dav.ruinous.social | Simple | Config Complete |
+| mealie | SQLite (local) | meals.ruinous.social | Simple | Config Complete |
+| writefreely | SQLite (local) | blog.ruinous.social | Simple | Config Complete |
+| karakeep (3 containers) | SQLite + Meilisearch | keep/hoarder/karakeep.ruinous.social | Medium | Config Complete |
+| synapse + maubot (2 containers) | PostgreSQL | matrix.ruinous.social | Medium | Config Complete |
+| rustdesk (2 containers) | None | Direct ports (21115-21117) | Simple | Config Complete |
+| mastodon (3 containers) | PostgreSQL + Redis | ruinous.social (root) | Complex | Config Complete |
 
 ## Migration Strategy
 
@@ -183,7 +185,89 @@ karakeep = {
 
 ---
 
-### Service 6: Mastodon Stack (Most Complex)
+### Service 6: Synapse + Maubot (Matrix)
+
+**Containers:** synapse, maubot
+
+**Data to migrate:**
+- PostgreSQL database: `synapse`
+- `/data/docker/synapse/data/` (media, signing keys)
+- `/data/docker/maubot/data/`
+
+**Secrets to migrate:**
+- `tty_ruinous_social_docker_env_synapse` → `pilaster_docker_env_synapse`
+- Update DB_HOST to point to pilaster's postgres
+
+**Container configs:**
+```nix
+synapse = {
+  image = "ghcr.io/element-hq/synapse:v1.144.0";
+  environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
+  networks = ["datanet" "servicenet"];
+  dependsOn = ["postgres"];
+  volumes = ["/data/docker/synapse/data:/data"];
+};
+
+maubot = {
+  image = "dock.mau.dev/maubot/maubot:v0.6.0";
+  networks = ["servicenet"];
+  volumes = ["/data/docker/maubot/data:/data"];
+};
+```
+
+**Caddy config for Matrix:**
+```
+matrix-int.ruinous.social matrix.ruinous.social {
+  reverse_proxy /_matrix/maubot/* maubot:29316
+  reverse_proxy /_matrix/* synapse:8008
+  reverse_proxy /_synapse/client/* synapse:8008
+  reverse_proxy /_synapse/admin/* synapse:8008
+}
+```
+
+---
+
+### Service 7: RustDesk Relay
+
+**Containers:** rustdesk-hbbr, rustdesk-hbbs
+
+**Note:** RustDesk requires direct port access (UDP), cannot use Cloudflare tunnel.
+Pilaster is behind NAT, so this may need port forwarding or Tailscale.
+
+**Data to migrate:**
+- `/data/docker/rustdesk/config/` (keys and config)
+
+**Container configs:**
+```nix
+"rustdesk-hbbr" = {
+  image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+  cmd = ["hbbr"];
+  networks = ["proxynet"];
+  ports = ["21117:21117"];
+  environment = {ALWAYS_USE_RELAY = "Y";};
+  volumes = ["/data/docker/rustdesk/config:/root"];
+};
+
+"rustdesk-hbbs" = {
+  image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+  cmd = ["hbbs"];
+  networks = ["proxynet"];
+  ports = ["21115:21115" "21116:21116" "21116:21116/udp"];
+  dependsOn = ["rustdesk-hbbr"];
+  environment = {ALWAYS_USE_RELAY = "Y";};
+  volumes = ["/data/docker/rustdesk/config:/root"];
+};
+```
+
+**Firewall ports needed:**
+```nix
+networking.firewall.allowedTCPPorts = [21115 21116 21117];
+networking.firewall.allowedUDPPorts = [21116];
+```
+
+---
+
+### Service 8: Mastodon Stack (Most Complex)
 
 **Containers:** mastodon-web, mastodon-streaming, mastodon-sidekiq
 

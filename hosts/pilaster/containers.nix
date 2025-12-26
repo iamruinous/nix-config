@@ -3,8 +3,8 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8080 8095 8097 9000];
-  networking.firewall.allowedUDPPorts = [69 443];
+  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8080 8095 8097 9000 21115 21116 21117];
+  networking.firewall.allowedUDPPorts = [69 443 21116];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -651,6 +651,144 @@
           "/data/docker/albyhub/data:/data"
         ];
       };
+      baikal = {
+        image = "docker.io/ckulka/baikal:0.10.1-nginx-php8.2";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/baikal/config:/var/www/baikal/config"
+          "/data/docker/baikal/specific:/var/www/baikal/Specific"
+        ];
+      };
+      mealie = {
+        image = "ghcr.io/mealie-recipes/mealie:v3.8.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mealie.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/mealie/data:/app/data"
+        ];
+      };
+      writefreely = {
+        image = "ghcr.io/writefreely/writefreely:v0.16.0";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/writefreely/keys:/go/keys"
+          "/data/docker/writefreely/db:/db"
+          "/data/docker/writefreely/config.ini:/go/config.ini"
+        ];
+      };
+      karakeep = {
+        # IMAGECHECK: disabled - uses release tag, no semver versions
+        image = "ghcr.io/karakeep-app/karakeep:release";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/karakeep/data:/data"
+        ];
+      };
+      "karakeep-chrome" = {
+        image = "gcr.io/zenika-hub/alpine-chrome:124";
+        networks = ["servicenet"];
+        cmd = [
+          "--no-sandbox"
+          "--disable-gpu"
+          "--disable-dev-shm-usage"
+          "--remote-debugging-address=0.0.0.0"
+          "--remote-debugging-port=9222"
+          "--hide-scrollbars"
+        ];
+      };
+      "karakeep-meilisearch" = {
+        image = "docker.io/getmeili/meilisearch:v1.31.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/karakeep/meili_data:/meili_data"
+        ];
+      };
+      synapse = {
+        image = "ghcr.io/element-hq/synapse:v1.144.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres"];
+        volumes = [
+          "/data/docker/synapse/data:/data"
+        ];
+      };
+      maubot = {
+        image = "dock.mau.dev/maubot/maubot:v0.6.0";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/maubot/data:/data"
+        ];
+      };
+      "rustdesk-hbbr" = {
+        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+        cmd = ["hbbr"];
+        networks = ["proxynet"];
+        ports = ["21117:21117"];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
+        };
+        volumes = [
+          "/data/docker/rustdesk/config:/root"
+        ];
+      };
+      "rustdesk-hbbs" = {
+        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+        cmd = ["hbbs"];
+        networks = ["proxynet"];
+        ports = [
+          "21115:21115"
+          "21116:21116"
+          "21116:21116/udp"
+        ];
+        dependsOn = ["rustdesk-hbbr"];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
+        };
+        volumes = [
+          "/data/docker/rustdesk/config:/root"
+        ];
+      };
+      "mastodon-web" = {
+        image = "ghcr.io/mastodon/mastodon:v4.5.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        cmd = ["bundle" "exec" "puma" "-C" "config/puma.rb"];
+        volumes = [
+          "/data/docker/mastodon/public/system:/mastodon/public/system"
+        ];
+      };
+      "mastodon-streaming" = {
+        image = "ghcr.io/mastodon/mastodon-streaming:v4.5.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        cmd = ["node" "./streaming/index.js"];
+      };
+      "mastodon-sidekiq" = {
+        image = "ghcr.io/mastodon/mastodon:v4.5.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mastodon.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        cmd = ["bundle" "exec" "sidekiq"];
+        volumes = [
+          "/data/docker/mastodon/public/system:/mastodon/public/system"
+        ];
+      };
     };
   };
 
@@ -729,6 +867,23 @@
   };
   age.secrets.pilaster_docker_env_twenty = {
     rekeyFile = ./files/docker/env/twenty.env.age;
+    mode = "600";
+  };
+  # Migrated from tty-ruinous-social
+  age.secrets.pilaster_docker_env_mealie = {
+    rekeyFile = ./files/docker/env/mealie.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_karakeep = {
+    rekeyFile = ./files/docker/env/karakeep.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_synapse = {
+    rekeyFile = ./files/docker/env/synapse.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_mastodon = {
+    rekeyFile = ./files/docker/env/mastodon.env.age;
     mode = "600";
   };
 }
