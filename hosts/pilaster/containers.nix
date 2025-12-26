@@ -810,10 +810,10 @@
         cmd = ["sh" "-c" "npm install -g azimutt && azimutt gateway"];
         environment = {
           API_HOST = "0.0.0.0";
-          API_PORT = "3000";
+          API_PORT = "4177";
         };
         environmentFiles = [config.age.secrets.pilaster_docker_env_azimutt_gateway.path];
-        networks = ["servicenet"];
+        extraOptions = ["--network=host"];
       };
       # Web archiving platform
       archivebox = {
