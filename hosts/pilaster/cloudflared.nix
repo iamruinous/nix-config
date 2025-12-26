@@ -52,6 +52,11 @@
         };
         default = "http_status:404";
       };
+      "43ed79a6-53c3-4ff2-a4ec-64ff2ad149d6" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_matrix_ruinous.path}";
+        ingress = {"matrix.ruinous.social" = "https://matrix-int.ruinous.social";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -103,6 +108,11 @@
 
   age.secrets.pilaster_cloudflared_keep_ruinous = {
     rekeyFile = ./files/cloudflared/keep-ruinous.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_matrix_ruinous = {
+    rekeyFile = ./files/cloudflared/matrix-ruinous.json.age;
     mode = "644";
   };
 }

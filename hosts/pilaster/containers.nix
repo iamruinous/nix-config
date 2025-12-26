@@ -705,6 +705,25 @@
           "/data/docker/karakeep/meili_data:/meili_data"
         ];
       };
+      synapse = {
+        image = "ghcr.io/element-hq/synapse:v1.144.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres"];
+        volumes = [
+          "/data/docker/synapse/data:/data"
+        ];
+      };
+      maubot = {
+        image = "dock.mau.dev/maubot/maubot:v0.6.0";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/maubot/data:/data"
+        ];
+      };
     };
   };
 
@@ -792,6 +811,10 @@
   };
   age.secrets.pilaster_docker_env_karakeep = {
     rekeyFile = ./files/docker/env/karakeep.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_synapse = {
+    rekeyFile = ./files/docker/env/synapse.env.age;
     mode = "600";
   };
 }
