@@ -3,8 +3,8 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8080 8095 8097 9000];
-  networking.firewall.allowedUDPPorts = [69 443];
+  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8080 8095 8097 9000 21115 21116 21117];
+  networking.firewall.allowedUDPPorts = [69 443 21116];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -722,6 +722,35 @@
         networks = ["servicenet"];
         volumes = [
           "/data/docker/maubot/data:/data"
+        ];
+      };
+      "rustdesk-hbbr" = {
+        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+        cmd = ["hbbr"];
+        networks = ["proxynet"];
+        ports = ["21117:21117"];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
+        };
+        volumes = [
+          "/data/docker/rustdesk/config:/root"
+        ];
+      };
+      "rustdesk-hbbs" = {
+        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+        cmd = ["hbbs"];
+        networks = ["proxynet"];
+        ports = [
+          "21115:21115"
+          "21116:21116"
+          "21116:21116/udp"
+        ];
+        dependsOn = ["rustdesk-hbbr"];
+        environment = {
+          ALWAYS_USE_RELAY = "Y";
+        };
+        volumes = [
+          "/data/docker/rustdesk/config:/root"
         ];
       };
     };
