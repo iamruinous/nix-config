@@ -26,19 +26,40 @@ Lightweight NixOS server for Docker containers and network services.
 **Infrastructure:**
 - **Caddy**: Reverse proxy with Cloudflare DNS and HTTPS
 - **PostgreSQL 18**: Relational database
+- **MariaDB 11**: MySQL-compatible database (for Monica)
+- **Redis 7**: In-memory cache and message broker
 - **Qdrant**: Vector database for AI/ML
 
 **Authentication & Identity:**
 - **Authentik**: Identity provider and SSO
 
+**Communication & Social:**
+- **Synapse**: Matrix homeserver (matrix.ruinous.social)
+- **Maubot**: Matrix bot framework
+- **Mastodon**: Federated social media (tty.ruinous.social)
+
 **Media & Smart Home:**
 - **Music Assistant**: Multi-room audio with Alexa integration
 - **Meshtastic Message Relay**: LoRa mesh networking relay
+
+**Personal Productivity:**
+- **Baikal**: CalDAV/CardDAV server for contacts and calendars
+- **Mealie**: Recipe manager and meal planner
+- **Karakeep**: Bookmark manager with full-text search (+ Chrome, Meilisearch)
+- **Writefreely**: Minimalist blog platform
+
+**CRM & Relationship Management:**
+- **Monica**: Personal CRM for relationships
+- **Twenty**: Open-source CRM (+ worker)
 
 **Development & Tools:**
 - **Azimutt**: Database schema exploration and visualization
 - **WikiJS**: Documentation wiki
 - **MCP Gateway**: Model Context Protocol gateway
+- **Netbootxyz**: Network boot server (PXE/iPXE)
+
+**Finance:**
+- **Albyhub**: Bitcoin Lightning Network node manager
 
 **UPS Monitoring:**
 - **Nutify**: UPS monitoring (dual instances for different UPS units)
