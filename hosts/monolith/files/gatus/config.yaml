@@ -641,7 +641,7 @@ endpoints:
 
   - name: "RustFS Console (terranas)"
     group: "Infrastructure"
-    url: "https://s3.meskill.farm:30292"
+    url: "https://s3.meskill.farm:30293"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
