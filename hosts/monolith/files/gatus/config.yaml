@@ -470,6 +470,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Homebox (pilaster)"
+    group: "Home"
+    url: "https://homebox.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   - name: "Twenty CRM (pilaster)"
     group: "Productivity"
     url: "https://twenty.meskill.farm"

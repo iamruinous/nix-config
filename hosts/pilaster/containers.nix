@@ -725,6 +725,22 @@
           "/data/docker/linkstack/data:/htdocs"
         ];
       };
+      homebox = {
+        # IMAGECHECK: disabled - no semver tags available
+        image = "ghcr.io/sysadminsmedia/homebox:latest";
+        environment = {
+          TZ = "America/Phoenix";
+          HBOX_LOG_LEVEL = "info";
+          HBOX_LOG_FORMAT = "text";
+          HBOX_WEB_MAX_UPLOAD_SIZE = "10";
+          HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
+          HBOX_OPTIONS_ALLOW_ANALYTICS = "false";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/homebox/data:/data"
+        ];
+      };
       synapse = {
         image = "ghcr.io/element-hq/synapse:v1.144.0";
         environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
