@@ -668,7 +668,7 @@
         ];
       };
       writefreely = {
-        image = "docker.io/writeas/writefreely:0.16.0";
+        image = "ghcr.io/writefreely/writefreely:v0.16.0";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/writefreely/keys:/go/keys"
