@@ -659,6 +659,14 @@
           "/data/docker/baikal/specific:/var/www/baikal/Specific"
         ];
       };
+      mealie = {
+        image = "ghcr.io/mealie-recipes/mealie:v3.8.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_mealie.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/mealie/data:/app/data"
+        ];
+      };
     };
   };
 
@@ -737,6 +745,11 @@
   };
   age.secrets.pilaster_docker_env_twenty = {
     rekeyFile = ./files/docker/env/twenty.env.age;
+    mode = "600";
+  };
+  # Migrated from tty-ruinous-social
+  age.secrets.pilaster_docker_env_mealie = {
+    rekeyFile = ./files/docker/env/mealie.env.age;
     mode = "600";
   };
 }
