@@ -721,8 +721,8 @@
           UPLOAD_MAX_FILESIZE = "8M";
         };
         networks = ["servicenet"];
-        volumes = [
-          "/data/docker/linkstack/data:/htdocs"
+        extraOptions = [
+          "--mount" "type=volume,src=linkstack_data,dst=/htdocs"
         ];
       };
       synapse = {
