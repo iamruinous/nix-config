@@ -624,6 +624,17 @@ In addition to the general guidelines, this NixOS configuration repository has t
    - [NixOS Wiki - Cloudflared](https://wiki.nixos.org/wiki/Cloudflared)
    - [Blog: Nix Cloudflare Tunnels](https://olai.dev/blog/nix-cloudflare-tunnels/)
 
+   **Recommended: Use the cfnix agent for tunnel creation**
+   When creating new Cloudflare tunnels, use the `cfnix` agent which automates the entire process:
+   - Creates the tunnel with `cloudflared tunnel create`
+   - Encrypts credentials with agenix
+   - Adds tunnel configuration to cloudflared.nix
+   - Creates both internal and external DNS entries
+
+   Simply invoke: "Use the cfnix agent to create a Cloudflare tunnel for <service>.<domain>"
+
+   **Manual Steps (if not using cfnix agent):**
+
    **Step 1: Authenticate with Cloudflare (one-time per host)**
    ```bash
    # cloudflared is available in the devshell

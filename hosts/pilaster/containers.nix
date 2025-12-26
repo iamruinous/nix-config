@@ -651,6 +651,14 @@
           "/data/docker/albyhub/data:/data"
         ];
       };
+      baikal = {
+        image = "docker.io/ckulka/baikal:0.10.1-nginx-php8.2";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/baikal/config:/var/www/baikal/config"
+          "/data/docker/baikal/specific:/var/www/baikal/Specific"
+        ];
+      };
     };
   };
 

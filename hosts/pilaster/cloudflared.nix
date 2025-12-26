@@ -28,6 +28,11 @@
         ingress = {"alby.ruinous.social" = "https://alby-int.ruinous.social";};
         default = "http_status:404";
       };
+      "349b3137-7c32-4070-b3ef-e1394eb5aa7b" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_dav_ruinous.path}";
+        ingress = {"dav.ruinous.social" = "https://dav-int.ruinous.social";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -59,6 +64,11 @@
 
   age.secrets.pilaster_cloudflared_alby_ruinous = {
     rekeyFile = ./files/cloudflared/alby-ruinous.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_dav_ruinous = {
+    rekeyFile = ./files/cloudflared/dav-ruinous.json.age;
     mode = "644";
   };
 }
