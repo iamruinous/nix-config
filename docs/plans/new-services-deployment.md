@@ -1,0 +1,994 @@
+# New Services Deployment Plan
+
+**Created:** 2025-12-26
+**Status:** Planning
+**Last Updated:** 2025-12-26
+
+This document outlines the deployment plan for five new services across the nix-config infrastructure.
+
+## User Requirements (Confirmed)
+
+- **meskill.family domain:** Already registered in Cloudflare
+- **Email infrastructure:** No port 25 access, no static IP - will use Cloudflare tunnel + Mailgun relay
+- **Gatus alerting:** Discord webhook + email notifications
+- **Rallly access:** Public registration allowed
+
+## Overview
+
+| Service | Domain | Host | Priority | Complexity |
+|---------|--------|------|----------|------------|
+| LinkStack | links.ruinous.social | pilaster | High | Low |
+| Gatus | uptime.meskill.farm | monolith | High | Medium |
+| Homebox | homebox.meskill.farm | pilaster | Medium | Low |
+| Stalwart | mail.meskill.network | monolith | Low | High |
+| Rallly | poll.meskill.family | pilaster | Medium | Medium |
+| Filestash | files.meskill.farm | pilaster | Medium | Low |
+
+## Host Selection Rationale
+
+### pilaster (4 services)
+- Already has Cloudflare tunnels configured for ruinous.social domain
+- Good capacity with current 35+ containers on i9-13900H with 96GB RAM
+- Ideal for web-facing services that need external access
+
+### monolith (2 services)
+- Already runs Prometheus + Grafana monitoring stack
+- Better for services requiring direct port access (email)
+- 60+ containers but well-suited for infrastructure services
+
+---
+
+## 1. LinkStack
+
+**URL:** https://links.ruinous.social
+**Host:** pilaster
+**Docker Image:** `linkstackorg/linkstack:latest`
+**Purpose:** Link aggregation page (like Linktree)
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Port | 80/443 (internal), behind Caddy |
+| Database | SQLite (embedded) or MariaDB (optional) |
+| Storage | `/htdocs` volume for persistent data |
+| Memory | ~50-100MB |
+
+### Environment Variables
+
+```env
+# Required
+TZ=America/Denver
+SERVER_ADMIN=admin@ruinous.social
+HTTP_SERVER_NAME=links.ruinous.social
+HTTPS_SERVER_NAME=links.ruinous.social
+
+# Optional
+LOG_LEVEL=info
+PHP_MEMORY_LIMIT=256M
+UPLOAD_MAX_FILESIZE=8M
+```
+
+### Network Configuration
+
+- Network: `servicenet` (accessible via Caddy)
+- No direct port exposure needed
+
+### Implementation Steps
+
+- [ ] Create directory: `hosts/pilaster/files/docker/env/`
+- [ ] Create `linkstack.env.template` with above variables
+- [ ] Encrypt to `linkstack.env.age` after user fills values
+- [ ] Add container to `hosts/pilaster/containers.nix`
+- [ ] Create data directory on pilaster: `/data/docker/linkstack/`
+- [ ] Update Caddyfile with both internal and external domains
+- [ ] Create Cloudflare tunnel for `links.ruinous.social`
+- [ ] Add DNS entries:
+  - `links-int.ruinous.social` CNAME → pilaster.meskill.farm
+  - `links.ruinous.social` CNAME (proxied) → tunnel UUID
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.linkstack = {
+  image = "linkstackorg/linkstack:latest";
+  environmentFiles = [config.age.secrets.pilaster_docker_env_linkstack.path];
+  networks = ["servicenet"];
+  volumes = [
+    "/data/docker/linkstack/htdocs:/htdocs"
+  ];
+};
+```
+
+---
+
+## 2. Gatus
+
+**URL:** https://uptime.meskill.farm
+**Host:** monolith
+**Docker Image:** `twinproduction/gatus:latest`
+**Purpose:** Uptime monitoring and status page for all services
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Port | 8080 (internal) |
+| Database | SQLite or PostgreSQL (optional for persistence) |
+| Storage | `/config` for configuration, `/data` for SQLite |
+| Memory | ~50-100MB |
+
+### Configuration File
+
+Gatus uses a YAML configuration file. This needs to be created and mounted.
+
+Create `hosts/monolith/files/docker/gatus/config.yaml`:
+
+```yaml
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+ui:
+  title: "Meskill Farm Status"
+  header: "Service Status"
+
+endpoints:
+  # === meskill.farm Services (monolith) ===
+  - name: "Grafana"
+    group: "Monitoring"
+    url: "https://grafana.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2000"
+
+  - name: "Prometheus"
+    group: "Monitoring"
+    url: "https://prometheus.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Paperless"
+    group: "Productivity"
+    url: "https://paperless.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Forgejo"
+    group: "Development"
+    url: "https://git.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "n8n"
+    group: "Automation"
+    url: "https://n8h.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  # === meskill.farm Services (pilaster) ===
+  - name: "WikiJS"
+    group: "Documentation"
+    url: "https://wiki.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Authentik"
+    group: "Security"
+    url: "https://auth.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Archive Box"
+    group: "Archiving"
+    url: "https://archive.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Twenty CRM"
+    group: "Productivity"
+    url: "https://twenty.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Monica CRM"
+    group: "Productivity"
+    url: "https://monica.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  # === ruinous.social Services ===
+  - name: "Mastodon"
+    group: "Social"
+    url: "https://ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Matrix"
+    group: "Communication"
+    url: "https://matrix.ruinous.social/_matrix/client/versions"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "WriteFreely"
+    group: "Social"
+    url: "https://blog.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Mealie"
+    group: "Home"
+    url: "https://meals.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Karakeep"
+    group: "Productivity"
+    url: "https://keep.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Baikal"
+    group: "Productivity"
+    url: "https://dav.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  # === AI Services ===
+  - name: "Open WebUI (Zenith)"
+    group: "AI"
+    url: "https://ai.x.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: "Open WebUI (Obelisk)"
+    group: "AI"
+    url: "https://ai.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+  # === Infrastructure ===
+  - name: "MCP Gateway"
+    group: "Infrastructure"
+    url: "https://mcp.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+```
+
+### Environment Variables
+
+```env
+TZ=America/Denver
+GATUS_LOG_LEVEL=INFO
+
+# Discord webhook for alerts
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+
+# Email alerting (via Mailgun or existing SMTP)
+SMTP_HOST=smtp.mailgun.org
+SMTP_PORT=587
+SMTP_USERNAME=your-mailgun-username
+SMTP_PASSWORD=your-mailgun-password
+ALERT_EMAIL_FROM=alerts@meskill.farm
+ALERT_EMAIL_TO=admin@meskill.farm
+```
+
+### Alerting Configuration
+
+Add to `config.yaml`:
+
+```yaml
+alerting:
+  discord:
+    webhook-url: "${DISCORD_WEBHOOK_URL}"
+    default-alert:
+      enabled: true
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+      description: "Health check failed"
+
+  email:
+    from: "${ALERT_EMAIL_FROM}"
+    host: "${SMTP_HOST}"
+    port: ${SMTP_PORT}
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    to: "${ALERT_EMAIL_TO}"
+    default-alert:
+      enabled: true
+      failure-threshold: 5
+      success-threshold: 2
+      send-on-resolved: true
+      description: "Health check failed"
+```
+
+Then add `alerts` to each endpoint:
+
+```yaml
+endpoints:
+  - name: "Mastodon"
+    group: "Social"
+    url: "https://ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+```
+
+### Network Configuration
+
+- Network: `servicenet` (accessible via Caddy)
+- No direct port exposure needed
+
+### Implementation Steps
+
+- [ ] Create directory: `hosts/monolith/files/docker/gatus/`
+- [ ] Create `config.yaml` with endpoint monitoring and alerting
+- [ ] Create `gatus.env.template` with Discord webhook and SMTP credentials
+- [ ] User fills in Discord webhook URL and SMTP credentials
+- [ ] Encrypt to `gatus.env.age`
+- [ ] Add container to `hosts/monolith/containers.nix`
+- [ ] Create data directory: `/data/docker/gatus/`
+- [ ] Update Caddyfile on monolith
+- [ ] Add DNS entry: `uptime.meskill.farm` CNAME → monolith.meskill.farm
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.gatus = {
+  image = "twinproduction/gatus:latest";
+  environmentFiles = [config.age.secrets.monolith_docker_env_gatus.path];
+  networks = ["servicenet"];
+  volumes = [
+    "/data/docker/gatus/config:/config:ro"
+    "/data/docker/gatus/data:/data"
+  ];
+};
+```
+
+### Future Enhancements
+
+- [ ] Add more detailed health checks (database connectivity, etc.)
+- [ ] Integrate with Prometheus for metrics
+- [ ] Add PagerDuty integration for critical services
+
+---
+
+## 3. Homebox
+
+**URL:** https://homebox.meskill.farm
+**Host:** pilaster
+**Docker Image:** `ghcr.io/sysadminsmedia/homebox:latest`
+**Purpose:** Home inventory and asset management
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Port | 7745 (internal) |
+| Database | SQLite (embedded) |
+| Storage | `/data` volume for database and uploads |
+| Memory | ~50MB idle |
+
+### Environment Variables
+
+```env
+TZ=America/Denver
+HBOX_LOG_LEVEL=info
+HBOX_LOG_FORMAT=text
+HBOX_WEB_MAX_UPLOAD_SIZE=10
+HBOX_OPTIONS_ALLOW_REGISTRATION=false
+HBOX_OPTIONS_ALLOW_ANALYTICS=false
+```
+
+### Network Configuration
+
+- Network: `servicenet` (accessible via Caddy)
+- No direct port exposure needed
+
+### Implementation Steps
+
+- [ ] Create `homebox.env.template`
+- [ ] Encrypt to `homebox.env.age`
+- [ ] Add container to `hosts/pilaster/containers.nix`
+- [ ] Create data directory: `/data/docker/homebox/`
+- [ ] Update Caddyfile on pilaster
+- [ ] Add DNS entry: `homebox.meskill.farm` CNAME → pilaster.meskill.farm
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.homebox = {
+  image = "ghcr.io/sysadminsmedia/homebox:latest";
+  environmentFiles = [config.age.secrets.pilaster_docker_env_homebox.path];
+  networks = ["servicenet"];
+  volumes = [
+    "/data/docker/homebox/data:/data"
+  ];
+};
+```
+
+---
+
+## 4. Stalwart Mail Server
+
+**URL:** https://mail.meskill.network (admin/webmail)
+**Host:** monolith
+**Docker Image:** `stalwartlabs/stalwart:latest`
+**Purpose:** Self-hosted email server with Cloudflare Email Routing + Mailgun relay
+
+### Architecture Overview
+
+Since port 25 is blocked and there's no static IP, we'll use a hybrid approach:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        INBOUND EMAIL FLOW                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Internet → MX (Cloudflare) → Email Routing → Stalwart (via tunnel) │
+│                                                                     │
+│  OR                                                                 │
+│                                                                     │
+│  Internet → MX (Mailgun) → Mailgun Inbound → Stalwart webhook       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                       OUTBOUND EMAIL FLOW                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Stalwart → Mailgun SMTP Relay → Internet                           │
+│  (Mailgun handles SPF/DKIM/reputation)                              │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         CLIENT ACCESS                               │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Mail Client → Cloudflare Tunnel → Stalwart IMAP/SMTP               │
+│  (TLS termination at Cloudflare, re-encrypted to origin)            │
+│                                                                     │
+│  OR (Local/Tailscale access)                                        │
+│                                                                     │
+│  Mail Client → Caddy → Stalwart IMAP/SMTP                           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Ports | Internal only (993, 465, 443) - no public exposure |
+| Database | RocksDB (embedded) or PostgreSQL |
+| Storage | `/opt/stalwart-mail` for all data |
+| Memory | ~200-500MB |
+| External | Mailgun account, Cloudflare Email Routing |
+
+### Cloudflare Tunnel Configuration
+
+Create a tunnel for mail services with multiple services:
+
+| Public Hostname | Service | Protocol |
+|-----------------|---------|----------|
+| mail.meskill.network | stalwart:443 | HTTPS (webmail/admin) |
+| imap.meskill.network | stalwart:993 | TCP (IMAPS) |
+| smtp.meskill.network | stalwart:465 | TCP (SMTPS submission) |
+
+**Note:** Cloudflare Tunnels support arbitrary TCP, not just HTTP. Configure in `cloudflared.nix`:
+
+```nix
+services.cloudflared.tunnels."<tunnel-id>".ingress = {
+  "mail.meskill.network" = "https://stalwart:443";
+  # TCP services require Cloudflare Spectrum or WARP client
+  # For IMAP/SMTP, users will need Cloudflare WARP or Tailscale
+};
+```
+
+### Alternative: Tailscale for Mail Clients
+
+For simpler client access, use Tailscale:
+- Users connect via Tailscale VPN
+- Access Stalwart directly at internal IP
+- No Cloudflare tunnel needed for IMAP/SMTP
+- Only expose webmail via tunnel
+
+### Mailgun Configuration
+
+**Outbound Relay:**
+1. Add `meskill.network` domain to Mailgun
+2. Configure DNS verification records
+3. Get SMTP credentials for relay
+
+**Inbound Routing (Option A - Mailgun Routes):**
+1. Set MX records to Mailgun
+2. Create inbound route to forward to Stalwart webhook
+3. Stalwart receives via HTTP API
+
+**Inbound Routing (Option B - Cloudflare Email Routing):**
+1. Enable Email Routing in Cloudflare dashboard
+2. Create routing rules to forward to Stalwart
+3. Requires Stalwart to accept forwarded mail
+
+### Environment Variables
+
+```env
+TZ=America/Denver
+
+# Stalwart basics
+STALWART_HOSTNAME=mail.meskill.network
+STALWART_DOMAINS=meskill.network
+
+# Mailgun SMTP relay (outbound)
+MAILGUN_SMTP_HOST=smtp.mailgun.org
+MAILGUN_SMTP_PORT=587
+MAILGUN_SMTP_USER=postmaster@meskill.network
+MAILGUN_SMTP_PASSWORD=your-mailgun-smtp-password
+
+# Admin password (set on first run or here)
+# STALWART_ADMIN_PASSWORD=your-secure-password
+```
+
+### Network Configuration
+
+- Network: `servicenet` (internal access via Caddy/tunnel)
+- No direct port exposure to internet
+- Tailscale recommended for IMAP/SMTP client access
+
+### Implementation Steps
+
+**Phase 1: Mailgun Setup**
+- [ ] Add meskill.network domain to Mailgun
+- [ ] Configure Mailgun DNS verification (SPF, DKIM via Mailgun)
+- [ ] Get SMTP relay credentials
+- [ ] Test sending via Mailgun API/SMTP
+
+**Phase 2: Stalwart Container**
+- [ ] Create data directory: `/data/docker/stalwart/`
+- [ ] Create `stalwart.env.template`
+- [ ] User fills in Mailgun credentials
+- [ ] Encrypt to `stalwart.env.age`
+- [ ] Add container to `hosts/monolith/containers.nix`
+- [ ] Configure Stalwart to use Mailgun as relay transport
+
+**Phase 3: Cloudflare Tunnel (Webmail)**
+- [ ] Create tunnel for `mail.meskill.network`
+- [ ] Add DNS CNAME (proxied) → tunnel
+- [ ] Test webmail access
+
+**Phase 4: Client Access**
+- [ ] Document Tailscale setup for IMAP/SMTP
+- [ ] OR: Set up Cloudflare WARP for TCP tunnel access
+- [ ] Test mail client connectivity
+
+**Phase 5: Inbound Mail**
+- [ ] Choose: Mailgun Routes OR Cloudflare Email Routing
+- [ ] Configure MX records accordingly
+- [ ] Set up forwarding to Stalwart
+- [ ] Test receiving external mail
+
+**Phase 6: DNS (via Mailgun)**
+- [ ] SPF: Mailgun provides this
+- [ ] DKIM: Mailgun provides this
+- [ ] DMARC: `v=DMARC1; p=quarantine; rua=mailto:dmarc@meskill.network`
+- [ ] MX: Point to Mailgun (for inbound routing)
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.stalwart = {
+  image = "stalwartlabs/stalwart:latest";
+  environmentFiles = [config.age.secrets.monolith_docker_env_stalwart.path];
+  networks = ["servicenet"];
+  volumes = [
+    "/data/docker/stalwart:/opt/stalwart-mail"
+  ];
+  # No ports exposed - access via Caddy/tunnel/Tailscale
+};
+```
+
+### Stalwart Relay Configuration
+
+After container starts, configure Stalwart to use Mailgun as relay. In Stalwart admin or config:
+
+```toml
+[queue.outbound]
+transport = "relay"
+
+[transport.relay]
+host = "smtp.mailgun.org"
+port = 587
+auth.username = "postmaster@meskill.network"
+auth.password = "${MAILGUN_SMTP_PASSWORD}"
+tls.enable = true
+tls.require = true
+```
+
+### Complexity Notes
+
+This is the most complex service in the plan. Consider:
+
+1. **Start with outbound only** - Get sending working via Mailgun first
+2. **Add webmail** - Test admin interface and webmail via tunnel
+3. **Add IMAP** - Client access via Tailscale
+4. **Add inbound last** - Most complex, requires MX changes
+
+### Recommended Phased Rollout
+
+| Phase | Capability | Complexity |
+|-------|------------|------------|
+| 1 | Outbound via Mailgun relay | Low |
+| 2 | Webmail via Cloudflare tunnel | Medium |
+| 3 | IMAP/SMTP via Tailscale | Medium |
+| 4 | Inbound via Mailgun routes | High |
+
+---
+
+## 5. Rallly
+
+**URL:** https://poll.meskill.family
+**Host:** pilaster
+**Docker Image:** `lukevella/rallly:3`
+**Purpose:** Scheduling polls and event coordination
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Port | 3000 (internal) |
+| Database | PostgreSQL (required) |
+| Storage | Stateless (uses database) |
+| Memory | ~100-200MB |
+
+### Database Setup
+
+Rallly requires PostgreSQL. Use the existing PostgreSQL 18 on pilaster.
+
+Create database:
+```sql
+CREATE DATABASE rallly;
+CREATE USER rallly WITH PASSWORD 'secure_password_here';
+GRANT ALL PRIVILEGES ON DATABASE rallly TO rallly;
+```
+
+### Environment Variables
+
+```env
+# Required
+SECRET_PASSWORD=<generate with: openssl rand -base64 32>
+DATABASE_URL=postgres://rallly:PASSWORD@postgres:5432/rallly
+NEXT_PUBLIC_BASE_URL=https://poll.meskill.family
+
+# Optional - Email (for notifications)
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=true
+SMTP_USER=
+SMTP_PWD=
+SUPPORT_EMAIL=
+
+# Access control (public registration enabled)
+AUTH_REQUIRED=false
+
+# Timezone
+TZ=America/Denver
+```
+
+### Network Configuration
+
+- Networks: `servicenet` + `datanet` (needs database access)
+- No direct port exposure needed
+
+### New Domain Setup: meskill.family
+
+This is a NEW domain that needs to be configured:
+
+- [ ] Verify domain ownership in Cloudflare
+- [ ] Add domain to cfcli configuration
+- [ ] Create initial DNS records
+
+### Implementation Steps
+
+- [ ] Set up meskill.family domain in Cloudflare
+- [ ] Create PostgreSQL database and user
+- [ ] Create `rallly.env.template`
+- [ ] Encrypt to `rallly.env.age`
+- [ ] Add container to `hosts/pilaster/containers.nix`
+- [ ] Update Caddyfile on pilaster
+- [ ] Add DNS entry: `poll.meskill.family` CNAME → pilaster.meskill.farm
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.rallly = {
+  image = "lukevella/rallly:3";
+  environmentFiles = [config.age.secrets.pilaster_docker_env_rallly.path];
+  networks = ["servicenet" "datanet"];
+  dependsOn = ["postgres"];
+};
+```
+
+---
+
+## 6. Filestash
+
+**URL:** https://files.meskill.farm
+**Host:** pilaster
+**Docker Image:** `machines/filestash:latest`
+**Purpose:** Web-based file manager with multi-backend support (SFTP, S3, WebDAV, FTP, etc.)
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Port | 8334 (internal) |
+| Database | None (embedded state) |
+| Storage | `/app/data/state/` for configuration and state |
+| Memory | ~128MB minimum |
+
+### Features
+
+- **Multi-backend support:** FTP, SFTP, WebDAV, Git, S3, Minio, Dropbox, Google Drive
+- **Authentication:** LDAP, SAML, OpenID, htpasswd
+- **File operations:** Browse, upload, download, rename, delete
+- **Optional:** Collabora/OnlyOffice integration for document editing (WOPI)
+
+### Environment Variables
+
+```env
+# Required
+TZ=America/Phoenix
+
+# Optional - set during initial web setup
+# APPLICATION_URL=https://files.meskill.farm
+```
+
+**Note:** Most configuration is done through the web admin interface at first launch. The admin password is set during initial setup.
+
+### Network Configuration
+
+- Network: `servicenet` (accessible via Caddy)
+- No direct port exposure needed
+
+### Implementation Steps
+
+- [ ] Add container to `hosts/pilaster/containers.nix`
+- [ ] Create data directory on pilaster: `/data/docker/filestash/`
+- [ ] Update Caddyfile on pilaster
+- [ ] Add DNS entry: `files.meskill.farm` CNAME → pilaster.meskill.farm
+- [ ] Deploy and complete initial setup via web UI
+- [ ] Configure storage backends as needed
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.filestash = {
+  # IMAGECHECK: disabled - no semver tags available
+  image = "machines/filestash:latest";
+  environment = {
+    TZ = "America/Phoenix";
+  };
+  networks = ["servicenet"];
+  volumes = [
+    "/data/docker/filestash/state:/app/data/state"
+  ];
+};
+```
+
+### Optional: Collabora Integration
+
+For document editing capabilities, add Collabora Code as a companion service:
+
+```nix
+virtualisation.oci-containers.containers.filestash-collabora = {
+  image = "collabora/code:24.04.10.2.1";
+  environment = {
+    extra_params = "--o:ssl.enable=false";
+  };
+  networks = ["servicenet"];
+};
+```
+
+Then configure Filestash to use `http://filestash-collabora:9980` as the WOPI server.
+
+### Post-Installation Configuration
+
+1. Access `https://files.meskill.farm` after deployment
+2. Set admin password during initial setup
+3. Configure storage backends:
+   - **Local files:** Mount additional volumes if needed
+   - **SFTP:** Connect to other hosts (e.g., terranas)
+   - **S3:** Connect to MinIO or AWS S3
+   - **WebDAV:** Connect to Nextcloud or other WebDAV servers
+4. Configure authentication if needed (LDAP via Authentik)
+
+---
+
+## Implementation Order
+
+### Phase 1: Quick Wins (Low complexity, high value)
+1. **LinkStack** - Simple setup, extends ruinous.social
+2. **Homebox** - Simple setup, useful for home inventory
+3. **Filestash** - Simple setup, web-based file manager
+
+### Phase 2: Infrastructure (Medium complexity)
+4. **Gatus** - Monitoring is important, medium config needed
+5. **Rallly** - Requires new domain setup + database
+
+### Phase 3: Complex Services (High complexity)
+6. **Stalwart** - Email is complex, requires careful DNS setup
+
+---
+
+## Secrets Summary
+
+### pilaster secrets to create:
+- `pilaster_docker_env_linkstack`
+- `pilaster_docker_env_homebox`
+- `pilaster_docker_env_rallly`
+
+### monolith secrets to create:
+- `monolith_docker_env_gatus`
+- `monolith_docker_env_stalwart`
+
+---
+
+## DNS Summary
+
+### meskill.farm (existing domain)
+| Record | Type | Target |
+|--------|------|--------|
+| uptime | CNAME | monolith.meskill.farm |
+| homebox | CNAME | pilaster.meskill.farm |
+| files | CNAME | pilaster.meskill.farm |
+
+### ruinous.social (existing domain, tunneled)
+| Record | Type | Target |
+|--------|------|--------|
+| links-int | CNAME | pilaster.meskill.farm |
+| links | CNAME (proxied) | <tunnel-uuid>.cfargotunnel.com |
+
+### meskill.network (existing domain, email via Mailgun)
+| Record | Type | Target |
+|--------|------|--------|
+| mail | CNAME (proxied) | <tunnel-uuid>.cfargotunnel.com (webmail) |
+| mail-int | CNAME | monolith.meskill.farm |
+| MX @ | MX | mxa.mailgun.org (priority 10) |
+| MX @ | MX | mxb.mailgun.org (priority 10) |
+| @ | TXT | v=spf1 include:mailgun.org ~all |
+| smtp._domainkey | TXT | (Mailgun provides DKIM key) |
+| _dmarc | TXT | v=DMARC1; p=quarantine; rua=mailto:dmarc@meskill.network |
+
+### meskill.family (NEW domain)
+| Record | Type | Target |
+|--------|------|--------|
+| poll | CNAME | pilaster.meskill.farm |
+
+---
+
+## Cloudflare Tunnel Summary
+
+### New tunnels needed on pilaster:
+- **links-ruinous** tunnel for `links.ruinous.social`
+
+### New tunnels needed on monolith:
+- **mail-meskill** tunnel for `mail.meskill.network` (webmail/admin)
+
+---
+
+## Checklist for Each Service
+
+Use this checklist when implementing each service:
+
+```markdown
+### Service: <name>
+
+#### Pre-implementation
+- [ ] User confirmed host selection
+- [ ] User confirmed domain/URL
+- [ ] Required secrets gathered
+
+#### Implementation
+- [ ] agenix-helper unlocked
+- [ ] Environment template created
+- [ ] Environment file encrypted
+- [ ] Container added to containers.nix
+- [ ] Data directories created on host
+- [ ] Secret definition added to containers.nix
+- [ ] agenix rekey completed
+- [ ] Caddyfile updated (if needed)
+- [ ] Cloudflare tunnel created (if needed)
+- [ ] DNS entries created
+- [ ] agenix-helper locked
+
+#### Verification
+- [ ] nixos-rebuild dry-build passes
+- [ ] Service accessible at URL
+- [ ] Documentation updated
+```
+
+---
+
+## References
+
+- [LinkStack Documentation](https://docs.linkstack.org/docker/setup/)
+- [LinkStack Docker GitHub](https://github.com/LinkStackOrg/linkstack-docker)
+- [Gatus GitHub](https://github.com/TwiN/gatus)
+- [Homebox Documentation](https://homebox.software/en/installation)
+- [Homebox GitHub](https://github.com/hay-kot/homebox)
+- [Stalwart Documentation](https://stalw.art/docs/install/platform/docker/)
+- [Stalwart GitHub](https://github.com/stalwartlabs/stalwart)
+- [Rallly Self-Hosted](https://github.com/lukevella/rallly-selfhosted)
+- [Rallly Documentation](https://support.rallly.co/self-hosting/installation/docker)
+- [Filestash Documentation](https://www.filestash.app/docs/install-and-upgrade/)
+- [Filestash Docker Hub](https://hub.docker.com/r/machines/filestash/)
+
+---
+
+## Session Notes
+
+Use this section to track progress across sessions:
+
+### Session 1 (2025-12-26)
+- Created initial deployment plan
+- Researched all service requirements
+- Determined host placement
+- Documented DNS and secret requirements
+- **User confirmed:**
+  - meskill.family domain is already in Cloudflare
+  - No port 25 access, no static IP → use Cloudflare tunnel + Mailgun relay
+  - Gatus alerts via Discord webhook + email
+  - Rallly allows public registration
+- Updated Stalwart architecture to use Mailgun relay + Cloudflare tunnel
+- Updated Gatus with Discord/email alerting configuration
+
+### Session 2 (2025-12-26)
+- **User confirmed implementation decisions:**
+  - Keep Gatus endpoints as planned (~20 services)
+  - Stalwart: Include inbound email from the start (full Mailgun setup)
+  - Rallly: Use existing PostgreSQL on pilaster
+  - **Start with Gatus implementation**
+- **Gatus implementation completed:**
+  - Created `hosts/monolith/files/gatus/config.yaml` with 20 endpoints
+  - Created and encrypted `hosts/monolith/files/docker/env/gatus.env.age`
+  - Added container to `hosts/monolith/containers.nix`
+  - Updated monolith Caddyfile
+  - Created DNS entry: `uptime.meskill.farm` → `monolith.meskill.farm`
+- **Documentation updates:**
+  - Updated `CLAUDE.md` with Step 10 for Gatus monitoring in "Adding Docker Containers"
+  - Updated `.claude/agents/containnix.md` with Gatus step and remote deployment options
+
+### Next Steps
+- [x] User reviews complete plan
+- [x] Gather required credentials (Gatus)
+- [x] Implement Gatus on monolith
+- [x] Deploy Gatus to monolith
+- [x] Implement LinkStack on pilaster
+- [ ] Implement Homebox on pilaster
+- [ ] Implement Filestash on pilaster
+- [ ] Implement Rallly on pilaster
+- [ ] Implement Stalwart on monolith
