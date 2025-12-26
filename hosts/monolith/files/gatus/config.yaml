@@ -551,6 +551,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "LinkStack (pilaster)"
+    group: "Social"
+    url: "https://links.ruinous.social"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # AI SERVICES
   # ===========================

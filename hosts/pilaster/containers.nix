@@ -708,6 +708,23 @@
           "/data/docker/karakeep/meili_data:/meili_data"
         ];
       };
+      linkstack = {
+        # IMAGECHECK: disabled - no semver tags available
+        image = "docker.io/linkstackorg/linkstack:latest";
+        environment = {
+          TZ = "America/Phoenix";
+          SERVER_ADMIN = "admin@ruinous.social";
+          HTTP_SERVER_NAME = "links.ruinous.social";
+          HTTPS_SERVER_NAME = "links.ruinous.social";
+          LOG_LEVEL = "info";
+          PHP_MEMORY_LIMIT = "256M";
+          UPLOAD_MAX_FILESIZE = "8M";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/linkstack/data:/htdocs"
+        ];
+      };
       synapse = {
         image = "ghcr.io/element-hq/synapse:v1.144.0";
         environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
