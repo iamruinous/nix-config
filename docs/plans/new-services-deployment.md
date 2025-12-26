@@ -410,12 +410,12 @@ HBOX_OPTIONS_ALLOW_ANALYTICS=false
 
 ### Implementation Steps
 
-- [ ] Create `homebox.env.template`
-- [ ] Encrypt to `homebox.env.age`
-- [ ] Add container to `hosts/pilaster/containers.nix`
-- [ ] Create data directory: `/data/docker/homebox/`
-- [ ] Update Caddyfile on pilaster
-- [ ] Add DNS entry: `homebox.meskill.farm` CNAME → pilaster.meskill.farm
+- [x] ~~Create `homebox.env.template`~~ (not needed - used inline environment)
+- [x] ~~Encrypt to `homebox.env.age`~~ (not needed - no secrets)
+- [x] Add container to `hosts/pilaster/containers.nix`
+- [x] Create data directory: `/data/docker/homebox/`
+- [x] Update Caddyfile on pilaster
+- [x] Add DNS entry: `homebox.meskill.farm` CNAME → pilaster.meskill.farm
 
 ### Container Definition
 
@@ -988,7 +988,7 @@ Use this section to track progress across sessions:
 - [x] Implement Gatus on monolith
 - [x] Deploy Gatus to monolith
 - [x] Implement LinkStack on pilaster
-- [ ] Implement Homebox on pilaster
+- [x] Implement Homebox on pilaster
 - [ ] Implement Filestash on pilaster
 - [ ] Implement Rallly on pilaster
 - [ ] Implement Stalwart on monolith
