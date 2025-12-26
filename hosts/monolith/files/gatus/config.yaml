@@ -591,7 +591,7 @@ endpoints:
 
   - name: "Plex (terranas)"
     group: "Media"
-    url: "https://plex.meskill.farm/web/index.html"
+    url: "https://plex.meskill.farm:32400/web/index.html"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -601,7 +601,7 @@ endpoints:
 
   - name: "Jellyfin (terranas)"
     group: "Media"
-    url: "https://jellyfin.meskill.farm"
+    url: "https://jellyfin.meskill.farm:8096"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -611,7 +611,27 @@ endpoints:
 
   - name: "Audiobookshelf (terranas)"
     group: "Media"
-    url: "https://audiobooks.meskill.farm"
+    url: "https://audiobooks.meskill.farm:13378"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "RustFS (terranas)"
+    group: "Media"
+    url: "https://s3.meskill.farm:30292"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "RustFS Console (terranas)"
+    group: "Media"
+    url: "https://s3.meskill.farm:30292"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
