@@ -801,6 +801,34 @@
           "/data/docker/azimutt/data:/app/data"
         ];
       };
+      # Web archiving platform
+      archivebox = {
+        image = "archivebox/archivebox:0.7.3";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_archivebox.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/archivebox/data:/data"
+        ];
+        dependsOn = ["archivebox-sonic"];
+      };
+      archivebox-sonic = {
+        image = "valeriansaliou/sonic:v1.4.0";
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/archivebox/sonic:/var/lib/sonic/store"
+          "${./files/archivebox/sonic.cfg}:/etc/sonic.cfg:ro"
+        ];
+      };
+      archivebox-scheduler = {
+        image = "archivebox/archivebox:0.7.3";
+        cmd = ["schedule" "--foreground" "--update" "--every=day"];
+        environmentFiles = [config.age.secrets.pilaster_docker_env_archivebox.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/archivebox/data:/data"
+        ];
+        dependsOn = ["archivebox" "archivebox-sonic"];
+      };
     };
   };
 
@@ -900,6 +928,10 @@
   };
   age.secrets.pilaster_docker_env_azimutt = {
     rekeyFile = ./files/docker/env/azimutt.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_archivebox = {
+    rekeyFile = ./files/docker/env/archivebox.env.age;
     mode = "600";
   };
 }

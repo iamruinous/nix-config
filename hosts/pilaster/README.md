@@ -53,6 +53,7 @@ Lightweight NixOS server for Docker containers and network services.
 - **Twenty**: Open-source CRM (+ worker)
 
 **Development & Tools:**
+- **ArchiveBox**: Self-hosted web archiving (+ Sonic search, scheduler) (archive.meskill.farm)
 - **Azimutt**: Database schema exploration and visualization
 - **WikiJS**: Documentation wiki
 - **MCP Gateway**: Model Context Protocol gateway
