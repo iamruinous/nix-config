@@ -796,10 +796,20 @@
           "datanet"
           "servicenet"
         ];
-        dependsOn = ["postgres"];
+        dependsOn = ["postgres" "azimutt-gateway"];
         volumes = [
           "/data/docker/azimutt/data:/app/data"
         ];
+      };
+      azimutt-gateway = {
+        image = "docker.io/node:18-slim";
+        cmd = ["sh" "-c" "npm install -g azimutt && azimutt gateway"];
+        environment = {
+          API_HOST = "0.0.0.0";
+          API_PORT = "3000";
+        };
+        environmentFiles = [config.age.secrets.pilaster_docker_env_azimutt_gateway.path];
+        networks = ["servicenet"];
       };
       # Web archiving platform
       archivebox = {
@@ -928,6 +938,10 @@
   };
   age.secrets.pilaster_docker_env_azimutt = {
     rekeyFile = ./files/docker/env/azimutt.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_azimutt_gateway = {
+    rekeyFile = ./files/docker/env/azimutt-gateway.env.age;
     mode = "600";
   };
   age.secrets.pilaster_docker_env_archivebox = {
