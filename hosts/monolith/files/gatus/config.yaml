@@ -591,6 +591,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Homarr (pilaster)"
+    group: "Productivity"
+    url: "https://homarr.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # ZENITH SERVICES
   # ===========================

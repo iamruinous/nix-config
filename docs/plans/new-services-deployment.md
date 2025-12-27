@@ -23,10 +23,11 @@ This document outlines the deployment plan for five new services across the nix-
 | Stalwart | mail.meskill.network | monolith | Low | High |
 | Rallly | poll.meskill.family | pilaster | Medium | Medium |
 | Filestash | files.meskill.farm | pilaster | Medium | Low |
+| Homarr | homarr.meskill.farm | pilaster | Medium | Low |
 
 ## Host Selection Rationale
 
-### pilaster (4 services)
+### pilaster (5 services)
 - Already has Cloudflare tunnels configured for ruinous.social domain
 - Good capacity with current 35+ containers on i9-13900H with 96GB RAM
 - Ideal for web-facing services that need external access
@@ -829,19 +830,103 @@ Then configure Filestash to use `http://filestash-collabora:9980` as the WOPI se
 
 ---
 
+## 7. Homarr
+
+**URL:** https://homarr.meskill.farm
+**Host:** pilaster
+**Docker Image:** `ghcr.io/homarr-labs/homarr:latest`
+**Purpose:** Modern dashboard for managing and monitoring home server services
+
+### Requirements
+
+| Resource | Value |
+|----------|-------|
+| Port | 7575 (internal) |
+| Database | SQLite (embedded) |
+| Storage | `/appdata` for configuration and icons |
+| Memory | ~100-200MB |
+
+### Features
+
+- **Service dashboard:** Organize and access all your services in one place
+- **Widget support:** Weather, calendar, RSS feeds, system stats, and more
+- **Service integration:** Native integrations with *arr apps, Plex, Jellyfin, etc.
+- **Docker integration:** View and manage Docker containers
+- **Customizable:** Themes, layouts, and custom CSS support
+- **Authentication:** Built-in auth or OIDC/LDAP integration
+
+### Environment Variables
+
+```env
+# Required
+TZ=America/Phoenix
+
+# Optional - defaults work well
+# SECRET_ENCRYPTION_KEY=<generate with: openssl rand -hex 32>
+```
+
+**Note:** Most configuration is done through the web UI. The encryption key is auto-generated if not provided.
+
+### Network Configuration
+
+- Network: `servicenet` (accessible via Caddy)
+- No direct port exposure needed
+
+### Implementation Steps
+
+- [ ] Add container to `hosts/pilaster/containers.nix`
+- [ ] Create data directory on pilaster: `/data/docker/homarr/`
+- [ ] Update Caddyfile on pilaster
+- [ ] Add DNS entry: `homarr.meskill.farm` CNAME → pilaster.meskill.farm
+- [ ] Deploy and configure dashboard via web UI
+- [ ] Add service widgets and integrations
+- [ ] Add to Gatus monitoring
+
+### Container Definition
+
+```nix
+virtualisation.oci-containers.containers.homarr = {
+  image = "ghcr.io/homarr-labs/homarr:latest";
+  environment = {
+    TZ = "America/Phoenix";
+  };
+  networks = ["servicenet"];
+  volumes = [
+    "/data/docker/homarr/appdata:/appdata"
+    "/var/run/docker.sock:/var/run/docker.sock:ro"  # Optional: for Docker integration
+  ];
+};
+```
+
+### Post-Installation Configuration
+
+1. Access `https://homarr.meskill.farm` after deployment
+2. Create admin account during initial setup
+3. Add services to dashboard:
+   - Internal services (via internal URLs)
+   - External services (via public URLs)
+4. Configure widgets:
+   - Weather for local area
+   - Calendar integration
+   - System stats
+5. Optional: Configure OIDC via Authentik for SSO
+
+---
+
 ## Implementation Order
 
 ### Phase 1: Quick Wins (Low complexity, high value)
 1. **LinkStack** - Simple setup, extends ruinous.social
 2. **Homebox** - Simple setup, useful for home inventory
 3. **Filestash** - Simple setup, web-based file manager
+4. **Homarr** - Simple setup, service dashboard
 
 ### Phase 2: Infrastructure (Medium complexity)
-4. **Gatus** - Monitoring is important, medium config needed
-5. **Rallly** - Requires new domain setup + database
+5. **Gatus** - Monitoring is important, medium config needed
+6. **Rallly** - Requires new domain setup + database
 
 ### Phase 3: Complex Services (High complexity)
-6. **Stalwart** - Email is complex, requires careful DNS setup
+7. **Stalwart** - Email is complex, requires careful DNS setup
 
 ---
 
@@ -866,6 +951,7 @@ Then configure Filestash to use `http://filestash-collabora:9980` as the WOPI se
 | uptime | CNAME | monolith.meskill.farm |
 | homebox | CNAME | pilaster.meskill.farm |
 | files | CNAME | pilaster.meskill.farm |
+| homarr | CNAME | pilaster.meskill.farm |
 
 ### ruinous.social (existing domain, tunneled)
 | Record | Type | Target |
@@ -991,5 +1077,6 @@ Use this section to track progress across sessions:
 - [x] Implement LinkStack on pilaster
 - [x] Implement Homebox on pilaster
 - [x] Implement Rallly on pilaster
-- [ ] Implement Filestash on pilaster
+- [x] Implement Filestash on pilaster
+- [ ] Implement Homarr on pilaster
 - [ ] Implement Stalwart on monolith

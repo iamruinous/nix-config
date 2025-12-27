@@ -726,8 +726,7 @@
         ];
       };
       homebox = {
-        # IMAGECHECK: disabled - no semver tags available
-        image = "ghcr.io/sysadminsmedia/homebox:latest";
+        image = "ghcr.io/sysadminsmedia/homebox:0.22.3";
         environment = {
           TZ = "America/Phoenix";
           HBOX_LOG_LEVEL = "info";
@@ -756,6 +755,18 @@
         networks = ["servicenet"];
         volumes = [
           "/data/docker/filestash/state:/app/data/state"
+        ];
+      };
+      homarr = {
+        # IMAGECHECK: disabled - no semver tags available
+        image = "ghcr.io/homarr-labs/homarr:latest";
+        environment = {
+          TZ = "America/Phoenix";
+          SECRET_ENCRYPTION_KEY = "d1ae027ac0960fdfb7f0bed426c39cb6279f99975322c650f45232b90d517f7d";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/homarr/appdata:/appdata"
         ];
       };
       synapse = {
