@@ -251,9 +251,6 @@
       };
       supabase-kong = {
         image = "kong:2.8.1";
-        environmentFiles = [
-          config.age.secrets.pilaster_docker_env_supabase_common.path
-        ];
         environment = {
           KONG_DATABASE = "off";
           KONG_DECLARATIVE_CONFIG = "/var/lib/kong/kong.yml";
@@ -261,15 +258,13 @@
           KONG_PLUGINS = "request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction";
           KONG_NGINX_PROXY_PROXY_BUFFER_SIZE = "160k";
           KONG_NGINX_PROXY_PROXY_BUFFERS = "64 160k";
-          SUPABASE_ANON_KEY = "\${ANON_KEY}";
-          SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
         };
         networks = [
           "servicenet"
           "proxynet"
         ];
         volumes = [
-          "${./files/supabase/api/kong.yml}:/var/lib/kong/kong.yml:ro"
+          "${config.age.secrets.pilaster_supabase_kong_yml.path}:/var/lib/kong/kong.yml:ro"
         ];
         dependsOn = ["supabase-analytics"];
       };
@@ -934,6 +929,9 @@
   systemd.services.docker-mcp-gateway = {
     restartTriggers = [config.age.secrets.pilaster_docker_env_mcp_gateway.rekeyFile];
   };
+  systemd.services.docker-supabase-kong = {
+    restartTriggers = [config.age.secrets.pilaster_supabase_kong_yml.rekeyFile];
+  };
 
   age.secrets.pilaster_caddy_caddyfile = {
     rekeyFile = ./files/caddy/Caddyfile.age;
@@ -970,6 +968,10 @@
   age.secrets.pilaster_docker_env_supabase_pooler = {
     rekeyFile = ./files/docker/env/supabase-pooler.env.age;
     mode = "600";
+  };
+  age.secrets.pilaster_supabase_kong_yml = {
+    rekeyFile = ./files/supabase/api/kong.yml.age;
+    mode = "644";
   };
   age.secrets.pilaster_docker_env_mcp_gateway = {
     rekeyFile = ./files/docker/env/mcp-gateway.env.age;
