@@ -24,13 +24,15 @@ This document outlines the deployment plan for five new services across the nix-
 | Rallly | poll.meskill.family | pilaster | Medium | Medium |
 | Filestash | files.meskill.farm | pilaster | Medium | Low |
 | Homarr | homarr.meskill.farm | pilaster | Medium | Low |
+| Supabase | supabase.meskill.farm | pilaster | High | Very High |
 
 ## Host Selection Rationale
 
-### pilaster (5 services)
+### pilaster (6 services, including Supabase with 13 containers)
 - Already has Cloudflare tunnels configured for ruinous.social domain
 - Good capacity with current 35+ containers on i9-13900H with 96GB RAM
 - Ideal for web-facing services that need external access
+- Supabase adds 13 additional containers but pilaster has capacity
 
 ### monolith (2 services)
 - Already runs Prometheus + Grafana monitoring stack
@@ -913,6 +915,256 @@ virtualisation.oci-containers.containers.homarr = {
 
 ---
 
+## 8. Supabase
+
+**URL:** https://supabase.meskill.farm
+**Host:** pilaster
+**Purpose:** Self-hosted Backend-as-a-Service (PostgreSQL, Authentication, Storage, Realtime, Edge Functions)
+
+### Previous Attempt Status
+
+A previous deployment attempt was started and includes:
+- ✅ Encrypted secrets already created (4 env files)
+- ✅ Kong API gateway configuration
+- ✅ Vector log routing configuration
+- ✅ PostgreSQL configuration
+- ✅ Database initialization scripts
+- ⚠️ Container definitions exist but are commented out
+- ❌ Service hostnames in kong.yml need fixing (use full container names)
+- ❌ Service hostnames in vector.yml need verification
+
+### Architecture
+
+Supabase consists of 13 interconnected services:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        SUPABASE STACK                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Internet → Caddy (443) → supabase-kong (8000) → Services          │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ API GATEWAY (supabase-kong)                                   │  │
+│  │ Routes requests to appropriate services                       │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                              ↓                                      │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ CORE SERVICES                                                 │  │
+│  │ ├── supabase-auth (GoTrue) - Authentication                  │  │
+│  │ ├── supabase-rest (PostgREST) - REST API                     │  │
+│  │ ├── supabase-realtime - WebSocket subscriptions              │  │
+│  │ ├── supabase-storage - File storage                          │  │
+│  │ └── supabase-functions - Edge functions                      │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                              ↓                                      │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ INFRASTRUCTURE                                                │  │
+│  │ ├── supabase-db - Dedicated PostgreSQL 15.8                  │  │
+│  │ ├── supabase-pooler (Supavisor) - Connection pooling         │  │
+│  │ ├── supabase-meta - Database metadata API                    │  │
+│  │ ├── supabase-imgproxy - Image transformations                │  │
+│  │ ├── supabase-analytics (Logflare) - Logging                  │  │
+│  │ └── supabase-vector - Log routing                            │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                              ↓                                      │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ DASHBOARD                                                     │  │
+│  │ └── supabase-studio - Web admin interface                    │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Service Details
+
+| Service | Image | Port | Networks | Dependencies |
+|---------|-------|------|----------|--------------|
+| supabase-db | supabase/postgres:15.8.1.085 | 5432 | datanet, servicenet | - |
+| supabase-analytics | supabase/logflare:1.22.6 | 4000 | datanet, servicenet | supabase-db |
+| supabase-vector | timberio/vector:0.28.1-alpine | - | servicenet | - |
+| supabase-auth | supabase/gotrue:v2.182.1 | 9999 | datanet, servicenet | supabase-db, analytics |
+| supabase-rest | postgrest/postgrest:v13.0.7 | 3000 | datanet, servicenet | supabase-db, analytics |
+| supabase-meta | supabase/postgres-meta:v0.93.1 | 8080 | datanet, servicenet | supabase-db, analytics |
+| supabase-kong | kong:2.8.1 | 8000 | proxynet, servicenet | analytics |
+| supabase-studio | supabase/studio:2025.11.10 | 3000 | servicenet | supabase-db, analytics |
+| supabase-realtime | supabase/realtime:v2.63.0 | 4000 | datanet, servicenet | supabase-db, analytics |
+| supabase-storage | supabase/storage-api:v1.29.0 | 5000 | datanet, servicenet | supabase-db, rest, imgproxy |
+| supabase-imgproxy | darthsim/imgproxy:v3.8.0 | 5001 | servicenet | - |
+| supabase-functions | supabase/edge-runtime:v1.69.23 | 9000 | servicenet | - |
+| supabase-pooler | supabase/supavisor:2.7.4 | 5432/6543 | datanet, servicenet | supabase-db, analytics |
+
+### Existing Configuration Files
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `files/docker/env/supabase-common.env.age` | Shared secrets (JWT, API keys) | ✅ Exists |
+| `files/docker/env/supabase-db.env.age` | Database credentials | ✅ Exists |
+| `files/docker/env/supabase-analytics.env.age` | Logflare tokens | ✅ Exists |
+| `files/docker/env/supabase-pooler.env.age` | Pooler config | ✅ Exists |
+| `files/supabase/api/kong.yml` | API gateway routes | ⚠️ Needs hostname fix |
+| `files/supabase/logs/vector.yml` | Log routing | ⚠️ Needs hostname fix |
+| `files/supabase/postgres/postgresql.conf` | DB config | ✅ Exists |
+| `files/supabase/db/*.sql` | Init scripts | ✅ Exists |
+
+### Required Fixes Before Deployment
+
+#### Fix 1: kong.yml Service Hostnames
+
+The kong.yml uses short names like `auth:9999` but containers are named `supabase-auth`. Update all service references:
+
+| Current | Should Be |
+|---------|-----------|
+| `http://auth:9999` | `http://supabase-auth:9999` |
+| `http://rest:3000` | `http://supabase-rest:3000` |
+| `http://realtime-dev.supabase-realtime:4000` | `http://supabase-realtime:4000` |
+| `http://storage:5000` | `http://supabase-storage:5000` |
+| `http://functions:9000` | `http://supabase-functions:9000` |
+| `http://analytics:4000` | `http://supabase-analytics:4000` |
+| `http://meta:8080` | `http://supabase-meta:8080` |
+| `http://studio:3000` | `http://supabase-studio:3000` |
+| `http://kong:8000` | `http://supabase-kong:8000` |
+
+#### Fix 2: vector.yml Container Names
+
+Update container name references in router rules and ensure analytics URI uses correct hostname.
+
+#### Fix 3: Realtime DNS_NODES Environment
+
+The realtime container has a complex DNS_NODES setting. Simplify or verify it works with Docker DNS.
+
+### Phased Deployment Approach
+
+Given complexity, deploy in phases to isolate issues:
+
+#### Phase 1: Database Foundation
+1. Create data directories on pilaster:
+   - `/data/docker/supabase-db/pgdata`
+   - `/data/docker/supabase-db/custom`
+2. Enable `supabase-db` container (uncomment in containers.nix)
+3. Deploy and verify database is healthy
+4. Check: `docker logs supabase-db`, health check passes
+
+#### Phase 2: Logging Infrastructure
+5. Enable `supabase-analytics` (Logflare)
+6. Enable `supabase-vector` (log routing)
+7. Deploy and verify logs are flowing
+8. Check: `docker logs supabase-analytics`, API responding
+
+#### Phase 3: Core API Services
+9. Fix kong.yml hostnames
+10. Enable `supabase-auth`
+11. Enable `supabase-rest`
+12. Enable `supabase-meta`
+13. Enable `supabase-kong`
+14. Deploy and verify API gateway works
+15. Check: Kong health, auth endpoint responds
+
+#### Phase 4: Dashboard & Access
+16. Enable `supabase-studio`
+17. Update Caddyfile for `supabase.meskill.farm`
+18. Create DNS entry
+19. Deploy and verify Studio loads
+20. Check: Login with dashboard credentials works
+
+#### Phase 5: Additional Services
+21. Enable `supabase-realtime`
+22. Enable `supabase-storage` + `supabase-imgproxy`
+23. Enable `supabase-functions`
+24. Enable `supabase-pooler`
+25. Final verification of all services
+
+### Environment Variables Summary
+
+**supabase-common.env** (shared):
+```env
+JWT_SECRET=<64-char random string>
+ANON_KEY=<generated JWT token, role=anon>
+SERVICE_ROLE_KEY=<generated JWT token, role=service_role>
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=<strong password>
+SECRET_KEY_BASE=<32-char random>
+VAULT_ENC_KEY=<32-char random>
+SITE_URL=https://supabase.meskill.farm
+API_EXTERNAL_URL=https://supabase.meskill.farm
+```
+
+**supabase-db.env**:
+```env
+POSTGRES_PASSWORD=<database password>
+DATABASE_URL=postgresql://postgres:<password>@supabase-db:5432/postgres
+# Plus JWT secrets for PostgREST
+```
+
+### Network Configuration
+
+- `proxynet`: supabase-kong (external access via Caddy)
+- `servicenet`: All services (internal communication)
+- `datanet`: supabase-db, auth, rest, meta, storage, realtime, pooler, analytics
+
+### Volume Mounts
+
+```
+/data/docker/supabase-db/pgdata     → Postgres data
+/data/docker/supabase-db/custom     → Custom Postgres config
+/data/docker/supabase/storage       → Uploaded files
+/data/docker/supabase/functions     → Edge function code
+```
+
+### Implementation Steps
+
+- [ ] **Phase 1: Database**
+  - [ ] Create data directories on pilaster
+  - [ ] Uncomment supabase-db in containers.nix
+  - [ ] Deploy and verify database health
+
+- [ ] **Phase 2: Logging**
+  - [ ] Uncomment supabase-analytics
+  - [ ] Uncomment supabase-vector
+  - [ ] Deploy and verify logging
+
+- [ ] **Phase 3: Core API**
+  - [ ] Fix kong.yml hostnames
+  - [ ] Fix vector.yml hostnames
+  - [ ] Uncomment supabase-auth, rest, meta, kong
+  - [ ] Deploy and verify API
+
+- [ ] **Phase 4: Dashboard**
+  - [ ] Uncomment supabase-studio
+  - [ ] Update Caddyfile
+  - [ ] Create DNS entry: supabase.meskill.farm → pilaster.meskill.farm
+  - [ ] Deploy and verify Studio access
+
+- [ ] **Phase 5: Additional Services**
+  - [ ] Uncomment supabase-realtime
+  - [ ] Uncomment supabase-storage, imgproxy
+  - [ ] Uncomment supabase-functions
+  - [ ] Uncomment supabase-pooler
+  - [ ] Final verification
+
+- [ ] **Phase 6: Monitoring**
+  - [ ] Add to Gatus monitoring
+  - [ ] Deploy Gatus update
+
+### Troubleshooting Reference
+
+See `hosts/pilaster/SUPABASE_SETUP.md` for detailed troubleshooting including:
+- Container startup issues
+- Database connection errors
+- Kong 404 errors
+- Authentication issues
+- Storage upload failures
+
+### References
+
+- [Supabase Self-Hosting Guide](https://supabase.com/docs/guides/self-hosting)
+- [Supabase Docker Compose](https://github.com/supabase/supabase/tree/master/docker)
+- [Kong Configuration](https://docs.konghq.com/gateway/latest/)
+- [PostgREST Documentation](https://postgrest.org/)
+- [GoTrue Authentication](https://github.com/supabase/gotrue)
+
+---
+
 ## Implementation Order
 
 ### Phase 1: Quick Wins (Low complexity, high value)
@@ -927,6 +1179,7 @@ virtualisation.oci-containers.containers.homarr = {
 
 ### Phase 3: Complex Services (High complexity)
 7. **Stalwart** - Email is complex, requires careful DNS setup
+8. **Supabase** - Very complex, 13 containers, phased deployment required
 
 ---
 
@@ -936,6 +1189,10 @@ virtualisation.oci-containers.containers.homarr = {
 - `pilaster_docker_env_linkstack`
 - `pilaster_docker_env_homebox`
 - `pilaster_docker_env_rallly`
+- `pilaster_docker_env_supabase_common` (✅ exists)
+- `pilaster_docker_env_supabase_db` (✅ exists)
+- `pilaster_docker_env_supabase_analytics` (✅ exists)
+- `pilaster_docker_env_supabase_pooler` (✅ exists)
 
 ### monolith secrets to create:
 - `monolith_docker_env_gatus`
@@ -952,6 +1209,7 @@ virtualisation.oci-containers.containers.homarr = {
 | homebox | CNAME | pilaster.meskill.farm |
 | files | CNAME | pilaster.meskill.farm |
 | homarr | CNAME | pilaster.meskill.farm |
+| supabase | CNAME | pilaster.meskill.farm |
 
 ### ruinous.social (existing domain, tunneled)
 | Record | Type | Target |
@@ -1078,5 +1336,12 @@ Use this section to track progress across sessions:
 - [x] Implement Homebox on pilaster
 - [x] Implement Rallly on pilaster
 - [x] Implement Filestash on pilaster
-- [ ] Implement Homarr on pilaster
+- [x] Implement Homarr on pilaster
+- [ ] **Implement Supabase on pilaster** (phased deployment - see Section 8)
+  - [ ] Phase 1: Database (supabase-db)
+  - [ ] Phase 2: Logging (analytics, vector)
+  - [ ] Phase 3: Core API (auth, rest, meta, kong)
+  - [ ] Phase 4: Dashboard (studio, Caddy, DNS)
+  - [ ] Phase 5: Additional services (realtime, storage, functions, pooler)
+  - [ ] Phase 6: Gatus monitoring
 - [ ] Implement Stalwart on monolith

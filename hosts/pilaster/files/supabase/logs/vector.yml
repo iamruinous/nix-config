@@ -33,9 +33,9 @@ transforms:
       kong: '.appname == "supabase-kong"'
       auth: '.appname == "supabase-auth"'
       rest: '.appname == "supabase-rest"'
-      realtime: '.appname == "realtime-dev.supabase-realtime"'
+      realtime: '.appname == "supabase-realtime"'
       storage: '.appname == "supabase-storage"'
-      functions: '.appname == "supabase-edge-functions"'
+      functions: '.appname == "supabase-functions"'
       db: '.appname == "supabase-db"'
   kong_logs:
     type: remap
@@ -166,7 +166,7 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://analytics:4000/api/logs?source_name=gotrue.logs.prod'
+    uri: 'http://supabase-analytics:4000/api/logs?source_name=gotrue.logs.prod'
   logflare_realtime:
     type: 'http'
     inputs:
@@ -178,7 +178,7 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://analytics:4000/api/logs?source_name=realtime.logs.prod'
+    uri: 'http://supabase-analytics:4000/api/logs?source_name=realtime.logs.prod'
   logflare_rest:
     type: 'http'
     inputs:
@@ -190,7 +190,7 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://analytics:4000/api/logs?source_name=postgREST.logs.prod'
+    uri: 'http://supabase-analytics:4000/api/logs?source_name=postgREST.logs.prod'
   logflare_db:
     type: 'http'
     inputs:
@@ -202,7 +202,7 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://kong:8000/analytics/v1/api/logs?source_name=postgres.logs'
+    uri: 'http://supabase-kong:8000/analytics/v1/api/logs?source_name=postgres.logs'
   logflare_functions:
     type: 'http'
     inputs:
@@ -214,7 +214,7 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://analytics:4000/api/logs?source_name=deno-relay-logs'
+    uri: 'http://supabase-analytics:4000/api/logs?source_name=deno-relay-logs'
   logflare_storage:
     type: 'http'
     inputs:
@@ -226,7 +226,7 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://analytics:4000/api/logs?source_name=storage.logs.prod.2'
+    uri: 'http://supabase-analytics:4000/api/logs?source_name=storage.logs.prod.2'
   logflare_kong:
     type: 'http'
     inputs:
@@ -239,4 +239,4 @@ sinks:
       retry_max_duration_secs: 10
       headers:
         x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-    uri: 'http://analytics:4000/api/logs?source_name=cloudflare.logs.prod'
+    uri: 'http://supabase-analytics:4000/api/logs?source_name=cloudflare.logs.prod'

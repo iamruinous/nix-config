@@ -4,14 +4,34 @@
 -- Create extensions in public schema
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA public;
-CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA pg_catalog;
+-- pg_stat_statements requires superuser and preloaded in postgresql.conf
+-- CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA pg_catalog;
 
 -- Create required schemas
 CREATE SCHEMA IF NOT EXISTS _supabase;
 CREATE SCHEMA IF NOT EXISTS _analytics;
+CREATE SCHEMA IF NOT EXISTS _realtime;
 CREATE SCHEMA IF NOT EXISTS storage;
 CREATE SCHEMA IF NOT EXISTS graphql_public;
 CREATE SCHEMA IF NOT EXISTS realtime;
+CREATE SCHEMA IF NOT EXISTS auth;
+
+-- Create auth enum types (required for gotrue migrations)
+DO $$ BEGIN
+    CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE auth.code_challenge_method AS ENUM ('s256', 'plain');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- Create roles if they don't exist
 DO $$
@@ -54,6 +74,10 @@ $$;
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
 GRANT USAGE ON SCHEMA graphql_public TO anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+
+-- Grant auth schema ownership to supabase_auth_admin
+GRANT ALL ON SCHEMA auth TO supabase_auth_admin, postgres;
 
 -- Grant postgres role to supabase admin roles
 GRANT postgres TO supabase_auth_admin;

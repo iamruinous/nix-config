@@ -36,7 +36,7 @@ basicauth_credentials:
 services:
   ## Open Auth routes
   - name: auth-v1-open
-    url: http://auth:9999/verify
+    url: http://supabase-auth:9999/verify
     routes:
       - name: auth-v1-open
         strip_path: true
@@ -45,7 +45,7 @@ services:
     plugins:
       - name: cors
   - name: auth-v1-open-callback
-    url: http://auth:9999/callback
+    url: http://supabase-auth:9999/callback
     routes:
       - name: auth-v1-open-callback
         strip_path: true
@@ -54,7 +54,7 @@ services:
     plugins:
       - name: cors
   - name: auth-v1-open-authorize
-    url: http://auth:9999/authorize
+    url: http://supabase-auth:9999/authorize
     routes:
       - name: auth-v1-open-authorize
         strip_path: true
@@ -65,8 +65,8 @@ services:
 
   ## Secure Auth routes
   - name: auth-v1
-    _comment: 'GoTrue: /auth/v1/* -> http://auth:9999/*'
-    url: http://auth:9999/
+    _comment: 'GoTrue: /auth/v1/* -> http://supabase-auth:9999/*'
+    url: http://supabase-auth:9999/
     routes:
       - name: auth-v1-all
         strip_path: true
@@ -86,8 +86,8 @@ services:
 
   ## Secure REST routes
   - name: rest-v1
-    _comment: 'PostgREST: /rest/v1/* -> http://rest:3000/*'
-    url: http://rest:3000/
+    _comment: 'PostgREST: /rest/v1/* -> http://supabase-rest:3000/*'
+    url: http://supabase-rest:3000/
     routes:
       - name: rest-v1-all
         strip_path: true
@@ -107,8 +107,8 @@ services:
 
   ## Secure GraphQL routes
   - name: graphql-v1
-    _comment: 'PostgREST: /graphql/v1/* -> http://rest:3000/rpc/graphql'
-    url: http://rest:3000/rpc/graphql
+    _comment: 'PostgREST: /graphql/v1/* -> http://supabase-rest:3000/rpc/graphql'
+    url: http://supabase-rest:3000/rpc/graphql
     routes:
       - name: graphql-v1-all
         strip_path: true
@@ -133,8 +133,8 @@ services:
 
   ## Secure Realtime routes
   - name: realtime-v1-ws
-    _comment: 'Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*'
-    url: http://realtime-dev.supabase-realtime:4000/socket
+    _comment: 'Realtime: /realtime/v1/* -> ws://supabase-realtime:4000/socket/*'
+    url: http://supabase-realtime:4000/socket
     protocol: ws
     routes:
       - name: realtime-v1-ws
@@ -153,8 +153,8 @@ services:
             - admin
             - anon
   - name: realtime-v1-rest
-    _comment: 'Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*'
-    url: http://realtime-dev.supabase-realtime:4000/api
+    _comment: 'Realtime: /realtime/v1/api -> http://supabase-realtime:4000/api'
+    url: http://supabase-realtime:4000/api
     protocol: http
     routes:
       - name: realtime-v1-rest
@@ -174,8 +174,8 @@ services:
             - anon
   ## Storage routes: the storage server manages its own auth
   - name: storage-v1
-    _comment: 'Storage: /storage/v1/* -> http://storage:5000/*'
-    url: http://storage:5000/
+    _comment: 'Storage: /storage/v1/* -> http://supabase-storage:5000/*'
+    url: http://supabase-storage:5000/
     routes:
       - name: storage-v1-all
         strip_path: true
@@ -186,8 +186,8 @@ services:
 
   ## Edge Functions routes
   - name: functions-v1
-    _comment: 'Edge Functions: /functions/v1/* -> http://functions:9000/*'
-    url: http://functions:9000/
+    _comment: 'Edge Functions: /functions/v1/* -> http://supabase-functions:9000/*'
+    url: http://supabase-functions:9000/
     routes:
       - name: functions-v1-all
         strip_path: true
@@ -198,8 +198,8 @@ services:
 
   ## Analytics routes
   - name: analytics-v1
-    _comment: 'Analytics: /analytics/v1/* -> http://logflare:4000/*'
-    url: http://analytics:4000/
+    _comment: 'Analytics: /analytics/v1/* -> http://supabase-analytics:4000/*'
+    url: http://supabase-analytics:4000/
     routes:
       - name: analytics-v1-all
         strip_path: true
@@ -208,8 +208,8 @@ services:
 
   ## Secure Database routes
   - name: meta
-    _comment: 'pg-meta: /pg/* -> http://pg-meta:8080/*'
-    url: http://meta:8080/
+    _comment: 'pg-meta: /pg/* -> http://supabase-meta:8080/*'
+    url: http://supabase-meta:8080/
     routes:
       - name: meta-all
         strip_path: true
@@ -228,7 +228,7 @@ services:
   ## Block access to /api/mcp
   - name: mcp-blocker
     _comment: 'Block direct access to /api/mcp'
-    url: http://studio:3000/api/mcp
+    url: http://supabase-studio:3000/api/mcp
     routes:
       - name: mcp-blocker-route
         strip_path: true
@@ -242,8 +242,8 @@ services:
 
   ## MCP endpoint - local access
   - name: mcp
-    _comment: 'MCP: /mcp -> http://studio:3000/api/mcp (local access)'
-    url: http://studio:3000/api/mcp
+    _comment: 'MCP: /mcp -> http://supabase-studio:3000/api/mcp (local access)'
+    url: http://supabase-studio:3000/api/mcp
     routes:
       - name: mcp
         strip_path: true
@@ -269,8 +269,8 @@ services:
 
   ## Protected Dashboard - catch all remaining routes
   - name: dashboard
-    _comment: 'Studio: /* -> http://studio:3000/*'
-    url: http://studio:3000/
+    _comment: 'Studio: /* -> http://supabase-studio:3000/*'
+    url: http://supabase-studio:3000/
     routes:
       - name: dashboard-all
         strip_path: true
