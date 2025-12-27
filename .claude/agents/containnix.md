@@ -235,6 +235,34 @@ cfcli --domain meskill.farm --type CNAME rm <service>
 | Internal (tunnel) | `<service>-int.meskill.farm` | `monica-int.meskill.farm` |
 | Host | `<hostname>.meskill.farm` | `zenith.meskill.farm` |
 
+## Database Management
+
+### Creating PostgreSQL Databases
+
+Use the `/create-db` skill to create databases and users for new services:
+
+```bash
+# Generic (will ask which host)
+/create-db <service-name>
+
+# Host-specific shortcuts
+/create-db-pilaster <service-name>   # For pilaster services
+/create-db-monolith <service-name>   # For monolith services
+/create-db-zenith <service-name>     # For zenith services
+```
+
+The skill will:
+1. Generate a secure password
+2. Create the database and user
+3. Grant appropriate permissions
+4. Output the `DATABASE_URL` connection string for the env file
+
+**Example:**
+```bash
+/create-db-pilaster rallly
+# Creates: DATABASE_URL=postgres://rallly:<password>@postgres:5432/rallly
+```
+
 ## Container Patterns
 
 ### Web Application with Database
@@ -432,11 +460,18 @@ systemd.services.ollama-pull-models = {
    mkdir -p hosts/<hostname>/files/docker/env
    ```
 
-4. **Create environment file (if needed):**
+4. **Create database (if needed):**
+   Use the `/create-db-<hostname>` skill to create the database:
+   ```bash
+   /create-db-pilaster <service>   # or -monolith, -zenith
+   ```
+   This generates the `DATABASE_URL` for the environment file.
+
+5. **Create environment file (if needed):**
    ```bash
    # Create template
    cat > /tmp/<service>.env << 'EOF'
-   DB_PASSWORD=
+   DATABASE_URL=postgres://<service>:<password>@postgres:5432/<service>
    API_KEY=
    EOF
 
@@ -445,7 +480,7 @@ systemd.services.ollama-pull-models = {
    rm /tmp/<service>.env
    ```
 
-5. **Add container to containers.nix:**
+6. **Add container to containers.nix:**
    ```nix
    virtualisation.oci-containers.containers.<service> = {
      image = "registry/image:tag";
@@ -460,7 +495,7 @@ systemd.services.ollama-pull-models = {
    };
    ```
 
-6. **Update Caddyfile (if reverse proxy needed):**
+7. **Update Caddyfile (if reverse proxy needed):**
    ```bash
    agenix view hosts/<hostname>/files/caddy/Caddyfile.age > /tmp/Caddyfile
    # Add new entry
@@ -472,44 +507,44 @@ systemd.services.ollama-pull-models = {
    rm /tmp/Caddyfile
    ```
 
-7. **Rekey secrets:**
+8. **Rekey secrets:**
    ```bash
    agenix rekey -a
    ```
 
-8. **Create DNS entry:**
+9. **Create DNS entry:**
    ```bash
    cfcli --domain meskill.farm --type CNAME add <service> <hostname>.meskill.farm
    ```
 
-9. **Add to Gatus monitoring:**
-   Update `hosts/monolith/files/gatus/config.yaml` to monitor the new service:
-   ```yaml
-   - name: "<Service Name>"
-     group: "<Category>"
-     url: "https://<service>.meskill.farm"
-     interval: 5m
-     conditions:
-       - "[STATUS] == 200"
-     alerts:
-       - type: discord
-       - type: email
-   ```
-   Categories: Monitoring, Productivity, Development, Documentation, Security, Archiving, Social, Communication, Home, AI, Infrastructure
+10. **Add to Gatus monitoring:**
+    Update `hosts/monolith/files/gatus/config.yaml` to monitor the new service:
+    ```yaml
+    - name: "<Service Name>"
+      group: "<Category>"
+      url: "https://<service>.meskill.farm"
+      interval: 5m
+      conditions:
+        - "[STATUS] == 200"
+      alerts:
+        - type: discord
+        - type: email
+    ```
+    Categories: Monitoring, Productivity, Development, Documentation, Security, Archiving, Social, Communication, Home, AI, Infrastructure
 
-10. **Lock agenix:**
+11. **Lock agenix:**
     ```bash
     agenix-helper lock
     ```
 
-11. **Commit and deploy:**
+12. **Commit and deploy:**
     ```bash
     git add .
     git commit -m "feat: add <service> container to <hostname>"
     git push
     ```
 
-12. **Deploy to host:**
+13. **Deploy to host:**
 
     **Option A: Remote deployment (recommended)**
     Deploy from your local machine to the target host over SSH:

@@ -713,13 +713,14 @@ This is a NEW domain that needs to be configured:
 
 ### Implementation Steps
 
-- [ ] Set up meskill.family domain in Cloudflare
-- [ ] Create PostgreSQL database and user
-- [ ] Create `rallly.env.template`
-- [ ] Encrypt to `rallly.env.age`
-- [ ] Add container to `hosts/pilaster/containers.nix`
-- [ ] Update Caddyfile on pilaster
-- [ ] Add DNS entry: `poll.meskill.family` CNAME → pilaster.meskill.farm
+- [x] Set up meskill.family domain in Cloudflare
+- [x] Create PostgreSQL database and user
+- [x] ~~Create `rallly.env.template`~~ (created directly as encrypted file)
+- [x] Encrypt to `rallly.env.age`
+- [x] Add container to `hosts/pilaster/containers.nix`
+- [x] Update Caddyfile on pilaster
+- [x] Add DNS entry: `poll.meskill.family` CNAME → pilaster.meskill.farm
+- [x] Add Gatus monitoring entry
 
 ### Container Definition
 
@@ -989,6 +990,6 @@ Use this section to track progress across sessions:
 - [x] Deploy Gatus to monolith
 - [x] Implement LinkStack on pilaster
 - [x] Implement Homebox on pilaster
+- [x] Implement Rallly on pilaster
 - [ ] Implement Filestash on pilaster
-- [ ] Implement Rallly on pilaster
 - [ ] Implement Stalwart on monolith
