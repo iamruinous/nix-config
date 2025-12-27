@@ -932,6 +932,9 @@
   systemd.services.docker-supabase-kong = {
     restartTriggers = [config.age.secrets.pilaster_supabase_kong_yml.rekeyFile];
   };
+  systemd.services.docker-supabase-meta = {
+    restartTriggers = [config.age.secrets.pilaster_docker_env_supabase_db.rekeyFile];
+  };
 
   age.secrets.pilaster_caddy_caddyfile = {
     rekeyFile = ./files/caddy/Caddyfile.age;
