@@ -581,6 +581,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Filestash (pilaster)"
+    group: "Productivity"
+    url: "https://files.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200 || [STATUS] == 307"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # AI SERVICES
   # ===========================
@@ -611,7 +621,7 @@ endpoints:
 
   - name: "Plex (terranas)"
     group: "Media"
-    url: "http://plex.meskill.farm:32400/web/index.html"
+    url: "https://plex.meskill.farm/web/index.html"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -621,7 +631,7 @@ endpoints:
 
   - name: "Jellyfin (terranas)"
     group: "Media"
-    url: "http://jellyfin.meskill.farm:8096"
+    url: "https://jellyfin.meskill.farm"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -631,7 +641,7 @@ endpoints:
 
   - name: "Audiobookshelf (terranas)"
     group: "Media"
-    url: "http://audiobooks.meskill.farm:13378"
+    url: "https://audiobooks.meskill.farm"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -639,9 +649,9 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "RustFS (terranas)"
+  - name: "RustFS S3 (terranas)"
     group: "Infrastructure"
-    url: "http://s3.meskill.farm:30292"
+    url: "https://s3.meskill.farm"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -651,7 +661,7 @@ endpoints:
 
   - name: "RustFS Console (terranas)"
     group: "Infrastructure"
-    url: "http://s3.meskill.farm:30293"
+    url: "https://rustfs.meskill.farm"
     interval: 5m
     conditions:
       - "[STATUS] == 200"

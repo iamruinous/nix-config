@@ -747,6 +747,17 @@
         networks = ["servicenet" "datanet"];
         dependsOn = ["postgres"];
       };
+      filestash = {
+        # IMAGECHECK: disabled - no semver tags available
+        image = "docker.io/machines/filestash:latest";
+        environment = {
+          TZ = "America/Phoenix";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/filestash/state:/app/data/state"
+        ];
+      };
       synapse = {
         image = "ghcr.io/element-hq/synapse:v1.144.0";
         environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
