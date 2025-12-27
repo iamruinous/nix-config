@@ -276,10 +276,9 @@
           GOTRUE_API_HOST = "0.0.0.0";
           GOTRUE_API_PORT = "9999";
           GOTRUE_DB_DRIVER = "postgres";
-          GOTRUE_SITE_URL = "\${SITE_URL}";
+          # GOTRUE_SITE_URL and GOTRUE_JWT_SECRET come from env file
           GOTRUE_URI_ALLOW_LIST = "*";
           GOTRUE_DISABLE_SIGNUP = "false";
-          GOTRUE_JWT_SECRET = "\${JWT_SECRET}";
           GOTRUE_JWT_ADMIN_ROLES = "service_role";
           GOTRUE_JWT_AUD = "authenticated";
           GOTRUE_JWT_DEFAULT_GROUP_NAME = "authenticated";
@@ -299,11 +298,12 @@
       supabase-rest = {
         image = "postgrest/postgrest:v13.0.7";
         environmentFiles = [
+          config.age.secrets.pilaster_docker_env_supabase_common.path
           config.age.secrets.pilaster_docker_env_supabase_db.path
         ];
         environment = {
           PGRST_DB_USE_LEGACY_GUCS = "false";
-          PGRST_APP_SETTINGS_JWT_SECRET = "\${PGRST_JWT_SECRET}";
+          # PGRST_APP_SETTINGS_JWT_SECRET comes from env file
         };
         networks = [
           "servicenet"
@@ -330,8 +330,7 @@
           ERL_AFLAGS = "-proto_dist inet_tcp";
           ENABLE_TAILSCALE = "false";
           DNS_NODES = "'realtime@supabase-realtime'";
-          SECRET_KEY_BASE = "\${SECRET_KEY_BASE}";
-          API_JWT_SECRET = "\${JWT_SECRET}";
+          # SECRET_KEY_BASE and API_JWT_SECRET come from env file
           RLIMIT_NOFILE = "10000";
         };
         networks = [
@@ -356,8 +355,7 @@
         ];
         environment = {
           POSTGREST_URL = "http://supabase-rest:3000";
-          SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
-          PGRST_JWT_SECRET = "\${JWT_SECRET}";
+          # SERVICE_KEY and PGRST_JWT_SECRET come from env file
           STORAGE_BACKEND = "file";
           FILE_STORAGE_BACKEND_PATH = "/var/lib/storage";
           TENANT_ID = "stub";
@@ -438,7 +436,7 @@
           LOGFLARE_SUPABASE_MODE = "true";
           LOGFLARE_MIN_CLUSTER_SIZE = "1";
           POSTGRES_BACKEND_SCHEMA = "_analytics";
-          LOGFLARE_API_KEY = "\${LOGFLARE_PUBLIC_ACCESS_TOKEN}";
+          # LOGFLARE_API_KEY comes from env file
         };
         networks = [
           "servicenet"
