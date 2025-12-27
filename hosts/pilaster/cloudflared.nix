@@ -67,6 +67,11 @@
         ingress = {"links.ruinous.social" = "https://links-int.ruinous.social";};
         default = "http_status:404";
       };
+      "1a815c1d-61f9-43c8-85d5-3afca7af7b1d" = {
+        credentialsFile = "${config.age.secrets.pilaster_cloudflared_poll_meskill_family.path}";
+        ingress = {"poll.meskill.family" = "https://poll-int.meskill.family";};
+        default = "http_status:404";
+      };
     };
   };
 
@@ -133,6 +138,11 @@
 
   age.secrets.pilaster_cloudflared_links_ruinous = {
     rekeyFile = ./files/cloudflared/links-ruinous.json.age;
+    mode = "644";
+  };
+
+  age.secrets.pilaster_cloudflared_poll_meskill_family = {
+    rekeyFile = ./files/cloudflared/poll-meskill-family.json.age;
     mode = "644";
   };
 }
