@@ -33,7 +33,20 @@ DO $$ BEGIN
     CREATE TYPE auth.code_challenge_method AS ENUM ('s256', 'plain');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
--- Create roles if they don't exist
+-- Create login roles for Supabase admin services
+-- IMPORTANT: After database creation, you must set passwords for login roles:
+-- docker exec supabase-db psql -U postgres -c "ALTER USER supabase_admin WITH PASSWORD 'your-password';"
+-- Use the same password as POSTGRES_PASSWORD from supabase-db.env.age
+DO $$
+BEGIN
+  -- supabase_admin is used by Studio, Analytics, and postgres-meta for admin operations
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_admin') THEN
+    CREATE ROLE supabase_admin LOGIN SUPERUSER CREATEDB CREATEROLE BYPASSRLS;
+  END IF;
+END
+$$;
+
+-- Create non-login roles if they don't exist
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'anon') THEN
