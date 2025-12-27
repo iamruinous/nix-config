@@ -243,8 +243,6 @@
         ];
         environment = {
           STUDIO_PG_META_URL = "http://supabase-meta:8080";
-          SUPABASE_ANON_KEY = "\${ANON_KEY}";
-          SUPABASE_SERVICE_KEY = "\${SERVICE_ROLE_KEY}";
         };
         networks = ["servicenet"];
         dependsOn = ["supabase-db" "supabase-analytics"];
@@ -416,8 +414,6 @@
         ];
         environment = {
           SUPABASE_URL = "http://supabase-kong:8000";
-          SUPABASE_ANON_KEY = "\${ANON_KEY}";
-          SUPABASE_SERVICE_ROLE_KEY = "\${SERVICE_ROLE_KEY}";
           VERIFY_JWT = "true";
         };
         networks = ["servicenet"];
