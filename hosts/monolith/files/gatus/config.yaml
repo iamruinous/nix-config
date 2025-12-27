@@ -592,7 +592,7 @@ endpoints:
       - type: email
 
   # ===========================
-  # AI SERVICES
+  # ZENITH SERVICES
   # ===========================
 
   - name: "Open WebUI (zenith)"
@@ -604,6 +604,10 @@ endpoints:
     alerts:
       - type: discord
       - type: email
+
+  # ===========================
+  # OBELISK SERVICES
+  # ===========================
 
   - name: "Open WebUI (obelisk)"
     group: "AI"
