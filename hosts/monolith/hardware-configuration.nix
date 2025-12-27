@@ -54,7 +54,7 @@
     networks = {
       "30-manage" = {
         matchConfig.Name = "enp2s0f0np0";
-        networkConfig.DHCP = true;
+        networkConfig.DHCP = false;
         # address = ["10.55.10.54/24"];
         # gateway = ["10.55.10.1"];
         dns = ["10.55.10.1"];

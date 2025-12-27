@@ -776,7 +776,7 @@
         };
       };
       prowlarr = {
-        image = "lscr.io/linuxserver/prowlarr:2.0.2-nightly";
+        image = "lscr.io/linuxserver/prowlarr:2.3.0";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -867,7 +867,7 @@
         ];
       };
       sonarr = {
-        image = "lscr.io/linuxserver/sonarr:5.14";
+        image = "lscr.io/linuxserver/sonarr:4.0.16";
         environment = {
           PUID = "4000";
           PGID = "4000";

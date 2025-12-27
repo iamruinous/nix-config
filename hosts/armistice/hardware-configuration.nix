@@ -38,7 +38,7 @@
     networks = {
       "30-manage" = {
         matchConfig.Name = "enp1s0";
-        networkConfig.DHCP = true;
+        networkConfig.DHCP = false;
         dns = ["10.55.10.1"];
         vlan = ["vlan2"];
         linkConfig.RequiredForOnline = "carrier";
