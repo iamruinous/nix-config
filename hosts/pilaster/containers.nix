@@ -281,6 +281,8 @@
           GOTRUE_API_HOST = "0.0.0.0";
           GOTRUE_API_PORT = "9999";
           GOTRUE_DB_DRIVER = "postgres";
+          # Use supabase_auth_admin which has proper search_path for auth schema
+          GOTRUE_DB_DATABASE_URL = "postgresql://supabase_auth_admin:7mfkuJz3vuwvXmyGVDnjtzHpvcCQfNY8@supabase-db:5432/postgres";
           # GOTRUE_SITE_URL and GOTRUE_JWT_SECRET come from env file
           GOTRUE_URI_ALLOW_LIST = "*";
           GOTRUE_DISABLE_SIGNUP = "false";
