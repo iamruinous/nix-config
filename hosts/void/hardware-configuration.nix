@@ -53,7 +53,7 @@
         networkConfig.DHCP = false;
         address = ["10.55.10.36/24"];
         gateway = ["10.55.10.1"];
-        dns = ["10.55.10.35"];
+        dns = ["10.55.10.1"];
       };
     };
   };

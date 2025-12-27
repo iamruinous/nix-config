@@ -54,10 +54,10 @@
     networks = {
       "30-manage" = {
         matchConfig.Name = "enp2s0f0np0";
-        networkConfig.DHCP = false;
+        networkConfig.DHCP = true;
         # address = ["10.55.10.54/24"];
         # gateway = ["10.55.10.1"];
-        dns = ["10.55.10.35"];
+        dns = ["10.55.10.1"];
         vlan = ["vlan2"];
         linkConfig.RequiredForOnline = "carrier";
       };
