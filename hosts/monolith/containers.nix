@@ -596,6 +596,30 @@
         networks = ["servicenet"];
         dependsOn = ["n8n"];
       };
+      # Vector database for n8n AI workflows and RAG
+      weaviate = {
+        image = "cr.weaviate.io/semitechnologies/weaviate:1.35.1";
+        cmd = [
+          "--host"
+          "0.0.0.0"
+          "--port"
+          "8080"
+          "--scheme"
+          "http"
+        ];
+        environment = {
+          QUERY_DEFAULTS_LIMIT = "25";
+          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED = "true";
+          PERSISTENCE_DATA_PATH = "/var/lib/weaviate";
+          CLUSTER_HOSTNAME = "weaviate";
+          DEFAULT_VECTORIZER_MODULE = "none";
+          ENABLE_API_BASED_MODULES = "true";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/weaviate/data:/var/lib/weaviate"
+        ];
+      };
       "paperless-ai" = {
         image = "docker.io/clusterzx/paperless-ai:3.0.9";
         environment = {
