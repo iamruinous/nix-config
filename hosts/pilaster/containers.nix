@@ -227,6 +227,7 @@
           "/data/docker/supabase-db/pgdata:/var/lib/postgresql/data"
           "${./files/supabase/postgres/postgresql.conf}:/etc/postgresql/postgresql.conf:ro"
           "/data/docker/supabase-db/custom:/etc/postgresql-custom"
+          "${./files/supabase/postgres/init}:/docker-entrypoint-initdb.d:ro"
         ];
         extraOptions = [
           "--health-cmd=pg_isready -U postgres -h localhost"

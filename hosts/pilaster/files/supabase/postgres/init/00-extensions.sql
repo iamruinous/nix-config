@@ -58,7 +58,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'service_role') THEN
-    CREATE ROLE service_role NOLOGIN NOINHERIT;
+    CREATE ROLE service_role NOLOGIN NOINHERIT BYPASSRLS;
   END IF;
 
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_auth_admin') THEN
@@ -91,6 +91,18 @@ GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 
 -- Grant auth schema ownership to supabase_auth_admin
 GRANT ALL ON SCHEMA auth TO supabase_auth_admin, postgres;
+
+-- Grant storage schema permissions to storage admin and service_role
+GRANT ALL ON SCHEMA storage TO supabase_storage_admin, service_role, postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA storage GRANT ALL ON TABLES TO supabase_storage_admin, service_role, postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA storage GRANT ALL ON SEQUENCES TO supabase_storage_admin, service_role, postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA storage GRANT ALL ON FUNCTIONS TO supabase_storage_admin, service_role, postgres;
+
+-- Grant realtime schema permissions
+GRANT ALL ON SCHEMA realtime TO supabase_realtime_admin, service_role, postgres;
+GRANT ALL ON SCHEMA _realtime TO supabase_realtime_admin, service_role, postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA realtime GRANT ALL ON TABLES TO supabase_realtime_admin, service_role, postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA _realtime GRANT ALL ON TABLES TO supabase_realtime_admin, service_role, postgres;
 
 -- Grant postgres role to supabase admin roles
 GRANT postgres TO supabase_auth_admin;
