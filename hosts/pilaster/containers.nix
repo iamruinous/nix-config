@@ -244,6 +244,10 @@
         ];
         environment = {
           STUDIO_PG_META_URL = "http://supabase-meta:8080";
+          SUPABASE_URL = "http://supabase-kong:8000";
+          LOGFLARE_URL = "http://supabase-analytics:4000";
+          NEXT_PUBLIC_ENABLE_LOGS = "true";
+          NEXT_ANALYTICS_BACKEND_PROVIDER = "postgres";
         };
         networks = ["servicenet"];
         dependsOn = ["supabase-db" "supabase-analytics"];
