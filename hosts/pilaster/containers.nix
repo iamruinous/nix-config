@@ -741,6 +741,12 @@
           "/data/docker/homebox/data:/data"
         ];
       };
+      rallly = {
+        image = "docker.io/lukevella/rallly:3.11.2";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_rallly.path];
+        networks = ["servicenet" "datanet"];
+        dependsOn = ["postgres"];
+      };
       synapse = {
         image = "ghcr.io/element-hq/synapse:v1.144.0";
         environmentFiles = [config.age.secrets.pilaster_docker_env_synapse.path];
@@ -984,6 +990,10 @@
   };
   age.secrets.pilaster_docker_env_archivebox = {
     rekeyFile = ./files/docker/env/archivebox.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_rallly = {
+    rekeyFile = ./files/docker/env/rallly.env.age;
     mode = "600";
   };
 }

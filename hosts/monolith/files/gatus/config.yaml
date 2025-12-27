@@ -364,16 +364,6 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "n8h Webhooks (monolith)"
-    group: "Automation"
-    url: "https://n8h.meskill.farm"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
   - name: "Apprise (monolith)"
     group: "Automation"
     url: "https://apprise.meskill.farm"
@@ -473,6 +463,16 @@ endpoints:
   - name: "Homebox (pilaster)"
     group: "Home"
     url: "https://homebox.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Rallly (pilaster)"
+    group: "Productivity"
+    url: "https://poll.meskill.family"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
