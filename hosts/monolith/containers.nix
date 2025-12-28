@@ -610,12 +610,14 @@
         ];
         environment = {
           QUERY_DEFAULTS_LIMIT = "25";
-          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED = "true";
+          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED = "false";
+          AUTHENTICATION_APIKEY_ENABLED = "true";
           PERSISTENCE_DATA_PATH = "/var/lib/weaviate";
           CLUSTER_HOSTNAME = "weaviate";
           DEFAULT_VECTORIZER_MODULE = "none";
           ENABLE_API_BASED_MODULES = "true";
         };
+        environmentFiles = [config.age.secrets.monolith_docker_env_weaviate.path];
         networks = ["servicenet"];
         volumes = [
           "/data/docker/weaviate/data:/var/lib/weaviate"
@@ -1048,6 +1050,10 @@
   };
   age.secrets.monolith_docker_env_gatus = {
     rekeyFile = ./files/docker/env/gatus.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_weaviate = {
+    rekeyFile = ./files/docker/env/weaviate.env.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {
