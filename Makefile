@@ -1,4 +1,4 @@
-.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage
 
 update-flake:
 	@echo "Updating flake..."
@@ -42,3 +42,15 @@ restore-readme:
 	@echo "README.md restored from current commit."
 
 bootstrap-mac: install-nix install-nix-darwin
+
+pi-sdimage:
+	@echo "Building SD image for $(pihost) on armistice..."
+	@nix build .#nixosConfigurations.$(pihost).config.system.build.sdImage \
+		--builders "ssh://armistice.meskill.farm aarch64-linux" \
+		--max-jobs 0 \
+		-o result-$(pihost)-sdimage
+	@echo "SD image built: result-$(pihost)-sdimage/"
+	@echo ""
+	@echo "To flash to SD card:"
+	@echo "  zstd -d result-$(pihost)-sdimage/sd-image/*.img.zst -o $(pihost).img"
+	@echo "  sudo dd if=$(pihost).img of=/dev/sdX bs=4M status=progress"
