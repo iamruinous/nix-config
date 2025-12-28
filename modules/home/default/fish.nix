@@ -19,6 +19,7 @@ in {
   programs.fish = {
     enable = lib.mkDefault true;
     package = pkgs.fish;
+
     shellAbbrs = {
       dl = "curl --create-dirs -O --output-dir /tmp/";
     };
@@ -104,6 +105,9 @@ in {
     ];
 
     interactiveShellInit = ''
+      # Suppress the default "Welcome to fish" greeting
+      set -g fish_greeting
+
       ${tmuxAttachScript}
 
       # Check SSH_AUTH_SOCK validity
