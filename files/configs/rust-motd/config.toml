@@ -8,6 +8,7 @@ progress_suffix = "]"
 prefix = "Uptime:"
 
 [memory]
+swap_pos = "below"
 
 [filesystems]
 

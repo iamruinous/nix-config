@@ -4,6 +4,7 @@
   lib,
   pkgs,
   config,
+  flake,
   ...
 }: let
   cfg = config.ruinous.rust-motd;
@@ -16,6 +17,6 @@ in {
     home.packages = [pkgs.rust-motd];
 
     # Use config file from repository
-    xdg.configFile."rust-motd/config.toml".source = ../../../../files/configs/rust-motd/config.toml;
+    xdg.configFile."rust-motd/config.toml".source = flake + /files/configs/rust-motd/config.toml;
   };
 }
