@@ -63,6 +63,7 @@ The RPC is a cluster of Raspberry Pi devices for edge computing and experimentat
 | Hostname | Model | Status |
 |----------|-------|--------|
 | `rpc-5-alpha` | Raspberry Pi 5 | Configured |
+| `rpc-4-echo` | Raspberry Pi 4 | Configured |
 
 **Adding New Members:** Use `/create-pi-host rpc-<model>-<name>` (e.g., `rpc-5-bravo`, `rpc-4-charlie`)
 
@@ -186,6 +187,7 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 | Host | Type | Platform | CPU | RAM | Primary Role |
 |------|------|----------|-----|-----|--------------|
 | rpc-5-alpha | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
+| rpc-4-echo | Pi Cluster | NixOS | BCM2711 | 4 GB | Cluster member |
 | armistice | Server | NixOS | ARM64 | 64 GB | ARM workstation |
 | monolith | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Infrastructure hub |
 | obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |

@@ -228,6 +228,7 @@
       # Naming: rpc-<model>-<name> (e.g., rpc-5-alpha = Pi 5, member "alpha")
       # Uses NATO phonetic alphabet: alpha, bravo, charlie, delta, echo, foxtrot...
       rpc-5-alpha = mkPi5Host ./hosts/rpc-5-alpha;
+      rpc-4-echo = mkPi4Host ./hosts/rpc-4-echo;
     };
   in
     blueprintOutputs
