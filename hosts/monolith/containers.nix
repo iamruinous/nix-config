@@ -570,7 +570,7 @@
           N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE = "true";
           N8N_BLOCK_ENV_ACCESS_IN_NODE = "false";
           N8N_NATIVE_PYTHON_RUNNER = "true";
-          WEVIATE_URL = "http://weaviate:8080";
+          WEAVIATE_URL = "http://weaviate:8080";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
