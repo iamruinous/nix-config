@@ -1,0 +1,14 @@
+[global]
+progress_full_character = "━"
+progress_empty_character = "─"
+progress_prefix = "["
+progress_suffix = "]"
+
+[uptime]
+prefix = "Uptime:"
+
+[memory]
+
+[filesystems]
+
+[last_login]
