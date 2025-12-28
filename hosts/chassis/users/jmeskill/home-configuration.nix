@@ -13,6 +13,7 @@ in {
   # Enable vdirsyncer
   # ruinous.vdirsyncer.sync.enable = true;
 
+  ruinous.rust-motd.enable = true;
   programs.wezterm.enable = true;
   ruinous.openssh.remote.forwarding.enable = true;
   ruinous.openssh.tmux.attach.enable = true;

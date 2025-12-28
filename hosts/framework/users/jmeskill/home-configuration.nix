@@ -8,6 +8,8 @@ in {
     flake.homeModules.hyprland
   ];
 
+  ruinous.rust-motd.enable = true;
+
   # Enable todoist
   ruinous.todoist.sync.enable = true;
 
