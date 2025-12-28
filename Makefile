@@ -84,7 +84,7 @@ pi-flash:
 	@$(INFO) "Decompressing image..."
 	@gum spin --spinner dot --title "Decompressing $(pihost) image..." -- zstd -d -f result-$(pihost)-sdimage/sd-image/*.img.zst -o /tmp/$(pihost).img
 	@$(INFO) "Flashing to $(device)..."
-	@pv /tmp/$(pihost).img | sudo dd of=$(device) bs=4M conv=fsync 2>/dev/null
+	@pv -tpreb /tmp/$(pihost).img | sudo dd of=$(device) bs=4M conv=fsync 2>/dev/null
 	@sync
-	@rm /tmp/$(pihost).img
+	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."

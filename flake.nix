@@ -132,7 +132,7 @@
     };
 
     # Raspberry Pi hosts (using nixos-raspberrypi's nixosSystem for proper kernel/bootloader support)
-    # See hosts/raspberry-pi/README.md for naming conventions and documentation
+    # See hosts/README.md for naming conventions and documentation
     piHosts = let
       # Common specialArgs for all Pi hosts
       mkPiSpecialArgs = {
@@ -149,10 +149,50 @@
         inputs.self.nixosModules.default
         inputs.self.nixosModules.server
         inputs.self.nixosModules.pi
+        inputs.home-manager.nixosModules.home-manager
       ];
 
+      # Discover home-manager users from host directory
+      # Returns an attrset of user configs with proper defaults
+      discoverUsers = hostDir: let
+        usersDir = hostDir + "/users";
+        userDirs =
+          if builtins.pathExists usersDir
+          then builtins.attrNames (builtins.readDir usersDir)
+          else [];
+        hasHomeConfig = name:
+          builtins.pathExists (usersDir + "/${name}/home-configuration.nix");
+        validUsers = builtins.filter hasHomeConfig userDirs;
+        # Create user config with required defaults
+        mkUserConfig = name: {pkgs, ...}: {
+          imports = [
+            (import (usersDir + "/${name}/home-configuration.nix"))
+          ];
+          home = {
+            username = name;
+            homeDirectory = "/home/${name}";
+            stateVersion = "25.11";
+          };
+        };
+      in
+        builtins.listToAttrs (map (name: {
+            inherit name;
+            value = mkUserConfig name;
+          })
+          validUsers);
+
+      # Home-manager configuration module for a Pi host
+      mkHomeManagerConfig = hostDir: {
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          extraSpecialArgs = mkPiSpecialArgs;
+          users = discoverUsers hostDir;
+        };
+      };
+
       # Helper to create a Pi 5 host
-      mkPi5Host = hostPath:
+      mkPi5Host = hostDir:
         inputs.nixos-raspberrypi.lib.nixosSystem {
           specialArgs = mkPiSpecialArgs;
           modules =
@@ -161,12 +201,13 @@
               inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
               inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
               inputs.nixos-raspberrypi.nixosModules.sd-image
-              hostPath
+              (hostDir + "/configuration.nix")
+              (mkHomeManagerConfig hostDir)
             ];
         };
 
       # Helper to create a Pi 4 host
-      mkPi4Host = hostPath:
+      mkPi4Host = hostDir:
         inputs.nixos-raspberrypi.lib.nixosSystem {
           specialArgs = mkPiSpecialArgs;
           modules =
@@ -175,16 +216,17 @@
               inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.base
               inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.display-vc4
               inputs.nixos-raspberrypi.nixosModules.sd-image
-              hostPath
+              (hostDir + "/configuration.nix")
+              (mkHomeManagerConfig hostDir)
             ];
         };
     in {
       # Legacy standalone Pi
-      rp500 = mkPi5Host ./hosts/rp500/configuration.nix;
+      rp500 = mkPi5Host ./hosts/rp500;
 
       # RPC (Raspberry Pi Cluster) members
       # Naming: rpc-<model>-<member> (e.g., rpc-5-1 = Pi 5, member 1)
-      rpc-5-1 = mkPi5Host ./hosts/rpc-5-1/configuration.nix;
+      rpc-5-1 = mkPi5Host ./hosts/rpc-5-1;
     };
   in
     blueprintOutputs
