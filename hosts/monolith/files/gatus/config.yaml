@@ -675,20 +675,22 @@ endpoints:
 
   - name: "RustFS S3 (terranas)"
     group: "Infrastructure"
-    url: "https://s3.meskill.farm"
+    url: "https://s3.meskill.farm/health"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
+      - "[BODY].status == ok"
     alerts:
       - type: discord
       - type: email
 
   - name: "RustFS Console (terranas)"
     group: "Infrastructure"
-    url: "https://rustfs.meskill.farm"
+    url: "https://rustfs.meskill.farm/health"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
+      - "[BODY].status == ok"
     alerts:
       - type: discord
       - type: email
