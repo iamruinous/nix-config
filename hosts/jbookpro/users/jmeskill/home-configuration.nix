@@ -4,6 +4,9 @@
     flake.homeModules.darwin
   ];
 
+  # Enable rust-motd for system info on login
+  ruinous.rust-motd.enable = true;
+
   # Enable todoist
   ruinous.todoist.sync.enable = true;
 
