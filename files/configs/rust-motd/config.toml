@@ -1,4 +1,5 @@
 [global]
+show_legacy_warning = false
 progress_full_character = "━"
 progress_empty_character = "─"
 progress_prefix = "["
