@@ -144,28 +144,39 @@
         };
       };
 
+      # Common modules for all Pi hosts
+      piCommonModules = [
+        inputs.self.nixosModules.default
+        inputs.self.nixosModules.server
+        inputs.self.nixosModules.pi
+      ];
+
       # Helper to create a Pi 5 host
       mkPi5Host = hostPath:
         inputs.nixos-raspberrypi.lib.nixosSystem {
           specialArgs = mkPiSpecialArgs;
-          modules = [
-            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
-            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
-            inputs.nixos-raspberrypi.nixosModules.sd-image
-            hostPath
-          ];
+          modules =
+            piCommonModules
+            ++ [
+              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
+              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
+              inputs.nixos-raspberrypi.nixosModules.sd-image
+              hostPath
+            ];
         };
 
       # Helper to create a Pi 4 host
       mkPi4Host = hostPath:
         inputs.nixos-raspberrypi.lib.nixosSystem {
           specialArgs = mkPiSpecialArgs;
-          modules = [
-            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.base
-            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.display-vc4
-            inputs.nixos-raspberrypi.nixosModules.sd-image
-            hostPath
-          ];
+          modules =
+            piCommonModules
+            ++ [
+              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.base
+              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.display-vc4
+              inputs.nixos-raspberrypi.nixosModules.sd-image
+              hostPath
+            ];
         };
     in {
       # Legacy standalone Pi
