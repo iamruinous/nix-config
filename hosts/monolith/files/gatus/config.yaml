@@ -294,10 +294,11 @@ endpoints:
 
   - name: "Loki (monolith)"
     group: "Monitoring"
-    url: "https://loki.meskill.farm"
+    url: "http://loki:3100/ready"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
+      - "[BODY] == ready"
     alerts:
       - type: discord
       - type: email
