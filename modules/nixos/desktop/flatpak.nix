@@ -35,6 +35,7 @@ in {
       onCalendar = "weekly"; # Default value
     };
     services.flatpak.packages = [
+      "com.discordapp.Discord"
       "com.spotify.Client"
     ];
   };
