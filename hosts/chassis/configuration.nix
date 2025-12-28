@@ -19,7 +19,7 @@
   ];
 
   networking.hostName = "chassis"; # Define your hostname.
-  ruinous.kernel.useLatest = true;
+  # Note: kernel handled by nixos-hardware framework-desktop module
 
   programs._1password.enable = true;
   programs.steam.enable = true;
