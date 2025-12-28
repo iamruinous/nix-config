@@ -11,6 +11,8 @@
   ];
 
   networking.hostName = "void"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
+
   power.ups.enable = true;
 
   services.keepalived = {

@@ -15,6 +15,7 @@
   ];
 
   networking.hostName = "messy-tty";
+  ruinous.kernel.useLatest = true;
 
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;

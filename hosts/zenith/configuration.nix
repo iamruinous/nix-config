@@ -14,6 +14,7 @@
   ];
 
   networking.hostName = "zenith"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
 
   virtualisation.docker.enable = true;
 

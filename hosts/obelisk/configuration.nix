@@ -19,6 +19,7 @@
   ];
 
   networking.hostName = "obelisk"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
 
   # virtualisation.libvirtd.enable = true;
   virtualisation.docker.enable = true;

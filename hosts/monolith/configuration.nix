@@ -24,6 +24,7 @@
   ];
 
   networking.hostName = "monolith"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
 
   programs.nix-ld.enable = true;
 

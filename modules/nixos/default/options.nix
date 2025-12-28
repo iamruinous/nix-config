@@ -1,5 +1,7 @@
 {lib, ...}: {
   options = {
+    ruinous.kernel.useLatest = lib.mkEnableOption "use latest Linux kernel";
+
     ruinous.restic.terranas = {
       enable = lib.mkEnableOption "enable terranas restic backup";
 

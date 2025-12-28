@@ -150,6 +150,9 @@
           inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
           inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
 
+          # SD image builder support
+          inputs.nixos-raspberrypi.nixosModules.sd-image
+
           # Host configuration
           ./hosts/rp500/configuration.nix
         ];

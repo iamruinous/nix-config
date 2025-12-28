@@ -1,7 +1,10 @@
 {
+  config,
   pkgs,
   lib,
   ...
 }: {
-  boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
+  config = lib.mkIf config.ruinous.kernel.useLatest {
+    boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
+  };
 }

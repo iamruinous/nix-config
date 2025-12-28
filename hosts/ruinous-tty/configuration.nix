@@ -14,6 +14,7 @@
   ];
 
   networking.hostName = "ruinous-tty";
+  ruinous.kernel.useLatest = true;
 
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;

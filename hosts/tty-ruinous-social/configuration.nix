@@ -16,6 +16,7 @@
   ];
 
   networking.hostName = "tty-ruinous-social"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
 
   networking.usePredictableInterfaceNames = false;
   networking.firewall.enable = true;

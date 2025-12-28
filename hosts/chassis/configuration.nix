@@ -19,6 +19,8 @@
   ];
 
   networking.hostName = "chassis"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
+
   programs._1password.enable = true;
   programs.steam.enable = true;
   services.flatpak.enable = true;

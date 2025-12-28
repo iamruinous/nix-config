@@ -11,6 +11,8 @@
   ];
 
   networking.hostName = "gap"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
+
   power.ups.enable = true;
 
   services.keepalived = {

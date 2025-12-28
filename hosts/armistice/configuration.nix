@@ -14,6 +14,7 @@
   ];
 
   networking.hostName = "armistice"; # Define your hostname.
+  ruinous.kernel.useLatest = true;
 
   services.alloy.enable = true;
   ruinous.alloy.journal.enable = true;
