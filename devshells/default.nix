@@ -9,7 +9,7 @@ pkgs.mkShell {
     go # Go compiler for building/testing Go packages
     gum # Pretty TUI for Makefile commands
     pnpm # For running Node.js-based MCP servers
-    pv # Pipe viewer for progress bars (used by pi-flash)
+    bmaptool # Fast SD card flashing with block map support
     uv # Provides uvx for running Python-based MCP servers
     postgresql # cli for postgres
   ];

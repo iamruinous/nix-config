@@ -82,11 +82,7 @@ pi-flash:
 	@$(HEADER) "🥧 Flash Raspberry Pi SD Card"
 	@$(WARN) "This will erase all data on $(device)!"
 	@gum confirm "Flash $(pihost) image to $(device)?" || exit 1
-	@$(INFO) "Decompressing image..."
-	@gum spin --spinner dot --title "Decompressing $(pihost) image..." -- zstd -d -f result-$(pihost)-sdimage/sd-image/*.img.zst -o /tmp/$(pihost).img
-	@$(INFO) "Flashing to $(device)..."
-	@SIZE=$$(stat -c%s /tmp/$(pihost).img) && \
-		sudo sh -c "pv -s $$SIZE /tmp/$(pihost).img | dd of=$(device) bs=4M conv=fsync status=none"
+	@$(INFO) "Flashing to $(device) (using bmaptool)..."
+	@sudo bmaptool copy --nobmap result-$(pihost)-sdimage/sd-image/*.img.zst $(device)
 	@sync
-	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."
