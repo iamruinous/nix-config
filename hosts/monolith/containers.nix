@@ -679,8 +679,9 @@
       phpldapadmin = {
         image = "docker.io/phpldapadmin/phpldapadmin:2.3.7";
         environment = {
-          PHPLDAPADMIN_HTTPS = "false";
-          PHPLDAPADMIN_LDAP_HOSTS = "#PYTHON2BASH:[{'openldap': [{'server': [{'tls': False}]},{'login': [{'bind_id': 'cn=admin,dc=meskill-farmhouse,dc=lan'}]}]}]";
+          LDAP_HOST = "openldap";
+          LDAP_BASE_DN = "dc=meskill-farmhouse,dc=lan";
+          LDAP_CONNECTION = "ldap";
         };
         networks = [
           "datanet"
