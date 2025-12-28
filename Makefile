@@ -60,7 +60,7 @@ restore-readme:
 bootstrap-mac: install-nix install-nix-darwin
 
 pi-sdimage:
-	@if [ -z "$(pihost)" ]; then $(ERROR) "pihost is required (e.g., make pi-sdimage pihost=rpc-5-1)"; exit 1; fi
+	@if [ -z "$(pihost)" ]; then $(ERROR) "pihost is required (e.g., make pi-sdimage pihost=rpc-5-alpha)"; exit 1; fi
 	@$(HEADER) "🥧 Build Raspberry Pi SD Image"
 	@$(INFO) "Building SD image for $(pihost) on armistice..."
 	@nix build .#nixosConfigurations.$(pihost).config.system.build.sdImage \
@@ -75,8 +75,8 @@ pi-sdimage:
 	@gum style --foreground 245 "  make pi-flash pihost=$(pihost) device=/dev/sdX"
 
 pi-flash:
-	@if [ -z "$(pihost)" ]; then $(ERROR) "pihost is required (e.g., make pi-flash pihost=rpc-5-1 device=/dev/sda)"; exit 1; fi
-	@if [ -z "$(device)" ]; then $(ERROR) "device is required (e.g., make pi-flash pihost=rpc-5-1 device=/dev/sda)"; exit 1; fi
+	@if [ -z "$(pihost)" ]; then $(ERROR) "pihost is required (e.g., make pi-flash pihost=rpc-5-alpha device=/dev/sda)"; exit 1; fi
+	@if [ -z "$(device)" ]; then $(ERROR) "device is required (e.g., make pi-flash pihost=rpc-5-alpha device=/dev/sda)"; exit 1; fi
 	@if [ ! -d "result-$(pihost)-sdimage" ]; then $(ERROR) "result-$(pihost)-sdimage not found. Run 'make pi-sdimage pihost=$(pihost)' first."; exit 1; fi
 	@if [ ! -b "$(device)" ]; then $(ERROR) "$(device) is not a block device"; exit 1; fi
 	@$(HEADER) "🥧 Flash Raspberry Pi SD Card"

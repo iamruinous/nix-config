@@ -55,16 +55,16 @@ This infrastructure consists of 15 hosts spanning multiple platforms:
 
 The RPC is a cluster of Raspberry Pi devices for edge computing and experimentation.
 
-**Naming Convention:** `rpc-<model>-<member>`
+**Naming Convention:** `rpc-<model>-<name>`
 - `rpc` = Raspberry Pi Cluster prefix
 - `<model>` = Pi model (4 or 5)
-- `<member>` = Cluster member number (1, 2, 3, ...)
+- `<name>` = NATO phonetic alphabet (alpha, bravo, charlie, delta, echo, foxtrot...)
 
 | Hostname | Model | Status |
 |----------|-------|--------|
-| `rpc-5-1` | Raspberry Pi 5 | Configured |
+| `rpc-5-alpha` | Raspberry Pi 5 | Configured |
 
-**Adding New Members:** Use `/create-pi-host rpc-<model>-<member>`
+**Adding New Members:** Use `/create-pi-host rpc-<model>-<name>` (e.g., `rpc-5-bravo`, `rpc-4-charlie`)
 
 **Legacy:** `rp500` is a standalone Raspberry Pi 500 (not part of the cluster)
 
@@ -185,7 +185,7 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 
 | Host | Type | Platform | CPU | RAM | Primary Role |
 |------|------|----------|-----|-----|--------------|
-| rpc-5-1 | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
+| rpc-5-alpha | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
 | armistice | Server | NixOS | ARM64 | 64 GB | ARM workstation |
 | monolith | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Infrastructure hub |
 | obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |

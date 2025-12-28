@@ -225,8 +225,9 @@
       rp500 = mkPi5Host ./hosts/rp500;
 
       # RPC (Raspberry Pi Cluster) members
-      # Naming: rpc-<model>-<member> (e.g., rpc-5-1 = Pi 5, member 1)
-      rpc-5-1 = mkPi5Host ./hosts/rpc-5-1;
+      # Naming: rpc-<model>-<name> (e.g., rpc-5-alpha = Pi 5, member "alpha")
+      # Uses NATO phonetic alphabet: alpha, bravo, charlie, delta, echo, foxtrot...
+      rpc-5-alpha = mkPi5Host ./hosts/rpc-5-alpha;
     };
   in
     blueprintOutputs

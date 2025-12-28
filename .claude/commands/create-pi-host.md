@@ -4,20 +4,20 @@ description: Create a new Raspberry Pi cluster host configuration
 
 Create a new Raspberry Pi host for the RPC (Raspberry Pi Cluster).
 
-**Required arguments:** `$ARGUMENTS` should contain the hostname in format `rpc-<model>-<member>` (e.g., "rpc-5-1", "rpc-4-2")
+**Required arguments:** `$ARGUMENTS` should contain the hostname in format `rpc-<model>-<name>` (e.g., "rpc-5-alpha", "rpc-4-bravo")
 
 ## Naming Convention
 
 - `rpc` = Raspberry Pi Cluster prefix
 - `<model>` = Pi model: `4` for Pi 4, `5` for Pi 5
-- `<member>` = Cluster member number (1, 2, 3, ...)
+- `<name>` = NATO phonetic alphabet (alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet, kilo, lima, mike, november, oscar, papa, quebec, romeo, sierra, tango, uniform, victor, whiskey, xray, yankee, zulu)
 
 ## Steps
 
 1. **Parse and validate the hostname** from `$ARGUMENTS`
-   - Must match pattern `rpc-[45]-[0-9]+`
+   - Must match pattern `rpc-[45]-(alpha|bravo|charlie|delta|echo|foxtrot|golf|hotel|india|juliet|kilo|lima|mike|november|oscar|papa|quebec|romeo|sierra|tango|uniform|victor|whiskey|xray|yankee|zulu)`
    - Extract the model number (4 or 5)
-   - Extract the member number
+   - Extract the member name (NATO phonetic alphabet)
    - If invalid, ask the user to provide a valid hostname
 
 2. **Check if host already exists:**
@@ -200,7 +200,7 @@ Create a new Raspberry Pi host for the RPC (Raspberry Pi Cluster).
 ## Example Usage
 
 ```
-/create-pi-host rpc-5-1
-/create-pi-host rpc-4-1
-/create-pi-host rpc-5-2
+/create-pi-host rpc-5-alpha
+/create-pi-host rpc-4-bravo
+/create-pi-host rpc-5-charlie
 ```
