@@ -183,7 +183,7 @@ endpoints:
     url: "https://calibre-dl.meskill.farm"
     interval: 5m
     conditions:
-      - "[STATUS] == 200"
+      - "[STATUS] == 401"
     alerts:
       - type: discord
       - type: email
