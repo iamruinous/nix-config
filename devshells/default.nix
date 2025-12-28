@@ -7,7 +7,9 @@ pkgs.mkShell {
     cloudflare-cli
     doggo # Modern DNS client for lookups
     go # Go compiler for building/testing Go packages
+    gum # Pretty TUI for Makefile commands
     pnpm # For running Node.js-based MCP servers
+    pv # Pipe viewer for progress bars (used by pi-flash)
     uv # Provides uvx for running Python-based MCP servers
     postgresql # cli for postgres
   ];
