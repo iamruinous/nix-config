@@ -149,6 +149,7 @@
           LDAP_ORGANISATION = "meskill-farmhouse";
           LDAP_DOMAIN = "meskill-farmhouse.lan";
         };
+        environmentFiles = [config.age.secrets.monolith_docker_env_openldap.path];
         networks = [
           "datanet"
           "proxynet"
@@ -1007,6 +1008,10 @@
   };
   age.secrets.monolith_docker_env_mariadb = {
     rekeyFile = ./files/docker/env/mariadb.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_openldap = {
+    rekeyFile = ./files/docker/env/openldap.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_n8n = {
