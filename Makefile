@@ -67,6 +67,7 @@ pi-sdimage:
 		--builders "ssh://armistice.meskill.farm aarch64-linux - 12 1 benchmark,big-parallel,kvm" \
 		--max-jobs 0 \
 		--cores 0 \
+		--log-format bar-with-logs \
 		-o result-$(pihost)-sdimage
 	@$(SUCCESS) "SD image built: result-$(pihost)-sdimage/"
 	@echo ""
@@ -84,7 +85,9 @@ pi-flash:
 	@$(INFO) "Decompressing image..."
 	@gum spin --spinner dot --title "Decompressing $(pihost) image..." -- zstd -d -f result-$(pihost)-sdimage/sd-image/*.img.zst -o /tmp/$(pihost).img
 	@$(INFO) "Flashing to $(device)..."
-	@pv -tpreb /tmp/$(pihost).img | sudo dd of=$(device) bs=4M conv=fsync 2>/dev/null
+	@sudo dd if=/tmp/$(pihost).img bs=4M iflag=fullblock status=none | \
+		pv -s $$(stat -c%s /tmp/$(pihost).img) | \
+		sudo dd of=$(device) bs=4M conv=fsync status=none
 	@sync
 	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."
