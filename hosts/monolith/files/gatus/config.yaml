@@ -593,10 +593,11 @@ endpoints:
 
   - name: "Filestash (pilaster)"
     group: "Productivity"
-    url: "https://files.meskill.farm"
+    url: "https://files.meskill.farm/healthz"
     interval: 5m
     conditions:
-      - "[STATUS] == 200 || [STATUS] == 307"
+      - "[STATUS] == 200"
+      - "[BODY].status == pass"
     alerts:
       - type: discord
       - type: email
