@@ -4,6 +4,8 @@
   lib,
   ...
 }: {
+  # Enable dynamic login prompt with system info
+  ruinous.dynamicIssue.enable = true;
   # Use the recommended "kernel" bootloader for Raspberry Pi
   boot.loader.raspberryPi.bootloader = "kernel";
 
