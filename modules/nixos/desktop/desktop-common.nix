@@ -6,10 +6,11 @@
   imports = [flake.nixosModules.default];
 
   environment.systemPackages = with pkgs; [
-    sbctl
+    discord
     fastfetch
     google-chrome
     obsidian
+    sbctl
     todoist-electron
   ];
 }
