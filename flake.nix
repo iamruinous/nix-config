@@ -132,31 +132,48 @@
     };
 
     # Raspberry Pi hosts (using nixos-raspberrypi's nixosSystem for proper kernel/bootloader support)
-    piHosts = {
-      rp500 = inputs.nixos-raspberrypi.lib.nixosSystem {
-        # specialArgs is required by nixos-raspberrypi and must include nixos-raspberrypi
-        specialArgs = {
-          inherit inputs;
-          flake = inputs.self;
-          nixos-raspberrypi = inputs.nixos-raspberrypi;
-          # Provide perSystem for overlay module (blueprint normally provides this)
-          # perSystem.self contains the flake's packages for the current system
-          perSystem = {
-            self = blueprintOutputs.packages.aarch64-linux;
-          };
+    # See hosts/raspberry-pi/README.md for naming conventions and documentation
+    piHosts = let
+      # Common specialArgs for all Pi hosts
+      mkPiSpecialArgs = {
+        inherit inputs;
+        flake = inputs.self;
+        nixos-raspberrypi = inputs.nixos-raspberrypi;
+        perSystem = {
+          self = blueprintOutputs.packages.aarch64-linux;
         };
-        modules = [
-          # RPi 5 hardware modules
-          inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
-          inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
-
-          # SD image builder support
-          inputs.nixos-raspberrypi.nixosModules.sd-image
-
-          # Host configuration
-          ./hosts/rp500/configuration.nix
-        ];
       };
+
+      # Helper to create a Pi 5 host
+      mkPi5Host = hostPath:
+        inputs.nixos-raspberrypi.lib.nixosSystem {
+          specialArgs = mkPiSpecialArgs;
+          modules = [
+            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
+            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
+            inputs.nixos-raspberrypi.nixosModules.sd-image
+            hostPath
+          ];
+        };
+
+      # Helper to create a Pi 4 host
+      mkPi4Host = hostPath:
+        inputs.nixos-raspberrypi.lib.nixosSystem {
+          specialArgs = mkPiSpecialArgs;
+          modules = [
+            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.base
+            inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.display-vc4
+            inputs.nixos-raspberrypi.nixosModules.sd-image
+            hostPath
+          ];
+        };
+    in {
+      # Legacy standalone Pi
+      rp500 = mkPi5Host ./hosts/rp500/configuration.nix;
+
+      # RPC (Raspberry Pi Cluster) members
+      # Naming: rpc-<model>-<member> (e.g., rpc-5-1 = Pi 5, member 1)
+      rpc-5-1 = mkPi5Host ./hosts/rpc-5-1/configuration.nix;
     };
   in
     blueprintOutputs
