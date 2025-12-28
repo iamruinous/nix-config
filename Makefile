@@ -64,8 +64,9 @@ pi-sdimage:
 	@$(HEADER) "🥧 Build Raspberry Pi SD Image"
 	@$(INFO) "Building SD image for $(pihost) on armistice..."
 	@nix build .#nixosConfigurations.$(pihost).config.system.build.sdImage \
-		--builders "ssh://armistice.meskill.farm aarch64-linux" \
+		--builders "ssh://armistice.meskill.farm aarch64-linux - 12 1 benchmark,big-parallel,kvm" \
 		--max-jobs 0 \
+		--cores 0 \
 		-o result-$(pihost)-sdimage
 	@$(SUCCESS) "SD image built: result-$(pihost)-sdimage/"
 	@echo ""
