@@ -1,4 +1,4 @@
-.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash
 
 update-flake:
 	@echo "Updating flake..."
@@ -52,5 +52,20 @@ pi-sdimage:
 	@echo "SD image built: result-$(pihost)-sdimage/"
 	@echo ""
 	@echo "To flash to SD card:"
-	@echo "  zstd -d result-$(pihost)-sdimage/sd-image/*.img.zst -o $(pihost).img"
-	@echo "  sudo dd if=$(pihost).img of=/dev/sdX bs=4M status=progress"
+	@echo "  make pi-flash pihost=$(pihost) device=/dev/sdX"
+
+pi-flash:
+	@if [ -z "$(pihost)" ]; then echo "Error: pihost is required (e.g., make pi-flash pihost=rpc-5-1 device=/dev/sda)"; exit 1; fi
+	@if [ -z "$(device)" ]; then echo "Error: device is required (e.g., make pi-flash pihost=rpc-5-1 device=/dev/sda)"; exit 1; fi
+	@if [ ! -d "result-$(pihost)-sdimage" ]; then echo "Error: result-$(pihost)-sdimage not found. Run 'make pi-sdimage pihost=$(pihost)' first."; exit 1; fi
+	@if [ ! -b "$(device)" ]; then echo "Error: $(device) is not a block device"; exit 1; fi
+	@echo "WARNING: This will erase all data on $(device)!"
+	@echo "Press Ctrl+C to cancel, or Enter to continue..."
+	@read _
+	@echo "Decompressing image..."
+	@zstd -d -f result-$(pihost)-sdimage/sd-image/*.img.zst -o /tmp/$(pihost).img
+	@echo "Flashing to $(device)..."
+	@sudo dd if=/tmp/$(pihost).img of=$(device) bs=4M status=progress conv=fsync
+	@sync
+	@rm /tmp/$(pihost).img
+	@echo "Flash complete! You can now safely remove $(device)."
