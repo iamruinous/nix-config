@@ -364,6 +364,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Weaviate (monolith)"
+    group: "AI"
+    url: "http://weaviate:8080/v1/.well-known/ready"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   - name: "Apprise (monolith)"
     group: "Automation"
     url: "https://apprise.meskill.farm"
