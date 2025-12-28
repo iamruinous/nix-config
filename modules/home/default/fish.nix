@@ -129,8 +129,13 @@ in {
         echo "$TOILETNAME" | ${pkgs.toilet}/bin/toilet -f "$TOILETFONT" | ${pkgs.lolcat}/bin/lolcat
       end
 
+      # Display system info and fortune via rust-motd (if enabled)
+      # Falls back to fortune only if rust-motd is not available
       if [ "$ITERM_PROFILE" != "Hotkey Window" ]
-        if type -q ${pkgs.fortune}/bin/fortune
+        if type -q ${pkgs.rust-motd}/bin/rust-motd
+          echo ""
+          ${pkgs.rust-motd}/bin/rust-motd 2>/dev/null
+        else if type -q ${pkgs.fortune}/bin/fortune
           set_color brblack
           echo ""
           ${pkgs.fortune}/bin/fortune
