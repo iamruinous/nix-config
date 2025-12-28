@@ -85,9 +85,7 @@ pi-flash:
 	@$(INFO) "Decompressing image..."
 	@gum spin --spinner dot --title "Decompressing $(pihost) image..." -- zstd -d -f result-$(pihost)-sdimage/sd-image/*.img.zst -o /tmp/$(pihost).img
 	@$(INFO) "Flashing to $(device)..."
-	@sudo dd if=/tmp/$(pihost).img bs=4M iflag=fullblock status=none | \
-		pv -s $$(stat -c%s /tmp/$(pihost).img) | \
-		sudo dd of=$(device) bs=4M conv=fsync status=none
+	@sudo sh -c 'pv -s $$(stat -c%s /tmp/$(pihost).img) /tmp/$(pihost).img | dd of=$(device) bs=4M conv=fsync status=none'
 	@sync
 	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."
