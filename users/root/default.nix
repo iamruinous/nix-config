@@ -1,5 +1,8 @@
 {
   uid = 0;
   isSystemUser = true;
-  openssh.authorizedKeys.keyFiles = [../jmeskill/id_ed25519.pub];
+  openssh.authorizedKeys.keyFiles = [
+    ../jmeskill/id_ed25519.pub
+    ./id_ed25519_chassis.pub
+  ];
 }

@@ -55,6 +55,7 @@
     root =
       raw
       // {
+        isNormalUser = false;
         openssh = {
           authorizedKeys = raw.openssh.authorizedKeys or {};
           authorizedPrincipals = raw.openssh.authorizedPrincipals or [];
