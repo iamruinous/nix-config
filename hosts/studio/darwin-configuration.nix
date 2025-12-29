@@ -1,6 +1,6 @@
 {flake, ...}: {
   imports = [
-    flake.darwinModules.common
+    flake.darwinModules.desktop
     flake.sharedModules.developer
   ];
 

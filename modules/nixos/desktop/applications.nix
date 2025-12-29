@@ -1,10 +1,4 @@
-{
-  flake,
-  pkgs,
-  ...
-}: {
-  imports = [flake.nixosModules.default];
-
+{pkgs, ...}: {
   environment.systemPackages = with pkgs; [
     discord
     fastfetch

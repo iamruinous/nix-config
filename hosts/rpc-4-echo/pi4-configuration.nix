@@ -2,9 +2,9 @@
 # This file is auto-discovered by lib/pi.nix based on the pi4-configuration.nix filename
 {flake, ...}: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.server
+    flake.nixosModules.console
     flake.nixosModules.pi
+
     ./hardware-configuration.nix
   ];
 

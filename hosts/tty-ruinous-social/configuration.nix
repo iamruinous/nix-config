@@ -7,9 +7,9 @@
   ...
 }: {
   imports = [
-    flake.nixosModules.default
-    flake.sharedModules.developer
     flake.nixosModules.server
+    flake.sharedModules.developer
+
     ./hardware-configuration.nix
     ./containers.nix
     #./disko.nix

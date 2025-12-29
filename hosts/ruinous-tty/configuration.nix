@@ -7,9 +7,7 @@
   ...
 }: {
   imports = [
-    flake.inputs.microvm.nixosModules.microvm
-    flake.inputs.impermanence.nixosModules.impermanence
-    flake.nixosModules.default
+    flake.nixosModules.microvm
     flake.sharedModules.developer
   ];
 

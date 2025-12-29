@@ -1,11 +1,14 @@
 # Common settings for Raspberry Pi hosts
 {
   inputs,
+  flake,
   lib,
   ...
 }: {
-  # Enable dynamic login prompt with system info
-  ruinous.dynamicIssue.enable = true;
+  # include nixos.common by default
+  imports = [
+    flake.nixosModules.common
+  ];
   # Use the recommended "kernel" bootloader for Raspberry Pi
   boot.loader.raspberryPi.bootloader = "kernel";
 
@@ -15,9 +18,6 @@
     type = "path";
     path = inputs.nixpkgs.outPath;
   };
-
-  # Disable UPS monitoring (no UPS connected to Pis)
-  power.ups.enable = lib.mkForce false;
 
   # Allow mutable users during initial setup (Pis need this for first boot)
   users.mutableUsers = lib.mkForce true;

@@ -4,12 +4,6 @@
   flake,
   ...
 }: {
-  imports = [
-    # Import shared cross-platform modules
-    flake.sharedModules.universal
-    flake.sharedModules.console
-  ];
-
   nix.package = pkgs.nix;
 
   # disable for Determinate Nix

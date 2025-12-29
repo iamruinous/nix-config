@@ -3,8 +3,8 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 {flake, ...}: {
   imports = [
-    flake.nixosModules.default
     flake.nixosModules.server
+
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./disko.nix

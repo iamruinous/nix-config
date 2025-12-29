@@ -3,12 +3,10 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {flake, ...}: {
   imports = [
-    flake.nixosModules.default
-    flake.sharedModules.developer
-    flake.nixosModules.desktop
-    flake.desktopModules.hyprland
-    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
+
+    flake.nixosModules.server
+    flake.sharedModules.developer
 
     ./hardware-configuration.nix
     ./containers.nix

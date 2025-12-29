@@ -62,8 +62,6 @@
       yaml-language-server
 
       # helpful cli utils
-      gum
-      glow
       vhs
       forgejo-cli
       gh
@@ -80,18 +78,6 @@
       rust-analyzer-nightly
     ]
     ++ (pkgs.lib.optionals pkgs.stdenv.isLinux [
-      # ai tools (installed via brew on macos)
-      claude-code
-      codex
-      crush
-      gemini-cli
-      gemini-cli-preview
-      opencode
-
-      # sandboxing
-      socat
-      bubblewrap
-
       # zig currently broken on Darwin
       zig
       zls
