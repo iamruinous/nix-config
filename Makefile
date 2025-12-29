@@ -1,4 +1,4 @@
-.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash check
 
 # Colors and styles
 HEADER = gum style --foreground 212 --bold
@@ -89,3 +89,25 @@ pi-flash:
 	@sync
 	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."
+
+# Sanity check - dry-build representative hosts from each category
+# Tests: NixOS desktop, NixOS server, Darwin, and Raspberry Pi
+check:
+	@$(HEADER) "🧪 Sanity Check - Dry Build Representative Hosts"
+	@$(INFO) "Testing NixOS desktop (framework)..."
+	@nix build .#nixosConfigurations.framework.config.system.build.toplevel --dry-run 2>/dev/null
+	@$(SUCCESS) "framework (NixOS desktop) OK"
+	@$(INFO) "Testing NixOS server (monolith)..."
+	@nix build .#nixosConfigurations.monolith.config.system.build.toplevel --dry-run 2>/dev/null
+	@$(SUCCESS) "monolith (NixOS server) OK"
+	@$(INFO) "Testing Darwin (jbookpro)..."
+	@nix build .#darwinConfigurations.jbookpro.system --dry-run 2>/dev/null
+	@$(SUCCESS) "jbookpro (Darwin) OK"
+	@$(INFO) "Testing Raspberry Pi 5 (rp500)..."
+	@nix build .#nixosConfigurations.rp500.config.system.build.toplevel --dry-run 2>/dev/null
+	@$(SUCCESS) "rp500 (Raspberry Pi 5) OK"
+	@$(INFO) "Testing Raspberry Pi 4 (rpc-4-echo)..."
+	@nix build .#nixosConfigurations.rpc-4-echo.config.system.build.toplevel --dry-run 2>/dev/null
+	@$(SUCCESS) "rpc-4-echo (Raspberry Pi 4) OK"
+	@echo ""
+	@gum style --foreground 82 --bold "✓ All sanity checks passed!"
