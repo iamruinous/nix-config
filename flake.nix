@@ -148,16 +148,6 @@
       # Blueprint auto-discovers modules/shared/ and creates modules.shared
       sharedModules = blueprintOutputs.modules.shared or {};
 
-      # Expose desktop environment modules manually
-      # Blueprint creates flat module outputs, so we expose subdirectories here
-      desktopModules = {
-        kde = ./modules/nixos/desktop/kde;
-        gnome = ./modules/nixos/desktop/gnome;
-        hyprland = ./modules/nixos/desktop/hyprland;
-        lxqt = ./modules/nixos/desktop/lxqt;
-        xfce = ./modules/nixos/desktop/xfce;
-      };
-
       # Merge Pi hosts with blueprint nixosConfigurations
       nixosConfigurations = blueprintOutputs.nixosConfigurations // piHosts;
 

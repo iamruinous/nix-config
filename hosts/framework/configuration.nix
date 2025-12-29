@@ -15,7 +15,7 @@
 
     flake.sharedModules.developer
     flake.nixosModules.desktop
-    flake.desktopModules.kde
+    flake.nixosModules.kde
 
     ./hardware-configuration.nix
   ];

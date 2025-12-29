@@ -7,7 +7,7 @@
 
     flake.sharedModules.developer
     flake.nixosModules.desktop
-    flake.desktopModules.kde
+    flake.nixosModules.kde
 
     ./disko.nix
     ./hardware-configuration.nix
