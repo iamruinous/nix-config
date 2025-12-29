@@ -1,5 +1,5 @@
-# Disabled: Takes too long to run and not currently adding value
-# To re-enable, remove the 'if: false' line from the job
+# Sanity check - dry-build representative hosts on every commit
+# Tests: NixOS desktop, NixOS server, Darwin, and Raspberry Pi
 on:
   pull_request:
   workflow_dispatch:
@@ -8,9 +8,8 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build Nix targets
-    if: false  # Disabled - see comment at top of file
+  check:
+    name: Sanity Check Builds
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -18,15 +17,32 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Free up disk space 
+
+      - name: Free up disk space
         uses: wimpysworld/nothing-but-nix@main
         with:
           hatchet-protocol: 'holster'
+
       - name: Install Nix
         uses: DeterminateSystems/determinate-nix-action@v3
+
       - name: Cache Nix
         uses: DeterminateSystems/flakehub-cache-action@v2
-      - name: Check nix
+
+      - name: Check flake syntax
         uses: DeterminateSystems/flake-checker-action@v12
-      - name: Check flake
-        run: nix flake check
+
+      - name: Dry-build NixOS desktop (framework)
+        run: nix build .#nixosConfigurations.framework.config.system.build.toplevel --dry-run
+
+      - name: Dry-build NixOS server (monolith)
+        run: nix build .#nixosConfigurations.monolith.config.system.build.toplevel --dry-run
+
+      - name: Dry-build Darwin (jbookpro)
+        run: nix build .#darwinConfigurations.jbookpro.system --dry-run
+
+      - name: Dry-build Raspberry Pi 5 (rp500)
+        run: nix build .#nixosConfigurations.rp500.config.system.build.toplevel --dry-run
+
+      - name: Dry-build Raspberry Pi 4 (rpc-4-echo)
+        run: nix build .#nixosConfigurations.rpc-4-echo.config.system.build.toplevel --dry-run

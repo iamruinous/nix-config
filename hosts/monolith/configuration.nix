@@ -7,10 +7,10 @@
   ...
 }: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
+
+    flake.nixosModules.server
+    flake.sharedModules.developer
 
     ./hardware-configuration.nix
     ./containers.nix
@@ -23,7 +23,7 @@
     ./rtl_433.nix
   ];
 
-  networking.hostName = "monolith"; # Define your hostname.
+  networking.hostName = "monolith";
   ruinous.kernel.useLatest = true;
 
   programs.nix-ld.enable = true;

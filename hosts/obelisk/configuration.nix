@@ -3,11 +3,10 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {flake, ...}: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.hyprland
-    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
+
+    flake.nixosModules.server
+    flake.sharedModules.developer
 
     ./hardware-configuration.nix
     ./containers.nix
@@ -18,7 +17,7 @@
     ./microvm.nix
   ];
 
-  networking.hostName = "obelisk"; # Define your hostname.
+  networking.hostName = "obelisk";
   ruinous.kernel.useLatest = true;
 
   # virtualisation.libvirtd.enable = true;

@@ -30,7 +30,7 @@
   # boot.loader.grub.device = "/dev/sda1"; # or "nodev" for efi only
   boot.supportedFilesystems = ["btrfs"];
 
-  # networking.hostName = "nixos"; # Define your hostname.
+  # networking.hostName = "nixos";
 
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.

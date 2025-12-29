@@ -1,19 +1,23 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{flake, pkgs, ...}: {
+{
+  flake,
+  pkgs,
+  ...
+}: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
+
+    flake.nixosModules.server
+    flake.sharedModules.developer
 
     ./hardware-configuration.nix
     ./containers.nix
     ./disko.nix
   ];
 
-  networking.hostName = "zenith"; # Define your hostname.
+  networking.hostName = "zenith";
   ruinous.kernel.useLatest = true;
 
   virtualisation.docker.enable = true;

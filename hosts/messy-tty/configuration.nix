@@ -8,10 +8,8 @@
   ...
 }: {
   imports = [
-    flake.inputs.microvm.nixosModules.microvm
-    flake.inputs.impermanence.nixosModules.impermanence
-    flake.nixosModules.default
-    flake.nixosModules.developer
+    flake.nixosModules.microvm
+    flake.sharedModules.developer
   ];
 
   networking.hostName = "messy-tty";

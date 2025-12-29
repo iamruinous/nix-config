@@ -1,24 +1,18 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{
-  pkgs,
-  lib,
-  inputs,
-  flake,
-  ...
-}: {
+{flake, ...}: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.kde
     flake.inputs.disko.nixosModules.disko
+
+    flake.sharedModules.developer
+    flake.nixosModules.kde
 
     ./disko.nix
     ./hardware-configuration.nix
   ];
 
-  networking.hostName = "chassis"; # Define your hostname.
+  networking.hostName = "chassis";
   # Note: kernel handled by nixos-hardware framework-desktop module
 
   programs._1password.enable = true;

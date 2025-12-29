@@ -7,15 +7,15 @@
   ...
 }: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
     flake.nixosModules.server
+    flake.sharedModules.developer
+
     ./hardware-configuration.nix
     ./containers.nix
     #./disko.nix
   ];
 
-  networking.hostName = "tty-ruinous-social"; # Define your hostname.
+  networking.hostName = "tty-ruinous-social";
   ruinous.kernel.useLatest = true;
 
   networking.usePredictableInterfaceNames = false;

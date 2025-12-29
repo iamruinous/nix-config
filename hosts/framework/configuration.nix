@@ -9,16 +9,18 @@
   ...
 }: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.kde
-    flake.inputs.lanzaboote.nixosModules.lanzaboote
     inputs.hardware.nixosModules.framework-intel-core-ultra-series1
+
+    flake.inputs.lanzaboote.nixosModules.lanzaboote
+
+    flake.sharedModules.developer
+    flake.nixosModules.desktop
+    flake.nixosModules.kde
 
     ./hardware-configuration.nix
   ];
 
-  networking.hostName = "framework"; # Define your hostname.
+  networking.hostName = "framework";
   ruinous.kernel.useLatest = true;
 
   # Lanzaboote currently replaces the systemd-boot module.

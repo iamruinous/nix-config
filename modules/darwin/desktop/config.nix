@@ -4,10 +4,6 @@
   flake,
   ...
 }: {
-  imports = [
-    flake.nixosModules.common
-  ];
-
   nix.package = pkgs.nix;
 
   # disable for Determinate Nix

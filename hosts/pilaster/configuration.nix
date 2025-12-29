@@ -8,10 +8,10 @@
   ...
 }: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
+
+    flake.nixosModules.server
+    flake.sharedModules.developer
 
     ./hardware-configuration.nix
     ./cloudflared.nix
@@ -20,7 +20,7 @@
     ./nfs.nix
   ];
 
-  networking.hostName = "pilaster"; # Define your hostname.
+  networking.hostName = "pilaster";
   ruinous.kernel.useLatest = true;
 
   systemd.services.mariadb-backup.serviceConfig.EnvironmentFile = config.age.secrets.pilaster_docker_env_mariadb.path;

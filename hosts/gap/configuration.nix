@@ -3,14 +3,13 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 {flake, ...}: {
   imports = [
-    flake.nixosModules.default
     flake.nixosModules.server
-    # Include the results of the hardware scan.
+
     ./hardware-configuration.nix
     ./disko.nix
   ];
 
-  networking.hostName = "gap"; # Define your hostname.
+  networking.hostName = "gap";
   ruinous.kernel.useLatest = true;
 
   power.ups.enable = true;

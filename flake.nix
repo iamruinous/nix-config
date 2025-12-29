@@ -126,117 +126,32 @@
   # Load the blueprint
   # outputs = inputs: inputs.blueprint {inherit inputs;};
   outputs = inputs: let
+    # Custom library functions for this flake
+    ruinousLib = import ./lib {inherit inputs;};
+
     blueprintOutputs = inputs.blueprint {
       inherit inputs;
       nixpkgs.config.allowUnfree = true;
     };
 
-    # Raspberry Pi hosts (using nixos-raspberrypi's nixosSystem for proper kernel/bootloader support)
-    # See hosts/README.md for naming conventions and documentation
-    piHosts = let
-      # Common specialArgs for all Pi hosts
-      mkPiSpecialArgs = {
-        inherit inputs;
-        flake = inputs.self;
-        nixos-raspberrypi = inputs.nixos-raspberrypi;
-        perSystem = {
-          self = blueprintOutputs.packages.aarch64-linux;
-        };
-      };
-
-      # Common modules for all Pi hosts
-      piCommonModules = [
-        inputs.self.nixosModules.default
-        inputs.self.nixosModules.server
-        inputs.self.nixosModules.pi
-        inputs.home-manager.nixosModules.home-manager
-      ];
-
-      # Discover home-manager users from host directory
-      # Returns an attrset of user configs with proper defaults
-      discoverUsers = hostDir: let
-        usersDir = hostDir + "/users";
-        userDirs =
-          if builtins.pathExists usersDir
-          then builtins.attrNames (builtins.readDir usersDir)
-          else [];
-        hasHomeConfig = name:
-          builtins.pathExists (usersDir + "/${name}/home-configuration.nix");
-        validUsers = builtins.filter hasHomeConfig userDirs;
-        # Create user config with required defaults
-        mkUserConfig = name: {pkgs, ...}: {
-          imports = [
-            (import (usersDir + "/${name}/home-configuration.nix"))
-          ];
-          home = {
-            username = name;
-            homeDirectory = "/home/${name}";
-            stateVersion = "25.11";
-          };
-        };
-      in
-        builtins.listToAttrs (map (name: {
-            inherit name;
-            value = mkUserConfig name;
-          })
-          validUsers);
-
-      # Home-manager configuration module for a Pi host
-      mkHomeManagerConfig = hostDir: {
-        home-manager = {
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          extraSpecialArgs = mkPiSpecialArgs;
-          users = discoverUsers hostDir;
-        };
-      };
-
-      # Helper to create a Pi 5 host
-      mkPi5Host = hostDir:
-        inputs.nixos-raspberrypi.lib.nixosSystem {
-          specialArgs = mkPiSpecialArgs;
-          modules =
-            piCommonModules
-            ++ [
-              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
-              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
-              inputs.nixos-raspberrypi.nixosModules.sd-image
-              (hostDir + "/configuration.nix")
-              (mkHomeManagerConfig hostDir)
-            ];
-        };
-
-      # Helper to create a Pi 4 host
-      mkPi4Host = hostDir:
-        inputs.nixos-raspberrypi.lib.nixosSystem {
-          specialArgs = mkPiSpecialArgs;
-          modules =
-            piCommonModules
-            ++ [
-              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.base
-              inputs.nixos-raspberrypi.nixosModules.raspberry-pi-4.display-vc4
-              inputs.nixos-raspberrypi.nixosModules.sd-image
-              (hostDir + "/configuration.nix")
-              (mkHomeManagerConfig hostDir)
-            ];
-        };
-    in {
-      # Legacy standalone Pi
-      rp500 = mkPi5Host ./hosts/rp500;
-
-      # RPC (Raspberry Pi Cluster) members
-      # Naming: rpc-<model>-<name> (e.g., rpc-5-alpha = Pi 5, member "alpha")
-      # Uses NATO phonetic alphabet: alpha, bravo, charlie, delta, echo, foxtrot...
-      rpc-5-alpha = mkPi5Host ./hosts/rpc-5-alpha;
-      rpc-4-echo = mkPi4Host ./hosts/rpc-4-echo;
+    # Raspberry Pi hosts (auto-discovered from hosts/ directory)
+    # Pi hosts are identified by pi5-configuration.nix or pi4-configuration.nix files
+    # See lib/pi.nix for implementation details
+    piHosts = ruinousLib.pi.discoverPiHosts {
+      hostsDir = ./hosts;
+      inherit blueprintOutputs;
     };
   in
     blueprintOutputs
     // {
+      # Expose shared modules (cross-platform) from blueprint
+      # Blueprint auto-discovers modules/shared/ and creates modules.shared
+      sharedModules = blueprintOutputs.modules.shared or {};
+
       # Merge Pi hosts with blueprint nixosConfigurations
       nixosConfigurations = blueprintOutputs.nixosConfigurations // piHosts;
 
-      # packages = pkgs.perSystem.default;
+      # add hashes for cachenix
       caches = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

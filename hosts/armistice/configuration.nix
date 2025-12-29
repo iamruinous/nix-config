@@ -3,17 +3,17 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {flake, ...}: {
   imports = [
-    flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
+
+    flake.sharedModules.developer
+    flake.nixosModules.server
 
     ./hardware-configuration.nix
     ./containers.nix
     ./disko.nix
   ];
 
-  networking.hostName = "armistice"; # Define your hostname.
+  networking.hostName = "armistice";
   ruinous.kernel.useLatest = true;
 
   services.alloy.enable = true;
