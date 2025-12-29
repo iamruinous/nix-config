@@ -1,12 +1,4 @@
-{
-  lib,
-  flake,
-  ...
-}: {
-  imports = [
-    flake.homeModules.common
-  ];
-
+{lib, ...}: {
   options = {
     ruinous.starship.battery.enable = lib.mkEnableOption "enable battery in starship";
 

@@ -94,7 +94,9 @@ pi-flash:
 # Tests: NixOS desktop, NixOS server, Darwin, and Raspberry Pi
 check:
 	@$(HEADER) "🧪 Sanity Check - Dry Build Representative Hosts"
-	@$(INFO) "Testing NixOS desktop (framework)..."
+	@$(INFO) "Testing NixOS desktop (chassis)..."
+	@nix build .#nixosConfigurations.chassis.config.system.build.toplevel --dry-run 2>/dev/null
+	@$(INFO) "Testing NixOS laptop (framework)..."
 	@nix build .#nixosConfigurations.framework.config.system.build.toplevel --dry-run 2>/dev/null
 	@$(SUCCESS) "framework (NixOS desktop) OK"
 	@$(INFO) "Testing NixOS server (monolith)..."
