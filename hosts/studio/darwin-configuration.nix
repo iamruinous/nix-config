@@ -1,7 +1,7 @@
 {flake, ...}: {
   imports = [
-    flake.darwinModules.default
-    flake.nixosModules.developer
+    flake.darwinModules.common
+    flake.sharedModules.developer
   ];
 
   nixpkgs.hostPlatform = "x86_64-darwin";

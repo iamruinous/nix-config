@@ -3,7 +3,8 @@
   pkgs,
   ...
 }: {
-  imports = [flake.nixosModules.common];
+  # Import shared/universal for common nix settings
+  imports = [flake.sharedModules.universal];
 
   nixpkgs.overlays = [
     flake.inputs.claude-code.overlays.default
@@ -11,7 +12,7 @@
     flake.inputs.fenix.overlays.default
   ];
 
-  # System packages
+  # System packages - cross-platform developer utilities
   environment.systemPackages = with pkgs;
     [
       # dev tools
@@ -40,7 +41,6 @@
           # llm-gemini
         ]))
       uv
-      # zig # TODO: broken
 
       # lsp and formatters
       alejandra
@@ -60,7 +60,6 @@
       taplo
       typos-lsp
       yaml-language-server
-      # zls # TODO: zig broken
 
       # helpful cli utils
       gum
@@ -81,7 +80,7 @@
       rust-analyzer-nightly
     ]
     ++ (pkgs.lib.optionals pkgs.stdenv.isLinux [
-      # ai tools (brew on macos)
+      # ai tools (installed via brew on macos)
       claude-code
       codex
       crush
@@ -93,7 +92,8 @@
       socat
       bubblewrap
 
-      zig # zig currently broken on Darwin
+      # zig currently broken on Darwin
+      zig
       zls
     ]);
 }

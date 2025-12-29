@@ -10,7 +10,7 @@
     flake.inputs.microvm.nixosModules.microvm
     flake.inputs.impermanence.nixosModules.impermanence
     flake.nixosModules.default
-    flake.nixosModules.developer
+    flake.sharedModules.developer
   ];
 
   networking.hostName = "ruinous-tty";

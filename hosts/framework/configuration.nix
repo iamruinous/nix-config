@@ -10,8 +10,9 @@
 }: {
   imports = [
     flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.kde
+    flake.sharedModules.developer
+    flake.nixosModules.desktop
+    flake.desktopModules.kde
     flake.inputs.lanzaboote.nixosModules.lanzaboote
     inputs.hardware.nixosModules.framework-intel-core-ultra-series1
 

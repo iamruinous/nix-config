@@ -10,8 +10,9 @@
 }: {
   imports = [
     flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.kde
+    flake.sharedModules.developer
+    flake.nixosModules.desktop
+    flake.desktopModules.kde
     flake.inputs.disko.nixosModules.disko
 
     ./disko.nix

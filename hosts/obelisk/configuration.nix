@@ -4,8 +4,9 @@
 {flake, ...}: {
   imports = [
     flake.nixosModules.default
-    flake.nixosModules.developer
-    flake.nixosModules.hyprland
+    flake.sharedModules.developer
+    flake.nixosModules.desktop
+    flake.desktopModules.hyprland
     flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
 

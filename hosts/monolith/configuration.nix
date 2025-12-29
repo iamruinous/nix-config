@@ -8,7 +8,7 @@
 }: {
   imports = [
     flake.nixosModules.default
-    flake.nixosModules.developer
+    flake.sharedModules.developer
     flake.nixosModules.server
     flake.inputs.disko.nixosModules.disko
 
