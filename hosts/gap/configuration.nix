@@ -9,7 +9,7 @@
     ./disko.nix
   ];
 
-  networking.hostName = "gap"; # Define your hostname.
+  networking.hostName = "gap";
   ruinous.kernel.useLatest = true;
 
   power.ups.enable = true;

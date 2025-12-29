@@ -23,7 +23,7 @@
     ./rtl_433.nix
   ];
 
-  networking.hostName = "monolith"; # Define your hostname.
+  networking.hostName = "monolith";
   ruinous.kernel.useLatest = true;
 
   programs.nix-ld.enable = true;

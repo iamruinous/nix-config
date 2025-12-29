@@ -13,7 +13,7 @@
     ./disko.nix
   ];
 
-  networking.hostName = "armistice"; # Define your hostname.
+  networking.hostName = "armistice";
   ruinous.kernel.useLatest = true;
 
   services.alloy.enable = true;

@@ -15,7 +15,7 @@
     #./disko.nix
   ];
 
-  networking.hostName = "tty-ruinous-social"; # Define your hostname.
+  networking.hostName = "tty-ruinous-social";
   ruinous.kernel.useLatest = true;
 
   networking.usePredictableInterfaceNames = false;

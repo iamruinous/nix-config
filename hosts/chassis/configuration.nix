@@ -6,14 +6,13 @@
     flake.inputs.disko.nixosModules.disko
 
     flake.sharedModules.developer
-    flake.nixosModules.desktop
     flake.nixosModules.kde
 
     ./disko.nix
     ./hardware-configuration.nix
   ];
 
-  networking.hostName = "chassis"; # Define your hostname.
+  networking.hostName = "chassis";
   # Note: kernel handled by nixos-hardware framework-desktop module
 
   programs._1password.enable = true;

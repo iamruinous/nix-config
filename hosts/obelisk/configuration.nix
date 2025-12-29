@@ -17,7 +17,7 @@
     ./microvm.nix
   ];
 
-  networking.hostName = "obelisk"; # Define your hostname.
+  networking.hostName = "obelisk";
   ruinous.kernel.useLatest = true;
 
   # virtualisation.libvirtd.enable = true;

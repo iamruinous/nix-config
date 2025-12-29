@@ -10,7 +10,7 @@
     ./disko.nix
   ];
 
-  networking.hostName = "void"; # Define your hostname.
+  networking.hostName = "void";
   ruinous.kernel.useLatest = true;
 
   power.ups.enable = true;

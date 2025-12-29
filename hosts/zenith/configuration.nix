@@ -11,7 +11,6 @@
 
     flake.nixosModules.server
     flake.sharedModules.developer
-    flake.nixosModules.kde
 
     ./hardware-configuration.nix
     ./containers.nix

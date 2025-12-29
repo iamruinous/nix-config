@@ -20,7 +20,7 @@
     ./hardware-configuration.nix
   ];
 
-  networking.hostName = "framework"; # Define your hostname.
+  networking.hostName = "framework";
   ruinous.kernel.useLatest = true;
 
   # Lanzaboote currently replaces the systemd-boot module.
