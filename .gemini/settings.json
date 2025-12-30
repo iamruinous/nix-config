@@ -1,19 +1,10 @@
 {
-  "tools": {
-    "sandbox": true
-  },
-  "mcpServers": [
-    {
-      "name": "mcp-nixos",
-      "type": "local",
-      "command": "/nix/var/nix/profiles/default/bin/nix",
+  "mcpServers": {
+    "mcp-nixos": {
+      "command": "uvx",
       "args": [
-        "run",
-        "github:utensils/mcp-nixos"
+        "mcp-nixos"
       ]
     }
-  ],
-  "general": {
-    "previewFeatures": true
   }
 }
