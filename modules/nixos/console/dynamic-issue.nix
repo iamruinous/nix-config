@@ -15,6 +15,9 @@
     isExecutable = true;
     substitutions = [
       "--replace-fail"
+      "#!/usr/bin/env bash"
+      "#!${pkgs.bash}/bin/bash"
+      "--replace-fail"
       "@hostname@"
       "${pkgs.hostname}"
       "--replace-fail"
