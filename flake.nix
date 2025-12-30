@@ -108,14 +108,6 @@
     # <https://github.com/numtide/llm-agents.nix>
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # claude-code-nix
-    # <https://github.com/sadjow/claude-code-nix/>
-    #claude-code.url = "github:sadjow/claude-code-nix";
-
-    # gemini-cli-nix
-    # <https://github.com/iamruinous/gemini-cli-nix/>
-    #gemini-cli.url = "github:iamruinous/gemini-cli-nix";
-
     # nixos-raspberrypi
     # <https://https://github.com/nvmd/nixos-raspberrypi>
     # Note: Do NOT follow nixpkgs - nixos-raspberrypi has its own pinned nixpkgs
