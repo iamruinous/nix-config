@@ -572,6 +572,7 @@
           N8N_BLOCK_ENV_ACCESS_IN_NODE = "false";
           N8N_NATIVE_PYTHON_RUNNER = "true";
           WEAVIATE_URL = "http://weaviate:8080";
+          NODE_FUNCTION_ALLOW_BUILTIN = "*";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
@@ -593,6 +594,7 @@
           N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
           N8N_RUNNERS_TASK_TIMEOUT = "900";
           N8N_RUNNERS_MAX_CONCURRENCY = "10";
+          NODE_FUNCTION_ALLOW_BUILTIN = "*";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
         networks = ["servicenet"];
