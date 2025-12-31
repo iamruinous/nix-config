@@ -956,6 +956,11 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_messy_discord_bot.path];
         networks = ["servicenet"];
       };
+      newsy-discord-bot = {
+        image = "forge.meskill.farm/iamruinous/n8n-messy-discord-bot:1.0.0";
+        environmentFiles = [config.age.secrets.monolith_docker_env_newsy_discord_bot.path];
+        networks = ["servicenet"];
+      };
     };
   };
 
@@ -1054,6 +1059,10 @@
   };
   age.secrets.monolith_docker_env_messy_discord_bot = {
     rekeyFile = ./files/docker/env/messy-discord-bot.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_newsy_discord_bot = {
+    rekeyFile = ./files/docker/env/newsy-discord-bot.env.age;
     mode = "600";
   };
   age.secrets.monolith_docker_env_gatus = {
