@@ -8,6 +8,11 @@
     flake.sharedModules.universal
   ];
 
+  # direnv integration
+  programs.direnv = {
+    enable = lib.mkDefault true;
+  };
+
   # Fish configuration
   programs.fish.enable = lib.mkDefault true;
 }
