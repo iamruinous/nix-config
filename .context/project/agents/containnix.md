@@ -86,4 +86,5 @@ service-int.meskill.farm service.meskill.farm {
 
 ## Knowledge Management
 *   **Update Context:** When adding new information, patterns, or recipes, ALWAYS update the `.context/` directory (e.g., `.context/project/recipes/`, `.context/project/architecture.md`, or this file).
+*   **Index Maintenance:** If you create a new file in `.context/`, you MUST update [.context/index.md](../../index.md).
 *   **Exception:** Only update tool-specific configuration (e.g., `.claude/`, `.gemini/`) if the information is strictly scoped to that tool's technical implementation and irrelevant to the shared workflow.

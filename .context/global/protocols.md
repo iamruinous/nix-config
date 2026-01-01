@@ -29,6 +29,7 @@ When executing a step requires a Specialist:
 ### 3. Knowledge Management
 *   **Read:** Always check `.context/` first.
 *   **Write:** Only update `.context/` files for shared knowledge. Do not update tool-specific config (like `.claude/` or `.gemini/`) unless necessary for technical reasons.
+*   **Index Maintenance:** When creating or moving files within `.context/`, you MUST update [.context/index.md](../index.md) to maintain the single source of truth.
 
 ## Escalation Paths
 
