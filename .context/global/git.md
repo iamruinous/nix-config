@@ -23,14 +23,13 @@
    - Add new tasks discovered during implementation
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
-4. [ ] **git-secrets hooks installed?** Verify `.git/hooks/pre-commit` contains `git-secrets`.
-   - If not → run `git secrets --install` first.
+4. [ ] **gitleaks hooks installed?** Verify `.git/hooks/pre-commit` exists and runs `gitleaks`.
+   - If not → see [Hook Installation](#hook-installation-mandatory).
 
 **Quick start for new work:**
 ```bash
 git checkout main && git pull origin main
 git checkout -b feat/my-feature
-git secrets --install # Ensure hooks are active
 # make changes, then:
 git add <files> && git commit -m "feat: initial work"
 git push -u origin feat/my-feature
@@ -303,26 +302,32 @@ This enables the application to send transactional emails
 with full delivery tracking and user preference management.
 ```
 
-## Secret Leak Prevention (git-secrets)
+## Secret Leak Prevention (gitleaks)
 
-To prevent accidental leaks of sensitive information, this repository uses [git-secrets](https://github.com/awslabs/git-secrets).
+To prevent accidental leaks of sensitive information, this repository uses [gitleaks](https://github.com/gitleaks/gitleaks).
 
 ### Hook Installation (Mandatory)
 
 Run these commands once to install the mandatory Git hooks:
 
 ```bash
-# 1. Install git-secrets hooks into the current repository
-git secrets --install
+# Create the pre-commit hook
+cat << 'EOF' > .git/hooks/pre-commit
+#!/bin/sh
+# Check if gitleaks is installed
+if command -v gitleaks >/dev/null 2>&1; then
+    echo "Running gitleaks..."
+    gitleaks protect --verbose --staged
+else
+    echo "Warning: gitleaks not found. Skipping secret scan."
+fi
+EOF
 
-# 2. Add common patterns (AWS, etc.)
-git secrets --register-aws
-
-# 3. Add custom project-specific patterns (if any)
-# git secrets --add 'regex-pattern'
+# Make it executable
+chmod +x .git/hooks/pre-commit
 ```
 
-Once installed, `git secrets --scan` will run automatically on every `commit`.
+Once installed, `gitleaks protect` will run automatically on every `commit`, scanning staged changes for secrets.
 
 ## Branching Strategy
 
@@ -599,7 +604,7 @@ git add <file1> <file2> <file3>
 git diff --cached
 
 # 5. Create commit with detailed message
-# Note: git-secrets (if installed) will automatically scan via hooks.
+# Note: gitleaks (if installed) will automatically scan via hooks.
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 

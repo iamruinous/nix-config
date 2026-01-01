@@ -15,7 +15,7 @@
     [
       # dev tools
       devenv
-      git-secrets
+      gitleaks
       jq
       just
       lazygit
