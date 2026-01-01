@@ -344,8 +344,19 @@ else
 fi
 EOF
 
+# Create the post-commit hook (signature verification)
+cat << 'EOF' > .git/hooks/post-commit
+#!/bin/sh
+# Verify the commit signature
+if ! git verify-commit HEAD >/dev/null 2>&1; then
+    echo "❌ WARNING: Commit is NOT signed! Please amend the commit with signature: git commit --amend -S --no-edit"
+    exit 1
+fi
+echo "✅ Commit signed and verified."
+EOF
+
 # Make them executable
-chmod +x .git/hooks/pre-commit .git/hooks/commit-msg
+chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/post-commit
 ```
 
 Once installed, these hooks will run automatically on every `commit`.
