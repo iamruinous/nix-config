@@ -124,3 +124,7 @@ After `agenix rekey -a`, encrypted secrets are stored in:
 *   **Rekey fails:** Check `secrets.nix` and host public keys.
 *   **Secret not available at runtime:** Check `age.secrets` definition (mode, owner).
 *   **Environment file not loading:** Verify `environmentFiles` list in container config.
+
+## Knowledge Management
+*   **Update Context:** When adding new information, patterns, or recipes, ALWAYS update the `.context/` directory (e.g., `.context/recipes/`, `.context/project-context.md`, or this file).
+*   **Exception:** Only update tool-specific configuration (e.g., `.claude/`, `.gemini/`) if the information is strictly scoped to that tool's technical implementation and irrelevant to the shared workflow.

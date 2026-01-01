@@ -90,4 +90,8 @@ Internet -> Cloudflare Edge -> Tunnel (cloudflared) -> Caddy (Internal) -> Servi
 1.  **One Tunnel per Service:** Better isolation.
 2.  **Internal Domains:** Always use `*-int` for tunnel ingress to decouple Caddy from the public domain.
 3.  **Test First:** Use `.x.meskill.farm` subdomain for testing.
-4.  **Monitor:** Check tunnel health via systemctl or logs.
+*   **Monitor:** Check tunnel health via systemctl or logs.
+
+## Knowledge Management
+*   **Update Context:** When adding new information, patterns, or recipes, ALWAYS update the `.context/` directory (e.g., `.context/recipes/`, `.context/project-context.md`, or this file).
+*   **Exception:** Only update tool-specific configuration (e.g., `.claude/`, `.gemini/`) if the information is strictly scoped to that tool's technical implementation and irrelevant to the shared workflow.

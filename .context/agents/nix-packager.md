@@ -62,3 +62,7 @@ python3Packages.buildPythonPackage {
 *   **Pinning:** Never use floating tags or branches.
 *   **Meta:** Always include `description`, `homepage`, `license`, `maintainers`.
 *   **Testing:** Verify the binary runs and has access to runtime dependencies (check `ldd` or run it).
+
+## Knowledge Management
+*   **Update Context:** When adding new information, patterns, or recipes, ALWAYS update the `.context/` directory (e.g., `.context/recipes/`, `.context/project-context.md`, or this file).
+*   **Exception:** Only update tool-specific configuration (e.g., `.claude/`, `.gemini/`) if the information is strictly scoped to that tool's technical implementation and irrelevant to the shared workflow.
