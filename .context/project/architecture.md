@@ -31,12 +31,28 @@ This is a NixOS configuration repository managing multiple NixOS and Darwin (mac
 *   **Dry Build:** `make remote-dry-build remotehost=<hostname>`
 *   **Package Build:** `nix build .#<package-name>`
 
-## Development Conventions
+## Development Standards
 *   **Modularity:** Prefer creating reusable modules in `modules/` over ad-hoc config.
-*   **Secrets:** **NEVER** commit unencrypted secrets. Use `agenix`.
 *   **Formatting:** Nix code is formatted with `alejandra`.
-*   **Branches:** Work on feature branches (`feat/`, `fix/`). Main is protected.
-*   **Commits:** Signed (GPG) and conventional (`feat:`, `fix:`).
+*   **Verification:** 
+    *   `make remote-dry-build remotehost=<target>` (Critical for NixOS changes).
+    *   `make check` (CI validation).
+*   **Security:** 
+    *   **NEVER** commit unencrypted secrets. Use `agenix`.
+    *   Agent tools like `agenix` or `cfcli` may require `dangerouslyDisableSandbox: true`.
+
+## Container Architecture
+*   **Networks:**
+    *   `servicenet`: Inter-container & Caddy access.
+    *   `datanet`: Internal databases (no external access).
+    *   `proxynet`: Host port binding (use sparingly).
+*   **Images:** Pin tags (no `:latest`).
+*   **Env:** Use encrypted `.env.age` files.
+
+## Package Architecture
+*   **Structure:** Follow the standard `stdenv.mkDerivation` or language-specific builder patterns.
+*   **Meta:** Always include `description`, `license`, `maintainers`.
+*   **Pinning:** Pin dependencies and sources (hashes).
 
 ## AI Agent Workflow
 For operational protocols, see **[Context Index](../index.md)** and **[Global Protocols](../global/protocols.md)**.

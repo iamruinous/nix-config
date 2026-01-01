@@ -449,7 +449,7 @@ git remote -v
 ```
 
 - **GitHub**: URL contains `github.com`
-- **Forgejo/Gitea**: URL contains your self-hosted domain (e.g., `forge.meskill.farm`) or uses `/git/` path pattern
+- **Forgejo/Gitea**: URL contains your self-hosted domain (e.g., `git.example.com`) or uses `/git/` path pattern
 
 #### GitHub Pull Requests
 
@@ -499,7 +499,7 @@ Forgejo uses the same API as Gitea. You can use either:
 2. **API via curl** (for automation):
    ```bash
    # Create a pull request via API
-   curl -X POST "https://forge.meskill.farm/api/v1/repos/OWNER/REPO/pulls" \
+   curl -X POST "https://git.example.com/api/v1/repos/OWNER/REPO/pulls" \
      -H "Authorization: token $FORGEJO_API_TOKEN" \
      -H "Content-Type: application/json" \
      -d '{ 
