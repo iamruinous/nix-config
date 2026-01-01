@@ -96,25 +96,25 @@ Fixes #42
 
 ### Types
 
-Agents should include the corresponding emoji in the header for better visibility.
+Agents should include the corresponding emoji at the start of the header for better visibility.
 
-- `feat`: ✨ A new feature
-- `fix`: 🐛 A bug fix
-- `docs`: 📝 Documentation only changes
-- `style`: 🎨 Changes that do not affect the meaning of the code (white-space, formatting, etc)
-- `refactor`: ♻️ A code change that neither fixes a bug nor adds a feature
-- `perf`: ⚡️ A code change that improves performance
-- `test`: ✅ Adding missing tests or correcting existing tests
-- `chore`: ⚙️ Changes to the build process or auxiliary tools
-- `build`: 📦 Changes that affect the build system or external dependencies
-- `ci`: 🔄 Changes to CI configuration files and scripts
-- `revert`: ↩️ Reverts a previous commit
+- ✨ `feat`: A new feature
+- 🐛 `fix`: A bug fix
+- 📝 `docs`: Documentation only changes
+- 🎨 `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- ♻️ `refactor`: A code change that neither fixes a bug nor adds a feature
+- ⚡️ `perf`: A code change that improves performance
+- ✅ `test`: Adding missing tests or correcting existing tests
+- ⚙️ `chore`: Changes to the build process or auxiliary tools
+- 📦 `build`: Changes that affect the build system or external dependencies
+- 🔄 `ci`: Changes to CI configuration files and scripts
+- ↩️ `revert`: Reverts a previous commit
 
 ### Scope (Optional)
 
 Provides additional contextual information contained within parentheses:
-- `feat(parser): add ability to parse arrays`
-- `fix(auth): correct token refresh logic`
+- ✨ `feat(parser): add ability to parse arrays`
+- 🐛 `fix(auth): correct token refresh logic`
 
 ### Description
 
@@ -250,7 +250,7 @@ Key features:
 
 ### Adding a New Feature
 ```
-feat(auth): ✨ add OAuth2 authentication support
+✨ feat(auth): add OAuth2 authentication support
 
 Add OAuth2 authentication flow with support for multiple providers.
 ...
@@ -258,7 +258,7 @@ Add OAuth2 authentication flow with support for multiple providers.
 
 ### Fixing a Bug
 ```
-fix(api): 🐛 correct rate limiting calculation
+🐛 fix(api): correct rate limiting calculation
 
 The rate limiter was counting requests per minute instead of per second,
 ...
@@ -266,7 +266,7 @@ The rate limiter was counting requests per minute instead of per second,
 
 ### Refactoring
 ```
-refactor(database): ♻️ extract connection pooling into separate module
+♻️ refactor(database): extract connection pooling into separate module
 
 Extract database connection pooling logic into a dedicated module
 ...
@@ -274,7 +274,7 @@ Extract database connection pooling logic into a dedicated module
 
 ### Documentation
 ```
-docs(api): 📝 add comprehensive endpoint documentation
+📝 docs(api): add comprehensive endpoint documentation
 
 Add detailed documentation for all REST API endpoints including:
 ...
