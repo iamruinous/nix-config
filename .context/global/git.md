@@ -23,9 +23,8 @@
    - Add new tasks discovered during implementation
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
-4. [ ] **gitleaks hooks installed?** Verify `.git/hooks/pre-commit` exists.
-5. [ ] **commitlint hooks installed?** Verify `.git/hooks/commit-msg` exists.
-   - If not → see [Hook Installation](#hook-installation-mandatory).
+4. [ ] **prek hooks installed?** Hooks are auto-installed in the devshell. Verify by checking if `.git/hooks/pre-commit` exists.
+   - If not → run `prek install --hook-types pre-commit commit-msg`.
 
 **Quick start for new work:**
 ```bash
@@ -311,55 +310,31 @@ This enables the application to send transactional emails
 with full delivery tracking and user preference management.
 ```
 
-## Secret & Standard Enforcement (Hooks)
+## Secret & Standard Enforcement (prek)
 
-To prevent accidental leaks and ensure commit quality, this repository uses `gitleaks` and `commitlint`.
+To prevent accidental leaks and ensure commit quality, this repository uses `prek` (a Rust-based `pre-commit` compatible tool) to manage Git hooks.
 
-### Hook Installation (Mandatory)
+### Hook Installation
 
-Run these commands once to install the mandatory Git hooks:
+Hooks are automatically installed when you enter the development shell (`nix develop`). 
+
+To manually install or update hooks, run:
 
 ```bash
-# Create the pre-commit hook (gitleaks)
-cat << 'EOF' > .git/hooks/pre-commit
-#!/bin/sh
-# Check if gitleaks is installed
-if command -v gitleaks >/dev/null 2>&1; then
-    echo "Running gitleaks..."
-    gitleaks protect --verbose --staged
-else
-    echo "Warning: gitleaks not found. Skipping secret scan."
-fi
-EOF
-
-# Create the commit-msg hook (commitlint)
-cat << 'EOF' > .git/hooks/commit-msg
-#!/bin/sh
-# Check if commitlint is installed
-if command -v commitlint >/dev/null 2>&1; then
-    echo "Running commitlint..."
-    commitlint --edit "$1"
-else
-    echo "Warning: commitlint not found. Skipping commit message check."
-fi
-EOF
-
-# Create the post-commit hook (signature verification)
-cat << 'EOF' > .git/hooks/post-commit
-#!/bin/sh
-# Verify the commit signature
-if ! git verify-commit HEAD >/dev/null 2>&1; then
-    echo "❌ WARNING: Commit is NOT signed! Please amend the commit with signature: git commit --amend -S --no-edit"
-    exit 1
-fi
-echo "✅ Commit signed and verified."
-EOF
-
-# Make them executable
-chmod +x .git/hooks/pre-commit .git/hooks/commit-msg .git/hooks/post-commit
+prek install --hook-types pre-commit commit-msg
 ```
 
-Once installed, these hooks will run automatically on every `commit`.
+The hooks are defined in `.pre-commit-config.yaml` and currently include:
+*   `gitleaks`: Scans staged changes for secrets.
+*   `commitlint`: Validates commit messages against Conventional Commits.
+
+### Running Hooks Manually
+
+You can run the hooks on all files at any time:
+
+```bash
+prek run --all-files
+```
 
 ## Branching Strategy
 
@@ -775,10 +750,6 @@ Key changes:
 - Change 1
 - Change 2
 - Change 3
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```

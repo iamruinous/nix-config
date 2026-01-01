@@ -12,6 +12,7 @@ pkgs.mkShell {
       pnpm # For running Node.js-based MCP servers
       uv # Provides uvx for running Python-based MCP servers
       postgresql # cli for postgres
+      prek
     ]
     ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
       bmaptool # Fast SD card flashing with block map support
@@ -23,6 +24,11 @@ pkgs.mkShell {
 
     # Alias dig to doggo for modern DNS lookups
     alias dig='doggo'
+
+    # Auto-install git hooks using prek
+    if [ -d .git ]; then
+      prek install --hook-types pre-commit commit-msg >/dev/null 2>&1
+    fi
 
     # Show helpful message on shell startup if age identity is not unlocked
     if ! ${pkgs.coreutils}/bin/test -f /tmp/id_age 2>/dev/null; then

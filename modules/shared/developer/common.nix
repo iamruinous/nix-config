@@ -17,6 +17,7 @@
       devenv
       commitlint
       gitleaks
+      prek
       jq
       just
       lazygit
