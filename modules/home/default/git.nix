@@ -8,7 +8,6 @@
   # Default keys
   defaultGithubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGcg4sQO+hRaGrHLLU0pXl7tEZIQGkmwxiA9klN0p6h+ jade.meskill@gmail.com";
   defaultRuinousKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm";
-  defaultMiscKey = "6AD7FC0814C30503";
 in {
   options.ruinous.git = {
     signing = {
@@ -24,23 +23,13 @@ in {
       };
       codeberg = lib.mkOption {
         type = lib.types.str;
-        default = defaultMiscKey;
+        default = defaultRuinousKey;
         description = "Signing key for Codeberg";
       };
       sourcehut = lib.mkOption {
         type = lib.types.str;
-        default = defaultMiscKey;
+        default = defaultRuinousKey;
         description = "Signing key for Sourcehut";
-      };
-      misc = lib.mkOption {
-        type = lib.types.str;
-        default = defaultMiscKey;
-        description = "Signing key for Miscellaneous";
-      };
-      miscFormat = lib.mkOption {
-        type = lib.types.enum ["ssh" "openpgp"];
-        default = "openpgp";
-        description = "Signing format for Codeberg/Sourcehut/Misc keys";
       };
     };
     email = {
@@ -63,11 +52,6 @@ in {
         type = lib.types.str;
         default = "iamruinous@ruinous.social";
         description = "Email for Sourcehut";
-      };
-      misc = lib.mkOption {
-        type = lib.types.str;
-        default = "iamruinous@ruinous.social";
-        description = "Email for Miscellaneous";
       };
     };
   };
@@ -106,15 +90,10 @@ in {
               email = cfg.email.codeberg;
               signingkey = cfg.signing.codeberg;
             };
-            gpg =
-              if cfg.signing.miscFormat == "ssh"
-              then {
-                format = "ssh";
-                ssh.program = "op-ssh-sign";
-              }
-              else {
-                format = "openpgp";
-              };
+            gpg = {
+              format = "ssh";
+              ssh.program = "op-ssh-sign";
+            };
           };
         }
         {
@@ -167,15 +146,10 @@ in {
               email = cfg.email.sourcehut;
               signingkey = cfg.signing.sourcehut;
             };
-            gpg =
-              if cfg.signing.miscFormat == "ssh"
-              then {
-                format = "ssh";
-                ssh.program = "op-ssh-sign";
-              }
-              else {
-                format = "openpgp";
-              };
+            gpg = {
+              format = "ssh";
+              ssh.program = "op-ssh-sign";
+            };
           };
         }
       ];

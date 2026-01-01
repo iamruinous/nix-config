@@ -33,14 +33,12 @@ in {
   ];
 
   ruinous.git.signing = let
-    zenithKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+";
+    zenithKey = "/home/jmeskill/.ssh/id_codey_ed25519";
   in {
     github = zenithKey;
     farmforge = zenithKey;
     codeberg = zenithKey;
     sourcehut = zenithKey;
-    misc = zenithKey;
-    miscFormat = "ssh";
   };
 
   ruinous.git.email = let
@@ -50,7 +48,6 @@ in {
     farmforge = codeyEmail;
     codeberg = codeyEmail;
     sourcehut = codeyEmail;
-    misc = codeyEmail;
   };
 
   # age.secrets.jmeskill_codey_ssh_key = {
