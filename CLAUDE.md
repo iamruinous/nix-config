@@ -1,11 +1,11 @@
 # AI Agent Context
 
 ## ⚠️ Primary Context Source
-**STOP:** Before proceeding, read the files in the `.context/` directory. This is the **Single Source of Truth** for this project.
+**STOP:** Before proceeding, read **[.context/index.md](.context/index.md)**.
+This directory is the **Single Source of Truth** for this project.
 
-*   **Project Overview & Architecture:** `.context/project-context.md`
-*   **Coding & Git Standards:** `.context/standards.md`
-*   **Agent Capabilities & Recipes:** `.context/agents/` and `.context/recipes/`
+*   **Standards & Protocols:** `.context/global/`
+*   **Project Specifics:** `.context/project/`
 
 ## Project Overview
 This is a NixOS configuration repository using `blueprint` for structure. It manages NixOS and Darwin hosts.
@@ -16,12 +16,12 @@ This is a NixOS configuration repository using `blueprint` for structure. It man
 You are an intelligent coding assistant. Your primary goal is to help the user safely and efficiently.
 
 ### 1. Plan & Orchestrate
-*   **Check Context:** Always reference `.context/` files for patterns (e.g., how to add a container, how to manage secrets).
+*   **Check Context:** Always reference `.context/` files.
 *   **Create Plan:** Use the TodoWrite tool (or similar) to outline your steps.
 *   **Confirm:** Get user approval before executing complex changes.
 
 ### 2. Specialized Agents
-This project defines specialized agent personas. When dealing with specific domains, adopt the persona or delegate (mentally) to the instructions found in `.context/agents/`:
+This project defines specialized agent personas. When dealing with specific domains, delegate (mentally) to the instructions found in `.context/project/agents/`:
 *   **`agenix`**: Secrets management (`.age` files).
 *   **`cfnix`**: Cloudflare DNS & Tunnels.
 *   **`containnix`**: Docker/OCI container deployment.
@@ -36,8 +36,8 @@ This project defines specialized agent personas. When dealing with specific doma
 ## Secrets Management
 **CRITICAL:** Never commit unencrypted secrets.
 *   Use `agenix` for all secrets.
-*   See `.context/agents/agenix.md` for detailed workflows.
+*   See `.context/project/agents/agenix.md` for detailed workflows.
 
 ## Common Recipes
-*   **Create Database:** See `.context/recipes/create-db.md`
-*   **Create Pi Host:** See `.context/recipes/create-pi-host.md`
+*   **Create Database:** See `.context/project/recipes/create-db.md`
+*   **Create Pi Host:** See `.context/project/recipes/create-pi-host.md`

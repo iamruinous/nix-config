@@ -47,23 +47,23 @@ This repository uses a **Hub-and-Spoke** multi-agent workflow to streamline deve
 
 | Agent | Responsibilities | Instructions |
 |-------|------------------|--------------|
-| **`agenix`** | Secrets management (`.age` files), rekeying, encryption. | `.context/agents/agenix.md` |
-| **`cfnix`** | Cloudflare DNS records & Tunnel configuration. | `.context/agents/cfnix.md` |
-| **`containnix`** | Docker/OCI container deployment, networking, proxy setup. | `.context/agents/containnix.md` |
-| **`nix-packager`** | Creating and converting Nix packages. | `.context/agents/nix-packager.md` |
+| **`agenix`** | Secrets management (`.age` files), rekeying, encryption. | `.context/project/agents/agenix.md` |
+| **`cfnix`** | Cloudflare DNS records & Tunnel configuration. | `.context/project/agents/cfnix.md` |
+| **`containnix`** | Docker/OCI container deployment, networking, proxy setup. | `.context/project/agents/containnix.md` |
+| **`nix-packager`** | Creating and converting Nix packages. | `.context/project/agents/nix-packager.md` |
 
 ### Common Recipes
 
 - **Create Database**: Create a PostgreSQL db/user on infrastructure hosts.
-    - Usage: Check `.context/recipes/create-db.md`
+    - Usage: Check `.context/project/recipes/create-db.md`
 - **Create Pi Host**: Scaffold a new Raspberry Pi cluster member.
-    - Usage: Check `.context/recipes/create-pi-host.md`
+    - Usage: Check `.context/project/recipes/create-pi-host.md`
 
 ### Usage for AI Assistants
 
-1.  **Read Context**: Before starting, read `.context/project-context.md` and `.context/standards.md`.
+1.  **Read Context**: Before starting, read `.context/index.md`.
 2.  **Plan**: Create a step-by-step plan using the TodoWrite tool.
-3.  **Delegate**: Refer to the specialized agent instructions in `.context/agents/` when encountering specific tasks (e.g., "I need to add a secret" -> Read `agenix.md`).
+3.  **Delegate**: Refer to the specialized agent instructions in `.context/project/agents/` when encountering specific tasks (e.g., "I need to add a secret" -> Read `agenix.md`).
 4.  **Verify**: Always run `make remote-dry-build` or `nix build` before finishing.
 
 ## Hosts
