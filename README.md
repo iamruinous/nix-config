@@ -1,4 +1,4 @@
-# iamruinous nix-config
+# 🖥️ iamruinous nix-config
 
 [![Build Status](https://github.com/iamruinous/nix-config/actions/workflows/flake-check.yml/badge.svg)](https://github.com/iamruinous/nix-config/actions/workflows/flake-check.yml)
 
