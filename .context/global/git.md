@@ -23,7 +23,7 @@
    - Add new tasks discovered during implementation
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
-4. [ ] **prek hooks installed?** Hooks are auto-installed in the devshell. Verify by checking if `.git/hooks/pre-commit` exists.
+4. [ ] **prek hooks installed?** Verify `.git/hooks/pre-commit` exists.
    - If not → run `prek install --hook-types pre-commit commit-msg`.
 
 **Quick start for new work:**
@@ -316,9 +316,9 @@ To prevent accidental leaks and ensure commit quality, this repository uses `pre
 
 ### Hook Installation
 
-Hooks are automatically installed when you enter the development shell (`nix develop`). 
+This repository uses `prek` to manage Git hooks. Ensure `prek` is available (installed via the shared developer module).
 
-To manually install or update hooks, run:
+To install the hooks, run:
 
 ```bash
 prek install --hook-types pre-commit commit-msg
