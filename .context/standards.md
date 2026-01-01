@@ -13,7 +13,7 @@ For detailed guidelines, see **[.context/git-workflow.md](./git-workflow.md)**.
     *   **Conventions:** Use `feat/`, `fix/`, `docs/`, `chore/` prefixes (e.g., `feat/add-auth`).
 *   **Commits:**
     *   **Format:** Use Conventional Commits (`type(scope): description`).
-    *   **Signing:** **MUST** be GPG signed. Always run `ssh-agent-check` before committing.
+    *   **Signing:** **MUST** be GPG signed. Ensure your GPG agent is configured for signing.
     *   **Frequency:** Commit progressively, don't wait for the end.
 *   **Pull Requests:**
     *   Create **Draft PRs** immediately after the first commit.

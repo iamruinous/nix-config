@@ -1,7 +1,7 @@
 # Git Behavior Guidelines for AI Agents
 
 > **⚠️ CRITICAL: The main branch is protected and does not accept direct commits.**
->
+> 
 > You MUST use feature branches and pull requests for ALL changes. Direct commits to main will be rejected. See the [Branching Strategy](#branching-strategy) section for required workflow.
 
 ## Pre-Change Checklist
@@ -463,7 +463,7 @@ Forgejo uses the same API as Gitea. You can use either:
    curl -X POST "https://forge.meskill.farm/api/v1/repos/OWNER/REPO/pulls" \
      -H "Authorization: token $FORGEJO_API_TOKEN" \
      -H "Content-Type: application/json" \
-     -d '{
+     -d '{ 
        "title": "feat: add OAuth authentication",
        "body": "## Summary\n- Add OAuth2 flow\n- Support multiple providers",
        "head": "feat/oauth-authentication",
@@ -534,10 +534,7 @@ git add <file1> <file2> <file3>
 # 4. Verify staged changes
 git diff --cached
 
-# 5. Check SSH agent and signing capability BEFORE committing
-ssh-agent-check
-
-# 6. Create commit with detailed message (only if ssh-agent-check passes)
+# 5. Create commit with detailed message
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 
@@ -548,21 +545,9 @@ Detailed explanation of what changed and why.
 Fixes #123
 "
 
-# 7. Verify commit
+# 6. Verify commit
 git log -1 --stat
 ```
-
-### Pre-Commit Signing Check
-
-**IMPORTANT**: Before attempting any commit, always run `ssh-agent-check` to verify that SSH/GPG signing will succeed.
-
-```bash
-# Run the signing check
-ssh-agent-check
-```
-
-- **If the check passes**: Proceed with the commit normally
-- **If the check fails**: Do NOT attempt to commit. Instead, follow the "SSH/GPG Signing Failure" procedure below to save the commit message and instruct the user to commit manually
 
 ## Special Considerations
 
@@ -575,20 +560,18 @@ ssh-agent-check
 
 ## Handling Commit Failures
 
-### SSH/GPG Signing Failure
+### Signing Failure
 
-If `ssh-agent-check` fails or commits require signing and signing fails:
+If commits require signing and signing fails:
 
-1. **Do NOT attempt to commit** if `ssh-agent-check` fails
+1. **Keep the files staged** (stage them if not already staged)
 
-2. **Keep the files staged** (stage them if not already staged)
-
-3. **Generate a random hex suffix** for the commit message file:
+2. **Generate a random hex suffix** for the commit message file:
    ```bash
    COMMIT_FILE="COMMIT_MSG_$(openssl rand -hex 4).txt"
    ```
 
-4. **Save the commit message to the temporary file**:
+3. **Save the commit message to the temporary file**:
    ```bash
    cat > "$COMMIT_FILE" << 'EOF'
    type(scope): short description
@@ -601,9 +584,9 @@ If `ssh-agent-check` fails or commits require signing and signing fails:
    EOF
    ```
 
-5. **Notify the user** to commit manually:
+4. **Notify the user** to commit manually:
    ```
-   Unable to create signed commit (ssh-agent-check failed or signing unavailable).
+   Unable to create signed commit (signing unavailable).
 
    Changes are staged and commit message saved to COMMIT_MSG_<hex>.txt
 
@@ -611,16 +594,12 @@ If `ssh-agent-check` fails or commits require signing and signing fails:
      git commit -F COMMIT_MSG_<hex>.txt && rm COMMIT_MSG_<hex>.txt
    ```
 
-**Example workflow when ssh-agent-check fails:**
+**Example workflow when signing fails:**
 ```bash
 # 1. Stage the files
 git add src/feature.ts
 
-# 2. Run ssh-agent-check
-ssh-agent-check
-# Output: FAIL - SSH agent not available
-
-# 3. Generate unique filename and save commit message
+# 2. Generate unique filename and save commit message
 COMMIT_FILE="COMMIT_MSG_$(openssl rand -hex 4).txt"
 cat > "$COMMIT_FILE" << 'EOF'
 feat(feature): add new capability
@@ -633,7 +612,7 @@ Key changes:
 - Update documentation
 EOF
 
-# 4. Inform user
+# 3. Inform user
 echo "Changes staged. Commit message saved to $COMMIT_FILE"
 echo "Run: git commit -F $COMMIT_FILE && rm $COMMIT_FILE"
 ```
@@ -678,15 +657,12 @@ echo "Run: git commit -F $COMMIT_FILE && rm $COMMIT_FILE"
 
 For complex commit messages, use HEREDOC to ensure proper formatting.
 
-**Remember**: Always run `ssh-agent-check` before attempting the commit. If it fails, save the message to `COMMIT_MSG_<hex>.txt` instead. 
+**Remember**: Always ensure your environment is set up for signing. 
 
 **Never allow unsigned commits.**
  
 ```bash
-# First, verify signing will work
-ssh-agent-check
-
-# If ssh-agent-check passes, proceed with commit
+# Create commit
 git commit -m "$(cat <<'EOF'
 feat(component): add new feature
 
