@@ -59,6 +59,25 @@ The registry file MUST follow this structure:
 | **Gemini CLI** | `.gemini/settings.json` | JSON (Custom `mcpServers` key) |
 | **OpenCode** | `.mcp.json` | JSON (Standard MCP) |
 
+## Global MCP Assumptions
+
+The following servers are assumed to be available globally in the agent's environment:
+
+*   **Todoist:** Available for task management.
+
+## Tool Workflows
+
+### Todoist Workflow
+When interacting with tasks via the Todoist MCP server:
+
+1.  **Project Context:** Always check the **Project Specific Settings** (e.g., `GEMINI.md` or project README) for the correct `todoist_project_id`. Do not rely on default/inbox unless explicitly instructed.
+2.  **Listing Tasks:**
+    *   **Filter:** Filter by the identified Project ID.
+    *   **Order:** ALWAYS order results by `priority` (descending) then `due_date` (ascending) to focus on urgent/important items first.
+3.  **Completion:**
+    *   When a user task is satisfied, explicitly mark the corresponding Todoist task as completed.
+    *   Do not delete tasks; use completion to maintain history.
+
 ## Best Practices
 1.  **Use `uvx`:** Prefer `uvx` for executing Python-based MCP servers to ensure ephemeral, isolated environments.
 2.  **Environment Variables:** Document all required env vars. Do not hardcode secrets in the registry; reference them (e.g., `"${VAR_NAME}"`).

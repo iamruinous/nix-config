@@ -25,6 +25,12 @@ This document serves as the registry for Model Context Protocol (MCP) servers us
 *   `postgres-tty-ruinous-social`
 **Configuration:** Requires environment variables for connection strings (e.g., `PILASTER_POSTGRES_DATABASE_URI`).
 
+### 4. Todoist (`todoist`)
+**Purpose:** Task management integration.
+**Source:** Global / `uvx @modelcontextprotocol/server-todoist`
+**Type:** `stdio`
+**Configuration:** Requires `TODOIST_API_TOKEN` (usually managed globally).
+
 ---
 
 ## Agent Configuration Instructions
