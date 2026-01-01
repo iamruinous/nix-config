@@ -97,15 +97,19 @@ Fixes #42
 
 ### Types
 
-- `feat`: A new feature
+Agents should include the corresponding emoji in the header for better visibility.
 
-- `feat`: A new feature
-- `fix`: A bug fix
-- `docs`: Documentation only changes
-- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-- `refactor`: A code change that neither fixes a bug nor adds a feature
-- `test`: Adding missing tests or correcting existing tests
-- `chore`: Changes to the build process or auxiliary tools and libraries
+- `feat`: ✨ A new feature
+- `fix`: 🐛 A bug fix
+- `docs`: 📝 Documentation only changes
+- `style`: 🎨 Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- `refactor`: ♻️ A code change that neither fixes a bug nor adds a feature
+- `perf`: ⚡️ A code change that improves performance
+- `test`: ✅ Adding missing tests or correcting existing tests
+- `chore`: ⚙️ Changes to the build process or auxiliary tools
+- `build`: 📦 Changes that affect the build system or external dependencies
+- `ci`: 🔄 Changes to CI configuration files and scripts
+- `revert`: ↩️ Reverts a previous commit
 
 ### Scope (Optional)
 
@@ -247,65 +251,34 @@ Key features:
 
 ### Adding a New Feature
 ```
-feat(auth): add OAuth2 authentication support
+feat(auth): ✨ add OAuth2 authentication support
 
 Add OAuth2 authentication flow with support for multiple providers.
-This allows users to sign in with Google, GitHub, or Microsoft accounts.
-
-Key features:
-- Provider-agnostic authentication flow
-- Automatic token refresh
-- Secure token storage
-- Session management
-
-The implementation follows OAuth2 best practices and includes
-PKCE for enhanced security.
+...
 ```
 
 ### Fixing a Bug
 ```
-fix(api): correct rate limiting calculation
+fix(api): 🐛 correct rate limiting calculation
 
 The rate limiter was counting requests per minute instead of per second,
-allowing 60x more requests than intended. Fixed the time unit conversion
-in the sliding window calculation.
-
-Changes:
-- Fix time unit from minutes to seconds
-- Add unit tests for rate limiting
-- Update documentation with correct limits
+...
 ```
 
 ### Refactoring
 ```
-refactor(database): extract connection pooling into separate module
+refactor(database): ♻️ extract connection pooling into separate module
 
 Extract database connection pooling logic into a dedicated module
-to improve testability and allow reuse across services.
-
-Changes:
-- Move pooling logic from db/client.ts to db/pool.ts
-- Add configuration options for pool size and timeout
-- Update all imports to use new module location
-- Add unit tests for pool management
-
-This is a non-breaking change; the public API remains unchanged.
+...
 ```
 
 ### Documentation
 ```
-docs(api): add comprehensive endpoint documentation
+docs(api): 📝 add comprehensive endpoint documentation
 
 Add detailed documentation for all REST API endpoints including:
-- Request/response schemas
-- Authentication requirements
-- Rate limiting information
-- Example requests and responses
-- Error codes and handling
-
-Also updated:
-- README.md: Added API documentation link
-- CONTRIBUTING.md: Added docs update requirements
+...
 ```
 
 ### Multiple Related Changes
