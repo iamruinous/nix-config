@@ -23,7 +23,8 @@
    - Add new tasks discovered during implementation
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
-4. [ ] **gitleaks hooks installed?** Verify `.git/hooks/pre-commit` exists and runs `gitleaks`.
+4. [ ] **gitleaks hooks installed?** Verify `.git/hooks/pre-commit` exists.
+5. [ ] **commitlint hooks installed?** Verify `.git/hooks/commit-msg` exists.
    - If not → see [Hook Installation](#hook-installation-mandatory).
 
 **Quick start for new work:**
@@ -337,16 +338,16 @@ This enables the application to send transactional emails
 with full delivery tracking and user preference management.
 ```
 
-## Secret Leak Prevention (gitleaks)
+## Secret & Standard Enforcement (Hooks)
 
-To prevent accidental leaks of sensitive information, this repository uses [gitleaks](https://github.com/gitleaks/gitleaks).
+To prevent accidental leaks and ensure commit quality, this repository uses `gitleaks` and `commitlint`.
 
 ### Hook Installation (Mandatory)
 
 Run these commands once to install the mandatory Git hooks:
 
 ```bash
-# Create the pre-commit hook
+# Create the pre-commit hook (gitleaks)
 cat << 'EOF' > .git/hooks/pre-commit
 #!/bin/sh
 # Check if gitleaks is installed
@@ -358,11 +359,23 @@ else
 fi
 EOF
 
-# Make it executable
-chmod +x .git/hooks/pre-commit
+# Create the commit-msg hook (commitlint)
+cat << 'EOF' > .git/hooks/commit-msg
+#!/bin/sh
+# Check if commitlint is installed
+if command -v commitlint >/dev/null 2>&1; then
+    echo "Running commitlint..."
+    commitlint --edit "$1"
+else
+    echo "Warning: commitlint not found. Skipping commit message check."
+fi
+EOF
+
+# Make them executable
+chmod +x .git/hooks/pre-commit .git/hooks/commit-msg
 ```
 
-Once installed, `gitleaks protect` will run automatically on every `commit`, scanning staged changes for secrets.
+Once installed, these hooks will run automatically on every `commit`.
 
 ## Branching Strategy
 

@@ -25,7 +25,9 @@ For detailed guidelines, see **[Git Workflow](./git.md)**.
 *   **Verification:** Run project-specific build and test commands before committing.
 *   **CI/CD:** Ensure local changes pass CI checks.
 
-## Security
+## Security & Integrity
 *   **Secrets:** **NEVER** commit unencrypted secrets. Use the project's secret management tool.
 *   **gitleaks:** **MANDATORY**. Must be integrated into Git hooks (`pre-commit`) to prevent accidental leaks. See [Git Workflow](./git.md) for installation.
+*   **commitlint:** **MANDATORY**. Must be integrated into Git hooks (`commit-msg`) to enforce Conventional Commits. See [Git Workflow](./git.md) for installation.
+*   **Signing:** **MANDATORY**. All commits MUST be GPG/SSH signed.
 *   **Access:** Respect least-privilege principles.
