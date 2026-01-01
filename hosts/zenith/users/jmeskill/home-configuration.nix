@@ -41,6 +41,14 @@ in {
     miscFormat = "ssh";
   };
 
+  ruinous.git.email = let
+    codeyEmail = "codey@ruinous.ai";
+  in {
+    github = codeyEmail;
+    farmforge = codeyEmail;
+    misc = codeyEmail;
+  };
+
   # age.secrets.jmeskill_codey_ssh_key = {
   #   rekeyFile = ../../../../users/jmeskill/id_codey_ed25519.age;
   #   mode = "600";

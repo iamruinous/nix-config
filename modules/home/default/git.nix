@@ -33,6 +33,23 @@ in {
         description = "Signing format for Misc keys";
       };
     };
+    email = {
+      github = lib.mkOption {
+        type = lib.types.str;
+        default = "jade.meskill@gmail.com";
+        description = "Email for GitHub";
+      };
+      farmforge = lib.mkOption {
+        type = lib.types.str;
+        default = "iamruinous@ruinous.social";
+        description = "Email for Ruinous Social / FarmForge";
+      };
+      misc = lib.mkOption {
+        type = lib.types.str;
+        default = "iamruinous@ruinous.social";
+        description = "Email for Codeberg / Sourcehut";
+      };
+    };
   };
 
   config = {
@@ -66,7 +83,7 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = "iamruinous@ruinous.social";
+              email = cfg.email.misc;
               signingkey = cfg.signing.misc;
             };
             gpg =
@@ -85,7 +102,7 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = "jade.meskill@gmail.com";
+              email = cfg.email.github;
               signingkey = cfg.signing.github;
             };
             gpg = {
@@ -99,7 +116,7 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = "iamruinous@ruinous.social";
+              email = cfg.email.farmforge;
               signingkey = cfg.signing.farmforge;
             };
             gpg = {
@@ -113,7 +130,7 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = "iamruinous@ruinous.social";
+              email = cfg.email.farmforge;
               signingkey = cfg.signing.farmforge;
             };
             gpg = {
@@ -127,7 +144,7 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = "iamruinous@ruinous.social";
+              email = cfg.email.misc;
               signingkey = cfg.signing.misc;
             };
             gpg =
