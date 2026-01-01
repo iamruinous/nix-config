@@ -15,6 +15,7 @@
     [
       # dev tools
       devenv
+      commitlint
       gitleaks
       jq
       just
