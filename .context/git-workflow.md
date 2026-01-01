@@ -13,13 +13,15 @@
    - If on a feature branch → proceed
 
 2. [ ] **Does a draft PR exist for this branch?**
-   - If no → create one after your first commit with `gh pr create --draft`
+   - If no → create one after your first commit:
+     - `gh pr create --draft` (GitHub)
+     - `tea pr create` (Forgejo)
    - If yes → continue working
 
 3. [ ] **Is the PR task list up to date?**
    - Mark completed tasks with `[x]`
    - Add new tasks discovered during implementation
-   - Use `gh pr edit --body "..."` to update
+   - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
 **Quick start for new work:**
 ```bash
@@ -28,7 +30,14 @@ git checkout -b feat/my-feature
 # make changes, then:
 git add <files> && git commit -m "feat: initial work"
 git push -u origin feat/my-feature
+
+# GitHub (gh)
 gh pr create --draft --title "feat: my feature" --body "## Tasks
+- [ ] First task
+- [ ] Second task"
+
+# Forgejo (tea)
+tea pr create --title "feat: my feature" --description "## Tasks
 - [ ] First task
 - [ ] Second task"
 ```
@@ -352,7 +361,21 @@ refactor/database-connection-pooling
 4. **Push and create a DRAFT pull request with a task list:**
    ```bash
    git push -u origin feat/my-new-feature
+   
+   # GitHub (gh)
    gh pr create --draft --title "feat(scope): description" --body "$(cat <<'EOF'
+   ## Summary
+   Brief description of what this PR accomplishes.
+
+   ## Tasks
+   - [ ] Task 1
+   - [ ] Task 2
+   - [ ] Task 3
+   EOF
+   )"
+
+   # Forgejo (tea)
+   tea pr create --title "feat(scope): description" --description "$(cat <<'EOF'
    ## Summary
    Brief description of what this PR accomplishes.
 
@@ -371,8 +394,23 @@ refactor/database-connection-pooling
 6. **Update the PR task list as you work:**
    - Mark tasks complete as you finish them
    - Add new tasks discovered during implementation
+   
    ```bash
+   # GitHub (gh)
    gh pr edit --body "$(cat <<'EOF'
+   ## Summary
+   Brief description of what this PR accomplishes.
+
+   ## Tasks
+   - [x] Task 1 (completed)
+   - [x] Task 2 (completed)
+   - [ ] Task 3
+   - [ ] New task discovered during implementation
+   EOF
+   )"
+
+   # Forgejo (tea) - Note: tea uses --description for body
+   tea pr edit <pr-index> --description "$(cat <<'EOF'
    ## Summary
    Brief description of what this PR accomplishes.
 
@@ -388,6 +426,7 @@ refactor/database-connection-pooling
 7. **When work is complete, mark the PR ready for review:**
    ```bash
    gh pr ready
+   # For tea, manually merge or request review via web UI as CLI support varies
    ```
 
 8. **After PR is merged**, clean up:
