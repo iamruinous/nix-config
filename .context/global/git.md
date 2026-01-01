@@ -23,6 +23,8 @@
    - Add new tasks discovered during implementation
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
+4. [ ] **git-secrets installed?** Ensure `git-secrets` is configured for this repository.
+
 **Quick start for new work:**
 ```bash
 git checkout main && git pull origin main
@@ -573,7 +575,10 @@ git add <file1> <file2> <file3>
 # 4. Verify staged changes
 git diff --cached
 
-# 5. Create commit with detailed message
+# 5. Scan for secrets (MANDATORY)
+git secrets --scan
+
+# 6. Create commit with detailed message
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 
