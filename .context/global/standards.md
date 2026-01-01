@@ -12,7 +12,8 @@ For detailed guidelines, see **[Git Workflow](./git.md)**.
     *   **Protected Main:** Direct commits to `main` are rejected.
     *   **Conventions:** Use `feat/`, `fix/`, `docs/`, `chore/` prefixes.
 *   **Commits:**
-    *   **Format:** Use Conventional Commits (`type(scope): description`).
+    *   **Format:** Conventional Commits (`type(scope): description`).
+    *   **Context:** **REQUIRED**. Provide a detailed body explaining *why* and *impact*. One-liners are insufficient.
     *   **Signing:** **MUST** be GPG signed. Ensure your GPG agent is configured.
     *   **Frequency:** Commit progressively.
 *   **Pull Requests:**

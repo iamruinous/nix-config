@@ -51,6 +51,8 @@ This document provides comprehensive guidance for AI coding assistants on how to
 
 ## Commit Message Format
 
+**One-line commit messages are NOT sufficient.** Agents must provide context.
+
 Each commit message consists of a **header**, a **body**, and a **footer**.
 
 ```
@@ -61,7 +63,40 @@ Each commit message consists of a **header**, a **body**, and a **footer**.
 [optional footer]
 ```
 
+### 1. Subject (Header)
+- **Format:** `<type>(<scope>): <concise summary>`
+- **Length:** Max 50 characters (ideally), hard limit 72.
+- **Mood:** Imperative ("Add feature" not "Added feature").
+
+### 2. Body (Required for non-trivial changes)
+- **Content:** Detailed explanation.
+    - **Why** is this change necessary?
+    - **What** is the impact?
+    - **How** does it address the issue (if complex)?
+- **Format:** Wrap at 72 characters. Bullet points are encouraged.
+
+### 3. Footer (Optional)
+- **References:** `Fixes #123`, `Relates to #456`.
+- **Breaking Changes:** `BREAKING CHANGE: <description>`.
+
+### Example
+```
+feat(auth): add OAuth2 refresh token logic
+
+The current token expiration caused user sessions to drop unexpectedly.
+This change implements automatic background refreshing using the
+refresh token grant type.
+
+- Adds RefreshTokenService
+- Updates AuthProvider to listen for 401s
+- Retries failed requests once after refresh
+
+Fixes #42
+```
+
 ### Types
+
+- `feat`: A new feature
 
 - `feat`: A new feature
 - `fix`: A bug fix
@@ -605,6 +640,7 @@ git diff --cached
 
 # 5. Create commit with detailed message
 # Note: gitleaks (if installed) will automatically scan via hooks.
+# ALWAYS provide a body for context.
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 
