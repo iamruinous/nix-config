@@ -12,7 +12,14 @@ in {
     enable = lib.mkDefault true;
     enableDefaultConfig = lib.mkDefault false;
     matchBlocks = {
-      "z-ssh-tty" = {
+      "z-ssh-zenith" = {
+        match = "host * exec \"test $(uname -n) = 'zenith'\"";
+        extraOptions = {
+          IdentityFile = "~/.ssh/id_ed25519";
+        };
+      };
+
+      "y-ssh-tty" = {
         match = "host * exec \"test -z $SSH_TTY\"";
         extraOptions = {
           IdentityAgent = "\"${identityAgent}\"";
