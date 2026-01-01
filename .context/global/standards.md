@@ -26,5 +26,5 @@ For detailed guidelines, see **[Git Workflow](./git.md)**.
 
 ## Security
 *   **Secrets:** **NEVER** commit unencrypted secrets. Use the project's secret management tool.
-*   **git-secrets:** **MANDATORY**. Use [git-secrets](https://github.com/awslabs/git-secrets) to scan for sensitive information before committing.
+*   **git-secrets:** **MANDATORY**. Must be integrated into Git hooks (`pre-commit`) to prevent accidental leaks. See [Git Workflow](./git.md) for installation.
 *   **Access:** Respect least-privilege principles.

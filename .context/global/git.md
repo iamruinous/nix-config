@@ -23,12 +23,14 @@
    - Add new tasks discovered during implementation
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
-4. [ ] **git-secrets installed?** Ensure `git-secrets` is configured for this repository.
+4. [ ] **git-secrets hooks installed?** Verify `.git/hooks/pre-commit` contains `git-secrets`.
+   - If not → run `git secrets --install` first.
 
 **Quick start for new work:**
 ```bash
 git checkout main && git pull origin main
 git checkout -b feat/my-feature
+git secrets --install # Ensure hooks are active
 # make changes, then:
 git add <files> && git commit -m "feat: initial work"
 git push -u origin feat/my-feature
@@ -300,6 +302,27 @@ Changes:
 This enables the application to send transactional emails
 with full delivery tracking and user preference management.
 ```
+
+## Secret Leak Prevention (git-secrets)
+
+To prevent accidental leaks of sensitive information, this repository uses [git-secrets](https://github.com/awslabs/git-secrets).
+
+### Hook Installation (Mandatory)
+
+Run these commands once to install the mandatory Git hooks:
+
+```bash
+# 1. Install git-secrets hooks into the current repository
+git secrets --install
+
+# 2. Add common patterns (AWS, etc.)
+git secrets --register-aws
+
+# 3. Add custom project-specific patterns (if any)
+# git secrets --add 'regex-pattern'
+```
+
+Once installed, `git secrets --scan` will run automatically on every `commit`.
 
 ## Branching Strategy
 
@@ -575,10 +598,8 @@ git add <file1> <file2> <file3>
 # 4. Verify staged changes
 git diff --cached
 
-# 5. Scan for secrets (MANDATORY)
-git secrets --scan
-
-# 6. Create commit with detailed message
+# 5. Create commit with detailed message
+# Note: git-secrets (if installed) will automatically scan via hooks.
 git commit -m "type(scope): short description" -m "
 Detailed explanation of what changed and why.
 
