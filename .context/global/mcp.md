@@ -68,14 +68,14 @@ The following servers are assumed to be available globally in the agent's enviro
 ## Tool Workflows
 
 ### Todoist Workflow
-When interacting with tasks via the Todoist MCP server:
+When interacting with tasks via the official Todoist MCP server (`https://mcp.todoist.com/`):
 
 1.  **Project Context:** Always check the **Project Specific Settings** (e.g., `GEMINI.md` or project README) for the correct `todoist_project_id`. Do not rely on default/inbox unless explicitly instructed.
 2.  **Listing Tasks:**
     *   **Filter:** Filter by the identified Project ID.
     *   **Order:** ALWAYS order results by `priority` (descending) then `due_date` (ascending) to focus on urgent/important items first.
 3.  **Completion:**
-    *   When a user task is satisfied, explicitly mark the corresponding Todoist task as completed.
+    *   When a user task is satisfied, explicitly mark the corresponding Todoist task as completed (e.g., using `complete-tasks`).
     *   Do not delete tasks; use completion to maintain history.
 
 ## Best Practices
