@@ -6,11 +6,19 @@
 *   **Imports:** Group standard imports, then project modules, then local files.
 
 ## Git Workflow
-*   **Branching:** Use `feat/`, `fix/`, `docs/`, `chore/` prefixes.
+For detailed guidelines, see **[.context/git-workflow.md](./git-workflow.md)**.
+
+*   **Branching:**
+    *   **Protected Main:** Direct commits to `main` are rejected.
+    *   **Conventions:** Use `feat/`, `fix/`, `docs/`, `chore/` prefixes (e.g., `feat/add-auth`).
 *   **Commits:**
-    *   Use Conventional Commits (`feat: description`).
-    *   **MUST** be GPG signed.
-*   **PRs:** Create draft PRs early. Update status as you go.
+    *   **Format:** Use Conventional Commits (`type(scope): description`).
+    *   **Signing:** **MUST** be GPG signed. Always run `ssh-agent-check` before committing.
+    *   **Frequency:** Commit progressively, don't wait for the end.
+*   **Pull Requests:**
+    *   Create **Draft PRs** immediately after the first commit.
+    *   Maintain a task list in the PR description.
+    *   Review is required before merge.
 
 ## Testing Strategy
 1.  **Format:** `alejandra .`
