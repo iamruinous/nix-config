@@ -22,15 +22,25 @@ in {
         default = defaultRuinousKey;
         description = "Signing key for Ruinous Social / FarmForge";
       };
+      codeberg = lib.mkOption {
+        type = lib.types.str;
+        default = defaultMiscKey;
+        description = "Signing key for Codeberg";
+      };
+      sourcehut = lib.mkOption {
+        type = lib.types.str;
+        default = defaultMiscKey;
+        description = "Signing key for Sourcehut";
+      };
       misc = lib.mkOption {
         type = lib.types.str;
         default = defaultMiscKey;
-        description = "Signing key for Codeberg / Sourcehut";
+        description = "Signing key for Miscellaneous";
       };
       miscFormat = lib.mkOption {
         type = lib.types.enum ["ssh" "openpgp"];
         default = "openpgp";
-        description = "Signing format for Misc keys";
+        description = "Signing format for Codeberg/Sourcehut/Misc keys";
       };
     };
     email = {
@@ -44,10 +54,20 @@ in {
         default = "iamruinous@ruinous.social";
         description = "Email for Ruinous Social / FarmForge";
       };
+      codeberg = lib.mkOption {
+        type = lib.types.str;
+        default = "iamruinous@ruinous.social";
+        description = "Email for Codeberg";
+      };
+      sourcehut = lib.mkOption {
+        type = lib.types.str;
+        default = "iamruinous@ruinous.social";
+        description = "Email for Sourcehut";
+      };
       misc = lib.mkOption {
         type = lib.types.str;
         default = "iamruinous@ruinous.social";
-        description = "Email for Codeberg / Sourcehut";
+        description = "Email for Miscellaneous";
       };
     };
   };
@@ -83,8 +103,8 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = cfg.email.misc;
-              signingkey = cfg.signing.misc;
+              email = cfg.email.codeberg;
+              signingkey = cfg.signing.codeberg;
             };
             gpg =
               if cfg.signing.miscFormat == "ssh"
@@ -144,8 +164,8 @@ in {
           contents = {
             user = {
               name = "Jade Meskill";
-              email = cfg.email.misc;
-              signingkey = cfg.signing.misc;
+              email = cfg.email.sourcehut;
+              signingkey = cfg.signing.sourcehut;
             };
             gpg =
               if cfg.signing.miscFormat == "ssh"

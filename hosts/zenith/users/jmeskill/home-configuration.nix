@@ -37,6 +37,8 @@ in {
   in {
     github = zenithKey;
     farmforge = zenithKey;
+    codeberg = zenithKey;
+    sourcehut = zenithKey;
     misc = zenithKey;
     miscFormat = "ssh";
   };
@@ -46,6 +48,8 @@ in {
   in {
     github = codeyEmail;
     farmforge = codeyEmail;
+    codeberg = codeyEmail;
+    sourcehut = codeyEmail;
     misc = codeyEmail;
   };
 
