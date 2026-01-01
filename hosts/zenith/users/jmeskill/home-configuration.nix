@@ -32,14 +32,14 @@ in {
     "L+    /home/jmeskill/.local/bin/op-ssh-sign -    -    -     - ${pkgs.openssh}/bin/ssh-keygen"
   ];
 
-  ruinous.git.signing = let
-    zenithKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+";
-  in {
-    github = zenithKey;
-    farmforge = zenithKey;
-    misc = zenithKey;
-    miscFormat = "ssh";
-  };
+  # ruinous.git.signing = let
+  #   zenithKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+";
+  # in {
+  #   github = zenithKey;
+  #   farmforge = zenithKey;
+  #   misc = zenithKey;
+  #   miscFormat = "ssh";
+  # };
 
   # age.secrets.jmeskill_codey_ssh_key = {
   #   rekeyFile = ../../../../users/jmeskill/id_codey_ed25519.age;

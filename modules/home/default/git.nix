@@ -1,8 +1,8 @@
-{ lib,
+{
+  lib,
   config,
   ...
 }: let
-  git_config = ../../../files/configs/git;
   cfg = config.ruinous.git;
 
   # Default keys
@@ -165,13 +165,6 @@ in {
         init.defaultBranch = "main";
         gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
         gpg.format = "ssh";
-      };
-    };
-
-    xdg.configFile = {
-      "git" = {
-        source = "${git_config}";
-        recursive = true;
       };
     };
   };
