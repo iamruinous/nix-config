@@ -39,6 +39,8 @@ This is a NixOS configuration repository managing multiple NixOS and Darwin (mac
 *   **Commits:** Signed (GPG) and conventional (`feat:`, `fix:`).
 
 ## AI Agent Workflow
+For detailed operational protocols, see **[.context/agent-workflow.md](./agent-workflow.md)**.
+
 *   **Hub-and-Spoke:** Agents share context via `.context/`.
 *   **Planning:** Always plan complex changes (creating files, refactoring) before execution.
 *   **Safety:** Explain destructive actions. Verify builds before committing.
