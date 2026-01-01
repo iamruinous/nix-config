@@ -29,6 +29,7 @@
       "opencode"
       "picocom"
       "step"
+      "weaviate-cli"
     ];
     casks = [
       "1password"

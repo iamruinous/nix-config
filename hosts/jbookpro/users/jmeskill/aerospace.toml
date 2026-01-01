@@ -328,8 +328,8 @@ run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'ru.keepcoder.Telegram'
-run = 'move-node-to-workspace T'
+run = 'move-node-to-workspace X'
 
 [[on-window-detected]]
 if.app-id = 'com.hnc.Discord'
-run = 'move-node-to-workspace T'
+run = 'move-node-to-workspace X'
