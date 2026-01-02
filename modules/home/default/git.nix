@@ -6,51 +6,51 @@
   cfg = config.ruinous.git;
 
   # Default keys
-  defaultGithubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGcg4sQO+hRaGrHLLU0pXl7tEZIQGkmwxiA9klN0p6h+ jade.meskill@gmail.com";
-  defaultRuinousKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm";
+  defaultKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm";
+  defaultEmail = "iamruinous@ruinous.social";
 in {
   options.ruinous.git = {
     signing = {
       github = lib.mkOption {
         type = lib.types.str;
-        default = defaultGithubKey;
+        default = defaultKey;
         description = "Signing key for GitHub";
       };
       farmforge = lib.mkOption {
         type = lib.types.str;
-        default = defaultRuinousKey;
+        default = defaultKey;
         description = "Signing key for Ruinous Social / FarmForge";
       };
       codeberg = lib.mkOption {
         type = lib.types.str;
-        default = defaultRuinousKey;
+        default = defaultKey;
         description = "Signing key for Codeberg";
       };
       sourcehut = lib.mkOption {
         type = lib.types.str;
-        default = defaultRuinousKey;
+        default = defaultKey;
         description = "Signing key for Sourcehut";
       };
     };
     email = {
       github = lib.mkOption {
         type = lib.types.str;
-        default = "jade.meskill@gmail.com";
+        default = defaultEmail;
         description = "Email for GitHub";
       };
       farmforge = lib.mkOption {
         type = lib.types.str;
-        default = "iamruinous@ruinous.social";
+        default = defaultEmail;
         description = "Email for Ruinous Social / FarmForge";
       };
       codeberg = lib.mkOption {
         type = lib.types.str;
-        default = "iamruinous@ruinous.social";
+        default = defaultEmail;
         description = "Email for Codeberg";
       };
       sourcehut = lib.mkOption {
         type = lib.types.str;
-        default = "iamruinous@ruinous.social";
+        default = defaultEmail;
         description = "Email for Sourcehut";
       };
     };
@@ -59,10 +59,7 @@ in {
   config = {
     home.file.".ssh/allowed_signers".text = ''
       iamruinous@ruinous.social ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm
-      iamruinous@ruinous.social ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+
-      jade.meskill@gmail.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGcg4sQO+hRaGrHLLU0pXl7tEZIQGkmwxiA9klN0p6h+ jade.meskill@gmail.com
-      jade.meskill@gmail.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+
-      codey@ruinous.ai ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+
+      jade@ruinous.ai ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOUbvhmSusPR35I4Su5pcfyLl1SU8gjc65Rcj6JcDi+
     '';
 
     programs.lazygit = {

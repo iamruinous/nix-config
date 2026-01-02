@@ -22,6 +22,8 @@
 
   virtualisation.docker.enable = true;
 
+  ruinous.postgres.docker.backup.enable = true;
+
   environment.systemPackages = with pkgs; [
     docker-mcp-gateway
   ];

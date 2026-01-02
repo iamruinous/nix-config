@@ -31,6 +31,7 @@ in
 
       # Substitute configuration variables in the shell script
       substitute ${./backup-docker-postgres.sh} $out/bin/backup-docker-postgres \
+        --replace '@awk@' '${pkgs.gawk}' \
         --replace '@docker@' '${pkgs.docker}' \
         --replace '@containerName@' '${containerName}' \
         --replace '@backupDir@' '${backupDir}' \
