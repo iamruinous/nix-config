@@ -4,7 +4,7 @@ set -e
 
 # Configuration
 DELIMITER="<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->"
-FILES=("GEMINI.md" "CLAUDE.md")
+FILES=("GEMINI.md" "CLAUDE.md" "AGENTS.md")
 
 # Function to generate the immutable context
 generate_context() {
