@@ -25,10 +25,10 @@ if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
     exit 0
 fi
 
+GUM="@gum@/bin/gum"
+
 if [[ $# -eq 0 ]]; then
     # Interactive mode
-    GUM="@gum@/bin/gum"
-    
     if [ ! -x "$GUM" ]; then
         echo "Error: gum is not available. Please provide arguments."
         exit 1
@@ -53,13 +53,34 @@ else
     LOCAL_PORT="${3:-$REMOTE_PORT}"
 fi
 
-echo "Creating tunnel: localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT}"
-echo "Press Ctrl+C to stop"
-echo ""
+# Display summary header
+if [ -x "$GUM" ]; then
+    $GUM style \
+        --foreground 212 --border-foreground 212 --border rounded \
+        --padding "1 2" \
+        --margin "1 0" \
+        "Tunnel Configuration" \
+        "" \
+        "Remote: ${REMOTE_HOST}:${REMOTE_PORT}" \
+        "Local:  localhost:${LOCAL_PORT}"
+else
+    echo "Creating tunnel: localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT}"
+    echo "Press Ctrl+C to stop"
+    echo ""
+fi
 
-@ssh@/bin/ssh -o StrictHostKeyChecking=accept-new \
+SSH_CMD="@ssh@/bin/ssh -o StrictHostKeyChecking=accept-new \
     -o ServerAliveInterval=30 \
     -o ServerAliveCountMax=3 \
-    -L "${LOCAL_PORT}:localhost:${REMOTE_PORT}" \
+    -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} \
     -N \
-    "${REMOTE_HOST}"
+    ${REMOTE_HOST}"
+
+if [ -x "$GUM" ]; then
+    $GUM spin --spinner dot \
+        --title "Tunnel Active: localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT} (Ctrl+C to stop)" \
+        --show-output \
+        -- $SSH_CMD
+else
+    $SSH_CMD
+fi
