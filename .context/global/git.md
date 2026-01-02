@@ -24,7 +24,7 @@
    - Use `gh pr edit --body "..."` or `tea pr edit --description "..."` to update
 
 4. [ ] **prek hooks installed?** Verify `.git/hooks/pre-commit` exists.
-   - If not → run `prek install --hook-types pre-commit commit-msg`.
+   - If not → run `prek install --hook-type pre-commit -hook-type commit-msg`.
 
 **Quick start for new work:**
 ```bash

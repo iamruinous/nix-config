@@ -183,7 +183,62 @@ When setting this up in a new repo, follow this algorithm:
     *   Create `.context/index.md` linking to your new files.
     *   Create `AGENTS.md` (and tool specifics) in the root, pointing to `index.md`.
 
-5.  **Verify:**
+5.  **Establish Git Hooks (Prek):**
+    *   **Install Prek:** Ensure `prek` is installed (via `devshell` or `nix`).
+    *   **Configure Hooks:** Create `.pre-commit-config.yaml` with standard hooks (see below).
+    *   **Configure Commitlint:** Create `commitlint.config.js` with the AI footer rule (see below).
+    *   **Install:** Run `prek install --hook-types pre-commit commit-msg`.
+
+    *Standard `.pre-commit-config.yaml`:*
+    ```yaml
+    repos:
+      - repo: local
+        hooks:
+          - id: gitleaks
+            name: gitleaks
+            entry: gitleaks protect --verbose --redact --staged
+            language: system
+            pass_filenames: false
+
+      - repo: local
+        hooks:
+          - id: commitlint
+            name: commitlint
+            entry: commitlint --edit
+            language: system
+            stages: [commit-msg]
+
+      - repo: https://github.com/pre-commit/pre-commit-hooks
+        rev: v4.6.0
+        hooks:
+          - id: no-commit-to-branch
+            args: ['--branch', 'main']
+    ```
+
+    *Standard `commitlint.config.js`:*
+    ```javascript
+    module.exports = {
+      extends: ['@commitlint/config-conventional'],
+      plugins: [
+        {
+          rules: {
+            'ai-footer': ({raw}) => {
+              const footer = '🤖 Generated with [ruinous.ai](https://agent.ruinous.ai) 🦾✨';
+              return [
+                raw.includes(footer),
+                `AI agents must include the footer: ${footer}`,
+              ];
+            },
+          },
+        },
+      ],
+      rules: {
+        'ai-footer': [1, 'always'],
+      },
+    };
+    ```
+
+6.  **Verify:**
     *   Ask the agent: "What is the plan for adding a feature?"
     *   *Success Criteria:* The agent should quote the `global/protocols.md`, check `project/roster.md`, and propose using a specific specialist.
 
