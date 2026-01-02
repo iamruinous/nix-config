@@ -17,4 +17,6 @@ secrets/master-keys/*.age
 secrets/rekeyed/
 COMMIT_MSG.txt
 COMMIT_MSG*.txt
-tmp
+
+# Project-local temporary files (see .context/global/standards.md)
+tmp/
