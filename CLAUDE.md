@@ -41,7 +41,7 @@ This project defines specialized agent personas. When dealing with specific doma
 *   **Draft PR:** Create a draft PR early to track progress.
 *   **Verify:** Run `make remote-dry-build remotehost=<host>` before committing.
 *   **Sign:** GPG sign all commits.
-*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
+*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [https://github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
 
 ## Secrets Management
 **CRITICAL:** Never commit unencrypted secrets.

@@ -90,6 +90,9 @@ pi-flash:
 	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."
 
+bootstrap-context:
+	@./scripts/bootstrap-context.sh
+
 context-check:
 	@./scripts/context-check.sh
 
