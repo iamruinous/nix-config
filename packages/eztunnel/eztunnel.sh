@@ -20,14 +20,38 @@
 
 set -euo pipefail
 
-if [[ $# -lt 1 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
     sed -n '/^# Usage:/,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \?//'
     exit 0
 fi
 
-REMOTE_HOST="$1"
-REMOTE_PORT="${2:-8765}"
-LOCAL_PORT="${3:-$REMOTE_PORT}"
+if [[ $# -eq 0 ]]; then
+    # Interactive mode
+    GUM="@gum@/bin/gum"
+    
+    if [ ! -x "$GUM" ]; then
+        echo "Error: gum is not available. Please provide arguments."
+        exit 1
+    fi
+
+    $GUM style \
+        --foreground 212 --border-foreground 212 --border double \
+        --align center --width 50 --margin "1 2" --padding "2 4" \
+        "eztunnel" "Simple SSH Local Tunnel"
+
+    REMOTE_HOST=$($GUM input --header "Remote Hostname" --placeholder "e.g. zenith")
+    if [ -z "$REMOTE_HOST" ]; then
+        echo "Hostname is required."
+        exit 1
+    fi
+
+    REMOTE_PORT=$($GUM input --header "Remote Port" --value "8765")
+    LOCAL_PORT=$($GUM input --header "Local Port" --value "$REMOTE_PORT")
+else
+    REMOTE_HOST="$1"
+    REMOTE_PORT="${2:-8765}"
+    LOCAL_PORT="${3:-$REMOTE_PORT}"
+fi
 
 echo "Creating tunnel: localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT}"
 echo "Press Ctrl+C to stop"

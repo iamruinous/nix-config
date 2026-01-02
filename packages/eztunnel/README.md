@@ -9,12 +9,23 @@ Simple SSH local tunnel utility for accessing remote ports via localhost.
 ## Features
 
 - Simple command-line interface with sensible defaults
+- **Interactive mode** when no arguments are provided (powered by `gum`)
 - Configurable local and remote ports
 - Connection keep-alive with automatic reconnection
 - Auto-accepts new host keys for convenience
 - Help text via `--help` or `-h`
 
 ## Usage
+
+### Interactive Mode
+
+Simply run `eztunnel` without arguments to launch the interactive wizard:
+
+```bash
+eztunnel
+```
+
+### Command Line Mode
 
 ```bash
 eztunnel <remote-host> [remote-port] [local-port]
@@ -102,6 +113,7 @@ home.packages = with pkgs; [
 ## Dependencies
 
 - openssh: Required for the `ssh` command
+- gum: Required for interactive mode
 
 ## Stopping the Tunnel
 

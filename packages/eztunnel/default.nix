@@ -6,6 +6,7 @@ pkgs.stdenv.mkDerivation {
 
   propagatedBuildInputs = with pkgs; [
     openssh
+    gum
   ];
 
   passthru.shellPath = "/bin/eztunnel";
@@ -16,7 +17,8 @@ pkgs.stdenv.mkDerivation {
 
     # Substitute executable paths in the shell script
     substitute ${./eztunnel.sh} $out/bin/eztunnel \
-      --replace '@ssh@' '${pkgs.openssh}'
+      --replace '@ssh@' '${pkgs.openssh}' \
+      --replace '@gum@' '${pkgs.gum}'
 
     chmod +x $out/bin/eztunnel
   '';
