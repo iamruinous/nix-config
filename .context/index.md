@@ -9,6 +9,7 @@ This directory (`.context/`) is the **Single Source of Truth** for AI agents wor
 *   **Git Workflow:** [.context/global/git.md](./global/git.md) (Branching, PRs, Commit styles)
 *   **Coding Standards:** [.context/global/standards.md](./global/standards.md) (Style, Security, Testing)
 *   **MCP Standards:** [.context/global/mcp.md](./global/mcp.md) (MCP server management)
+*   **Replication Guide:** [.context/replicating-setup.md](./replicating-setup.md) (How to set this up in a new repo)
 
 ## 🏗️ Project (Specifics)
 *Configuration unique to `iamruinous/nix-config`.*
