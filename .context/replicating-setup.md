@@ -249,7 +249,7 @@ Add this rule to `global/protocols.md`:
 *   **Write:** Only update `.context/` files for *shared* knowledge.
 *   **Index Maintenance:** "If you create a new file in `.context/`, you MUST update `.context/index.md`."
 
-## 8. Upgrade & Migration
+## 8. Upgrade & Migration Protocol
 
 To keep your replicated system up-to-date with the latest protocols:
 1.  **Reference:** Read `.context/global/upgrades.md` for the versioning strategy.
