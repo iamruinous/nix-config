@@ -31,3 +31,32 @@ For detailed guidelines, see **[Git Workflow](./git.md)**.
 *   **commitlint:** **MANDATORY**. Must be integrated into Git hooks (`commit-msg`) to enforce Conventional Commits. See [Git Workflow](./git.md) for installation.
 *   **Signing:** **MANDATORY**. All commits MUST be GPG/SSH signed.
 *   **Access:** Respect least-privilege principles.
+
+## File System Practices
+
+### Temporary Files
+**Always use `<project-root>/tmp/` for temporary files** instead of `/tmp` or other system directories.
+
+**Why:**
+- Avoids permission issues when tools run in sandboxed environments
+- Keeps temporary work visible and scoped to the project
+- No risk of conflicts with other system processes
+- Easier cleanup (just delete the directory)
+
+**Usage:**
+```bash
+# Good - project-local tmp
+mkdir -p tmp
+echo "content" > tmp/scratch.txt
+
+# Bad - system tmp (requires extra permissions)
+echo "content" > /tmp/scratch.txt
+```
+
+**Safety:**
+- The `tmp/` directory is already in `.gitignore`
+- Never commit files from `tmp/` - if you need to keep something, move it to a proper location
+- Clean up after yourself: `rm -rf tmp/*` when done with temporary work
+
+**For AI Agents:**
+When working with temporary files (e.g., decrypting secrets, staging edits), always use the project's `tmp/` directory. This ensures tools like `agenix` can access the files without requiring sandbox bypasses.

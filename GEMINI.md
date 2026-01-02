@@ -34,6 +34,7 @@ Refer to `.context/project/agents/` for detailed instructions on:
     *   `make remote-rebuild remotehost=<hostname>`
 
 ## Git Workflow
-*   **Feature Branches:** Always work on a branch (`feat/`, `fix/`).
+*   **Feature Branches:** Always work on a feature branch (`feat/`, `fix/`).
 *   **Verification:** Verify builds (`make remote-dry-build`).
 *   **Signing:** All commits must be GPG signed.
+*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
