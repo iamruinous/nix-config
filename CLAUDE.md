@@ -1,4 +1,13 @@
-# AI Agent Context
+# Claude Memory & Scratchpad
+
+## 🧠 Active Context
+*   **Role:** Orchestrator (Hub)
+
+## 📝 Memories
+*   (No active memories)
+
+<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->
+# Claude CLI Context (Bootstrapped)
 
 ## ⚠️ Primary Context Source
 **STOP:** You must initialize your context before proceeding.

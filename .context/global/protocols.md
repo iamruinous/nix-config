@@ -37,6 +37,19 @@ When executing a step requires a Specialist:
 *   **Write:** Only update `.context/` files for shared knowledge. Do not update tool-specific config (like `.claude/` or `.gemini/`) unless necessary for technical reasons.
 *   **Index Maintenance:** When creating or moving files within `.context/`, you MUST update [.context/index.md](../index.md) to maintain the single source of truth.
 
+### 4. Context Bootstrapping (Memory Beacon)
+To ensure agents have immediate access to critical context without initial file reads:
+1.  **Beacon Files:** Files like `GEMINI.md` or `CLAUDE.md` serve as the agent's "Working Memory" and "Context Anchor".
+2.  **Structure:** These files MUST follow a split structure:
+    *   **Top (Mutable):** Agent memories, scratchpad, and active task tracking.
+    *   **Divider:** A clear delimiter line: `<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->`.
+    *   **Bottom (Immutable):** A summarized injection of the Global Standards and Project Specifics.
+3.  **Constraint:** Agents **MUST NOT** edit anything below the divider line. This section is managed by repo maintainers/scripts to keep context fresh.
+4.  **Content:** The bootstrapped context should minimally include:
+    *   Pointer to the SSOT (`.context/index.md`).
+    *   Key Protocols (Planning, Delegation).
+    *   Project Architecture Summary.
+
 ## Escalation Paths
 
 ### When a Specialist Fails

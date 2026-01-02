@@ -1,4 +1,13 @@
-# Gemini CLI Context
+# Gemini Memory & Scratchpad
+
+## 🧠 Active Context
+*   **Role:** Orchestrator (Hub)
+
+## 📝 Memories
+- We are designing an 'Adaptive Parameters System' for Messy/Newsy to manage dynamic user facts, preferences, and system configuration with versioning and MCP tool exposure. Design doc is at docs/plans/adaptive-parameters-system.md.
+
+<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->
+# Gemini CLI Context (Bootstrapped)
 
 ## ⚠️ Primary Context Source
 **STOP:** You must initialize your context before proceeding.
