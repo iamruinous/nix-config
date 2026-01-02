@@ -602,6 +602,34 @@
         networks = ["servicenet"];
         dependsOn = ["n8n"];
       };
+      n8n-runner-2 = {
+        image = "docker.io/n8nio/runners:2.2.1";
+        environment = {
+          TZ = "America/Phoenix";
+          N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
+          N8N_RUNNERS_TASK_TIMEOUT = "900";
+          N8N_RUNNERS_MAX_CONCURRENCY = "10";
+          NODE_FUNCTION_ALLOW_BUILTIN = "*";
+        };
+        environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
+        networks = ["servicenet"];
+        dependsOn = ["n8n"];
+      };
+      n8n-runner-3 = {
+        image = "docker.io/n8nio/runners:2.2.1";
+        environment = {
+          TZ = "America/Phoenix";
+          N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
+          N8N_RUNNERS_TASK_TIMEOUT = "900";
+          N8N_RUNNERS_MAX_CONCURRENCY = "10";
+          NODE_FUNCTION_ALLOW_BUILTIN = "*";
+        };
+        environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
+        networks = ["servicenet"];
+        dependsOn = ["n8n"];
+      };
       # Vector database for n8n AI workflows and RAG
       weaviate = {
         image = "cr.weaviate.io/semitechnologies/weaviate:1.35.1";
