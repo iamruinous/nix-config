@@ -30,6 +30,7 @@
 
   systemd.services.mariadb-backup.serviceConfig.EnvironmentFile = config.age.secrets.monolith_docker_env_mariadb.path;
   ruinous.mariadb.docker.backup.enable = true;
+  ruinous.postgres.docker.backup.enable = true;
 
   services.printing.enable = true;
   ruinous.printing.discoverable = true;

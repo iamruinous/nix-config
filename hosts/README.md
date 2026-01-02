@@ -4,10 +4,12 @@ This directory contains configurations for all systems managed by this flake. Ea
 
 ## Overview
 
-This infrastructure consists of 15 hosts spanning multiple platforms:
-- **8 NixOS servers** - Infrastructure and compute nodes
-- **2 NixOS MicroVMs** - Ephemeral development environments
+This infrastructure consists of **24 hosts** spanning multiple platforms:
+- **14 NixOS servers** - Infrastructure, compute nodes, and Raspberry Pi cluster
+- **2 NixOS thin clients** - High Availability pair
+- **1 Cloud VPS** - Remote services
 - **2 NixOS workstations** - Desktop and laptop
+- **2 NixOS MicroVMs** - Ephemeral development environments
 - **3 macOS systems** - Development workstations
 
 ## Physical Infrastructure
@@ -63,9 +65,15 @@ The RPC is a cluster of Raspberry Pi devices for edge computing and experimentat
 | Hostname | Model | Status |
 |----------|-------|--------|
 | `rpc-5-alpha` | Raspberry Pi 5 | Configured |
+| `rpc-5-bravo` | Raspberry Pi 5 | Configured |
+| `rpc-5-charlie` | Raspberry Pi 5 | Configured |
+| `rpc-5-delta` | Raspberry Pi 5 | Configured |
 | `rpc-4-echo` | Raspberry Pi 4 | Configured |
+| `rpc-4-foxtrot` | Raspberry Pi 4 | Configured |
+| `rpc-4-golf` | Raspberry Pi 4 | Configured |
+| `rpc-4-hotel` | Raspberry Pi 4 | Configured |
 
-**Adding New Members:** Use `/create-pi-host rpc-<model>-<name>` (e.g., `rpc-5-bravo`, `rpc-4-charlie`)
+**Adding New Members:** Use `/create-pi-host rpc-<model>-<name>` (e.g., `rpc-5-india`, `rpc-4-juliet`)
 
 **Legacy:** `rp500` is a standalone Raspberry Pi 500 (not part of the cluster)
 
@@ -187,7 +195,13 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 | Host | Type | Platform | CPU | RAM | Primary Role |
 |------|------|----------|-----|-----|--------------|
 | rpc-5-alpha | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
+| rpc-5-bravo | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
+| rpc-5-charlie | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
+| rpc-5-delta | Pi Cluster | NixOS | BCM2712 | 8 GB | Cluster member |
 | rpc-4-echo | Pi Cluster | NixOS | BCM2711 | 4 GB | Cluster member |
+| rpc-4-foxtrot | Pi Cluster | NixOS | BCM2711 | 4 GB | Cluster member |
+| rpc-4-golf | Pi Cluster | NixOS | BCM2711 | 4 GB | Cluster member |
+| rpc-4-hotel | Pi Cluster | NixOS | BCM2711 | 4 GB | Cluster member |
 | armistice | Server | NixOS | ARM64 | 64 GB | ARM workstation |
 | monolith | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Infrastructure hub |
 | obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |

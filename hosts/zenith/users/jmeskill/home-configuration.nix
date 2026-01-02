@@ -42,12 +42,12 @@ in {
   };
 
   ruinous.git.email = let
-    codeyEmail = "codey@ruinous.ai";
+    aiEmail = "jade@ruinous.ai";
   in {
-    github = codeyEmail;
-    farmforge = codeyEmail;
-    codeberg = codeyEmail;
-    sourcehut = codeyEmail;
+    github = aiEmail;
+    farmforge = aiEmail;
+    codeberg = aiEmail;
+    sourcehut = aiEmail;
   };
 
   # age.secrets.jmeskill_codey_ssh_key = {
