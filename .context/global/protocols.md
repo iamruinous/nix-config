@@ -49,6 +49,7 @@ To ensure agents have immediate access to critical context without initial file 
     *   Pointer to the SSOT (`.context/index.md`).
     *   Key Protocols (Planning, Delegation).
     *   Project Architecture Summary.
+5.  **Automation:** Use `make bootstrap-context` to refresh the immutable section. See [.context/global/bootstrap-context.md](./bootstrap-context.md) for details.
 
 ## Escalation Paths
 
