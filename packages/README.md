@@ -175,6 +175,33 @@ Fast, cached SSH agent availability checker.
 
 ---
 
+### [eztunnel](eztunnel/README.md)
+
+Simple SSH local tunnel utility for accessing remote ports via localhost.
+
+**Purpose**: Creates an SSH local tunnel to forward a remote port to your local machine, making remote services accessible as if they were running locally. Particularly useful for OAuth authentication on headless servers.
+
+**Key Features**:
+- Simple command-line interface with sensible defaults
+- Configurable local and remote ports
+- Connection keep-alive with automatic reconnection
+- Auto-accepts new host keys for convenience
+- Built-in help text
+
+**Used By**: Development workflows requiring access to remote services (databases, web apps, APIs, OAuth callbacks)
+
+**Dependencies**: openssh
+
+**Common Use Cases**:
+- OAuth authentication for AI agents on headless servers
+- Accessing remote databases during development
+- Testing webhooks locally (e.g., n8n on port 5678)
+- Forwarding remote web services to localhost
+
+**Version**: 1.0.0
+
+---
+
 ### [pinentry-1password](pinentry-1password/README.md)
 
 Pinentry-compatible program using 1Password CLI for passphrase retrieval.
@@ -231,6 +258,7 @@ environment.systemPackages = with pkgs; [
   nelko-pl70ebt
   pinentry-1password
   ssh-agent-check
+  eztunnel
   weaviate-cli
 ];
 ```
