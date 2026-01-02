@@ -1,8 +1,16 @@
-# AI Agent Context
+# Claude Memory & Scratchpad
+
+## 🧠 Active Context
+*   **Role:** Orchestrator (Hub)
+
+## 📝 Memories
+*   (No active memories)
+
+<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->
+# Claude CLI Context (Bootstrapped)
 
 ## ⚠️ Primary Context Source
-**STOP:** Before proceeding, read **[.context/index.md](.context/index.md)**.
-This directory is the **Single Source of Truth** for this project.
+Your context is managed via this bootstrapped beacon. The **Single Source of Truth** is located in **[.context/index.md](.context/index.md)**.
 
 *   **Standards & Protocols:** `.context/global/`
 *   **Project Specifics:** `.context/project/`
@@ -32,7 +40,7 @@ This project defines specialized agent personas. When dealing with specific doma
 *   **Draft PR:** Create a draft PR early to track progress.
 *   **Verify:** Run `make remote-dry-build remotehost=<host>` before committing.
 *   **Sign:** GPG sign all commits.
-*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
+*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [https://github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
 
 ## Secrets Management
 **CRITICAL:** Never commit unencrypted secrets.

@@ -1,40 +1,52 @@
-# Gemini CLI Context
+# Gemini Memory & Scratchpad
+
+## 🧠 Active Context
+*   **Role:** Orchestrator (Hub)
+
+## 📝 Memories
+- We are designing an 'Adaptive Parameters System' for Messy/Newsy to manage dynamic user facts, preferences, and system configuration with versioning and MCP tool exposure. Design doc is at docs/plans/adaptive-parameters-system.md.
+
+<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->
+# Gemini CLI Context (Bootstrapped)
 
 ## ⚠️ Primary Context Source
-**STOP:** Before proceeding, read **[.context/index.md](.context/index.md)**.
-This directory is the **Single Source of Truth** for this project.
+Your context is managed via this bootstrapped beacon. The **Single Source of Truth** is located in **[.context/index.md](.context/index.md)**.
 
 *   **Standards & Protocols:** `.context/global/`
 *   **Project Specifics:** `.context/project/`
 
 ## Project Overview
 This is a NixOS configuration repository using `blueprint` for structure. It manages NixOS and Darwin hosts.
+*   **Switch:** `nixos-rebuild switch --flake .#<host>`
+*   **Remote:** `make remote-rebuild remotehost=<host>`
 
 ## AI Agent Workflow
-1.  **Read Instructions:** Check `.context/index.md` and linked files.
-2.  **Plan First:** Create a plan and confirm with the user.
-3.  **Safety:** Explain destructive actions. Use `read_file` to verify state.
+You are an intelligent coding assistant. Your primary goal is to help the user safely and efficiently.
 
-## Specialized Instructions
-Refer to `.context/project/agents/` for detailed instructions on:
-*   **Secrets Management (`agenix`)**: `.context/project/agents/agenix.md`
-*   **Containers (`containnix`)**: `.context/project/agents/containnix.md`
-*   **Cloudflare (`cfnix`)**: `.context/project/agents/cfnix.md`
-*   **Packaging (`nix-packager`)**: `.context/project/agents/nix-packager.md`
+### 1. Plan & Orchestrate
+*   **Check Context:** Always reference `.context/` files.
+*   **Create Plan:** Use the TodoWrite tool (or similar) to outline your steps.
+*   **Confirm:** Get user approval before executing complex changes.
+
+### 2. Specialized Agents
+This project defines specialized agent personas. When dealing with specific domains, delegate (mentally) to the instructions found in `.context/project/agents/`:
+*   **`agenix`**: Secrets management (`.age` files).
+*   **`cfnix`**: Cloudflare DNS & Tunnels.
+*   **`containnix`**: Docker/OCI container deployment.
+*   **`nix-packager`**: Nix package creation.
+
+### 3. Git Workflow
+*   **Branch:** Always work on a feature branch (`feat/`, `fix/`).
+*   **Draft PR:** Create a draft PR early to track progress.
+*   **Verify:** Run `make remote-dry-build remotehost=<host>` before committing.
+*   **Sign:** GPG sign all commits.
+*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [https://github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
+
+## Secrets Management
+**CRITICAL:** Never commit unencrypted secrets.
+*   Use `agenix` for all secrets.
+*   See `.context/project/agents/agenix.md` for detailed workflows.
 
 ## Common Recipes
-*   **Create Database:** `.context/project/recipes/create-db.md`
-*   **Create Pi Host:** `.context/project/recipes/create-pi-host.md`
-
-## Development Conventions
-*   **Modularity:** Reuse modules in `modules/`.
-*   **Secrets:** NEVER commit unencrypted secrets.
-*   **Build & Deploy:**
-    *   `nixos-rebuild switch --flake .#<hostname>`
-    *   `make remote-rebuild remotehost=<hostname>`
-
-## Git Workflow
-*   **Feature Branches:** Always work on a feature branch (`feat/`, `fix/`).
-*   **Verification:** Verify builds (`make remote-dry-build`).
-*   **Signing:** All commits must be GPG signed.
-*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
+*   **Create Database:** See `.context/project/recipes/create-db.md`
+*   **Create Pi Host:** See `.context/project/recipes/create-pi-host.md`

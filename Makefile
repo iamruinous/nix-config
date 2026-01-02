@@ -90,6 +90,9 @@ pi-flash:
 	@rm -f /tmp/$(pihost).img
 	@$(SUCCESS) "Flash complete! You can safely remove $(device)."
 
+bootstrap-context:
+	@./scripts/bootstrap-context.sh
+
 # Sanity check - dry-build representative hosts from each category
 # Tests: NixOS desktop, NixOS server, Darwin, and Raspberry Pi
 check:
