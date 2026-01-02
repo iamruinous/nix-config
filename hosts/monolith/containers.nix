@@ -573,6 +573,7 @@
           N8N_NATIVE_PYTHON_RUNNER = "true";
           WEAVIATE_URL = "http://weaviate:8080";
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
+          N8N_BLOCK_INTERNAL_NETWORKS = "false";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
@@ -595,6 +596,7 @@
           N8N_RUNNERS_TASK_TIMEOUT = "900";
           N8N_RUNNERS_MAX_CONCURRENCY = "10";
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
+          N8N_BLOCK_INTERNAL_NETWORKS = "false";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
         networks = ["servicenet"];
@@ -947,6 +949,7 @@
           TZ = "America/Phoenix";
         };
         networks = ["servicenet"];
+        dependsOn = ["mosquitto"];
         volumes = [
           "/data/docker/zigbee2mqtt/data:/app/data"
         ];
