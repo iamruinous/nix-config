@@ -49,7 +49,7 @@ Primary NixOS server for infrastructure services, containers, and network servic
 
 **Productivity:**
 - **Paperless-ngx**: Document management with AI classification
-- **n8n**: Workflow automation
+- **n8n**: Workflow automation with 3 parallel task runners for code execution
 - **Forgejo**: Git forge (SSH on port 2222)
 - **TaskTrove**: Task management
 - **Glance**: Dashboard

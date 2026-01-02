@@ -67,6 +67,25 @@ nix run 'github:numtide/system-manager' -- switch --flake .#pit
 -   **Lanzaboote:** Some hosts use `lanzaboote` for secure boot.
 -   **Custom Packages:** Custom packages in `packages/` are automatically discovered by blueprint and exposed via overlay.
 
+## Task Management with Todoist
+
+This project uses Todoist for task tracking. When fetching tasks related to this repository, use the **"nix-config 🖥️✨"** project.
+
+**Project Details:**
+- **Project Name:** nix-config 🖥️✨
+- **Project ID:** `6fgF77XPfCpHF3cc`
+
+**Usage:**
+When querying tasks from Todoist MCP tools, filter by this project ID to get relevant tasks:
+```
+projectId: "6fgF77XPfCpHF3cc"
+```
+
+**Common Operations:**
+- Find pending tasks: `find-tasks` with `projectId: "6fgF77XPfCpHF3cc"`
+- Find today's tasks: `find-tasks-by-date` with `startDate: "today"` and `projectId: "6fgF77XPfCpHF3cc"`
+- Add new task: `add-tasks` with `projectId: "6fgF77XPfCpHF3cc"`
+
 ## Custom AI Agents
 
 This repository includes custom AI agents that provide specialized expertise for specific tasks. Agents are defined in `.claude/agents/` and are automatically available to Claude Code.
