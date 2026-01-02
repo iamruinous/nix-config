@@ -32,6 +32,9 @@ jobs:
       - name: Check flake syntax
         uses: DeterminateSystems/flake-checker-action@v12
 
+      - name: Run linting (prek)
+        run: nix develop -c prek run --all-files
+
       - name: Dry-build NixOS desktop (framework)
         run: nix build .#nixosConfigurations.framework.config.system.build.toplevel --dry-run
 

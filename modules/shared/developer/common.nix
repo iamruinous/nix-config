@@ -15,7 +15,9 @@
     [
       # dev tools
       devenv
-      git-secrets
+      commitlint
+      gitleaks
+      prek
       jq
       just
       lazygit
