@@ -13,6 +13,12 @@ We operate on a **Hub-and-Spoke** model.
 
 ## Usage Protocols
 
+### 0. Initialization Phase (Mandatory)
+At the start of any new session or task:
+1.  **Verification:** Execute `make context-check` to validate environment integrity.
+2.  **Absorption:** Read the summary output to orient yourself.
+3.  **Failure:** If the check fails, STOP and report the missing files to the user.
+
 ### 1. Planning Phase (Mandatory)
 Before executing complex changes, the Orchestrator **MUST** create a plan.
 *   **Analyze:** Use tools to understand current state.

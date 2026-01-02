@@ -1,8 +1,8 @@
 # AI Agent Context
 
 ## ⚠️ Primary Context Source
-**STOP:** Before proceeding, read **[.context/index.md](.context/index.md)**.
-This directory is the **Single Source of Truth** for this project.
+**STOP:** You must initialize your context before proceeding.
+Run `make context-check` (or read **[.context/index.md](.context/index.md)** directly) to load the Single Source of Truth.
 
 *   **Standards & Protocols:** `.context/global/`
 *   **Project Specifics:** `.context/project/`

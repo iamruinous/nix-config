@@ -1,4 +1,5 @@
 # Context Beacon (Index)
+**System Version:** 2025.01.03
 
 This directory (`.context/`) is the **Single Source of Truth** for AI agents working on this repository. It separates global standards from project-specific configuration.
 
@@ -6,6 +7,7 @@ This directory (`.context/`) is the **Single Source of Truth** for AI agents wor
 *Shared patterns applicable across repositories.*
 
 *   **Protocols:** [.context/global/protocols.md](./global/protocols.md) (Hub-and-Spoke model, Planning)
+*   **Upgrades:** [.context/global/upgrades.md](./global/upgrades.md) (Migration & Versioning)
 *   **Git Workflow:** [.context/global/git.md](./global/git.md) (Branching, PRs, Commit styles)
 *   **Coding Standards:** [.context/global/standards.md](./global/standards.md) (Style, Security, Testing)
 *   **MCP Standards:** [.context/global/mcp.md](./global/mcp.md) (MCP server management)
@@ -22,6 +24,8 @@ This directory (`.context/`) is the **Single Source of Truth** for AI agents wor
 
 ## 🛠️ Maintenance
 *Instructions for keeping this context updated.*
+
+*   **Changelog:** [.context/migrations.md](./migrations.md) (Track context updates here)
 
 1.  **Update on Creation:** When creating a new file in `.context/`, you MUST update this index.
 2.  **Verify Links:** Ensure all links remain functional after refactoring.
