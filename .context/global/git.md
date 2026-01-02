@@ -8,11 +8,21 @@
 
 **Before making ANY code changes, verify:**
 
-1. [ ] **Am I on a feature branch?** Run `git branch --show-current`
-   - If on `main` → create a feature branch first
+1. [ ] **Is the current branch active?**
+   - Check if the branch has been merged or is stale: `git fetch origin && git log HEAD..origin/main`
+   - If the branch is stale, merged, or you are starting a new task:
+     - **STOP** and switch to a fresh branch:
+       ```bash
+       git checkout main
+       git pull origin main
+       git checkout -b feat/new-task-name
+       ```
+
+2. [ ] **Am I on a feature branch?** Run `git branch --show-current`
+   - If on `main` → create a feature branch first (see above)
    - If on a feature branch → proceed
 
-2. [ ] **Does a draft PR exist for this branch?**
+3. [ ] **Does a draft PR exist for this branch?**
    - If no → create one after your first commit:
      - `gh pr create --draft` (GitHub)
      - `tea pr create` (Forgejo)
