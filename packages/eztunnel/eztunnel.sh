@@ -56,13 +56,11 @@ fi
 # Display summary header
 if [ -x "$GUM" ]; then
     $GUM style \
-        --foreground 212 --border-foreground 212 --border rounded \
-        --padding "1 2" \
+        --foreground 212 --border-foreground 213 --border rounded \
+        --padding "2 4" \
         --margin "1 0" \
-        "Tunnel Configuration" \
-        "" \
-        "Remote: ${REMOTE_HOST}:${REMOTE_PORT}" \
-        "Local:  localhost:${LOCAL_PORT}"
+        "eztunnel" \
+        "localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT}"
 else
     echo "Creating tunnel: localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT}"
     echo "Press Ctrl+C to stop"
@@ -78,7 +76,7 @@ SSH_CMD="@ssh@/bin/ssh -o StrictHostKeyChecking=accept-new \
 
 if [ -x "$GUM" ]; then
     $GUM spin --spinner dot \
-        --title "Tunnel Active: localhost:${LOCAL_PORT} -> ${REMOTE_HOST}:${REMOTE_PORT} (Ctrl+C to stop)" \
+        --title "Tunnel Active (Ctrl+C to stop)" \
         --show-output \
         -- $SSH_CMD
 else
