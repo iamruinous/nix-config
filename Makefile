@@ -93,9 +93,6 @@ pi-flash:
 bootstrap-context:
 	@./scripts/bootstrap-context.sh
 
-context-check:
-	@./scripts/context-check.sh
-
 # Sanity check - dry-build representative hosts from each category
 # Tests: NixOS desktop, NixOS server, Darwin, and Raspberry Pi
 check:

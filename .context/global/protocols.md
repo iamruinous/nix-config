@@ -15,9 +15,9 @@ We operate on a **Hub-and-Spoke** model.
 
 ### 0. Initialization Phase (Mandatory)
 At the start of any new session or task:
-1.  **Verification:** Execute `make context-check` to validate environment integrity.
-2.  **Absorption:** Read the summary output to orient yourself.
-3.  **Failure:** If the check fails, STOP and report the missing files to the user.
+1.  **Verification:** Read the bootstrapped context in `GEMINI.md`, `CLAUDE.md`, or `AGENTS.md`.
+2.  **Absorption:** Orient yourself using the summarized project specifics.
+3.  **Bootstrapping:** If the context seems stale, run `make bootstrap-context`.
 
 ### 1. Planning Phase (Mandatory)
 Before executing complex changes, the Orchestrator **MUST** create a plan.

@@ -15,8 +15,7 @@ generate_context() {
 # {{AGENT_NAME}} CLI Context (Bootstrapped)
 
 ## ⚠️ Primary Context Source
-**STOP:** You must initialize your context before proceeding.
-Run `make context-check` (or read **[.context/index.md](.context/index.md)** directly) to load the Single Source of Truth.
+Your context is managed via this bootstrapped beacon. The **Single Source of Truth** is located in **[.context/index.md](.context/index.md)**.
 
 *   **Standards & Protocols:** `.context/global/`
 *   **Project Specifics:** `.context/project/`

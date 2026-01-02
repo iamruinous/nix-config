@@ -27,7 +27,7 @@ Brief description of what changed and why.
 1.  **File Created/Modified:** `path/to/file.md`
     *   *Instruction:* "Add the following section..." or "Copy content from..."
 2.  **Directive Added:** "Update AGENTS.md to include..."
-3.  **Verification:** "Run `make context-check` to verify..."
+3.  **Verification:** "Run `make bootstrap-context` to verify..."
 
 ### Automated Script (Optional)
 If a script can perform this upgrade, reference it here.
@@ -40,7 +40,7 @@ When improving the system (e.g., adding a new global protocol):
 1.  **Implement:** Make the changes in the `.context/` directory (usually in `global/`).
 2.  **Document:** Create a new entry in `.context/migrations.md` documenting exactly how to replicate this change.
 3.  **Version:** Update the "Current Version" badge/text in `.context/index.md`.
-4.  **Verify:** Ensure `scripts/context-check.sh` (if applicable) is updated to validate the new structure.
+4.  **Verify:** Ensure beacon files and protocols correctly reflect the new structure (e.g., via `make bootstrap-context`).
 
 ## 4. Replicating Upgrades (for other repos)
 

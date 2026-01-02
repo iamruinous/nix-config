@@ -15,11 +15,12 @@ Introduced two major protocols:
 
 ### Manual Upgrade Steps
 
-#### 1. Implement Context Loading Directive
-1.  **Create Script:** Copy `scripts/context-check.sh` from source.
-2.  **Update Makefile:** Add `context-check` target.
-3.  **Update Beacons:** Update `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` to mandate `make context-check`.
-4.  **Update Protocols:** Add "0. Initialization Phase" to `.context/global/protocols.md`.
+## Initializing a new Repository with Context
+
+1.  **Create Directory:** `mkdir -p .context/{global,project}`
+2.  **Add Core Files:** Copy index, protocols, standards from a source repo.
+3.  **Update Beacons:** Initialize `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` using the bootstrap protocol.
+4.  **Update Makefile:** Add `bootstrap-context` target.
 
 #### 2. Implement Upgrade Protocol
 1.  **Create File:** Create `.context/global/upgrades.md` (this protocol definition).
