@@ -6,6 +6,8 @@ pkgs.stdenv.mkDerivation {
 
   propagatedBuildInputs = with pkgs; [
     openssh
+    gum
+    python3
   ];
 
   passthru.shellPath = "/bin/eztunnel";
@@ -16,9 +18,15 @@ pkgs.stdenv.mkDerivation {
 
     # Substitute executable paths in the shell script
     substitute ${./eztunnel.sh} $out/bin/eztunnel \
-      --replace '@ssh@' '${pkgs.openssh}'
+      --replace '@ssh@' '${pkgs.openssh}' \
+      --replace '@gum@' '${pkgs.gum}'
+
+    substitute ${./ezoauth.sh} $out/bin/ezoauth \
+      --replace '@gum@' '${pkgs.gum}' \
+      --replace '@python@' '${pkgs.python3}'
 
     chmod +x $out/bin/eztunnel
+    chmod +x $out/bin/ezoauth
   '';
 
   installPhase = ''

@@ -9,6 +9,7 @@ Simple SSH local tunnel utility for accessing remote ports via localhost.
 ## Features
 
 - Simple command-line interface with sensible defaults
+- **Interactive mode** when no arguments are provided (powered by `gum`)
 - Configurable local and remote ports
 - Connection keep-alive with automatic reconnection
 - Auto-accepts new host keys for convenience
@@ -16,8 +17,33 @@ Simple SSH local tunnel utility for accessing remote ports via localhost.
 
 ## Usage
 
+### Interactive Mode
+
+Simply run `eztunnel` without arguments to launch the interactive wizard:
+
+```bash
+eztunnel
+```
+
+### Command Line Mode
+
 ```bash
 eztunnel <remote-host> [remote-port] [local-port]
+```
+
+## OAuth Helper (ezoauth)
+
+`ezoauth` is a helper script that automatically sets up a tunnel based on an OAuth URL. It parses the `redirect_uri` parameter to extract the required port.
+
+```bash
+ezoauth <remote-host> <oauth-url>
+```
+
+**Example:**
+
+```bash
+ezoauth zenith "https://github.com/login/oauth/authorize?client_id=...&redirect_uri=http://localhost:3000/callback"
+# Automatically runs: eztunnel zenith 3000
 ```
 
 ### Arguments
@@ -102,6 +128,8 @@ home.packages = with pkgs; [
 ## Dependencies
 
 - openssh: Required for the `ssh` command
+- gum: Required for interactive mode
+- python3: Required for `ezoauth` URL parsing
 
 ## Stopping the Tunnel
 
