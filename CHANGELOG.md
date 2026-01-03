@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `xdg-remote` package for remote `xdg-open` shimming
+  - `xdg-remote-receiver`: Desktop-side listener that opens URLs
+  - `xdg-remote-shim`: Remote-side configuration utility
+  - `xdg-open`: Shimmed version that sends URLs to the receiver
+  - Secure connection string mechanism with pre-shared keys
 - `messy-discord-bot` container on monolith for Messy personal assistant
   - Forwards Discord messages to n8n webhook
   - Source maintained in separate repo: forge.meskill.farm/iamruinous/n8n-messy-discord-bot
