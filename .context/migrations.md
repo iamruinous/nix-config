@@ -5,6 +5,90 @@ This file tracks the evolution of the Multi-Agent System (MAS) context structure
 
 ---
 
+## [2025.01.02] - oh-my-opencode Standardization
+**Type:** Major Migration
+
+### Summary
+
+Standardized on **[oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)** as the primary AI agent interface, with **Sisyphus** (Claude Opus 4.5) as the orchestrator.
+
+### Key Changes
+
+| Component | Before | After |
+|-----------|--------|-------|
+| **Primary Interface** | Multiple CLIs (Gemini, Claude, OpenCode) | OpenCode + oh-my-opencode |
+| **Orchestrator** | Hub-and-Spoke (manual) | Sisyphus (automated) |
+| **Primary Beacon** | Split across AGENTS/GEMINI/CLAUDE.md | AGENTS.md only |
+| **Agent Definitions** | `.context/project/agents/` | `.claude/agents/` |
+| **Configuration** | None | `.opencode/oh-my-opencode.jsonc` |
+
+### Benefits
+
+1. **Single orchestrator** - Sisyphus handles planning/delegation automatically
+2. **Background agents** - True parallel execution without context duplication
+3. **Built-in specialists** - Oracle, Librarian, Explore, Frontend Engineer, etc.
+4. **Claude Code compatibility** - Existing `.claude/` structure works seamlessly
+5. **MCP integration** - Context7, Exa search, grep.app built-in
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `AGENTS.md` | Complete rewrite as primary oh-my-opencode context |
+| `GEMINI.md` | Updated to reference AGENTS.md as primary |
+| `CLAUDE.md` | Updated to reference AGENTS.md as primary |
+| `.context/index.md` | Updated for OpenCode as primary interface |
+| `.context/global/protocols.md` | Updated for Sisyphus orchestration |
+| `.context/project/roster.md` | Mapped to oh-my-opencode agent system |
+| `.context/replicating-setup.md` | Complete rewrite with migration guide |
+| `docs/plans/multi-agent-orchestration.md` | Marked as implemented |
+| `README.md` | Updated AI Agent Workflow section |
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `.opencode/oh-my-opencode.jsonc` | Project-specific oh-my-opencode configuration |
+
+### Manual Migration Steps
+
+If migrating from the previous multi-CLI system:
+
+1. **Install oh-my-opencode**
+   ```bash
+   bunx oh-my-opencode install
+   ```
+
+2. **Update AGENTS.md**
+   - Rewrite as the primary context beacon
+   - Include oh-my-opencode quick start
+   - Document both built-in and project agents
+
+3. **Update secondary beacons**
+   - GEMINI.md and CLAUDE.md should reference AGENTS.md
+   - Keep for backwards compatibility with direct CLI usage
+
+4. **Update .context/ files**
+   - `index.md`: Reference OpenCode as primary
+   - `global/protocols.md`: Add Sisyphus orchestration
+   - `project/roster.md`: Map to oh-my-opencode agents
+
+5. **Create configuration**
+   - Create `.opencode/oh-my-opencode.jsonc`
+   - Update `.gitignore` for new patterns
+
+6. **Verify agents load**
+   - Existing `.claude/agents/*.md` files work as-is
+   - Test with `opencode` and invoke agents
+
+### Breaking Changes
+
+- **Agent location unchanged** - `.claude/agents/` still works
+- **Protocols updated** - Review `global/protocols.md` for new patterns
+- **Primary beacon changed** - AGENTS.md is now the main context file
+
+---
+
 ## [2025.01.03] - Upgrade Protocol & Context Loading Directive
 **Type:** Feature
 

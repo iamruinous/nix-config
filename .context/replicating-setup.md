@@ -1,257 +1,406 @@
-# Multi-Agent Orchestration Implementation Guide
+# Multi-Agent Context System - Replication Guide
 
-## Objective
-To establish a robust, deterministic, and self-documenting environment where AI agents (Claude, Gemini, etc.) operate as a cohesive team using a **Hub-and-Spoke** model. This setup relies on a **Single Source of Truth (SSoT)** located in a `.context/` directory, referenced by root-level "beacons".
+**Version:** 2025.01.02  
+**Primary Interface:** [OpenCode](https://opencode.ai) with [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)
 
-## 1. Directory Structure Setup
+## Overview
 
-First, establish the physical structure. This separation is critical: it isolates reusable **Global Standards** from **Project Specifics**.
+This guide explains how to replicate the multi-agent context system in your own repository. The system uses **oh-my-opencode** with **Sisyphus** as the orchestrator, with a **Single Source of Truth (SSoT)** in the `.context/` directory.
 
-**Action:** Create the following directory tree in the target repository root:
+---
 
-```text
-.context/
-├── index.md                # THE BEACON: The entry point for all context.
-├── global/                 # STANDARDS: Reusable across projects.
-│   ├── git.md              # Git workflows (Branches, PRs, Commits).
-│   ├── protocols.md        # Agent behavior (Hub-and-Spoke, Planning).
-│   ├── standards.md        # Code style, security, testing.
-│   └── mcp.md              # Tool/Server standards.
-└── project/                # SPECIFICS: Unique to this repo.
-    ├── architecture.md     # Tech stack, directory layout.
-    ├── roster.md           # Active agents and delegation matrix.
-    ├── mcp-registry.md     # Active tools/servers.
-    ├── agents/             # Persona definitions (The "Spokes").
-    │   └── [agent-name].md # Specific instructions for a specialist.
-    └── recipes/            # Standard Operating Procedures.
-        └── [recipe-name].md
+## Quick Start (New Repository)
+
+```bash
+# 1. Install oh-my-opencode
+bunx oh-my-opencode install
+
+# 2. Copy the context structure from this repo
+mkdir -p .context/{global,project/agents,project/recipes}
+mkdir -p .claude/{agents,commands}
+mkdir -p .opencode
+
+# 3. Create your AGENTS.md (see template below)
+# 4. Start OpenCode
+opencode
 ```
 
 ---
 
-## 2. Core Implementation (Global Layer)
+## Architecture Overview
 
-These files define *how* agents behave. They are generally project-agnostic.
-
-**Source of Truth:** You can copy these standard files directly from the public reference repository:
-👉 **[github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config)** (Check the `.context/global/` directory).
-
-### A. `global/protocols.md` (The Operating System)
-**Purpose:** Defines the Hub-and-Spoke model.
-**Key Content to Include:**
-*   **Roles:** Define the **Orchestrator** (the agent talking to the user) and **Specialists** (virtual personas defined in `project/agents/`).
-*   **Planning Protocol:** Mandate that the Orchestrator must "Understand -> Plan -> Confirm" before acting.
-*   **Delegation Protocol:** Explain how to "switch hats" by reading a specialist file, adopting its persona/constraints, executing, and then returning to Orchestrator mode.
-
-### B. `global/git.md` (The Version Control Law)
-**Purpose:** Enforces safe Git practices.
-**Key Content to Include:**
-*   **Branching:** Mandate feature branches (`feat/`, `fix/`). Ban direct commits to `main`.
-*   **Commits:** Enforce Conventional Commits (`type(scope): description`). Require detailed bodies explaining *why*.
-*   **PRs:** Mandate Draft PRs for visibility.
-
-### C. `global/standards.md` (The Quality Gate)
-**Purpose:** Defines code quality and security.
-**Key Content to Include:**
-*   **Security:** "NEVER commit secrets."
-*   **Testing:** "Run X before committing."
-*   **Filesystem:** "Use `./tmp/` for temporary files, not system `/tmp`."
-
----
-
-## 3. Context Implementation (Project Layer)
-
-These files define *what* the project is. You must analyze the target project to fill these out.
-
-### A. `project/architecture.md` (The Map)
-**Purpose:** High-level overview.
-**How to Fill:**
-1.  **Overview:** What does this repo do?
-2.  **Directory Structure:** Map key folders to their purpose.
-3.  **Tech Stack:** List languages, frameworks, and key libraries.
-4.  **Build/Deploy:** What commands run tests? How is it deployed?
-5.  **Conventions:** Any specific naming rules or patterns?
-
-### B. `project/roster.md` (The Team)
-**Purpose:** Defines who does what.
-**How to Fill:**
-1.  Identify complex domains in the project (e.g., "Database", "Frontend", "DevOps").
-2.  Create a "Specialist" for each domain.
-3.  Create a **Delegation Matrix** table: `Task Category | Primary Agent | Support`.
-
-### C. `project/agents/[name].md` (The Personas)
-**Purpose:** Detailed instructions for each specialist.
-**How to Fill:**
-*   **Name & Description:** Identity.
-*   **Core Responsibilities:** What do they own?
-*   **Constraints:** What are they FORBIDDEN from doing? (e.g., "DB Agent cannot drop tables without flag").
-*   **Tools/Commands:** Specific CLI commands they use.
-*   **Common Patterns:** "How to add a new API endpoint" (step-by-step).
-
-### D. `project/mcp-registry.md` (The Tools)
-**Purpose:** Registry of available MCP servers.
-**How to Fill:**
-*   List all active MCP servers (e.g., `postgres`, `filesystem`, `github`).
-*   Provide configuration snippets for `.mcp.json` or agent-specific settings.
+```
+your-repo/
+├── AGENTS.md                    # PRIMARY: Main context beacon for OpenCode
+├── CLAUDE.md                    # SECONDARY: Claude CLI memory (optional)
+├── GEMINI.md                    # SECONDARY: Gemini CLI memory (optional)
+├── .context/
+│   ├── index.md                 # Single Source of Truth index
+│   ├── migrations.md            # Context version history
+│   ├── replicating-setup.md     # This file
+│   ├── global/                  # Reusable standards (copy from source)
+│   │   ├── protocols.md         # Sisyphus orchestration protocols
+│   │   ├── git.md               # Git workflow standards
+│   │   ├── standards.md         # Code quality standards
+│   │   ├── mcp.md               # MCP server standards
+│   │   └── bootstrap-context.md # Bootstrap protocol
+│   └── project/                 # Project-specific (customize)
+│       ├── architecture.md      # Tech stack, directory layout
+│       ├── roster.md            # Agent delegation matrix
+│       ├── mcp-registry.md      # Active MCP servers
+│       ├── agents/              # Project-specific agent definitions
+│       └── recipes/             # Common workflows
+├── .claude/
+│   ├── agents/                  # Custom agent definitions (oh-my-opencode loads)
+│   │   └── *.md                 # Agent persona files
+│   └── commands/                # Slash commands
+│       └── *.md                 # Command files
+└── .opencode/
+    └── oh-my-opencode.jsonc     # Project-specific configuration
+```
 
 ---
 
-## 4. The Beacons (Root Level)
+## Step-by-Step Setup
 
-Agents start at the root. You need file-system "hooks" to catch their attention immediately.
+### 1. Install oh-my-opencode
 
-### A. `.context/index.md` (The Source of Truth)
-**Purpose:** The central index linking everything together.
-**Content:**
-*   Links to all Global and Project files.
-*   "Quick Start" for agents entering the repo.
+```bash
+# Interactive installer
+bunx oh-my-opencode install
 
-### B. Root Files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`)
-**Purpose:** Platform-specific entry points.
-**Content:**
-*   **⚠️ STOP:** First line must tell the agent to read `.context/index.md`.
-*   **Summary:** Brief overview of the project.
-*   **Pointers:** Links to `architecture.md` and `protocols.md`.
-*   *Note:* Create `CLAUDE.md` for Anthropic, `GEMINI.md` for Google, etc., containing instructions specific to their tool quirks (e.g., specific sandbox flags).
+# Or with specific options
+bunx oh-my-opencode install --no-tui --claude=yes --chatgpt=yes --gemini=yes
+```
 
----
+### 2. Create Directory Structure
 
-## 5. Migration Strategy (Transitioning Existing Projects)
+```bash
+# Core directories
+mkdir -p .context/{global,project/agents,project/recipes}
+mkdir -p .claude/{agents,commands}
+mkdir -p .opencode
+```
 
-If the project already has `CLAUDE.md`, `GEMINI.md`, or `AGENTS.md` with mixed instructions, follow this transition plan to separate concerns.
+### 3. Copy Global Standards
 
-### Phase 1: Audit & Split
-Analyze the existing root files. Identify which instructions are **Global** (apply to any project) vs **Project** (specific to this repo).
+Copy the `global/` directory from the source repository:
 
-| Instruction Type | Destination | Example |
-| :--- | :--- | :--- |
-| **Code Style** | `.context/global/standards.md` | "Use 2 spaces for indentation" |
-| **Git Rules** | `.context/global/git.md` | "Always squash commits" |
-| **Agent Roles** | `.context/global/protocols.md` | "Act as a Senior Engineer" |
-| **Build Commands** | `.context/project/architecture.md` | `npm run build` |
-| **Directory Map** | `.context/project/architecture.md` | "src/components contains UI" |
-| **Special Tools** | `.context/project/agents/<name>.md` | "How to use the internal CLI" |
+**Source:** [github.com/iamruinous/nix-config/.context/global/](https://github.com/iamruinous/nix-config/tree/main/.context/global)
 
-### Phase 2: Populate Context
-1.  Move the **Global** content into the respective `global/` files (or simply replace with the standard set if the existing rules are generic).
-2.  Move the **Project** content into `project/architecture.md` or specialized agent files.
+These files are generally project-agnostic:
+- `protocols.md` - Sisyphus orchestration model
+- `git.md` - Git workflow standards
+- `standards.md` - Code quality standards
+- `mcp.md` - MCP server standards
+- `bootstrap-context.md` - Bootstrap protocol
 
-### Phase 3: Replace Beacons
-Once the content is safely migrated to `.context/`, **overwrite** the original root files with the standard beacon template.
+### 4. Create AGENTS.md (Primary Beacon)
 
-**New Beacon Template (for `AGENTS.md`, `CLAUDE.md`, etc.):**
+Create `AGENTS.md` in your repository root:
+
 ```markdown
-# AI Agent Context Beacon
+# [Project Name] - Agent Context
 
-## ⚠️ Primary Context Source
-**STOP:** Before proceeding, read **[.context/index.md](.context/index.md)**.
-This directory is the **Single Source of Truth** for this project.
+**Primary Interface:** [OpenCode](https://opencode.ai) with [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)  
+**Orchestrator:** Sisyphus (Claude Opus 4.5)  
+**Context Version:** 2025.01.02
 
-*   **Standards & Protocols:** `.context/global/`
-*   **Project Specifics:** `.context/project/`
+---
+
+## Quick Start
+
+\`\`\`bash
+opencode
+# Include "ultrawork" or "ulw" in prompts for maximum performance
+\`\`\`
+
+**Single Source of Truth:** [.context/index.md](.context/index.md)
+
+---
 
 ## Project Overview
-[Insert 1-2 sentence summary of the project here]
 
-## Directives
-1.  **Read Context First:** Always start by reading `.context/index.md`.
-2.  **Follow Protocols:** Adhere to the workflows defined in `.context/global/protocols.md`.
-3.  **Upstream Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
+[Brief description of your project]
+
+### Key Commands
+
+| Action | Command |
+|--------|---------|
+| **Build** | `your build command` |
+| **Test** | `your test command` |
+| **Deploy** | `your deploy command` |
+
+---
+
+## Agent System
+
+### Built-in Agents (oh-my-opencode)
+
+| Agent | Purpose |
+|-------|---------|
+| **oracle** | Architecture, debugging, strategy |
+| **librarian** | Documentation, OSS examples |
+| **explore** | Fast codebase exploration |
+| **frontend-ui-ux-engineer** | Visual/UI development |
+| **document-writer** | Technical documentation |
+
+### Project-Specific Agents
+
+| Agent | Purpose |
+|-------|---------|
+| **your-agent** | Your agent description |
+
+---
+
+## Verification Protocol
+
+Before marking any task complete:
+- [ ] Build passes
+- [ ] Tests pass
+- [ ] All todos marked complete
+
+---
+
+## Context System
+
+| Path | Purpose |
+|------|---------|
+| `AGENTS.md` | Primary context beacon (this file) |
+| `.context/index.md` | Single source of truth |
+| `.claude/agents/` | Custom agent definitions |
+| `.claude/commands/` | Slash commands |
+```
+
+### 5. Create Project-Specific Files
+
+#### `.context/index.md`
+```markdown
+# Context Beacon (Index)
+**System Version:** 2025.01.02
+
+This directory is the **Single Source of Truth** for AI agents.
+
+## Primary Interface
+**OpenCode with oh-my-opencode** - See AGENTS.md
+
+## Global (Standards)
+- **Protocols:** ./global/protocols.md
+- **Git:** ./global/git.md
+- **Standards:** ./global/standards.md
+
+## Project (Specifics)
+- **Architecture:** ./project/architecture.md
+- **Roster:** ./project/roster.md
+- **Agents:** .claude/agents/
+```
+
+#### `.context/project/architecture.md`
+Document your project's:
+- Overview and purpose
+- Directory structure
+- Tech stack
+- Build/deploy commands
+- Conventions
+
+#### `.context/project/roster.md`
+Define your delegation matrix:
+- Which agents handle which tasks
+- When to use built-in vs project agents
+- Parallel execution patterns
+
+### 6. Create Custom Agents (Optional)
+
+Create `.claude/agents/your-agent.md`:
+
+```markdown
+---
+name: your-agent
+description: "Description of what this agent does"
+tools: Read, Grep, Glob, Bash, Edit, Write
+model: sonnet
+---
+
+# Your Agent Name
+
+You are an expert in [domain]. You handle [responsibilities].
+
+## Core Commands
+
+\`\`\`bash
+# Your agent's key commands
+\`\`\`
+
+## Common Patterns
+
+### Pattern 1: [Name]
+1. Step one
+2. Step two
+```
+
+### 7. Configure oh-my-opencode
+
+Create `.opencode/oh-my-opencode.jsonc`:
+
+```jsonc
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+
+  // Agent overrides for your project
+  "agents": {
+    "librarian": {
+      "prompt_append": "Project-specific instructions for documentation lookup."
+    }
+  },
+
+  // Claude Code compatibility enabled
+  "claude_code": {
+    "mcp": true,
+    "commands": true,
+    "skills": true,
+    "agents": true,
+    "hooks": true
+  }
+}
+```
+
+### 8. Update .gitignore
+
+Add to your `.gitignore`:
+
+```gitignore
+# Claude Code sensitive files
+.claude/settings.json
+.claude/settings.local.json
+.claude/chats/
+.claude/*.local
+
+# OpenCode sensitive files
+.opencode/*.local.json
+.opencode/*.local.jsonc
 ```
 
 ---
 
-## 6. Replicating: The Step-by-Step Workflow
+## Migration from Previous System
 
-When setting this up in a new repo, follow this algorithm:
+If you're migrating from the previous multi-CLI system (separate Gemini/Claude/OpenCode contexts):
 
-1.  **Analyze the Codebase:**
-    *   *Scan:* Run `ls -R` or `tree` to understand the structure.
-    *   *Read:* Check `package.json`, `Cargo.toml`, `Makefile`, etc., to find build commands.
-    *   *Identify Domains:* Does it have a complex DB? (Create `db-specialist`). Heavy React UI? (Create `frontend-specialist`).
+### Phase 1: Install oh-my-opencode
 
-2.  **Scaffold the `.context` Directory:**
-    *   **Copy Global Layer:** Clone the `global/` folder from [iamruinous/nix-config](https://github.com/iamruinous/nix-config).
-    *   **Create Project Layer:** Create empty files for `project/architecture.md`, `project/roster.md`.
+```bash
+bunx oh-my-opencode install
+```
 
-3.  **Populate Project Specifics:**
-    *   Write `project/architecture.md` based on your analysis in Step 1.
-    *   Define 2-3 initial agents in `project/roster.md`.
-    *   Write the agent files in `project/agents/`. Start simple.
+### Phase 2: Consolidate Context
 
-4.  **Establish Beacons:**
-    *   Create `.context/index.md` linking to your new files.
-    *   Create `AGENTS.md` (and tool specifics) in the root, pointing to `index.md`.
+1. **AGENTS.md becomes primary** - Rewrite as the main context beacon
+2. **GEMINI.md / CLAUDE.md become secondary** - Update to reference AGENTS.md
+3. **Move agents to .claude/agents/** - oh-my-opencode loads from here
 
-5.  **Establish Git Hooks (Prek):**
-    *   **Install Prek:** Ensure `prek` is installed (via `devshell` or `nix`).
-    *   **Configure Hooks:** Create `.pre-commit-config.yaml` with standard hooks (see below).
-    *   **Configure Commitlint:** Create `commitlint.config.js` with the AI footer rule (see below).
-    *   **Install:** Run `prek install --hook-types pre-commit commit-msg`.
+### Phase 3: Update .context/
 
-    *Standard `.pre-commit-config.yaml`:*
-    ```yaml
-    repos:
-      - repo: local
-        hooks:
-          - id: gitleaks
-            name: gitleaks
-            entry: gitleaks protect --verbose --redact --staged
-            language: system
-            pass_filenames: false
+| File | Action |
+|------|--------|
+| `index.md` | Update to reference OpenCode as primary |
+| `global/protocols.md` | Update for Sisyphus orchestration |
+| `project/roster.md` | Map to oh-my-opencode agent system |
 
-      - repo: local
-        hooks:
-          - id: commitlint
-            name: commitlint
-            entry: commitlint --edit
-            language: system
-            stages: [commit-msg]
+### Phase 4: Create Configuration
 
-      - repo: https://github.com/pre-commit/pre-commit-hooks
-        rev: v4.6.0
-        hooks:
-          - id: no-commit-to-branch
-            args: ['--branch', 'main']
-    ```
+1. Create `.opencode/oh-my-opencode.jsonc`
+2. Update `.gitignore` for new patterns
 
-    *Standard `commitlint.config.js`:*
-    ```javascript
-    module.exports = {
-      extends: ['@commitlint/config-conventional'],
-      plugins: [
-        {
-          rules: {
-            'ai-footer': ({raw}) => {
-              const footer = '🤖 Generated with [ruinous.ai](https://agent.ruinous.ai) 🦾✨';
-              return [
-                raw.includes(footer),
-                `AI agents must include the footer: ${footer}`,
-              ];
-            },
-          },
-        },
-      ],
-      rules: {
-        'ai-footer': [1, 'always'],
-      },
-    };
-    ```
+### Migration Checklist
 
-6.  **Verify:**
-    *   Ask the agent: "What is the plan for adding a feature?"
-    *   *Success Criteria:* The agent should quote the `global/protocols.md`, check `project/roster.md`, and propose using a specific specialist.
+- [ ] oh-my-opencode installed
+- [ ] AGENTS.md rewritten as primary beacon
+- [ ] GEMINI.md / CLAUDE.md updated (if keeping)
+- [ ] `.context/index.md` updated
+- [ ] `.context/global/protocols.md` updated
+- [ ] `.context/project/roster.md` updated
+- [ ] Custom agents in `.claude/agents/`
+- [ ] `.opencode/oh-my-opencode.jsonc` created
+- [ ] `.gitignore` updated
+- [ ] Test with `opencode`
 
-## 7. Maintenance Protocol
+---
 
-Add this rule to `global/protocols.md`:
-*   **Read:** Always check `.context/` first.
-*   **Write:** Only update `.context/` files for *shared* knowledge.
-*   **Index Maintenance:** "If you create a new file in `.context/`, you MUST update `.context/index.md`."
+## Agent Format Reference
 
-## 8. Upgrade & Migration Protocol
+### Custom Agent File Format
 
-To keep your replicated system up-to-date with the latest protocols:
-1.  **Reference:** Read `.context/global/upgrades.md` for the versioning strategy.
-2.  **Track:** Maintain a local `.context/migrations.md` to log applied updates.
-3.  **Sync:** Periodically check the upstream `migrations.md` and apply manual upgrade steps for new versions.
+oh-my-opencode loads agents from `.claude/agents/*.md` using this format:
+
+```markdown
+---
+name: agent-name
+description: "Brief description for agent selection"
+tools: Read, Grep, Glob, Bash, Edit, Write
+model: sonnet  # or opus, haiku, etc.
+---
+
+# Agent Title
+
+Agent instructions and documentation...
+```
+
+### Slash Command Format
+
+Commands in `.claude/commands/*.md`:
+
+```markdown
+---
+description: "What this command does"
+---
+
+# Command Instructions
+
+Steps the agent should follow when this command is invoked...
+```
+
+---
+
+## Verification
+
+After setup, verify with:
+
+```bash
+# Start OpenCode
+opencode
+
+# Test agent loading
+# Type: Ask @oracle to review this setup
+
+# Test custom agents (if defined)
+# Type: Ask @your-agent to do something
+```
+
+---
+
+## Keeping Up to Date
+
+### Sync Global Standards
+
+Periodically sync `global/` from the source:
+
+```bash
+# Check for updates
+curl -s https://raw.githubusercontent.com/iamruinous/nix-config/main/.context/migrations.md
+
+# Copy updated files as needed
+```
+
+### Track Migrations
+
+Maintain your own `.context/migrations.md` to track applied updates.
+
+---
+
+## Contributing Back
+
+If you improve the Global Standards:
+
+1. Fork [github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config)
+2. Update files in `.context/global/`
+3. Create a PR with your improvements
