@@ -29,42 +29,57 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 ├── lib/                  # Custom Nix library functions
 ├── secrets/              # Encrypted secrets managed with agenix
 ├── files/                # Static configuration files
-├── .context/             # Unified AI agent context and instructions
+├── .context/             # Unified AI agent context (SSOT)
+├── .claude/              # oh-my-opencode agents and commands
+├── .opencode/            # oh-my-opencode project configuration
 └── Makefile              # Helper commands for common operations
 ```
 
 ## AI Agent Workflow
 
-This repository uses a **Hub-and-Spoke** multi-agent workflow to streamline development. The context and instructions for all agents are centralized in the `.context/` directory.
+This repository uses **[OpenCode](https://opencode.ai)** with **[oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)** as the primary AI agent interface, with **Sisyphus** (Claude Opus 4.5) as the orchestrator.
 
-### Agent Overview
+### Quick Start
 
-- **Primary Context**: `.context/` is the **Single Source of Truth** for project architecture, standards, and agent instructions.
-- **Specialists**: Specialized agent personas are defined for specific domains (secrets, containers, etc.).
-- **Recipes**: Reusable workflows for common tasks (creating databases, adding hosts).
+```bash
+# Start OpenCode with Sisyphus orchestration
+opencode
 
-### Specialists
+# Magic word for maximum performance
+# Include "ultrawork" or "ulw" in your prompt
+```
 
-| Agent | Responsibilities | Instructions |
-|-------|------------------|--------------|
-| **`agenix`** | Secrets management (`.age` files), rekeying, encryption. | `.context/project/agents/agenix.md` |
-| **`cfnix`** | Cloudflare DNS records & Tunnel configuration. | `.context/project/agents/cfnix.md` |
-| **`containnix`** | Docker/OCI container deployment, networking, proxy setup. | `.context/project/agents/containnix.md` |
-| **`nix-packager`** | Creating and converting Nix packages. | `.context/project/agents/nix-packager.md` |
+### Agent System
+
+| Type | Agents | Purpose |
+|------|--------|---------|
+| **Built-in** | oracle, librarian, explore, frontend-ui-ux-engineer, document-writer | oh-my-opencode defaults |
+| **Project** | agenix, cfnix, containnix, nix-packager | Custom agents in `.claude/agents/` |
+
+### Project Specialists
+
+| Agent | Responsibilities |
+|-------|------------------|
+| **`agenix`** | Secrets management (`.age` files), rekeying, encryption |
+| **`cfnix`** | Cloudflare DNS records & Tunnel configuration |
+| **`containnix`** | Docker/OCI container deployment, networking, proxy setup |
+| **`nix-packager`** | Creating and converting Nix packages |
 
 ### Common Recipes
 
-- **Create Database**: Create a PostgreSQL db/user on infrastructure hosts.
-    - Usage: Check `.context/project/recipes/create-db.md`
-- **Create Pi Host**: Scaffold a new Raspberry Pi cluster member.
-    - Usage: Check `.context/project/recipes/create-pi-host.md`
+- **Create Database**: `/create-db-<host>` (e.g., `/create-db-monolith`)
+- **Create Pi Host**: `/create-pi-host`
 
-### Usage for AI Assistants
+### Context Files
 
-1.  **Read Context**: Before starting, read `.context/index.md`.
-2.  **Plan**: Create a step-by-step plan using the TodoWrite tool.
-3.  **Delegate**: Refer to the specialized agent instructions in `.context/project/agents/` when encountering specific tasks (e.g., "I need to add a secret" -> Read `agenix.md`).
-4.  **Verify**: Always run `make remote-dry-build` or `nix build` before finishing.
+| File | Purpose |
+|------|---------|
+| **AGENTS.md** | Primary context beacon for OpenCode |
+| **.context/index.md** | Single source of truth index |
+| **.claude/agents/** | Custom agent definitions |
+| **.claude/commands/** | Slash commands |
+
+For complete documentation, see **[AGENTS.md](AGENTS.md)**.
 
 ## Hosts
 

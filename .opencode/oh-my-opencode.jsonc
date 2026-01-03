@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+
+  // Project: iamruinous/nix-config
+  // NixOS configuration repository with custom agents for secrets, containers, and Cloudflare
+
+  // Agent overrides - customize for NixOS workflow
+  "agents": {
+    // Oracle for architecture decisions and debugging
+    "oracle": {
+      "prompt_append": "This is a NixOS configuration repository. When reviewing code, consider Nix-specific patterns like modules, overlays, and flake structure."
+    },
+
+    // Librarian should know about NixOS documentation sources
+    "librarian": {
+      "prompt_append": "For NixOS questions, search the NixOS Wiki, Home Manager options, and the nixpkgs manual. Use the nixos MCP tools for option lookups."
+    },
+
+    // Explore for codebase navigation
+    "explore": {
+      "prompt_append": "This is a NixOS configuration with hosts/, modules/, packages/, and secrets/ directories. Look for patterns in existing configurations."
+    }
+  },
+
+  // Hooks configuration
+  // All hooks enabled by default - disable specific ones if needed
+  "disabled_hooks": [],
+
+  // MCPs - all defaults enabled
+  // context7, websearch_exa, grep_app enabled by default
+  "disabled_mcps": [],
+
+  // Ralph Loop disabled by default (opt-in)
+  "ralph_loop": {
+    "enabled": false,
+    "default_max_iterations": 100
+  },
+
+  // Claude Code compatibility - all enabled
+  "claude_code": {
+    "mcp": true,
+    "commands": true,
+    "skills": true,
+    "agents": true,
+    "hooks": true
+  }
+}

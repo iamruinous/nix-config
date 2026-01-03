@@ -1,63 +1,142 @@
 # AI Agent Protocols (Global)
 
-This document defines the standard operational protocols for the multi-agent system.
+This document defines the standard operational protocols for the multi-agent system using **oh-my-opencode** with **Sisyphus** as the orchestrator.
 
-## Agent Role Definition
+## Primary Interface
 
-We operate on a **Hub-and-Spoke** model.
+**OpenCode with oh-my-opencode** is the primary AI agent interface.
 
-*   **Orchestrator (The Hub):** The primary agent currently interacting with the user.
-    *   **Responsibility:** High-level planning, context management, user communication, and delegating sub-tasks to specialists.
-*   **Specialists (The Spokes):** Virtual personas or specialized toolsets defined in `.context/project/agents/`.
-    *   **Responsibility:** Executing specific, domain-bounded tasks.
+- **Orchestrator:** Sisyphus (Claude Opus 4.5)
+- **Magic Word:** `ultrawork` or `ulw` for maximum parallel agent performance
+- **Context Beacon:** `AGENTS.md` in project root
+
+### Alternative Interfaces
+- Gemini CLI → `GEMINI.md`
+- Claude CLI → `CLAUDE.md`
+
+---
+
+## Sisyphus Orchestration Model
+
+Sisyphus operates as the central orchestrator, delegating to specialized agents for domain-specific tasks.
+
+### Agent Categories
+
+| Category | Agents | Purpose |
+|----------|--------|---------|
+| **Orchestrator** | Sisyphus | Planning, delegation, coordination |
+| **Built-in** | oracle, librarian, explore, frontend-ui-ux-engineer, document-writer, multimodal-looker | General-purpose specialists |
+| **Project** | agenix, cfnix, containnix, nix-packager | Project-specific specialists |
+
+### Built-in Agent Roles
+
+| Agent | Model | Use When |
+|-------|-------|----------|
+| **oracle** | GPT 5.2 | Architecture decisions, debugging, strategy, code review |
+| **librarian** | Claude Sonnet 4.5 | Documentation lookup, OSS examples, codebase research |
+| **explore** | Grok Code | Fast codebase exploration, pattern matching |
+| **frontend-ui-ux-engineer** | Gemini 3 Pro | Visual/UI changes (NOT logic) |
+| **document-writer** | Gemini 3 Flash | README, API docs, technical writing |
+| **multimodal-looker** | Gemini 3 Flash | PDF/image/diagram analysis |
+
+---
 
 ## Usage Protocols
 
 ### 0. Initialization Phase (Mandatory)
 At the start of any new session or task:
-1.  **Verification:** Read the bootstrapped context in `GEMINI.md`, `CLAUDE.md`, or `AGENTS.md`.
-2.  **Absorption:** Orient yourself using the summarized project specifics.
-3.  **Bootstrapping:** If the context seems stale, run `make bootstrap-context`.
+1.  **Read Context:** Check `AGENTS.md` for primary context
+2.  **Check SSOT:** Reference `.context/index.md` for detailed information
+3.  **Understand Scope:** Identify which agents may be needed
 
 ### 1. Planning Phase (Mandatory)
-Before executing complex changes, the Orchestrator **MUST** create a plan.
-*   **Analyze:** Use tools to understand current state.
-*   **Draft:** Outline steps, identifying which Specialist is needed for each step.
-*   **Confirm:** Present the plan to the user.
+Before executing complex changes, Sisyphus **MUST** create a plan:
+*   **Analyze:** Use tools to understand current state
+*   **Create Todos:** Use `todowrite` tool to outline atomic steps
+*   **Identify Delegation:** Note which specialist agents are needed
+*   **Mark Progress:** Update todos as `in_progress` → `completed`
 
 ### 2. Delegation Protocol
-When executing a step requires a Specialist:
-1.  **Context Loading:** Read the relevant instructions in `.context/project/agents/<agent>.md`.
-2.  **Persona Adoption:** Explicitly adopt the constraints and methods of that agent.
-3.  **Execution:** Perform the task using the specialist's specific tools and workflows.
-4.  **Handoff:** Return to Orchestrator mode to verify and proceed to the next step.
 
-### 3. Knowledge Management
-*   **Read:** Always check `.context/` first.
-*   **Write:** Only update `.context/` files for shared knowledge. Do not update tool-specific config (like `.claude/` or `.gemini/`) unless necessary for technical reasons.
-*   **Index Maintenance:** When creating or moving files within `.context/`, you MUST update [.context/index.md](../index.md) to maintain the single source of truth.
+#### Background Agents (Preferred for Exploration)
+```typescript
+// Fire parallel agents in background
+background_task(agent="explore", prompt="Find auth patterns...")
+background_task(agent="librarian", prompt="Find best practices for...")
 
-### 4. Context Bootstrapping (Memory Beacon)
-To ensure agents have immediate access to critical context without initial file reads:
-1.  **Beacon Files:** Files like `GEMINI.md` or `CLAUDE.md` serve as the agent's "Working Memory" and "Context Anchor".
-2.  **Structure:** These files MUST follow a split structure:
-    *   **Top (Mutable):** Agent memories, scratchpad, and active task tracking.
-    *   **Divider:** A clear delimiter line: `<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->`.
-    *   **Bottom (Immutable):** A summarized injection of the Global Standards and Project Specifics.
-3.  **Constraint:** Agents **MUST NOT** edit anything below the divider line. This section is managed by repo maintainers/scripts to keep context fresh.
-4.  **Content:** The bootstrapped context should minimally include:
-    *   Pointer to the SSOT (`.context/index.md`).
-    *   Key Protocols (Planning, Delegation).
-    *   Project Architecture Summary.
-5.  **Automation:** Use `make bootstrap-context` to refresh the immutable section. See [.context/global/bootstrap-context.md](./bootstrap-context.md) for details.
+// Continue working immediately
+// Collect results when needed: background_output(task_id="...")
+```
 
-## Escalation Paths
+#### Foreground Agents (For Complex Tasks)
+```typescript
+// Use task() for complex work requiring full agent capabilities
+task(agent="containnix", prompt="Deploy container with full context...")
+```
 
-### When a Specialist Fails
-1.  **Retry with Context:** Provide more specific error logs or file contents.
-2.  **Fallback to Generic:** If the specialist instruction fails, fall back to standard debugging.
-3.  **User Intervention:** Explicitly ask the user to perform the blocked action.
+#### Delegation Prompt Structure (MANDATORY)
+When delegating, include ALL 7 sections:
 
-### Ambiguous Requests
-*   **Clarify:** If a request spans multiple domains, ask clarifying questions *before* invoking specialists.
-*   **Investigate:** Map out dependencies before making changes.
+```
+1. TASK: Atomic, specific goal
+2. EXPECTED OUTCOME: Concrete deliverables with success criteria
+3. REQUIRED SKILLS: Which skill to invoke
+4. REQUIRED TOOLS: Explicit tool whitelist
+5. MUST DO: Exhaustive requirements
+6. MUST NOT DO: Forbidden actions
+7. CONTEXT: File paths, existing patterns, constraints
+```
+
+### 3. Verification Protocol
+
+Before marking any task complete:
+- [ ] `lsp_diagnostics` clean on changed files
+- [ ] Build passes (if applicable)
+- [ ] All todos marked complete
+
+### 4. Knowledge Management
+*   **Read:** Always check `.context/` first
+*   **Update:** Modify `.context/` files for shared knowledge
+*   **Index:** Update `.context/index.md` when creating new files
+*   **Agents:** Update `.claude/agents/` for agent-specific instructions
+
+---
+
+## Failure Recovery
+
+### After 3 Failed Fix Attempts
+1. **STOP** all further edits immediately
+2. **REVERT** to last known working state
+3. **DOCUMENT** what was attempted and what failed
+4. **CONSULT** Oracle with full failure context
+5. If Oracle cannot resolve → **ASK USER**
+
+### Escalation Path
+1. Retry with more context
+2. Consult Oracle for strategy
+3. Ask user for intervention
+
+---
+
+## Hard Constraints (NEVER Violate)
+
+| Constraint | Action |
+|------------|--------|
+| Frontend VISUAL changes | ALWAYS delegate to `frontend-ui-ux-engineer` |
+| Type error suppression | NEVER use `as any`, `@ts-ignore` |
+| Commit without request | NEVER |
+| Speculate about unread code | NEVER |
+| Leave code broken | NEVER |
+
+---
+
+## Context Bootstrapping (Memory Beacon)
+
+For alternative interfaces (Gemini, Claude CLI), beacon files maintain context:
+
+1.  **Beacon Files:** `GEMINI.md`, `CLAUDE.md` serve as working memory
+2.  **Structure:** 
+    - **Top (Mutable):** Agent memories and active task tracking
+    - **Divider:** `<!-- CONTEXT_BOOTSTRAP_START -->`
+    - **Bottom (Immutable):** Bootstrapped context summary
+3.  **Primary Reference:** Always point to `AGENTS.md` and `.context/index.md`

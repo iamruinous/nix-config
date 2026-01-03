@@ -12,6 +12,10 @@ result*
 .claude/.envrc
 *.local
 
+# OpenCode sensitive files
+.opencode/*.local.json
+.opencode/*.local.jsonc
+
 # Agenix-rekey sensitive files
 secrets/master-keys/*.age
 secrets/rekeyed/

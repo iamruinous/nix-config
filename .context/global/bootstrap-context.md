@@ -1,135 +1,194 @@
-# Manual Context Bootstrap
+# Context Bootstrap Protocol
 
-## Purpose
-This guide defines the procedure for an AI agent to manually update the immutable context section of beacon files (`GEMINI.md`, `CLAUDE.md`, `AGENTS.md`). This ensures the agents always have the latest pointers to the **Single Source of Truth** in `.context/`.
+## Overview
 
-## When to Run
-1.  When initializing a new agent environment.
-2.  When the structure of `.context/` changes.
-3.  When the user explicitly requests to "refresh" or "bootstrap" the context.
-4.  If you notice the context in `GEMINI.md` or `CLAUDE.md` is outdated or missing.
+This document defines the bootstrap protocol for AI agent context files. The primary interface is **OpenCode with oh-my-opencode**, but secondary beacon files (`GEMINI.md`, `CLAUDE.md`) are maintained for backwards compatibility.
 
-## Procedure
+## Primary vs Secondary Interfaces
 
-### 1. Identify Target Files
-The target files are located in the project root:
-*   `GEMINI.md`
-*   `CLAUDE.md`
-*   `AGENTS.md`
+| Interface | File | Status |
+|-----------|------|--------|
+| **OpenCode + oh-my-opencode** | `AGENTS.md` | **PRIMARY** |
+| Gemini CLI | `GEMINI.md` | Secondary |
+| Claude CLI | `CLAUDE.md` | Secondary |
 
-### 2. Read and Parse
-For each target file:
-1.  Read the current content of the file.
-2.  Locate the delimiter:
-    ```markdown
-    <!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->
-    ```
-3.  **Preserve** everything *above* this delimiter. This is the "User Memory & Scratchpad" area.
-    *   *If the delimiter is missing:* Preserve the entire file (assume it's all memory) and append the delimiter.
-
-### 3. Construct New Content
-Create the new file content by combining:
-1.  The **Preserved User Memory**.
-2.  The **Delimiter** (exactly as shown above).
-3.  The **Standard Context Template** (below).
-
-**Replacements:**
-*   **`<Agent>`**: The agent name (e.g., `Gemini`, `Claude`). Use `Agent` for `AGENTS.md`.
-*   **`<Specific Role Definition>`**: Insert the relevant block below based on the file:
-
-    *   **For `CLAUDE.md` (Orchestrator):**
-        ```markdown
-        *   **Primary Function:** Orchestrator & Architectural Lead.
-        *   **Responsibility:** High-level planning, complex refactoring, multi-agent delegation, and system design.
-        *   **Focus:** "The Big Picture". managing dependencies between modules and ensuring architectural integrity.
-        ```
-
-    *   **For `GEMINI.md` (System Analyst):**
-        ```markdown
-        *   **Primary Function:** System Analyst & Context Guardian.
-        *   **Responsibility:** Deep codebase analysis, documentation maintenance, safety verification, and context management.
-        *   **Focus:** "Accuracy & Safety". Validating plans, ensuring protocol adherence, and maintaining the Single Source of Truth.
-        ```
-
-    *   **For `AGENTS.md` (Local Runner):**
-        ```markdown
-        *   **Primary Function:** Local Task Runner (OpenCode/Cursor).
-        *   **Responsibility:** Rapid execution of specific coding tasks, local file manipulation, and iterative debugging.
-        *   **Focus:** "Speed & Execution". Implementing defined specs and fixing immediate bugs.
-        ```
-
-### 4. Write File
-Overwrite the target file with the combined content.
+**AGENTS.md** is the authoritative context source. Secondary beacons reference it.
 
 ---
 
-## Standard Context Template
+## When to Bootstrap
+
+1. When initializing a new repository with the context system
+2. When the structure of `.context/` changes significantly
+3. When migrating to a new version (see `migrations.md`)
+4. If context in beacon files appears outdated
+
+---
+
+## AGENTS.md (Primary Beacon)
+
+AGENTS.md is loaded by oh-my-opencode via the Claude Code compatibility layer. It should contain:
+
+1. **Quick Start** - How to launch OpenCode with Sisyphus
+2. **Project Overview** - Brief description and key commands
+3. **Agent System** - Both built-in and project-specific agents
+4. **Delegation Matrix** - When to use which agent
+5. **Verification Protocol** - How to verify task completion
+6. **Context Pointers** - Links to `.context/` files
+
+### Template Structure
 
 ```markdown
-# <Agent> CLI Context (Bootstrapped)
+# [Project Name] - Agent Context
 
-## ⚠️ Primary Context Source
+**Primary Interface:** [OpenCode](https://opencode.ai) with [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)  
+**Orchestrator:** Sisyphus (Claude Opus 4.5)  
+**Context Version:** YYYY.MM.DD
+
+---
+
+## Quick Start
+[How to start OpenCode]
+
+## Project Overview
+[Brief description, key commands]
+
+## Agent System
+[Built-in and project agents]
+
+## Delegation Matrix
+[When to use which agent]
+
+## Verification Protocol
+[How to verify completion]
+
+## Context System
+[Links to .context/ files]
+```
+
+---
+
+## Secondary Beacons (GEMINI.md, CLAUDE.md)
+
+Secondary beacons support direct CLI usage. They follow a split structure:
+
+### Structure
+
+```
+┌─────────────────────────────────────┐
+│ TOP: Mutable (User Memory)          │
+│ - Active context notes              │
+│ - Session memories                  │
+├─────────────────────────────────────┤
+│ DELIMITER                           │
+├─────────────────────────────────────┤
+│ BOTTOM: Immutable (Bootstrap)       │
+│ - Context pointers                  │
+│ - Quick reference                   │
+└─────────────────────────────────────┘
+```
+
+### Delimiter
+
+```markdown
+<!-- CONTEXT_BOOTSTRAP_START - DO NOT EDIT BELOW THIS LINE -->
+```
+
+**Agents MUST NOT edit anything below this line.**
+
+### Procedure for Updating Secondary Beacons
+
+1. **Read** the current file content
+2. **Locate** the delimiter line
+3. **Preserve** everything above the delimiter (user memory)
+4. **Replace** everything below with the standard template
+5. **Write** the combined content
+
+### Secondary Beacon Template
+
+```markdown
+# [Agent] CLI Context (Bootstrapped)
+
+## Primary Context Source
 Your context is managed via this bootstrapped beacon. The **Single Source of Truth** is located in **[.context/index.md](.context/index.md)**.
+
+**Preferred Interface:** [OpenCode](https://opencode.ai) with [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)  
+**Main Context:** [AGENTS.md](./AGENTS.md)
 
 *   **Standards & Protocols:** `.context/global/`
 *   **Project Specifics:** `.context/project/`
+*   **Custom Agents:** `.claude/agents/`
 
 ## Project Overview
-This is a NixOS configuration repository using `blueprint` for structure. It manages NixOS and Darwin hosts.
-*   **Switch:** `nixos-rebuild switch --flake .#<host>`
-*   **Remote:** `make remote-rebuild remotehost=<host>`
+[Brief project description]
 
-## Core Mandates & Workflow
+## AI Agent Workflow
+You are an intelligent coding assistant. Your primary goal is to help the user safely and efficiently.
 
-### 1. Role & Scope
-*   **Role:** Expert Software Engineering Agent specializing in NixOS and DevOps.
-<Specific Role Definition>
-*   **Scope:** Maintenance, refactoring, and feature implementation for this NixOS configuration repository.
-*   **Interaction:** Operate as a CLI tool—concise, precise, and action-oriented. Avoid conversational filler.
+### 1. Plan & Orchestrate
+*   **Check Context:** Reference `AGENTS.md` and `.context/` files
+*   **Create Plan:** Use the TodoWrite tool to outline your steps
+*   **Confirm:** Get user approval before executing complex changes
 
-### 2. Agent Ecosystem
-You are part of a multi-agent system. Understand your peers:
-*   **Claude (Orchestrator):** Lead Architect. Handles complex planning and wide-reaching refactors.
-*   **Gemini (Analyst):** Context Guardian. Verifies safety, maintains docs, and performs deep analysis.
-*   **OpenCode (Runner):** Task Executor. Handles rapid, local code iteration and specific implementations.
+### 2. Specialized Agents
+This project defines specialized agent personas in `.claude/agents/`:
+*   [List your project agents]
 
-### 3. Operational Protocols
-*   **Adherence:** STRICTLY follow conventions in `.context/global/standards.md`. Mimic existing code styles.
-*   **Tool Usage:**
-    *   **Read First:** Always `read_file` to validate assumptions before modifying.
-    *   **Search:** Use `search_file_content` or `glob` to locate relevant files.
-    *   **Safety:** Explain any destructive `run_shell_command` usage before execution.
-*   **Safety Guidelines:**
-    *   **Secrets:** NEVER commit unencrypted secrets. Use the `agenix` agent protocols.
-    *   **Verification:** ALWAYS verify changes (e.g., `make remote-dry-build`) before declaring a task complete.
-
-### 4. Execution Workflow
-1.  **Understand:** Consult `.context/index.md` and related docs. Analyze the codebase.
-2.  **Plan:** Formulate a step-by-step plan. Confirm with the user if the scope is large.
-3.  **Implement:** specific, atomic changes using tools.
-4.  **Verify:** Execute build checks and linting.
-5.  **Finalize:** Commit with detailed Conventional Commits messages.
-
-### 5. Specialized Agents
-Delegate specific domains to the instructions in `.context/project/agents/`:
-*   **`agenix`**: Secrets management (`.age` files).
-*   **`cfnix`**: Cloudflare DNS & Tunnels.
-*   **`containnix`**: Docker/OCI container deployment.
-*   **`nix-packager`**: Nix package creation.
-
-### 6. Git Workflow
-*   **Branch:** Always work on a feature branch (`feat/`, `fix/`).
-*   **Draft PR:** Create a draft PR early to track progress.
-*   **Verify:** Run `make remote-dry-build remotehost=<host>` before committing.
-*   **Sign:** GPG sign all commits.
-*   **Global Improvements:** If you improve the Global Standards (`.context/global/`), you MUST contribute these back to the source of truth. Create a PR at [https://github.com/iamruinous/nix-config](https://github.com/iamruinous/nix-config).
+### 3. Git Workflow
+*   **Branch:** Always work on a feature branch (`feat/`, `fix/`)
+*   **Draft PR:** Create a draft PR early to track progress
+*   **Verify:** Run build/test commands before committing
+*   **Sign:** GPG sign all commits
 
 ## Secrets Management
 **CRITICAL:** Never commit unencrypted secrets.
-*   Use `agenix` for all secrets.
-*   See `.context/project/agents/agenix.md` for detailed workflows.
+*   [Your secrets management instructions]
 
 ## Common Recipes
-*   **Create Database:** See `.context/project/recipes/create-db.md`
-*   **Create Pi Host:** See `.context/project/recipes/create-pi-host.md`
+*   [Links to your recipes]
+```
+
+---
+
+## Agent Roles (Historical)
+
+Prior to oh-my-opencode, we defined explicit roles for each CLI:
+
+| CLI | Role | Note |
+|-----|------|------|
+| Claude | Orchestrator | Now handled by Sisyphus |
+| Gemini | Analyst | Now handled by librarian/explore |
+| OpenCode | Runner | Now the primary interface |
+
+With oh-my-opencode, Sisyphus handles orchestration and delegates to specialized agents automatically.
+
+---
+
+## oh-my-opencode Agent System
+
+oh-my-opencode provides built-in agents:
+
+| Agent | Purpose |
+|-------|---------|
+| **oracle** | Architecture, debugging, strategy |
+| **librarian** | Documentation, OSS examples |
+| **explore** | Fast codebase exploration |
+| **frontend-ui-ux-engineer** | Visual/UI development |
+| **document-writer** | Technical documentation |
+| **multimodal-looker** | PDF/image/diagram analysis |
+
+Project-specific agents are defined in `.claude/agents/` and loaded automatically.
+
+---
+
+## Verification
+
+After bootstrapping, verify with:
+
+```bash
+# Start OpenCode
+opencode
+
+# Test context loading
+# The agent should reference AGENTS.md and .context/ automatically
 ```
