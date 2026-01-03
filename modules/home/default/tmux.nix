@@ -35,6 +35,10 @@
       #set -g default-terminal "screen-256color"
       #set-option -ga terminal-overrides ",*256col*:RGB"
       set -as terminal-features ",xterm-256color:RGB"
+      set-window-option -g mode-keys vi
+
+      bind-key -T copy-mode-vi v send-keys -X begin-selection
+      bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 
       bind -n S-PPage copy-mode -u
       bind -T copy-mode S-PPage send -X page-up
@@ -70,6 +74,8 @@
 
       set -g status-right "#[bg=default,fg=#24283B]#[fg=white,bg=#24283B] %Y-%m-%d #[]❬ %H:%M #[fg=blue,bg=#24283B,nobold,nounderscore,noitalics]#[fg=black,bg=blue,bold]󰹑 #S "
       set -g window-status-separator ""
+
+      set -g allow-passthrough on
     '';
   };
 }
