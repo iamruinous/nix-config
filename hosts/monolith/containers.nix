@@ -587,7 +587,7 @@
           "/etc/localtime:/etc/localtime:ro"
         ];
       };
-      n8n-runner = {
+      n8n-runner-alpha = {
         image = "docker.io/n8nio/runners:2.2.1";
         environment = {
           TZ = "America/Phoenix";
@@ -602,7 +602,7 @@
         networks = ["servicenet"];
         dependsOn = ["n8n"];
       };
-      n8n-runner-2 = {
+      n8n-runner-bravo = {
         image = "docker.io/n8nio/runners:2.2.1";
         environment = {
           TZ = "America/Phoenix";
@@ -616,35 +616,7 @@
         networks = ["servicenet"];
         dependsOn = ["n8n"];
       };
-      n8n-runner-3 = {
-        image = "docker.io/n8nio/runners:2.2.1";
-        environment = {
-          TZ = "America/Phoenix";
-          N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
-          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
-          N8N_RUNNERS_TASK_TIMEOUT = "900";
-          N8N_RUNNERS_MAX_CONCURRENCY = "10";
-          NODE_FUNCTION_ALLOW_BUILTIN = "*";
-        };
-        environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
-        networks = ["servicenet"];
-        dependsOn = ["n8n"];
-      };
-      n8n-runner-2 = {
-        image = "docker.io/n8nio/runners:2.2.1";
-        environment = {
-          TZ = "America/Phoenix";
-          N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
-          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
-          N8N_RUNNERS_TASK_TIMEOUT = "900";
-          N8N_RUNNERS_MAX_CONCURRENCY = "10";
-          NODE_FUNCTION_ALLOW_BUILTIN = "*";
-        };
-        environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
-        networks = ["servicenet"];
-        dependsOn = ["n8n"];
-      };
-      n8n-runner-3 = {
+      n8n-runner-charlie = {
         image = "docker.io/n8nio/runners:2.2.1";
         environment = {
           TZ = "America/Phoenix";
