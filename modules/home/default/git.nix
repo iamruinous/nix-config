@@ -1,16 +1,26 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }: let
   cfg = config.ruinous.git;
 
-  # Default keys
   defaultKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL8rjXP/sjewv6kM1aTtNWkVZKJpZvIAXIRqL81IyEsm";
   defaultEmail = "iamruinous@ruinous.social";
+
+  sshSignProgram =
+    if cfg.signing.use1Password
+    then "op-ssh-sign"
+    else "${pkgs.openssh}/bin/ssh-keygen";
 in {
   options.ruinous.git = {
     signing = {
+      use1Password = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Use 1Password for SSH signing (requires op-ssh-sign)";
+      };
       github = lib.mkOption {
         type = lib.types.str;
         default = defaultKey;
@@ -89,7 +99,7 @@ in {
             };
             gpg = {
               format = "ssh";
-              ssh.program = "op-ssh-sign";
+              ssh.program = sshSignProgram;
             };
           };
         }
@@ -103,7 +113,7 @@ in {
             };
             gpg = {
               format = "ssh";
-              ssh.program = "op-ssh-sign";
+              ssh.program = sshSignProgram;
             };
           };
         }
@@ -117,7 +127,7 @@ in {
             };
             gpg = {
               format = "ssh";
-              ssh.program = "op-ssh-sign";
+              ssh.program = sshSignProgram;
             };
           };
         }
@@ -131,7 +141,7 @@ in {
             };
             gpg = {
               format = "ssh";
-              ssh.program = "op-ssh-sign";
+              ssh.program = sshSignProgram;
             };
           };
         }
@@ -145,7 +155,7 @@ in {
             };
             gpg = {
               format = "ssh";
-              ssh.program = "op-ssh-sign";
+              ssh.program = sshSignProgram;
             };
           };
         }
@@ -172,6 +182,7 @@ in {
         branch.autosetupmerge = "true";
         init.defaultBranch = "main";
         gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
+        gpg.ssh.program = sshSignProgram;
         gpg.format = "ssh";
       };
     };

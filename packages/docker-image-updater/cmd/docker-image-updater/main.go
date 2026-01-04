@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	flag "github.com/spf13/pflag"
@@ -16,26 +17,28 @@ import (
 	"github.com/iamruinous/docker-image-updater/internal/updater"
 )
 
-var version = "2.2.0"
+var version = "2.3.0"
 
 func main() {
 	// Command line flags
 	var (
-		configPath     string
-		hostFilter     string
-		limit          int
-		checkImage     string
-		nonInteractive bool
-		applyAll       bool
-		dryRun         bool
-		clearCache     bool
-		noCache        bool
-		showVersion    bool
-		showHelp       bool
+		configPath      string
+		hostFilter      string
+		containerFilter string
+		limit           int
+		checkImage      string
+		nonInteractive  bool
+		applyAll        bool
+		dryRun          bool
+		clearCache      bool
+		noCache         bool
+		showVersion     bool
+		showHelp        bool
 	)
 
 	flag.StringVarP(&configPath, "path", "p", "", "Path to nix-config directory (default: current directory)")
 	flag.StringVarP(&hostFilter, "host", "H", "", "Only check containers for a specific host")
+	flag.StringVarP(&containerFilter, "containers", "c", "", "Only check specific containers (comma-separated)")
 	flag.IntVarP(&limit, "limit", "l", 0, "Limit the number of containers to check")
 	flag.StringVarP(&checkImage, "check-image", "i", "", "Check a single Docker image for updates (e.g., 'nginx:1.25.0')")
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Run in non-interactive mode (just show updates)")
@@ -102,11 +105,9 @@ func main() {
 	}
 
 	if nonInteractive || !isTerminal {
-		// Run in batch/non-interactive mode
-		runBatch(configPath, hostFilter, limit, dryRun, noCache, applyAll)
+		runBatch(configPath, hostFilter, containerFilter, limit, dryRun, noCache, applyAll)
 	} else {
-		// Run interactive TUI
-		runInteractive(configPath, hostFilter, limit, dryRun, noCache)
+		runInteractive(configPath, hostFilter, containerFilter, limit, dryRun, noCache)
 	}
 }
 
@@ -118,6 +119,7 @@ Usage: docker-image-updater [OPTIONS]
 Options:
     -p, --path PATH       Path to nix-config directory (default: current directory)
     -H, --host HOST       Only check containers for a specific host
+    -c, --containers LIST Only check specific containers (comma-separated)
     -l, --limit N         Limit the number of containers to check
     -i, --check-image IMG Check a single Docker image for updates
     -h, --help            Show this help message
@@ -142,6 +144,13 @@ Skipping Images:
     # IMAGECHECK: disabled
     image = "custom-image:latest";
 
+Version Pinning:
+    Add "# IMAGECHECK: pin <constraint>" to limit update versions:
+
+    # IMAGECHECK: pin ~4          (allow 4.x.x only)
+    # IMAGECHECK: pin ^1.2        (SemVer compatible with 1.2)
+    # IMAGECHECK: pin >=1.0,<2.0  (version range)
+
 Environment Variables:
     NIX_CONFIG_PATH     Alternative way to set the config path
 
@@ -149,18 +158,16 @@ Examples:
     docker-image-updater
     docker-image-updater --path /path/to/nix-config
     docker-image-updater --host monolith
+    docker-image-updater --host monolith -c sonarr,radarr
+    docker-image-updater -c postgres,redis
     docker-image-updater --limit 10
-    docker-image-updater --host monolith --limit 5
     docker-image-updater --non-interactive
     docker-image-updater --apply-all
     docker-image-updater --dry-run
-    docker-image-updater --clear-cache
-    docker-image-updater --no-cache
 
 Single Image Check:
     docker-image-updater -i nginx:1.25.0
-    docker-image-updater -i lscr.io/linuxserver/deluge:2.2.0
-    docker-image-updater --check-image ghcr.io/org/repo:v1.0.0`)
+    docker-image-updater -i lscr.io/linuxserver/deluge:2.2.0`)
 }
 
 func checkSingleImage(imageRef string, noCache bool) {
@@ -224,13 +231,14 @@ func checkSingleImage(imageRef string, noCache bool) {
 	}
 }
 
-func runInteractive(configPath, hostFilter string, limit int, dryRun bool, noCache bool) {
+func runInteractive(configPath, hostFilter, containerFilter string, limit int, dryRun bool, noCache bool) {
 	config := tui.Config{
-		ConfigPath: configPath,
-		HostFilter: hostFilter,
-		Limit:      limit,
-		DryRun:     dryRun,
-		NoCache:    noCache,
+		ConfigPath:      configPath,
+		HostFilter:      hostFilter,
+		ContainerFilter: containerFilter,
+		Limit:           limit,
+		DryRun:          dryRun,
+		NoCache:         noCache,
 	}
 
 	model := tui.NewModel(config)
@@ -242,18 +250,20 @@ func runInteractive(configPath, hostFilter string, limit int, dryRun bool, noCac
 	}
 }
 
-func runBatch(configPath, hostFilter string, limit int, dryRun bool, noCache bool, applyAll bool) {
-	// Print title
+func runBatch(configPath, hostFilter, containerFilter string, limit int, dryRun bool, noCache bool, applyAll bool) {
 	fmt.Println("=== Docker Image Updater ===")
 	fmt.Println("    for NixOS Configurations")
 	fmt.Println()
 
-	// Scan containers
 	s := scanner.NewScanner(configPath)
 	containers, err := s.Scan(hostFilter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
+	}
+
+	if containerFilter != "" {
+		containers = filterContainersByName(containers, containerFilter)
 	}
 
 	if len(containers) == 0 {
@@ -270,6 +280,9 @@ func runBatch(configPath, hostFilter string, limit int, dryRun bool, noCache boo
 			hosts[c.Host] = true
 		}
 		hostMsg = fmt.Sprintf(" across %d hosts", len(hosts))
+	}
+	if containerFilter != "" {
+		hostMsg += fmt.Sprintf(" (filtered: %s)", containerFilter)
 	}
 	fmt.Printf("Found %d containers%s\n", len(containers), hostMsg)
 
@@ -429,4 +442,19 @@ func truncate(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen-3] + "..."
+}
+
+func filterContainersByName(containers []scanner.Container, filter string) []scanner.Container {
+	names := make(map[string]bool)
+	for _, name := range strings.Split(filter, ",") {
+		names[strings.TrimSpace(name)] = true
+	}
+
+	var result []scanner.Container
+	for _, c := range containers {
+		if names[c.Name] {
+			result = append(result, c)
+		}
+	}
+	return result
 }

@@ -237,3 +237,423 @@ func filterOutDateBasedVersions(tags []string, currentTag string) []string {
 func IsNewerVersion(currentVersion, newVersion string) bool {
 	return CompareVersions(currentVersion, newVersion) < 0
 }
+
+type ConstraintOp int
+
+const (
+	OpNone ConstraintOp = iota
+	OpEq
+	OpGt
+	OpGte
+	OpLt
+	OpLte
+	OpTilde
+	OpCaret
+	OpWildcard
+)
+
+type VersionConstraint struct {
+	Op          ConstraintOp
+	Major       int
+	Minor       int
+	Patch       int
+	HasMinor    bool
+	HasPatch    bool
+	WildcardPos int
+}
+
+type Constraint struct {
+	Parts []VersionConstraint
+}
+
+func ParseConstraint(s string) (*Constraint, error) {
+	if s == "" {
+		return nil, nil
+	}
+
+	s = strings.TrimSpace(s)
+	if s == "*" {
+		return &Constraint{Parts: []VersionConstraint{{Op: OpWildcard, WildcardPos: 0}}}, nil
+	}
+
+	parts := strings.Split(s, ",")
+	var constraints []VersionConstraint
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		vc, err := parseConstraintPart(part)
+		if err != nil {
+			return nil, err
+		}
+		constraints = append(constraints, vc)
+	}
+
+	if len(constraints) == 0 {
+		return nil, nil
+	}
+
+	return &Constraint{Parts: constraints}, nil
+}
+
+func parseConstraintPart(s string) (VersionConstraint, error) {
+	s = strings.TrimSpace(s)
+	vc := VersionConstraint{}
+
+	switch {
+	case strings.HasPrefix(s, "~"):
+		vc.Op = OpTilde
+		s = strings.TrimPrefix(s, "~")
+	case strings.HasPrefix(s, "^"):
+		vc.Op = OpCaret
+		s = strings.TrimPrefix(s, "^")
+	case strings.HasPrefix(s, ">="):
+		vc.Op = OpGte
+		s = strings.TrimPrefix(s, ">=")
+	case strings.HasPrefix(s, ">"):
+		vc.Op = OpGt
+		s = strings.TrimPrefix(s, ">")
+	case strings.HasPrefix(s, "<="):
+		vc.Op = OpLte
+		s = strings.TrimPrefix(s, "<=")
+	case strings.HasPrefix(s, "<"):
+		vc.Op = OpLt
+		s = strings.TrimPrefix(s, "<")
+	case strings.HasPrefix(s, "="):
+		vc.Op = OpEq
+		s = strings.TrimPrefix(s, "=")
+	default:
+		vc.Op = OpCaret
+	}
+
+	s = strings.TrimSpace(s)
+	s = strings.TrimPrefix(s, "v")
+
+	if strings.Contains(s, "*") {
+		return parseWildcard(s)
+	}
+
+	return parseVersionParts(s, vc)
+}
+
+func parseWildcard(s string) (VersionConstraint, error) {
+	vc := VersionConstraint{Op: OpWildcard}
+	parts := strings.Split(s, ".")
+
+	for i, p := range parts {
+		if p == "*" {
+			vc.WildcardPos = i
+			break
+		}
+		val, err := strconv.Atoi(p)
+		if err != nil {
+			return vc, err
+		}
+		switch i {
+		case 0:
+			vc.Major = val
+		case 1:
+			vc.Minor = val
+			vc.HasMinor = true
+		}
+	}
+	return vc, nil
+}
+
+func parseVersionParts(s string, vc VersionConstraint) (VersionConstraint, error) {
+	parts := strings.Split(s, ".")
+
+	if len(parts) >= 1 && parts[0] != "" {
+		val, err := strconv.Atoi(parts[0])
+		if err != nil {
+			return vc, err
+		}
+		vc.Major = val
+	}
+
+	if len(parts) >= 2 && parts[1] != "" {
+		val, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return vc, err
+		}
+		vc.Minor = val
+		vc.HasMinor = true
+	}
+
+	if len(parts) >= 3 && parts[2] != "" {
+		val, err := strconv.Atoi(parts[2])
+		if err != nil {
+			return vc, err
+		}
+		vc.Patch = val
+		vc.HasPatch = true
+	}
+
+	return vc, nil
+}
+
+func (c *Constraint) Satisfies(version string) bool {
+	if c == nil || len(c.Parts) == 0 {
+		return true
+	}
+
+	major, minor, patch, ok := ParseVersion(version)
+	if !ok {
+		return false
+	}
+
+	for _, vc := range c.Parts {
+		if !vc.satisfies(major, minor, patch) {
+			return false
+		}
+	}
+	return true
+}
+
+func (vc VersionConstraint) satisfies(major, minor, patch int) bool {
+	switch vc.Op {
+	case OpEq:
+		return vc.equals(major, minor, patch)
+	case OpGt:
+		return vc.lessThan(major, minor, patch)
+	case OpGte:
+		return vc.lessThanOrEqual(major, minor, patch)
+	case OpLt:
+		return vc.greaterThan(major, minor, patch)
+	case OpLte:
+		return vc.greaterThanOrEqual(major, minor, patch)
+	case OpTilde:
+		return vc.satisfiesTilde(major, minor, patch)
+	case OpCaret:
+		return vc.satisfiesCaret(major, minor, patch)
+	case OpWildcard:
+		return vc.satisfiesWildcard(major, minor)
+	default:
+		return true
+	}
+}
+
+func (vc VersionConstraint) equals(major, minor, patch int) bool {
+	if major != vc.Major {
+		return false
+	}
+	if vc.HasMinor && minor != vc.Minor {
+		return false
+	}
+	if vc.HasPatch && patch != vc.Patch {
+		return false
+	}
+	return true
+}
+
+func (vc VersionConstraint) lessThan(major, minor, patch int) bool {
+	if major < vc.Major {
+		return false
+	}
+	if major > vc.Major {
+		return true
+	}
+	if !vc.HasMinor {
+		return false
+	}
+	if minor < vc.Minor {
+		return false
+	}
+	if minor > vc.Minor {
+		return true
+	}
+	if !vc.HasPatch {
+		return false
+	}
+	return patch > vc.Patch
+}
+
+func (vc VersionConstraint) lessThanOrEqual(major, minor, patch int) bool {
+	if major < vc.Major {
+		return false
+	}
+	if major > vc.Major {
+		return true
+	}
+	if !vc.HasMinor {
+		return true
+	}
+	if minor < vc.Minor {
+		return false
+	}
+	if minor > vc.Minor {
+		return true
+	}
+	if !vc.HasPatch {
+		return true
+	}
+	return patch >= vc.Patch
+}
+
+func (vc VersionConstraint) greaterThan(major, minor, patch int) bool {
+	if major > vc.Major {
+		return false
+	}
+	if major < vc.Major {
+		return true
+	}
+	if !vc.HasMinor {
+		return false
+	}
+	if minor > vc.Minor {
+		return false
+	}
+	if minor < vc.Minor {
+		return true
+	}
+	if !vc.HasPatch {
+		return false
+	}
+	return patch < vc.Patch
+}
+
+func (vc VersionConstraint) greaterThanOrEqual(major, minor, patch int) bool {
+	if major > vc.Major {
+		return false
+	}
+	if major < vc.Major {
+		return true
+	}
+	if !vc.HasMinor {
+		return true
+	}
+	if minor > vc.Minor {
+		return false
+	}
+	if minor < vc.Minor {
+		return true
+	}
+	if !vc.HasPatch {
+		return true
+	}
+	return patch <= vc.Patch
+}
+
+func (vc VersionConstraint) satisfiesTilde(major, minor, patch int) bool {
+	if major != vc.Major {
+		return false
+	}
+	if !vc.HasMinor {
+		return true
+	}
+	if minor < vc.Minor {
+		return false
+	}
+	if minor > vc.Minor {
+		return false
+	}
+	if !vc.HasPatch {
+		return true
+	}
+	return patch >= vc.Patch
+}
+
+func (vc VersionConstraint) satisfiesCaret(major, minor, patch int) bool {
+	if major != vc.Major {
+		return false
+	}
+
+	if vc.Major == 0 {
+		if !vc.HasMinor {
+			return true
+		}
+		if minor != vc.Minor {
+			return false
+		}
+		if vc.Minor == 0 {
+			if !vc.HasPatch {
+				return true
+			}
+			return patch == vc.Patch
+		}
+		if !vc.HasPatch {
+			return true
+		}
+		return patch >= vc.Patch
+	}
+
+	if !vc.HasMinor {
+		return true
+	}
+	if minor < vc.Minor {
+		return false
+	}
+	if minor > vc.Minor {
+		return true
+	}
+	if !vc.HasPatch {
+		return true
+	}
+	return patch >= vc.Patch
+}
+
+func (vc VersionConstraint) satisfiesWildcard(major, minor int) bool {
+	switch vc.WildcardPos {
+	case 0:
+		return true
+	case 1:
+		return major == vc.Major
+	case 2:
+		return major == vc.Major && minor == vc.Minor
+	default:
+		return true
+	}
+}
+
+func FilterTagsWithConstraint(tags []string, constraint *Constraint, currentTag string) []string {
+	if constraint == nil {
+		if currentTag != "" {
+			return FilterSemverTagsMatching(tags, currentTag)
+		}
+		return FilterSemverTags(tags)
+	}
+
+	var result []string
+	hasVPrefix := strings.HasPrefix(currentTag, "v")
+
+	for _, tag := range tags {
+		if !IsSemverTag(tag) {
+			continue
+		}
+		tagHasV := strings.HasPrefix(tag, "v")
+		if currentTag != "" && hasVPrefix != tagHasV {
+			continue
+		}
+		if constraint.Satisfies(tag) {
+			result = append(result, tag)
+		}
+	}
+	return result
+}
+
+func FindLatestVersionWithConstraint(tags []string, currentTag string, constraint *Constraint) string {
+	var filtered []string
+	if constraint != nil {
+		filtered = FilterTagsWithConstraint(tags, constraint, currentTag)
+	} else {
+		filtered = FilterSemverTagsMatching(tags, currentTag)
+	}
+
+	if len(filtered) == 0 {
+		return ""
+	}
+
+	if currentTag != "" && constraint == nil {
+		filtered = filterOutDateBasedVersions(filtered, currentTag)
+	}
+
+	if len(filtered) == 0 {
+		return ""
+	}
+
+	SortVersions(filtered)
+	return filtered[len(filtered)-1]
+}

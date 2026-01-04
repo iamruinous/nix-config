@@ -4,6 +4,8 @@
     flake.homeModules.darwin
   ];
 
+  ruinous.git.signing.use1Password = true;
+
   # Enable rust-motd for system info on login
   ruinous.rust-motd.enable = true;
 

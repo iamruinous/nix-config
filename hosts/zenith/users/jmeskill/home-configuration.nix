@@ -16,10 +16,7 @@ in {
   ruinous.openssh.remote.forwarding.enable = true;
 
   home.file.".docker/cli-plugins/docker-mcp".source = config.lib.file.mkOutOfStoreSymlink "${pkgs.docker-mcp-gateway}/bin/docker-mcp";
-  # home.file.".ssh/id_codey_ed25519".source = config.age.secrets.jmeskill_codey_ssh_key.path;
 
-  # MCP Gateway configuration files - copied as real files (not symlinks) for Docker access
-  # Docker containers can't follow symlinks to paths outside their mounted volumes
   home.activation.mcpConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     mkdir -p "$HOME/.docker/mcp/catalogs"
     cp -f ${mcpConfigDir}/catalogs/farm-catalog.yaml "$HOME/.docker/mcp/catalogs/farm-catalog.yaml"
@@ -27,10 +24,6 @@ in {
     cp -f ${mcpConfigDir}/registry.yaml "$HOME/.docker/mcp/registry.yaml"
     cp -f ${mcpConfigDir}/tools.yaml "$HOME/.docker/mcp/tools.yaml"
   '';
-
-  systemd.user.tmpfiles.rules = [
-    "L+    /home/jmeskill/.local/bin/op-ssh-sign -    -    -     - ${pkgs.openssh}/bin/ssh-keygen"
-  ];
 
   ruinous.git.signing = let
     zenithKey = "/home/jmeskill/.ssh/id_codey_ed25519";

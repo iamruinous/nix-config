@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,13 +14,13 @@ import (
 	"github.com/iamruinous/docker-image-updater/internal/updater"
 )
 
-// Config holds configuration for the TUI.
 type Config struct {
-	ConfigPath string
-	HostFilter string
-	Limit      int
-	DryRun     bool
-	NoCache    bool
+	ConfigPath      string
+	HostFilter      string
+	ContainerFilter string
+	Limit           int
+	DryRun          bool
+	NoCache         bool
 }
 
 // CheckStatus represents the status of checking a container for updates.
@@ -58,7 +59,7 @@ type Model struct {
 
 	// Data
 	containers    []scanner.Container
-	checkResults  []ContainerCheckResult // Check results for all containers (for display)
+	checkResults  []ContainerCheckResult  // Check results for all containers (for display)
 	updateResults []registry.UpdateResult // Only containers with updates (for applying)
 	applyResults  []updater.ApplyResult
 	selected      map[string]bool // Map of selected container keys for multi-select
@@ -158,8 +159,29 @@ type (
 func (m Model) startScanning() tea.Cmd {
 	return func() tea.Msg {
 		containers, err := m.scanner.Scan(m.config.HostFilter)
-		return scanCompleteMsg{containers: containers, err: err}
+		if err != nil {
+			return scanCompleteMsg{containers: nil, err: err}
+		}
+		if m.config.ContainerFilter != "" {
+			containers = filterContainersByName(containers, m.config.ContainerFilter)
+		}
+		return scanCompleteMsg{containers: containers, err: nil}
 	}
+}
+
+func filterContainersByName(containers []scanner.Container, filter string) []scanner.Container {
+	names := make(map[string]bool)
+	for _, name := range strings.Split(filter, ",") {
+		names[strings.TrimSpace(name)] = true
+	}
+
+	var result []scanner.Container
+	for _, c := range containers {
+		if names[c.Name] {
+			result = append(result, c)
+		}
+	}
+	return result
 }
 
 // checkOneContainer checks a single container and returns the result.
@@ -330,7 +352,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	return m, cmd
 }
-
 
 // buildHostsList builds the list of unique hosts with updates.
 func (m *Model) buildHostsList() {

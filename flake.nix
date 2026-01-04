@@ -5,7 +5,7 @@
     # Nixpkgs
     # <https://search.nixos.org/packages>
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
     # Map folder structure to flake outputs
     # <https://github.com/numtide/blueprint>

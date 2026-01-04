@@ -12,12 +12,13 @@ import (
 
 // Container represents a discovered container definition from a NixOS configuration.
 type Container struct {
-	Host      string // Host directory name (e.g., "monolith")
-	Name      string // Container name from Nix config
-	Image     string // Full image reference (e.g., "docker.io/postgres:17")
-	Tag       string // Extracted tag
-	ImageBase string // Image without tag
-	FilePath  string // Path to containers.nix file
+	Host          string // Host directory name (e.g., "monolith")
+	Name          string // Container name from Nix config
+	Image         string // Full image reference (e.g., "docker.io/postgres:17")
+	Tag           string // Extracted tag
+	ImageBase     string // Image without tag
+	FilePath      string // Path to containers.nix file
+	PinConstraint string // Version constraint from IMAGECHECK: pin directive (e.g., "~4", "^1.2", ">=1.0,<2.0")
 }
 
 // Key returns a unique identifier for this container in the format "host:container".
@@ -106,8 +107,10 @@ func (s *Scanner) listAvailableHosts() ([]string, error) {
 }
 
 // imageCheckDisabledRe matches the IMAGECHECK: disabled directive in comments.
-// Supports variations like "# IMAGECHECK: disabled", "# IMAGECHECK:disabled", "# imagecheck: disabled"
 var imageCheckDisabledRe = regexp.MustCompile(`#\s*IMAGECHECK:\s*disabled`)
+
+// imageCheckPinRe matches the IMAGECHECK: pin directive and captures the constraint.
+var imageCheckPinRe = regexp.MustCompile(`(?i)#\s*IMAGECHECK:\s*pin\s+(.+?)\s*$`)
 
 // parseContainerFile parses a single containers.nix file and extracts container definitions.
 // This implements a state machine similar to the AWK logic in the shell script.
@@ -132,6 +135,7 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 	currentContainer := ""
 	containerDepth := 0
 	previousLine := ""
+	currentPinConstraint := ""
 
 	// Regex patterns
 	containersStartRe := regexp.MustCompile(`^\s*containers\s*=\s*\{`)
@@ -167,32 +171,43 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 			continue
 		}
 
-		// Look for container definition start: name = {
 		if matches := containerDefRe.FindStringSubmatch(line); matches != nil {
 			currentContainer = strings.Trim(matches[1], "\"")
 			containerDepth = depth
+			currentPinConstraint = ""
+		}
+
+		if currentContainer != "" {
+			if constraint := extractPinConstraint(line, ""); constraint != "" {
+				currentPinConstraint = constraint
+			}
 		}
 
 		// Look for image definition within a container block
 		if currentContainer != "" {
 			if matches := imageDefRe.FindStringSubmatch(line); matches != nil {
-				// Check if this image should be skipped
-				// Look for IMAGECHECK: disabled on this line or the previous line
 				if !isImageCheckDisabled(line, previousLine) {
 					image := matches[1]
 					tag := extractTag(image)
 					imageBase := extractImageBase(image)
 
+					pinConstraint := extractPinConstraint(line, previousLine)
+					if pinConstraint == "" {
+						pinConstraint = currentPinConstraint
+					}
+
 					containers = append(containers, Container{
-						Host:      hostName,
-						Name:      currentContainer,
-						Image:     image,
-						Tag:       tag,
-						ImageBase: imageBase,
-						FilePath:  filePath,
+						Host:          hostName,
+						Name:          currentContainer,
+						Image:         image,
+						Tag:           tag,
+						ImageBase:     imageBase,
+						FilePath:      filePath,
+						PinConstraint: pinConstraint,
 					})
 				}
 				currentContainer = ""
+				currentPinConstraint = ""
 			}
 		}
 
@@ -211,15 +226,24 @@ func (s *Scanner) parseContainerFile(filePath string) ([]Container, error) {
 	return containers, nil
 }
 
-// isImageCheckDisabled checks if the IMAGECHECK: disabled directive is present
-// on the current line or the previous line.
 func isImageCheckDisabled(currentLine, previousLine string) bool {
-	// Case-insensitive check
 	currentLower := strings.ToLower(currentLine)
 	previousLower := strings.ToLower(previousLine)
 
 	return strings.Contains(currentLower, "imagecheck:") && strings.Contains(currentLower, "disabled") ||
 		strings.Contains(previousLower, "imagecheck:") && strings.Contains(previousLower, "disabled")
+}
+
+func extractPinConstraint(currentLine, previousLine string) string {
+	if matches := imageCheckPinRe.FindStringSubmatch(currentLine); matches != nil {
+		return strings.TrimSpace(matches[1])
+	}
+	if previousLine != "" {
+		if matches := imageCheckPinRe.FindStringSubmatch(previousLine); matches != nil {
+			return strings.TrimSpace(matches[1])
+		}
+	}
+	return ""
 }
 
 // extractTag extracts the tag from an image reference.

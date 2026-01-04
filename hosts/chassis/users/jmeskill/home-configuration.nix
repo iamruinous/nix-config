@@ -13,6 +13,7 @@ in {
   # Enable vdirsyncer
   # ruinous.vdirsyncer.sync.enable = true;
 
+  ruinous.git.signing.use1Password = true;
   ruinous.rust-motd.enable = true;
   programs.wezterm.enable = true;
   ruinous.openssh.remote.forwarding.enable = true;

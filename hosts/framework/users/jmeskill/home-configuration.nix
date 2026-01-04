@@ -8,6 +8,7 @@ in {
     flake.homeModules.hyprland
   ];
 
+  ruinous.git.signing.use1Password = true;
   ruinous.rust-motd.enable = true;
 
   # Enable todoist
