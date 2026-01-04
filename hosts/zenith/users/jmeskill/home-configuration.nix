@@ -55,6 +55,19 @@ in {
         "nix-config" = {
           projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
           port = 18080;
+          logLevel = "WARN";
+          cors = ["zenith.meskill.farm"];
+        };
+        "n8n-agent" = {
+          projectPath = "/home/jmeskill/Projects/ruinous.ai/n8n-agent";
+          port = 18081;
+          logLevel = "WARN";
+          cors = ["zenith.meskill.farm"];
+        };
+        "dossiq-ai" = {
+          projectPath = "/home/jmeskill/Projects/ruinous.ai/dossiq-ai";
+          port = 18082;
+          logLevel = "WARN";
           cors = ["zenith.meskill.farm"];
         };
       };

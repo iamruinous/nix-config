@@ -30,6 +30,12 @@
 with lib; let
   cfg = config.ruinous.ai-cli.opencode-web;
 
+  # Packages that are always needed for opencode functionality
+  builtinPackages = with pkgs; [
+    git # Git is essential for opencode's VCS operations
+    openssh # SSH for git operations and signing
+  ];
+
   # Create a wrapped opencode with all necessary environment setup
   wrappedOpencode = pkgs.symlinkJoin {
     name = "opencode-wrapped";
@@ -37,7 +43,7 @@ with lib; let
     buildInputs = [pkgs.makeWrapper];
     postBuild = ''
       wrapProgram $out/bin/opencode \
-        --prefix PATH : ${lib.makeBinPath cfg.packages} \
+        --prefix PATH : ${lib.makeBinPath (builtinPackages ++ cfg.packages)} \
         --set NIX_LD /run/current-system/sw/share/nix-ld/lib/ld.so \
         --prefix NIX_LD_LIBRARY_PATH : ${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]} \
         --prefix NIX_LD_LIBRARY_PATH : /run/current-system/sw/share/nix-ld/lib \
@@ -179,7 +185,8 @@ in {
             Environment = [
               "HOME=${config.home.homeDirectory}"
               "TERM=xterm-256color"
-              "PATH=/run/current-system/sw/bin:/usr/bin:/bin"
+              # Include wrapped tools (git, openssh, user packages) in PATH for child processes
+              "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
             ];
           };
           Install = {
