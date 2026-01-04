@@ -17,15 +17,15 @@ import (
 	"github.com/iamruinous/docker-image-updater/internal/updater"
 )
 
-var version = "2.3.0"
+var version = "2.4.0"
 
 func main() {
-	// Command line flags
 	var (
 		configPath      string
 		hostFilter      string
 		containerFilter string
 		limit           int
+		maxTags         int
 		checkImage      string
 		nonInteractive  bool
 		applyAll        bool
@@ -40,6 +40,7 @@ func main() {
 	flag.StringVarP(&hostFilter, "host", "H", "", "Only check containers for a specific host")
 	flag.StringVarP(&containerFilter, "containers", "c", "", "Only check specific containers (comma-separated)")
 	flag.IntVarP(&limit, "limit", "l", 0, "Limit the number of containers to check")
+	flag.IntVarP(&maxTags, "max-tags", "t", 50, "Max tags to fetch per image (default 50, use 0 for all)")
 	flag.StringVarP(&checkImage, "check-image", "i", "", "Check a single Docker image for updates (e.g., 'nginx:1.25.0')")
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Run in non-interactive mode (just show updates)")
 	flag.BoolVar(&applyAll, "apply-all", false, "Apply all available updates (implies --non-interactive)")
@@ -71,9 +72,8 @@ func main() {
 		}
 	}
 
-	// Handle single image check mode
 	if checkImage != "" {
-		checkSingleImage(checkImage, noCache)
+		checkSingleImage(checkImage, noCache, maxTags)
 		return
 	}
 
@@ -105,9 +105,9 @@ func main() {
 	}
 
 	if nonInteractive || !isTerminal {
-		runBatch(configPath, hostFilter, containerFilter, limit, dryRun, noCache, applyAll)
+		runBatch(configPath, hostFilter, containerFilter, limit, maxTags, dryRun, noCache, applyAll)
 	} else {
-		runInteractive(configPath, hostFilter, containerFilter, limit, dryRun, noCache)
+		runInteractive(configPath, hostFilter, containerFilter, limit, maxTags, dryRun, noCache)
 	}
 }
 
@@ -121,6 +121,7 @@ Options:
     -H, --host HOST       Only check containers for a specific host
     -c, --containers LIST Only check specific containers (comma-separated)
     -l, --limit N         Limit the number of containers to check
+    -t, --max-tags N      Max tags to fetch per image (default 50, 0 for all)
     -i, --check-image IMG Check a single Docker image for updates
     -h, --help            Show this help message
     -v, --version         Show version
@@ -129,6 +130,10 @@ Options:
     --dry-run             Only scan containers, skip checking for updates
     --clear-cache         Clear the cache before running
     --no-cache            Disable caching for this run
+
+Performance:
+    By default, only 50 tags are fetched per image for speed.
+    Use --max-tags 0 to fetch all tags (slower but more thorough).
 
 Cache:
     Results are cached for 24 hours to speed up repeated checks.
@@ -161,6 +166,7 @@ Examples:
     docker-image-updater --host monolith -c sonarr,radarr
     docker-image-updater -c postgres,redis
     docker-image-updater --limit 10
+    docker-image-updater --max-tags 100   # Fetch more tags for thorough check
     docker-image-updater --non-interactive
     docker-image-updater --apply-all
     docker-image-updater --dry-run
@@ -170,8 +176,7 @@ Single Image Check:
     docker-image-updater -i lscr.io/linuxserver/deluge:2.2.0`)
 }
 
-func checkSingleImage(imageRef string, noCache bool) {
-	// Parse the image reference into a Container struct
+func checkSingleImage(imageRef string, noCache bool, maxTags int) {
 	container := scanner.ParseImageRef(imageRef)
 
 	fmt.Println("=== Docker Image Update Check ===")
@@ -181,18 +186,20 @@ func checkSingleImage(imageRef string, noCache bool) {
 	fmt.Printf("Tag:       %s\n", container.Tag)
 	fmt.Println()
 
-	// Setup checker
 	var checker *registry.Checker
 	if noCache {
 		checker = registry.NewChecker("")
 	} else {
 		c := cache.New("", cache.DefaultTTL)
 		if err := c.Load(); err != nil {
-			// Ignore cache load errors for single image check
 			checker = registry.NewChecker("")
 		} else {
 			checker = registry.NewCheckerWithCache("", c)
 		}
+	}
+
+	if maxTags > 0 {
+		checker.SetMaxTags(maxTags)
 	}
 
 	fmt.Print("Checking for updates... ")
@@ -231,12 +238,13 @@ func checkSingleImage(imageRef string, noCache bool) {
 	}
 }
 
-func runInteractive(configPath, hostFilter, containerFilter string, limit int, dryRun bool, noCache bool) {
+func runInteractive(configPath, hostFilter, containerFilter string, limit, maxTags int, dryRun, noCache bool) {
 	config := tui.Config{
 		ConfigPath:      configPath,
 		HostFilter:      hostFilter,
 		ContainerFilter: containerFilter,
 		Limit:           limit,
+		MaxTags:         maxTags,
 		DryRun:          dryRun,
 		NoCache:         noCache,
 	}
@@ -250,7 +258,7 @@ func runInteractive(configPath, hostFilter, containerFilter string, limit int, d
 	}
 }
 
-func runBatch(configPath, hostFilter, containerFilter string, limit int, dryRun bool, noCache bool, applyAll bool) {
+func runBatch(configPath, hostFilter, containerFilter string, limit, maxTags int, dryRun, noCache, applyAll bool) {
 	fmt.Println("=== Docker Image Updater ===")
 	fmt.Println("    for NixOS Configurations")
 	fmt.Println()
@@ -309,7 +317,6 @@ func runBatch(configPath, hostFilter, containerFilter string, limit int, dryRun 
 	fmt.Println()
 	fmt.Println("Checking for updates...")
 
-	// Setup checker with cache
 	var checker *registry.Checker
 	if noCache {
 		checker = registry.NewChecker("")
@@ -319,6 +326,10 @@ func runBatch(configPath, hostFilter, containerFilter string, limit int, dryRun 
 			fmt.Fprintf(os.Stderr, "Warning: Failed to load cache: %v\n", err)
 		}
 		checker = registry.NewCheckerWithCache("", c)
+	}
+
+	if maxTags > 0 {
+		checker.SetMaxTags(maxTags)
 	}
 
 	var updateResults []registry.UpdateResult

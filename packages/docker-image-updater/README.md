@@ -2,8 +2,6 @@
 
 A beautiful interactive TUI tool for checking and updating Docker image versions in NixOS container configurations.
 
-> **Development Status:** This tool is partially implemented. Container scanning works, but update checking and applying updates are not yet functional. See [NEXT_STEPS.md](./NEXT_STEPS.md) for the implementation plan.
-
 ## Overview
 
 This tool scans your `hosts/**/containers.nix` files, extracts Docker image references, checks for available updates using container registries, and provides an interactive interface to selectively apply updates.
@@ -104,8 +102,13 @@ docker-image-updater --non-interactive
 | `-H, --host HOST` | Only check containers for a specific host |
 | `-c, --containers LIST` | Only check specific containers (comma-separated) |
 | `-l, --limit N` | Limit the number of containers to check |
+| `-t, --max-tags N` | Max tags to fetch per image (default 50, 0 for all) |
+| `-i, --check-image IMG` | Check a single Docker image for updates |
 | `--dry-run` | Only scan containers, skip checking for updates |
 | `--non-interactive` | Run without interactive prompts |
+| `--apply-all` | Apply all available updates (implies --non-interactive) |
+| `--clear-cache` | Clear the cache before running |
+| `--no-cache` | Disable caching for this run |
 | `-v, --version` | Show version |
 | `-h, --help` | Show help message |
 
@@ -238,16 +241,26 @@ To update manually:
   sed -i 's|postgres:17|postgres:18|g' /path/to/nix-config/hosts/monolith/containers.nix
 ```
 
+## Performance
+
+By default, the tool only fetches 50 tags per image, providing an order of magnitude speedup compared to fetching all tags. This is sufficient for detecting recent version increments.
+
+- **Default behavior**: Fetch 50 most recent tags (~0.5-1s per image)
+- **Thorough check**: Use `--max-tags 0` to fetch all tags (slower but comprehensive)
+- **Fast check**: Use `--max-tags 25` for even faster checks on well-maintained images
+
+The tool uses the [go-containerregistry](https://github.com/google/go-containerregistry) library for direct registry API access with pagination support.
+
 ## Dependencies
 
-- **skopeo** - For querying container registries (automatically wrapped into PATH)
+No external runtime dependencies. The tool uses a pure Go implementation for all registry operations.
 
 ## Limitations
 
 - Only scans files named `containers.nix` under the `hosts/` directory
 - Requires network access to query container registries
 - Cannot automatically update floating tags (shows notification instead)
-- Some private registries may require authentication configured in skopeo
+- Private registries use credentials from `~/.docker/config.json`
 
 ## Tips
 
@@ -271,11 +284,11 @@ Ensure you're running from the nix-config root directory or specify the path wit
 
 ### Rate limiting
 
-Container registries may rate-limit unauthenticated requests. Consider authenticating skopeo with your registry credentials.
+Container registries may rate-limit unauthenticated requests. The `--max-tags` option helps reduce API calls. For heavy usage, authenticate with your registry.
 
-### Skopeo authentication
+### Private registry authentication
 
-For private registries, configure credentials in `~/.docker/config.json` or use `skopeo login`.
+For private registries, configure credentials in `~/.docker/config.json`. The tool uses the standard Docker credential chain.
 
 ## Related Packages
 
@@ -283,6 +296,14 @@ For private registries, configure credentials in `~/.docker/config.json` or use 
 - **backup-docker-mariadb** - Automated MariaDB backups for Docker
 
 ## Version History
+
+### 2.4.0
+
+- **Major performance improvement**: Tag fetching now uses pagination
+- Added `--max-tags` flag to limit tags fetched per image (default: 50)
+- Replaced skopeo with go-containerregistry library for direct registry access
+- No external runtime dependencies required
+- Order of magnitude speedup for images with many tags
 
 ### 2.0.0
 

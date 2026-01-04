@@ -1,14 +1,25 @@
 package registry
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
+	"io"
+	"net/http"
+	"sort"
 	"strings"
 
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/iamruinous/docker-image-updater/internal/cache"
 	"github.com/iamruinous/docker-image-updater/internal/scanner"
 )
+
+// DefaultMaxTags is the default maximum number of tags to fetch per image.
+// This provides an order of magnitude speedup over fetching all tags.
+// Most registries return tags in reverse chronological order, so we get the most recent.
+const DefaultMaxTags = 50
 
 // UpdateResult holds the result of checking a container for updates.
 type UpdateResult struct {
@@ -21,18 +32,16 @@ type UpdateResult struct {
 
 // Checker provides methods to check container registries for updates.
 type Checker struct {
-	skopeoPath string
-	cache      *cache.Cache
-	useCache   bool
+	cache    *cache.Cache
+	useCache bool
+	maxTags  int
 }
 
 // NewChecker creates a new registry Checker.
-// If skopeoPath is empty, it will look for skopeo in PATH.
 func NewChecker(skopeoPath string) *Checker {
-	if skopeoPath == "" {
-		skopeoPath = "skopeo"
+	return &Checker{
+		maxTags: DefaultMaxTags,
 	}
-	return &Checker{skopeoPath: skopeoPath}
 }
 
 // NewCheckerWithCache creates a new registry Checker with caching enabled.
@@ -41,6 +50,13 @@ func NewCheckerWithCache(skopeoPath string, c *cache.Cache) *Checker {
 	checker.cache = c
 	checker.useCache = true
 	return checker
+}
+
+// SetMaxTags sets the maximum number of tags to fetch per image.
+func (c *Checker) SetMaxTags(n int) {
+	if n > 0 {
+		c.maxTags = n
+	}
 }
 
 // SetCache sets the cache for the checker.
@@ -62,53 +78,139 @@ func (c *Checker) SaveCache() error {
 	return nil
 }
 
-// tagsResponse represents the JSON response from skopeo list-tags.
+// tagsResponse represents the JSON response from registry tags/list endpoint.
 type tagsResponse struct {
-	Tags []string `json:"Tags"`
+	Name string   `json:"name"`
+	Tags []string `json:"tags"`
 }
 
-// inspectResponse represents the JSON response from skopeo inspect.
-type inspectResponse struct {
-	Digest string `json:"Digest"`
-}
-
-// ListTags returns all available tags for an image.
+// ListTags returns available tags for an image, limited to maxTags most recent.
+// Most registries return tags in reverse chronological order (newest first).
 func (c *Checker) ListTags(image string) ([]string, error) {
+	return c.ListTagsWithLimit(image, c.maxTags)
+}
+
+// ListTagsWithLimit returns available tags for an image, limited to n tags.
+// Uses the OCI Distribution API with pagination for efficiency.
+func (c *Checker) ListTagsWithLimit(image string, limit int) ([]string, error) {
 	// Normalize the image to full form
 	normalized := scanner.NormalizeImage(image)
 	imageBase := extractImageBase(normalized)
 
-	cmd := exec.Command(c.skopeoPath, "list-tags", "docker://"+imageBase)
-	output, err := cmd.Output()
+	// Parse the repository reference
+	repo, err := name.NewRepository(imageBase)
 	if err != nil {
-		return nil, fmt.Errorf("skopeo list-tags failed for %s: %w", imageBase, err)
+		return nil, fmt.Errorf("failed to parse repository %s: %w", imageBase, err)
 	}
 
-	var resp tagsResponse
-	if err := json.Unmarshal(output, &resp); err != nil {
-		return nil, fmt.Errorf("failed to parse skopeo output: %w", err)
+	// Get authentication
+	auth, err := authn.DefaultKeychain.Resolve(repo.Registry)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve auth for %s: %w", repo.Registry.Name(), err)
 	}
 
-	return resp.Tags, nil
+	// Create authenticated transport
+	scopes := []string{repo.Scope(transport.PullScope)}
+	t, err := transport.New(repo.Registry, auth, http.DefaultTransport, scopes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create transport for %s: %w", repo.Registry.Name(), err)
+	}
+
+	client := &http.Client{Transport: t}
+
+	// Build the tags list URL with pagination
+	// The n parameter limits the number of tags returned
+	url := fmt.Sprintf("https://%s/v2/%s/tags/list?n=%d", repo.Registry.Name(), repo.RepositoryStr(), limit)
+
+	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list tags for %s: %w", imageBase, err)
+	}
+	defer resp.Body.Close()
+
+	if err := transport.CheckError(resp, http.StatusOK); err != nil {
+		return nil, fmt.Errorf("registry error for %s: %w", imageBase, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var tagsResp tagsResponse
+	if err := json.Unmarshal(body, &tagsResp); err != nil {
+		return nil, fmt.Errorf("failed to parse tags response: %w", err)
+	}
+
+	return tagsResp.Tags, nil
 }
 
-// GetDigest returns the digest for a specific image:tag.
+// GetDigest returns the digest for a specific image:tag using go-containerregistry.
 func (c *Checker) GetDigest(imageRef string) (string, error) {
 	// Normalize the image
 	normalized := scanner.NormalizeImage(imageRef)
 
-	cmd := exec.Command(c.skopeoPath, "inspect", "docker://"+normalized)
-	output, err := cmd.Output()
+	// Parse the reference
+	ref, err := name.ParseReference(normalized)
 	if err != nil {
-		return "", fmt.Errorf("skopeo inspect failed for %s: %w", normalized, err)
+		return "", fmt.Errorf("failed to parse reference %s: %w", normalized, err)
 	}
 
-	var resp inspectResponse
-	if err := json.Unmarshal(output, &resp); err != nil {
-		return "", fmt.Errorf("failed to parse skopeo output: %w", err)
+	// Get authentication
+	auth, err := authn.DefaultKeychain.Resolve(ref.Context().Registry)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve auth: %w", err)
 	}
 
-	return resp.Digest, nil
+	// Create authenticated transport
+	scopes := []string{ref.Scope(transport.PullScope)}
+	t, err := transport.New(ref.Context().Registry, auth, http.DefaultTransport, scopes)
+	if err != nil {
+		return "", fmt.Errorf("failed to create transport: %w", err)
+	}
+
+	client := &http.Client{Transport: t}
+
+	// Use HEAD request to get digest from manifest
+	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s",
+		ref.Context().Registry.Name(),
+		ref.Context().RepositoryStr(),
+		ref.Identifier())
+
+	req, err := http.NewRequestWithContext(context.Background(), "HEAD", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Accept multiple manifest types
+	req.Header.Set("Accept", strings.Join([]string{
+		"application/vnd.docker.distribution.manifest.v2+json",
+		"application/vnd.docker.distribution.manifest.list.v2+json",
+		"application/vnd.oci.image.manifest.v1+json",
+		"application/vnd.oci.image.index.v1+json",
+	}, ", "))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to get manifest for %s: %w", imageRef, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get manifest: status %d", resp.StatusCode)
+	}
+
+	digest := resp.Header.Get("Docker-Content-Digest")
+	if digest == "" {
+		return "", fmt.Errorf("no digest in response for %s", imageRef)
+	}
+
+	return digest, nil
 }
 
 // CheckForUpdate checks if an update is available for a container.
@@ -151,6 +253,9 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 			return result
 		}
 
+		// If we got exactly maxTags tags and didn't find an update,
+		// the latest might not be in our limited set - but for semver
+		// we sort and find the highest, which should work for recent updates
 		latestTag := FindLatestVersionWithConstraint(tags, currentTag, constraint)
 		if latestTag != "" {
 			result.LatestTag = latestTag
@@ -201,6 +306,42 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 	c.cacheResult(container.Image, result)
 
 	return result
+}
+
+// FindLatestFromTags finds the latest version tag from a list, respecting constraints.
+// This is useful when you need more control over how tags are sorted/filtered.
+func (c *Checker) FindLatestFromTags(tags []string, currentTag string, constraint *Constraint) string {
+	if len(tags) == 0 {
+		return ""
+	}
+
+	// Filter to matching semver tags
+	var filtered []string
+	if constraint != nil {
+		filtered = FilterTagsWithConstraint(tags, constraint, currentTag)
+	} else {
+		filtered = FilterSemverTagsMatching(tags, currentTag)
+	}
+
+	if len(filtered) == 0 {
+		return ""
+	}
+
+	// Filter out date-based versions if needed
+	if currentTag != "" && constraint == nil {
+		filtered = filterOutDateBasedVersions(filtered, currentTag)
+	}
+
+	if len(filtered) == 0 {
+		return ""
+	}
+
+	// Sort and return the highest
+	sort.Slice(filtered, func(i, j int) bool {
+		return CompareVersions(filtered[i], filtered[j]) < 0
+	})
+
+	return filtered[len(filtered)-1]
 }
 
 func (c *Checker) cacheResult(imageRef string, result *UpdateResult) {

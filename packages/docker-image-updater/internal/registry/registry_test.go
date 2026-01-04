@@ -28,19 +28,21 @@ func TestExtractImageBase(t *testing.T) {
 }
 
 func TestNewChecker(t *testing.T) {
-	// Test with default path
 	c := NewChecker("")
-	if c.skopeoPath != "skopeo" {
-		t.Errorf("NewChecker(\"\").skopeoPath = %q, expected %q", c.skopeoPath, "skopeo")
-	}
-
-	// Test with custom path
-	c = NewChecker("/usr/bin/skopeo")
-	if c.skopeoPath != "/usr/bin/skopeo" {
-		t.Errorf("NewChecker(\"/usr/bin/skopeo\").skopeoPath = %q, expected %q", c.skopeoPath, "/usr/bin/skopeo")
+	if c.maxTags != DefaultMaxTags {
+		t.Errorf("NewChecker(\"\").maxTags = %d, expected %d", c.maxTags, DefaultMaxTags)
 	}
 }
 
-// Note: Integration tests that actually call skopeo would go here,
-// but they require network access and a running registry.
-// For CI/CD, we would mock the skopeo calls.
+func TestSetMaxTags(t *testing.T) {
+	c := NewChecker("")
+	c.SetMaxTags(100)
+	if c.maxTags != 100 {
+		t.Errorf("SetMaxTags(100) resulted in maxTags = %d, expected 100", c.maxTags)
+	}
+
+	c.SetMaxTags(0)
+	if c.maxTags != 100 {
+		t.Errorf("SetMaxTags(0) should not change maxTags, got %d", c.maxTags)
+	}
+}
