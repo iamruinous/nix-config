@@ -24,7 +24,7 @@
 
   ruinous.postgres.docker.backup.enable = true;
 
-  # enable dynamic libraries like ruff
+  # enable dynamic libraries for tools like ruff
   programs.nix-ld.enable = true;
 
   environment.systemPackages = with pkgs; [
