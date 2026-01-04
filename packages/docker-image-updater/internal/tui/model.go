@@ -19,6 +19,7 @@ type Config struct {
 	HostFilter      string
 	ContainerFilter string
 	Limit           int
+	MaxTags         int
 	DryRun          bool
 	NoCache         bool
 }
@@ -83,13 +84,11 @@ type Model struct {
 	height int
 }
 
-// NewModel creates a new Model with the given configuration.
 func NewModel(config Config) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = SpinnerStyle
 
-	// Setup checker with or without cache
 	var checker *registry.Checker
 	if config.NoCache {
 		checker = registry.NewChecker("")
@@ -99,6 +98,10 @@ func NewModel(config Config) Model {
 			fmt.Fprintf(os.Stderr, "Warning: Failed to load cache: %v\n", err)
 		}
 		checker = registry.NewCheckerWithCache("", c)
+	}
+
+	if config.MaxTags > 0 {
+		checker.SetMaxTags(config.MaxTags)
 	}
 
 	return Model{

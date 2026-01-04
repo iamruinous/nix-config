@@ -1,33 +1,21 @@
 {pkgs, ...}:
 pkgs.buildGoModule rec {
   pname = "docker-image-updater";
-  version = "2.3.0";
+  version = "2.4.0";
 
-  # Use local source with proper filtering
   src = pkgs.lib.cleanSource ./.;
 
-  vendorHash = "sha256-vYwK/UU5tzdZJ21FtyA0k/Zy0tpD8BU5w7mATUbS/P4=";
+  vendorHash = "sha256-ZBYsRzPDE5xNASc8RCjS0dO2sQzUK4Lmgbi7pZBYS6Y=";
 
-  # Only build the main command
   subPackages = ["cmd/docker-image-updater"];
 
-  # Disable CGO for static binary
   env.CGO_ENABLED = 0;
 
-  # Build flags to strip debug info and embed version
   ldflags = [
-    "-s" # Strip symbol table
-    "-w" # Strip DWARF
+    "-s"
+    "-w"
     "-X main.version=${version}"
   ];
-
-  # Wrap with runtime dependencies (skopeo must be available)
-  nativeBuildInputs = [pkgs.makeWrapper];
-
-  postInstall = ''
-    wrapProgram $out/bin/docker-image-updater \
-      --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.skopeo]}
-  '';
 
   meta = with pkgs.lib; {
     description = "Interactive TUI for checking Docker image updates in NixOS container configurations";
