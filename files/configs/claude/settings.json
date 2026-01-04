@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "Bash(ssh-agent-check)",
+      "Bash(find:*)",
+      "Bash(python3:*)",
+      "Bash(pnpm install:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(git:*)",
+      "Bash(gh pr:*)",
+      "Bash(tea pr:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(mkdir:*)",
+      "Bash(cat:*)",
+      "Bash(jq:*)",
+      "Bash(ls:*)",
+      "Bash(git mv:*)",
+      "Bash(tea help:*)",
+      "mcp__mcp-farm__*",
+      "mcp__todoist__*",
+      "mcp__n8n__*",
+      "Read(./.envrc)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.envrc.*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bunx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "sandbox": {
+    "enabled": false,
+    "autoAllowBashIfSandboxed": true
+  },
+  "alwaysThinkingEnabled": true,
+  "includeCoAuthoredBy": false,
+  "companyAnnouncements": [
+    "Welcome to Meskill Farm! Review our code guidelines at docs.meskill.farm",
+    "Reminder: Use PR workflow!!"
+  ]
+}
