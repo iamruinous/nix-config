@@ -574,6 +574,7 @@
           WEAVIATE_URL = "http://weaviate:8080";
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
           N8N_BLOCK_INTERNAL_NETWORKS = "false";
+          OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS = "true";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
