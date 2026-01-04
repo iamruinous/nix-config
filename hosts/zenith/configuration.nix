@@ -24,6 +24,9 @@
 
   ruinous.postgres.docker.backup.enable = true;
 
+  # enable dynamic libraries like ruff
+  programs.nix-ld.enable = true;
+
   environment.systemPackages = with pkgs; [
     docker-mcp-gateway
   ];
