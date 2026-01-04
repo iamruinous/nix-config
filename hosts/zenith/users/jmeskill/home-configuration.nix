@@ -50,10 +50,18 @@ in {
     sourcehut = aiEmail;
   };
 
-  # age.secrets.jmeskill_codey_ssh_key = {
-  #   rekeyFile = ../../../../users/jmeskill/id_codey_ed25519.age;
-  #   mode = "600";
-  # };
+  ruinous.ai-cli = {
+    gemini = {
+      enable = true;
+      email = "jadeisfalling@gmail.com";
+      syncCredentials = true;
+    };
+    claude-code = {
+      enable = true;
+      syncCredentials = true;
+    };
+    opencode.enable = true;
+  };
 
   home.stateVersion = "26.05";
 }
