@@ -25,22 +25,10 @@ in {
     cp -f ${mcpConfigDir}/tools.yaml "$HOME/.docker/mcp/tools.yaml"
   '';
 
-  ruinous.git.signing = let
-    zenithKey = "/home/jmeskill/.ssh/id_codey_ed25519";
-  in {
-    github = zenithKey;
-    farmforge = zenithKey;
-    codeberg = zenithKey;
-    sourcehut = zenithKey;
-  };
-
-  ruinous.git.email = let
-    aiEmail = "jade@ruinous.ai";
-  in {
-    github = aiEmail;
-    farmforge = aiEmail;
-    codeberg = aiEmail;
-    sourcehut = aiEmail;
+  # Git config - use zenith-specific defaults for all repos
+  ruinous.git.default = {
+    userEmail = "jade@ruinous.ai";
+    signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
   };
 
   ruinous.ai-cli = {
@@ -65,7 +53,7 @@ in {
       ];
       services = {
         "nix-config" = {
-          projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
+          projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
           port = 18080;
           cors = ["zenith.meskill.farm"];
         };
