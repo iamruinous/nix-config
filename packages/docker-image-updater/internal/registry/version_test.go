@@ -314,21 +314,320 @@ func TestFilterOutDateBasedVersions(t *testing.T) {
 }
 
 func TestFindLatestVersionMatchingWithDateBasedVersions(t *testing.T) {
-	// Simulate linuxserver/deluge tags (real-world case)
 	tags := []string{
 		"2.0.5", "2.1.1", "2.2.0", "18.04.1",
 		"latest", "stable",
 	}
 
-	// Should find 2.2.0, NOT 18.04.1
 	result := FindLatestVersionMatching(tags, "2.2.0")
 	if result != "2.2.0" {
 		t.Errorf("FindLatestVersionMatching with Ubuntu-style version = %q, expected 2.2.0", result)
 	}
 
-	// Test upgrade from older version
 	result = FindLatestVersionMatching(tags, "2.0.5")
 	if result != "2.2.0" {
 		t.Errorf("FindLatestVersionMatching(2.0.5) = %q, expected 2.2.0", result)
+	}
+}
+
+func TestParseConstraint(t *testing.T) {
+	tests := []struct {
+		input       string
+		shouldParse bool
+	}{
+		{"~4", true},
+		{"~4.0", true},
+		{"~4.0.16", true},
+		{"^1.2.3", true},
+		{"^0.2.3", true},
+		{">=1.0.0", true},
+		{">1.0.0", true},
+		{"<2.0.0", true},
+		{"<=2.0.0", true},
+		{"=1.2.3", true},
+		{"1.2.3", true},
+		{"*", true},
+		{"1.*", true},
+		{"1.2.*", true},
+		{">=1.0,<2.0", true},
+		{"", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			c, err := ParseConstraint(tc.input)
+			if tc.shouldParse {
+				if err != nil {
+					t.Errorf("ParseConstraint(%q) returned error: %v", tc.input, err)
+				}
+				if tc.input != "" && c == nil {
+					t.Errorf("ParseConstraint(%q) returned nil", tc.input)
+				}
+			} else {
+				if c != nil {
+					t.Errorf("ParseConstraint(%q) should return nil", tc.input)
+				}
+			}
+		})
+	}
+}
+
+func TestTildeConstraint(t *testing.T) {
+	tests := []struct {
+		constraint string
+		version    string
+		expected   bool
+	}{
+		{"~4", "4.0.0", true},
+		{"~4", "4.0.16", true},
+		{"~4", "4.5.0", true},
+		{"~4", "4.99.99", true},
+		{"~4", "3.9.9", false},
+		{"~4", "5.0.0", false},
+		{"~4.0", "4.0.0", true},
+		{"~4.0", "4.0.16", true},
+		{"~4.0", "4.1.0", false},
+		{"~4.0", "3.0.0", false},
+		{"~4.0.16", "4.0.16", true},
+		{"~4.0.16", "4.0.17", true},
+		{"~4.0.16", "4.0.15", false},
+		{"~4.0.16", "4.1.0", false},
+		{"~1.2.3", "1.2.3", true},
+		{"~1.2.3", "1.2.4", true},
+		{"~1.2.3", "1.2.99", true},
+		{"~1.2.3", "1.3.0", false},
+		{"~1.2.3", "2.0.0", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.constraint+"_"+tc.version, func(t *testing.T) {
+			c, err := ParseConstraint(tc.constraint)
+			if err != nil {
+				t.Fatalf("ParseConstraint(%q) error: %v", tc.constraint, err)
+			}
+			result := c.Satisfies(tc.version)
+			if result != tc.expected {
+				t.Errorf("Constraint(%q).Satisfies(%q) = %v, expected %v",
+					tc.constraint, tc.version, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestCaretConstraint(t *testing.T) {
+	tests := []struct {
+		constraint string
+		version    string
+		expected   bool
+	}{
+		{"^1.2.3", "1.2.3", true},
+		{"^1.2.3", "1.2.4", true},
+		{"^1.2.3", "1.3.0", true},
+		{"^1.2.3", "1.99.99", true},
+		{"^1.2.3", "2.0.0", false},
+		{"^1.2.3", "1.2.2", false},
+		{"^0.2.3", "0.2.3", true},
+		{"^0.2.3", "0.2.4", true},
+		{"^0.2.3", "0.3.0", false},
+		{"^0.0.3", "0.0.3", true},
+		{"^0.0.3", "0.0.4", false},
+		{"17", "17.0.0", true},
+		{"17", "17.5.0", true},
+		{"17", "18.0.0", false},
+		{"^17", "17.0.0", true},
+		{"^17", "17.1.0", true},
+		{"^17", "18.0.0", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.constraint+"_"+tc.version, func(t *testing.T) {
+			c, err := ParseConstraint(tc.constraint)
+			if err != nil {
+				t.Fatalf("ParseConstraint(%q) error: %v", tc.constraint, err)
+			}
+			result := c.Satisfies(tc.version)
+			if result != tc.expected {
+				t.Errorf("Constraint(%q).Satisfies(%q) = %v, expected %v",
+					tc.constraint, tc.version, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestWildcardConstraint(t *testing.T) {
+	tests := []struct {
+		constraint string
+		version    string
+		expected   bool
+	}{
+		{"*", "1.0.0", true},
+		{"*", "99.0.0", true},
+		{"1.*", "1.0.0", true},
+		{"1.*", "1.5.0", true},
+		{"1.*", "1.99.99", true},
+		{"1.*", "2.0.0", false},
+		{"1.2.*", "1.2.0", true},
+		{"1.2.*", "1.2.99", true},
+		{"1.2.*", "1.3.0", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.constraint+"_"+tc.version, func(t *testing.T) {
+			c, err := ParseConstraint(tc.constraint)
+			if err != nil {
+				t.Fatalf("ParseConstraint(%q) error: %v", tc.constraint, err)
+			}
+			result := c.Satisfies(tc.version)
+			if result != tc.expected {
+				t.Errorf("Constraint(%q).Satisfies(%q) = %v, expected %v",
+					tc.constraint, tc.version, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestComparisonConstraints(t *testing.T) {
+	tests := []struct {
+		constraint string
+		version    string
+		expected   bool
+	}{
+		{">=1.0.0", "1.0.0", true},
+		{">=1.0.0", "1.0.1", true},
+		{">=1.0.0", "2.0.0", true},
+		{">=1.0.0", "0.9.9", false},
+		{">1.0.0", "1.0.1", true},
+		{">1.0.0", "1.0.0", false},
+		{"<2.0.0", "1.9.9", true},
+		{"<2.0.0", "2.0.0", false},
+		{"<=2.0.0", "2.0.0", true},
+		{"<=2.0.0", "1.9.9", true},
+		{"<=2.0.0", "2.0.1", false},
+		{"=1.2.3", "1.2.3", true},
+		{"=1.2.3", "1.2.4", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.constraint+"_"+tc.version, func(t *testing.T) {
+			c, err := ParseConstraint(tc.constraint)
+			if err != nil {
+				t.Fatalf("ParseConstraint(%q) error: %v", tc.constraint, err)
+			}
+			result := c.Satisfies(tc.version)
+			if result != tc.expected {
+				t.Errorf("Constraint(%q).Satisfies(%q) = %v, expected %v",
+					tc.constraint, tc.version, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestMultipleConstraints(t *testing.T) {
+	tests := []struct {
+		constraint string
+		version    string
+		expected   bool
+	}{
+		{">=1.0.0,<2.0.0", "1.0.0", true},
+		{">=1.0.0,<2.0.0", "1.5.0", true},
+		{">=1.0.0,<2.0.0", "1.9.9", true},
+		{">=1.0.0,<2.0.0", "2.0.0", false},
+		{">=1.0.0,<2.0.0", "0.9.9", false},
+		{">=1.0,<1.5", "1.0.0", true},
+		{">=1.0,<1.5", "1.4.99", true},
+		{">=1.0,<1.5", "1.5.0", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.constraint+"_"+tc.version, func(t *testing.T) {
+			c, err := ParseConstraint(tc.constraint)
+			if err != nil {
+				t.Fatalf("ParseConstraint(%q) error: %v", tc.constraint, err)
+			}
+			result := c.Satisfies(tc.version)
+			if result != tc.expected {
+				t.Errorf("Constraint(%q).Satisfies(%q) = %v, expected %v",
+					tc.constraint, tc.version, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFindLatestVersionWithConstraint(t *testing.T) {
+	tests := []struct {
+		name       string
+		tags       []string
+		currentTag string
+		constraint string
+		expected   string
+	}{
+		{
+			name:       "tilde major only - sonarr case",
+			tags:       []string{"3.0.0", "4.0.0", "4.0.16", "4.1.0", "5.0.0"},
+			currentTag: "4.0.16",
+			constraint: "~4",
+			expected:   "4.1.0",
+		},
+		{
+			name:       "tilde minor - stay in patch",
+			tags:       []string{"4.0.0", "4.0.16", "4.0.17", "4.1.0"},
+			currentTag: "4.0.16",
+			constraint: "~4.0",
+			expected:   "4.0.17",
+		},
+		{
+			name:       "caret - allow minor updates",
+			tags:       []string{"1.0.0", "1.2.0", "1.3.0", "2.0.0"},
+			currentTag: "1.2.0",
+			constraint: "^1.2",
+			expected:   "1.3.0",
+		},
+		{
+			name:       "wildcard major",
+			tags:       []string{"1.0.0", "1.5.0", "2.0.0"},
+			currentTag: "1.0.0",
+			constraint: "1.*",
+			expected:   "1.5.0",
+		},
+		{
+			name:       "range constraint",
+			tags:       []string{"1.0.0", "1.5.0", "1.9.0", "2.0.0"},
+			currentTag: "1.0.0",
+			constraint: ">=1.0,<2.0",
+			expected:   "1.9.0",
+		},
+		{
+			name:       "no constraint - uses semver matching",
+			tags:       []string{"1.0.0", "2.0.0", "3.0.0"},
+			currentTag: "1.0.0",
+			constraint: "",
+			expected:   "3.0.0",
+		},
+		{
+			name:       "v-prefixed tags with constraint",
+			tags:       []string{"v1.0.0", "v1.5.0", "v2.0.0"},
+			currentTag: "v1.0.0",
+			constraint: "~1",
+			expected:   "v1.5.0",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var constraint *Constraint
+			if tc.constraint != "" {
+				var err error
+				constraint, err = ParseConstraint(tc.constraint)
+				if err != nil {
+					t.Fatalf("ParseConstraint(%q) error: %v", tc.constraint, err)
+				}
+			}
+
+			result := FindLatestVersionWithConstraint(tc.tags, tc.currentTag, constraint)
+			if result != tc.expected {
+				t.Errorf("FindLatestVersionWithConstraint(%v, %q, %q) = %q, expected %q",
+					tc.tags, tc.currentTag, tc.constraint, result, tc.expected)
+			}
+		})
 	}
 }

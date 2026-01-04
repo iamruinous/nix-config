@@ -293,6 +293,151 @@ func TestIsImageCheckDisabled(t *testing.T) {
 	}
 }
 
+func TestExtractPinConstraint(t *testing.T) {
+	tests := []struct {
+		name         string
+		currentLine  string
+		previousLine string
+		expected     string
+	}{
+		{
+			name:         "tilde on same line",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK: pin ~1`,
+			previousLine: "",
+			expected:     "~1",
+		},
+		{
+			name:         "tilde on previous line",
+			currentLine:  `image = "nginx:1.0";`,
+			previousLine: `# IMAGECHECK: pin ~4`,
+			expected:     "~4",
+		},
+		{
+			name:         "caret constraint",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK: pin ^1.2`,
+			previousLine: "",
+			expected:     "^1.2",
+		},
+		{
+			name:         "version range",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK: pin >=1.0,<2.0`,
+			previousLine: "",
+			expected:     ">=1.0,<2.0",
+		},
+		{
+			name:         "wildcard",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK: pin 1.*`,
+			previousLine: "",
+			expected:     "1.*",
+		},
+		{
+			name:         "exact version",
+			currentLine:  `image = "nginx:1.0"; # IMAGECHECK: pin =1.27.0`,
+			previousLine: "",
+			expected:     "=1.27.0",
+		},
+		{
+			name:         "no constraint",
+			currentLine:  `image = "nginx:1.0";`,
+			previousLine: `# some other comment`,
+			expected:     "",
+		},
+		{
+			name:         "case insensitive",
+			currentLine:  `# imagecheck: PIN ~4`,
+			previousLine: "",
+			expected:     "~4",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := extractPinConstraint(tc.currentLine, tc.previousLine)
+			if result != tc.expected {
+				t.Errorf("extractPinConstraint(%q, %q) = %q, expected %q",
+					tc.currentLine, tc.previousLine, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestParseContainerFileWithPinConstraint(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "scanner-pin-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	hostDir := filepath.Join(tmpDir, "hosts", "testhost")
+	if err := os.MkdirAll(hostDir, 0755); err != nil {
+		t.Fatalf("Failed to create host dir: %v", err)
+	}
+
+	testContent := `{ config, ... }: {
+  virtualisation.oci-containers = {
+    backend = "docker";
+    containers = {
+      sonarr = {
+        # IMAGECHECK: pin ~4
+        image = "lscr.io/linuxserver/sonarr:4.0.16";
+      };
+
+      postgres = {
+        image = "postgres:17"; # IMAGECHECK: pin ^17
+      };
+
+      nginx = {
+        image = "nginx:1.27.0";
+      };
+    };
+  };
+}`
+
+	containerFile := filepath.Join(hostDir, "containers.nix")
+	if err := os.WriteFile(containerFile, []byte(testContent), 0644); err != nil {
+		t.Fatalf("Failed to write containers.nix: %v", err)
+	}
+
+	s := NewScanner(tmpDir)
+	containers, err := s.Scan("")
+	if err != nil {
+		t.Fatalf("Scan failed: %v", err)
+	}
+
+	if len(containers) != 3 {
+		t.Errorf("Expected 3 containers, got %d", len(containers))
+	}
+
+	containerMap := make(map[string]Container)
+	for _, c := range containers {
+		containerMap[c.Name] = c
+	}
+
+	if c, ok := containerMap["sonarr"]; ok {
+		if c.PinConstraint != "~4" {
+			t.Errorf("sonarr PinConstraint = %q, expected %q", c.PinConstraint, "~4")
+		}
+	} else {
+		t.Error("sonarr container not found")
+	}
+
+	if c, ok := containerMap["postgres"]; ok {
+		if c.PinConstraint != "^17" {
+			t.Errorf("postgres PinConstraint = %q, expected %q", c.PinConstraint, "^17")
+		}
+	} else {
+		t.Error("postgres container not found")
+	}
+
+	if c, ok := containerMap["nginx"]; ok {
+		if c.PinConstraint != "" {
+			t.Errorf("nginx PinConstraint = %q, expected empty", c.PinConstraint)
+		}
+	} else {
+		t.Error("nginx container not found")
+	}
+}
+
 func TestParseContainerFileWithImageCheckDisabled(t *testing.T) {
 	// Create a temporary directory with a test containers.nix file
 	tmpDir, err := os.MkdirTemp("", "scanner-disabled-test")

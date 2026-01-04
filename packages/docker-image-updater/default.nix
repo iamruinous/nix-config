@@ -1,7 +1,7 @@
 {pkgs, ...}:
 pkgs.buildGoModule rec {
   pname = "docker-image-updater";
-  version = "2.2.0";
+  version = "2.3.0";
 
   # Use local source with proper filtering
   src = pkgs.lib.cleanSource ./.;

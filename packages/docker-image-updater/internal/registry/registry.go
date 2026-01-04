@@ -115,12 +115,16 @@ func (c *Checker) GetDigest(imageRef string) (string, error) {
 func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 	result := &UpdateResult{
 		Container: container,
-		LatestTag: container.Tag, // Default to current tag
+		LatestTag: container.Tag,
 	}
 
-	// Check cache first
+	cacheKey := container.Image
+	if container.PinConstraint != "" {
+		cacheKey = container.Image + "@" + container.PinConstraint
+	}
+
 	if c.useCache && c.cache != nil {
-		if entry, ok := c.cache.Get(container.Image); ok {
+		if entry, ok := c.cache.Get(cacheKey); ok {
 			result.LatestTag = entry.LatestTag
 			result.HasUpdate = entry.HasUpdate
 			result.IsDigestOnly = entry.IsDigestOnly
@@ -130,7 +134,16 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 
 	currentTag := container.Tag
 
-	// For images with version-like tags, try to find newer versions
+	var constraint *Constraint
+	if container.PinConstraint != "" {
+		var err error
+		constraint, err = ParseConstraint(container.PinConstraint)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+	}
+
 	if IsSemverTag(currentTag) {
 		tags, err := c.ListTags(container.Image)
 		if err != nil {
@@ -138,16 +151,14 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 			return result
 		}
 
-		// Use optimized matching filter to skip non-semver tags quickly
-		latestTag := FindLatestVersionMatching(tags, currentTag)
+		latestTag := FindLatestVersionWithConstraint(tags, currentTag, constraint)
 		if latestTag != "" {
 			result.LatestTag = latestTag
 			if IsNewerVersion(currentTag, latestTag) {
 				result.HasUpdate = true
 			}
 		}
-		// Cache the result
-		c.cacheResult(container.Image, result)
+		c.cacheResultWithKey(cacheKey, result)
 		return result
 	}
 
@@ -192,10 +203,13 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 	return result
 }
 
-// cacheResult stores the result in the cache if caching is enabled.
 func (c *Checker) cacheResult(imageRef string, result *UpdateResult) {
+	c.cacheResultWithKey(imageRef, result)
+}
+
+func (c *Checker) cacheResultWithKey(key string, result *UpdateResult) {
 	if c.useCache && c.cache != nil && result.Error == nil {
-		c.cache.Set(imageRef, result.LatestTag, result.HasUpdate, result.IsDigestOnly)
+		c.cache.Set(key, result.LatestTag, result.HasUpdate, result.IsDigestOnly)
 	}
 }
 

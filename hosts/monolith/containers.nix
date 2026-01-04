@@ -928,6 +928,7 @@
         ];
       };
       sonarr = {
+        # IMAGECHECK: pin ~4
         image = "lscr.io/linuxserver/sonarr:4.0.16";
         environment = {
           PUID = "4000";
