@@ -27,6 +27,12 @@
   # enable dynamic libraries for tools like ruff
   programs.nix-ld.enable = true;
 
+  # OpenCode Web UI firewall ports
+  ruinous.opencode-web.firewall = {
+    enable = true;
+    ports = [18080];
+  };
+
   environment.systemPackages = with pkgs; [
     docker-mcp-gateway
   ];

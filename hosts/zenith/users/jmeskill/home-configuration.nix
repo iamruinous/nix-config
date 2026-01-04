@@ -61,6 +61,23 @@ in {
       syncCredentials = true;
     };
     opencode.enable = true;
+    opencode-web = {
+      enable = true;
+      package = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
+      packages = with pkgs; [
+        uv # Provides uvx for Python-based MCP servers
+        pnpm # For JavaScript-based MCP servers
+        nodejs # Node.js runtime for MCP servers
+        bun
+      ];
+      services = {
+        "nix-config" = {
+          projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
+          port = 18080;
+          cors = ["zenith.meskill.farm"];
+        };
+      };
+    };
   };
 
   home.stateVersion = "26.05";
