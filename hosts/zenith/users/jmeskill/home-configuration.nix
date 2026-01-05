@@ -72,6 +72,16 @@ in {
         };
       };
     };
+    kimaki = {
+      enable = true;
+      opencodePackage = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
+      packages = with pkgs; [
+        uv # Provides uvx for Python-based MCP servers
+        pnpm # For JavaScript-based MCP servers
+        nodejs # Node.js runtime for MCP servers
+        bun
+      ];
+    };
   };
 
   home.stateVersion = "26.05";

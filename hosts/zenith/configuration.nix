@@ -30,7 +30,7 @@
   # OpenCode Web UI firewall ports
   ruinous.opencode-web.firewall = {
     enable = true;
-    ports = [18080];
+    ports = [18080 18081 18082];
   };
 
   environment.systemPackages = with pkgs; [

@@ -354,6 +354,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "NocoDB (monolith)"
+    group: "Productivity"
+    url: "https://nocodb.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # === Automation ===
   - name: "n8n (monolith)"
     group: "Automation"
