@@ -164,9 +164,15 @@
       # Expose agenix-rekey configuration
       # Usage: nix run .#agenix-rekey -- edit <secret>
       #        nix run .#agenix-rekey -- rekey --all
+      # Note: darwinConfigurations are merged into nixosConfigurations because
+      # agenix-rekey doesn't have a dedicated darwinConfigurations parameter,
+      # but darwin configs have the same home-manager structure for secret discovery.
       agenix-rekey = inputs.agenix-rekey.configure {
         userFlake = inputs.self;
-        nixosConfigurations = blueprintOutputs.nixosConfigurations // piHosts;
+        nixosConfigurations =
+          blueprintOutputs.nixosConfigurations
+          // piHosts
+          // (blueprintOutputs.darwinConfigurations or {});
         homeConfigurations = blueprintOutputs.homeConfigurations or {};
       };
     };
