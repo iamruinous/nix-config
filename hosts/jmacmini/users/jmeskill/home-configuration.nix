@@ -26,5 +26,18 @@
   programs.wezterm.enable = true;
   ruinous.openssh.remote.forwarding.enable = true;
 
+  ruinous.ai-cli = {
+    gemini = {
+      enable = true;
+      email = "jadeisfalling@gmail.com";
+      syncCredentials = true;
+    };
+    claude-code = {
+      enable = true;
+      syncCredentials = true;
+    };
+    opencode.enable = true;
+  };
+
   home.stateVersion = "26.05";
 }
