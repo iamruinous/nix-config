@@ -711,7 +711,7 @@
         networks = ["servicenet"];
       };
       phpldapadmin = {
-        image = "docker.io/phpldapadmin/phpldapadmin:2.3.7";
+        image = "docker.io/phpldapadmin/phpldapadmin:2.3.8";
         environment = {
           LDAP_HOST = "openldap";
           LDAP_BASE_DN = "dc=meskill-farmhouse,dc=lan";
