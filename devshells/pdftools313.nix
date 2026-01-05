@@ -1,14 +1,9 @@
 {pkgs, ...}:
 let
-  # Override packages with failing tests in Python 3.14
-  python = pkgs.python314.override {
+  # Override weasyprint to skip failing tests (pixel-level 2D transform rendering issues)
+  python = pkgs.python313.override {
     packageOverrides = final: prev: {
-      # weasyprint: pixel-level 2D transform rendering test failures
       weasyprint = prev.weasyprint.overridePythonAttrs {
-        doCheck = false;
-      };
-      # fire: asyncio.get_event_loop() behavior changed in Python 3.14
-      fire = prev.fire.overridePythonAttrs {
         doCheck = false;
       };
     };
@@ -52,7 +47,7 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    echo "PDF Tools development environment (Python 3.14)"
+    echo "PDF Tools development environment (Python 3.13)"
     echo "pdftk, qpdf, ocrmypdf, pdfgrep, img2pdf, poppler-utils"
   '';
 }
