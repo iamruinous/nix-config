@@ -1,4 +1,17 @@
-{perSystem, ...}: {
+{
+  osConfig,
+  config,
+  lib,
+  flake,
+  perSystem,
+  ...
+}: {
+  imports = [
+    flake.inputs.agenix.homeManagerModules.default
+    flake.inputs.agenix-rekey.homeManagerModules.default
+    (flake + /secrets)
+  ];
+
   nixpkgs.overlays = [
     (_final: _prev: {
       inherit (perSystem) self;
@@ -10,4 +23,8 @@
       eztunnel = perSystem.self.eztunnel;
     })
   ];
+
+  home-manager.backupFileExtension = "hmbackup";
+
+  home.uid = lib.mkDefault osConfig.users.users.${config.home.username}.uid;
 }
