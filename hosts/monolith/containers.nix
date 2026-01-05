@@ -994,6 +994,21 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_newsy_discord_bot.path];
         networks = ["servicenet"];
       };
+      nocodb = {
+        image = "docker.io/nocodb/nocodb:0.265.1";
+        environment = {
+          TZ = "America/Phoenix";
+        };
+        environmentFiles = [config.age.secrets.monolith_docker_env_nocodb.path];
+        networks = [
+          "servicenet"
+          "datanet"
+        ];
+        dependsOn = ["postgres"];
+        volumes = [
+          "/data/docker/nocodb/data:/usr/app/data"
+        ];
+      };
     };
   };
 
@@ -1104,6 +1119,10 @@
   };
   age.secrets.monolith_docker_env_weaviate = {
     rekeyFile = ./files/docker/env/weaviate.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_nocodb = {
+    rekeyFile = ./files/docker/env/nocodb.env.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {
