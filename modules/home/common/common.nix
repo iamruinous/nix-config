@@ -24,7 +24,5 @@
     })
   ];
 
-  home-manager.backupFileExtension = "hmbackup";
-
   home.uid = lib.mkDefault osConfig.users.users.${config.home.username}.uid;
 }
