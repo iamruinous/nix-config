@@ -1,4 +1,12 @@
-console.log("[apprise-notifier] Loaded");
+console.log("[apprise-notifier] File loaded");
+
+const state = {
+  initialized: false,
+  lastSentMessage: null,
+  lastSentTime: 0,
+  lastMessageText: null,
+  idleTimer: null
+};
 
 function getConfig() {
   const appriseUrl = process.env.OPENCODE_NOTIFIER_APPRISE_URL;
@@ -14,25 +22,48 @@ function getConfig() {
 function extractSummary(text) {
   if (!text) return "Session waiting for input";
 
-  const questionMatch = text.match(/[^.!?\n]*\?/g);
-  if (questionMatch) {
-    const question = questionMatch[questionMatch.length - 1].trim();
-    if (question.length > 10 && question.length <= 200) {
-      return question;
+  // Split into paragraphs (separated by blank lines)
+  const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p);
+  
+  // Find last paragraph(s) containing question marks
+  // Work backwards and collect paragraphs until we have the question block
+  let questionBlock = [];
+  let foundQuestion = false;
+  
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    const p = paragraphs[i];
+    
+    if (p.includes('?')) {
+      foundQuestion = true;
+      questionBlock.unshift(p);
+    } else if (foundQuestion) {
+      // Include one non-question paragraph as intro, then stop
+      questionBlock.unshift(p);
+      break;
     }
   }
-
-  const lines = text.trim().split('\n').filter(l => l.trim().length > 0);
-  if (lines.length > 0) {
-    const lastLine = lines[lines.length - 1].trim();
-    if (lastLine.length <= 200) return lastLine;
-    return lastLine.slice(0, 197) + "...";
+  
+  if (questionBlock.length > 0) {
+    let result = questionBlock.join('\n\n');
+    if (result.length > 400) {
+      result = result.slice(0, 397) + "...";
+    }
+    return result;
   }
 
-  return "Session waiting for input";
+  // Fallback: last 200 chars
+  return text.slice(-200).trim();
 }
 
 async function sendNotification(config, message, title = "OpenCode", type = "info") {
+  const now = Date.now();
+  
+  if (state.lastSentMessage === message && now - state.lastSentTime < 60000) return;
+  if (now - state.lastSentTime < 10000) return;
+
+  state.lastSentMessage = message;
+  state.lastSentTime = now;
+
   const baseUrl = config.appriseUrl.replace(/\/$/, "");
   const endpoint = config.appriseConfigKey 
     ? `${baseUrl}/notify/${config.appriseConfigKey}/` 
@@ -53,40 +84,29 @@ async function sendNotification(config, message, title = "OpenCode", type = "inf
 }
 
 export const AppriseNotifierPlugin = async () => {
+  if (state.initialized) return {};
+  state.initialized = true;
+
   const config = getConfig();
   if (!config) return {};
 
-  let lastMessageText = null;
-  let idleTimer = null;
-  let notificationSent = false;
-
-  console.log("[apprise-notifier] Enabled, delay:", config.idleDelay);
+  console.log("[apprise-notifier] Initialized");
 
   return {
     event: async ({ event }) => {
-      // Track assistant messages
       if (event.type === "message.part.updated") {
         const part = event.properties?.part;
         if (part?.type === "text" && part?.text) {
-          lastMessageText = part.text;
+          state.lastMessageText = part.text;
         }
       }
 
-      // Reset state when new message activity
-      if (event.type === "message.updated") {
-        if (idleTimer) {
-          clearTimeout(idleTimer);
-          idleTimer = null;
-        }
-        notificationSent = false;
-      }
-
-      // Start idle timer
-      if (event.type === "session.idle" && !notificationSent && !idleTimer) {
-        idleTimer = setTimeout(async () => {
-          idleTimer = null;
-          notificationSent = true;
-          const summary = extractSummary(lastMessageText);
+      if (event.type === "session.idle") {
+        if (state.idleTimer) clearTimeout(state.idleTimer);
+        
+        state.idleTimer = setTimeout(async () => {
+          state.idleTimer = null;
+          const summary = extractSummary(state.lastMessageText);
           await sendNotification(config, summary, "OpenCode - Waiting", "info");
         }, config.idleDelay);
       }
