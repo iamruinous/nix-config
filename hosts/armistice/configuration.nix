@@ -5,7 +5,7 @@
   imports = [
     flake.inputs.disko.nixosModules.disko
 
-    flake.sharedModules.developer
+    # flake.sharedModules.developer
     flake.nixosModules.server
 
     ./hardware-configuration.nix

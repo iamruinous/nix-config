@@ -11,8 +11,11 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
+  nixpkgs.hostPlatform = "x86_64-linux";
+
   services.fwupd.enable = true;
   hardware.enableRedistributableFirmware = true;
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   boot.initrd.availableKernelModules = ["nvme" "usb_storage" "usbhid" "thunderbolt" "xhci_pci" "sd_mod"];
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-amd"];
@@ -28,42 +31,21 @@
 
   hardware.amdgpu.initrd.enable = lib.mkDefault true;
 
+  # allow remote deploy on aarch64 systems
+  boot.binfmt.emulatedSystems = ["aarch64-linux"];
+
   networking.firewall.enable = true;
   networking.nftables.enable = true;
-  systemd.network.wait-online.enable = false;
-  systemd.network = {
-    enable = true;
-    netdevs = {
-      "20-vlan2" = {
-        netdevConfig = {
-          Kind = "vlan";
-          Name = "vlan2";
-        };
-        vlanConfig.Id = 2;
-      };
-    };
-    networks = {
-      "30-manage" = {
-        matchConfig.Name = "enp194s0";
-        networkConfig.DHCP = false;
-        dns = ["10.55.10.1"];
-        vlan = ["vlan2"];
-        linkConfig.RequiredForOnline = "carrier";
-      };
-      "40-svc" = {
-        matchConfig.Name = "vlan2";
-        address = ["10.55.20.21/24"];
-        gateway = ["10.55.20.1"];
-      };
-    };
-  };
-  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
-  # (the default) this is the recommended approach. When using systemd-networkd it's
-  # still possible to use this option, but it's recommended to use it in conjunction
-  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
   networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = lib.mkDefault false;
-
-  nixpkgs.hostPlatform = "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  networking.networkmanager.enable = false;
+  systemd.network.networks."10-ethernet-dhcp" = {
+    enable = true;
+    matchConfig.Name = "enp194s0"; # Your Ethernet interface name
+    networkConfig = {
+      DHCP = "ipv4";
+      IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
+    };
+    linkConfig.RequiredForOnline = "yes"; # Optional
+  };
 }
