@@ -89,6 +89,9 @@
           "443:443/udp"
           "2019:2019"
         ];
+        extraOptions = [
+          "--add-host=host.docker.internal:host-gateway"
+        ];
         capabilities = {
           "NET_ADMIN" = true;
         };

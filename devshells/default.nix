@@ -6,7 +6,9 @@ pkgs.mkShell {
     [
       cloudflared
       cloudflare-cli
+      commitlint # Git commit message linter (for pre-commit hook)
       doggo # Modern DNS client for lookups
+      gitleaks # Secret scanner (for pre-commit hook)
       go # Go compiler for building/testing Go packages
       gum # Pretty TUI for Makefile commands
       pnpm # For running Node.js-based MCP servers
