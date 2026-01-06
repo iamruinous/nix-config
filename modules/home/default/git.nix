@@ -209,6 +209,9 @@ in {
     home.file.".ssh/allowed_signers".text =
       concatMapStringsSep "\n" (s: "${s.email} ${s.key}") cfg.allowedSigners;
 
+    # Add difftastic for better structural diffs
+    home.packages = [pkgs.difftastic];
+
     programs.lazygit = {
       enable = mkDefault true;
       settings = {
@@ -245,13 +248,22 @@ in {
           ds = "diff --staged";
           s = "status";
           crypt = "git-crypt";
+          # Difftastic aliases for structural diffs
+          # See: https://difftastic.wilfred.me.uk/git.html
+          dft = "-c diff.external=difft diff";
+          dlog = "-c diff.external=difft log -p --ext-diff";
+          dshow = "-c diff.external=difft show --ext-diff";
         };
         tag.forceSignAnnotated = true;
         pull.rebase = false;
         fetch.prune = true;
         push.default = "tracking";
         merge.tool = "vim";
+        # Difftastic as difftool (use with: git difftool)
+        diff.tool = "difftastic";
         difftool.prompt = false;
+        difftool.difftastic.cmd = ''difft "$LOCAL" "$REMOTE"'';
+        pager.difftool = true;
         mergetool.prompt = false;
         status.submoduleSummary = true;
         diff.submodule = "log";
