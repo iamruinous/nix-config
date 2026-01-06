@@ -23,10 +23,8 @@ pkgs.stdenv.mkDerivation {
 
     chmod +x $out/bin/apprise-notify
 
-    # Copy TypeScript plugin source for manual installation
-    cp ${./package.json} $out/share/opencode-notifier-apprise/package.json
-    cp ${./tsconfig.json} $out/share/opencode-notifier-apprise/tsconfig.json
-    cp -r ${./src} $out/share/opencode-notifier-apprise/src
+    # Copy plugin.js (plain JS, no build step needed)
+    cp ${./plugin.js} $out/share/opencode-notifier-apprise/plugin.js
   '';
 
   installPhase = ''

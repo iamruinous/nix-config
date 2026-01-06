@@ -106,29 +106,13 @@ in {
       # Add apprise-notify CLI tool to PATH
       home.packages = [pkgs.opencode-notifier-apprise];
 
-      # Copy plugin source and build on activation
-      # We use activation instead of xdg.configFile because:
-      # 1. xdg.configFile creates symlinks to read-only Nix store
-      # 2. bun needs to write node_modules and dist/ in the plugin directory
+      # Copy plugin.js to OpenCode plugin directory
+      # OpenCode auto-discovers *.js files in ~/.config/opencode/plugin/
       home.activation.opencode-notifier-plugin =
-        lib.hm.dag.entryAfter ["writeBoundary" "opencode-plugins"] ''
-          PLUGIN_DIR="${config.xdg.configHome}/opencode/plugin/opencode-notifier-apprise"
-          PLUGIN_SRC="${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise"
-
-          # Create plugin directory
-          $DRY_RUN_CMD mkdir -p "$PLUGIN_DIR"
-
-          # Copy source files (not symlink - we need writable directory for bun)
-          $DRY_RUN_CMD cp -f "$PLUGIN_SRC/package.json" "$PLUGIN_DIR/"
-          $DRY_RUN_CMD cp -f "$PLUGIN_SRC/tsconfig.json" "$PLUGIN_DIR/"
-          $DRY_RUN_CMD rm -rf "$PLUGIN_DIR/src"
-          $DRY_RUN_CMD cp -r "$PLUGIN_SRC/src" "$PLUGIN_DIR/"
-
-          # Install dependencies and build
-          if command -v ${pkgs.bun}/bin/bun &> /dev/null; then
-            $DRY_RUN_CMD ${pkgs.bun}/bin/bun install --cwd "$PLUGIN_DIR" --silent 2>/dev/null || true
-            $DRY_RUN_CMD ${pkgs.bun}/bin/bun run --cwd "$PLUGIN_DIR" build 2>/dev/null || true
-          fi
+        lib.hm.dag.entryAfter ["writeBoundary"] ''
+          $DRY_RUN_CMD mkdir -p "${config.xdg.configHome}/opencode/plugin"
+          $DRY_RUN_CMD cp -f "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/plugin.js" \
+            "${config.xdg.configHome}/opencode/plugin/apprise-notifier.js"
         '';
     })
   ]);
