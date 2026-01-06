@@ -7,18 +7,20 @@
  * - Session errors
  *
  * Environment Variables:
- *   APPRISE_API_URL  - Apprise API server URL (required)
- *   APPRISE_URLS     - Notification service URLs (optional)
- *   APPRISE_TAG      - Filter notifications by tag (optional)
- *   OPENCODE_NOTIFY_IDLE_DELAY - Delay in ms before sending idle notification (default: 5000)
- *   OPENCODE_NOTIFY_ON_PERMISSION - Send notification on permission requests (default: true)
- *   OPENCODE_NOTIFY_ON_ERROR - Send notification on session errors (default: true)
+ *   OPENCODE_NOTIFIER_APPRISE_URL        - Full endpoint URL, or base URL with CONFIG_KEY
+ *   OPENCODE_NOTIFIER_APPRISE_CONFIG_KEY - Config key - builds {URL}/notify/{KEY}/
+ *   OPENCODE_NOTIFIER_APPRISE_URLS       - Notification service URLs (optional)
+ *   OPENCODE_NOTIFIER_APPRISE_TAG        - Filter by tag (optional)
+ *   OPENCODE_NOTIFIER_IDLE_DELAY         - Delay in ms before idle notification (default: 5000)
+ *   OPENCODE_NOTIFIER_ON_PERMISSION      - Notify on permission requests (default: true)
+ *   OPENCODE_NOTIFIER_ON_ERROR           - Notify on session errors (default: true)
  */
 
 import type { Plugin } from "@opencode-ai/plugin";
 
 interface NotifyConfig {
   appriseUrl: string;
+  appriseConfigKey?: string;
   appriseUrls?: string;
   appriseTag?: string;
   idleDelay: number;
@@ -27,22 +29,23 @@ interface NotifyConfig {
 }
 
 function getConfig(): NotifyConfig | null {
-  const appriseUrl = process.env.APPRISE_API_URL;
+  const appriseUrl = process.env.OPENCODE_NOTIFIER_APPRISE_URL;
   if (!appriseUrl) {
     console.warn(
-      "[opencode-notifier-apprise] APPRISE_API_URL not set, notifications disabled"
+      "[opencode-notifier-apprise] OPENCODE_NOTIFIER_APPRISE_URL not set, notifications disabled"
     );
     return null;
   }
 
   return {
     appriseUrl,
-    appriseUrls: process.env.APPRISE_URLS,
-    appriseTag: process.env.APPRISE_TAG,
-    idleDelay: parseInt(process.env.OPENCODE_NOTIFY_IDLE_DELAY ?? "5000", 10),
+    appriseConfigKey: process.env.OPENCODE_NOTIFIER_APPRISE_CONFIG_KEY,
+    appriseUrls: process.env.OPENCODE_NOTIFIER_APPRISE_URLS,
+    appriseTag: process.env.OPENCODE_NOTIFIER_APPRISE_TAG,
+    idleDelay: parseInt(process.env.OPENCODE_NOTIFIER_IDLE_DELAY ?? "5000", 10),
     notifyOnPermission:
-      process.env.OPENCODE_NOTIFY_ON_PERMISSION !== "false",
-    notifyOnError: process.env.OPENCODE_NOTIFY_ON_ERROR !== "false",
+      process.env.OPENCODE_NOTIFIER_ON_PERMISSION !== "false",
+    notifyOnError: process.env.OPENCODE_NOTIFIER_ON_ERROR !== "false",
   };
 }
 
@@ -52,7 +55,10 @@ async function sendNotification(
   title: string = "OpenCode",
   type: "info" | "success" | "warning" | "failure" = "info"
 ): Promise<void> {
-  const endpoint = `${config.appriseUrl.replace(/\/$/, "")}/notify/`;
+  const baseUrl = config.appriseUrl.replace(/\/$/, "");
+  const endpoint = config.appriseConfigKey
+    ? `${baseUrl}/notify/${config.appriseConfigKey}/`
+    : `${baseUrl}/`;
 
   const payload: Record<string, string> = {
     body: message,

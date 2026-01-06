@@ -6,9 +6,10 @@
 #   apprise-notify <message> [title] [type]
 #
 # Environment Variables:
-#   APPRISE_API_URL  Apprise API server URL (required, e.g., http://localhost:8000)
-#   APPRISE_URLS     Notification service URLs (optional, uses server default if not set)
-#   APPRISE_TAG      Filter notifications by tag (optional)
+#   OPENCODE_NOTIFIER_APPRISE_URL         Full endpoint URL, or base URL with CONFIG_KEY
+#   OPENCODE_NOTIFIER_APPRISE_CONFIG_KEY  Config key - builds {URL}/notify/{KEY}/
+#   OPENCODE_NOTIFIER_APPRISE_URLS        Notification service URLs (optional)
+#   OPENCODE_NOTIFIER_APPRISE_TAG         Filter by tag (optional)
 #
 # Arguments:
 #   message   Notification body text (required)
@@ -18,7 +19,7 @@
 # Examples:
 #   apprise-notify "Task completed"
 #   apprise-notify "Build failed" "CI/CD" "failure"
-#   APPRISE_URLS="slack://token" apprise-notify "Deployed!" "Deploy" "success"
+#   OPENCODE_NOTIFIER_APPRISE_URLS="slack://token" apprise-notify "Deployed!"
 #
 
 set -euo pipefail
@@ -30,9 +31,9 @@ if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
 fi
 
 # Validate required environment
-if [[ -z "${APPRISE_API_URL:-}" ]]; then
-    echo "Error: APPRISE_API_URL environment variable is required" >&2
-    echo "Example: export APPRISE_API_URL=http://localhost:8000" >&2
+if [[ -z "${OPENCODE_NOTIFIER_APPRISE_URL:-}" ]]; then
+    echo "Error: OPENCODE_NOTIFIER_APPRISE_URL environment variable is required" >&2
+    echo "Example: export OPENCODE_NOTIFIER_APPRISE_URL=https://apprise.example.com/notify/myconfig/" >&2
     exit 1
 fi
 
@@ -68,20 +69,22 @@ EOF
 )
 
 # Add optional urls if set
-if [[ -n "${APPRISE_URLS:-}" ]]; then
-    PAYLOAD=$(echo "$PAYLOAD" | @jq@ --arg urls "$APPRISE_URLS" '. + {urls: $urls}')
+if [[ -n "${OPENCODE_NOTIFIER_APPRISE_URLS:-}" ]]; then
+    PAYLOAD=$(echo "$PAYLOAD" | @jq@ --arg urls "$OPENCODE_NOTIFIER_APPRISE_URLS" '. + {urls: $urls}')
 fi
 
-# Add optional tag if set
-if [[ -n "${APPRISE_TAG:-}" ]]; then
-    PAYLOAD=$(echo "$PAYLOAD" | @jq@ --arg tag "$APPRISE_TAG" '. + {tag: $tag}')
+if [[ -n "${OPENCODE_NOTIFIER_APPRISE_TAG:-}" ]]; then
+    PAYLOAD=$(echo "$PAYLOAD" | @jq@ --arg tag "$OPENCODE_NOTIFIER_APPRISE_TAG" '. + {tag: $tag}')
 fi
 
 # Close JSON object
 PAYLOAD=$(echo "$PAYLOAD" | @jq@ -c .)
 
-# Send notification
-ENDPOINT="${APPRISE_API_URL%/}/notify/"
+if [[ -n "${OPENCODE_NOTIFIER_APPRISE_CONFIG_KEY:-}" ]]; then
+    ENDPOINT="${OPENCODE_NOTIFIER_APPRISE_URL%/}/notify/${OPENCODE_NOTIFIER_APPRISE_CONFIG_KEY}/"
+else
+    ENDPOINT="${OPENCODE_NOTIFIER_APPRISE_URL%/}/"
+fi
 
 RESPONSE=$(@curl@ -s -w "\n%{http_code}" -X POST \
     -H "Content-Type: application/json" \
