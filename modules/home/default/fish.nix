@@ -26,6 +26,8 @@ in {
       dft = "git dft";
       dlog = "git dlog";
       dshow = "git dshow";
+      # glow + pager
+      glp = "glow --pager";
     };
 
     functions = {
@@ -97,8 +99,6 @@ in {
       cali = "ikhal";
 
       randhex = ''hexdump -vn16 -e'4/4 "%08X" 1 "\n"' /dev/urandom'';
-
-      glowp = "glow --pager"; # add pager
     };
 
     plugins = with pkgs.fishPlugins; [

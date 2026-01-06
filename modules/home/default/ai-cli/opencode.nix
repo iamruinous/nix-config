@@ -5,6 +5,7 @@
 # - oh-my-opencode agent configuration synced via home-manager
 # - OAuth/API credentials encrypted with agenix (optional)
 # - Automatic plugin installation via activation script
+# - Local plugin support (e.g., opencode-notifier-apprise)
 #
 # See docs/ai-cli-sync-reference.md for details on what files are synced.
 {
@@ -42,6 +43,10 @@ in {
         "opencode-gemini-auth@latest"
       ];
       description = "List of OpenCode plugins to install.";
+    };
+
+    notifier = {
+      enable = mkEnableOption "OpenCode Apprise notification plugin";
     };
   };
 
@@ -94,6 +99,35 @@ in {
         mode = "600";
         symlink = false;
       };
+    })
+
+    # Optionally enable Apprise notifier plugin
+    (mkIf cfg.notifier.enable {
+      # Add apprise-notify CLI tool to PATH
+      home.packages = [pkgs.opencode-notifier-apprise];
+
+      # Copy plugin source to local plugin directory
+      # OpenCode loads local plugins from ~/.config/opencode/plugin/<name>/
+      xdg.configFile."opencode/plugin/opencode-notifier-apprise/package.json".source =
+        "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/package.json";
+      xdg.configFile."opencode/plugin/opencode-notifier-apprise/tsconfig.json".source =
+        "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/tsconfig.json";
+      xdg.configFile."opencode/plugin/opencode-notifier-apprise/src" = {
+        source = "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/src";
+        recursive = true;
+      };
+
+      # Build the plugin on activation (requires bun install && bun run build)
+      home.activation.opencode-notifier-plugin =
+        lib.hm.dag.entryAfter ["writeBoundary" "opencode-plugins"] ''
+          if command -v ${pkgs.bun}/bin/bun &> /dev/null; then
+            PLUGIN_DIR="${config.xdg.configHome}/opencode/plugin/opencode-notifier-apprise"
+            if [ -d "$PLUGIN_DIR" ]; then
+              $DRY_RUN_CMD ${pkgs.bun}/bin/bun install --cwd "$PLUGIN_DIR" --silent 2>/dev/null || true
+              $DRY_RUN_CMD ${pkgs.bun}/bin/bun run --cwd "$PLUGIN_DIR" build 2>/dev/null || true
+            fi
+          fi
+        '';
     })
   ]);
 }
