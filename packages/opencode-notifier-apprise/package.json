@@ -31,7 +31,7 @@
     "@opencode-ai/plugin": "*"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "^0.0.1",
+    "@opencode-ai/plugin": "*",
     "@types/bun": "latest",
     "typescript": "^5.0.0"
   },
