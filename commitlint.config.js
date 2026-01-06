@@ -1,5 +1,12 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
+  parserPreset: {
+    parserOpts: {
+      // Allow optional emoji prefix before the type (e.g., "✨ feat(scope): subject")
+      headerPattern: /^(?:.*\s)?(\w*)(?:\((.*)\))?!?: (.*)$/,
+      headerCorrespondence: ['type', 'scope', 'subject'],
+    },
+  },
   plugins: [
     {
       rules: {
