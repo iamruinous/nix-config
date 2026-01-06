@@ -11,21 +11,29 @@
     inputs.hardware.nixosModules.framework-desktop-amd-ai-max-300-series
   ];
 
+  nixpkgs.hostPlatform = "x86_64-linux";
+
   services.fwupd.enable = true;
   hardware.enableRedistributableFirmware = true;
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
   boot.loader.systemd-boot.enable = lib.mkDefault true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   swapDevices = [];
 
-  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
-  # (the default) this is the recommended approach. When using systemd-networkd it's
-  # still possible to use this option, but it's recommended to use it in conjunction
-  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  networking.useDHCP = lib.mkDefault true;
-  # networking.interfaces.wlp170s0.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  networking.firewall.enable = true;
+  networking.nftables.enable = true;
+  networking.useDHCP = lib.mkDefault false;
+  networking.wireless.enable = lib.mkDefault false;
+  networking.networkmanager.enable = false;
+  systemd.network.networks."10-ethernet-dhcp" = {
+    enable = true;
+    matchConfig.Name = "enp191s0";
+    networkConfig = {
+      DHCP = "ipv4";
+      IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
+    };
+    linkConfig.RequiredForOnline = "yes"; # Optional
+  };
 }

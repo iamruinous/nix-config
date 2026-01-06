@@ -11,7 +11,12 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
+  nixpkgs.hostPlatform = "x86_64-linux";
+
+  hardware.graphics.enable = true;
   services.fwupd.enable = true;
+  hardware.enableRedistributableFirmware = true;
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   boot.initrd.availableKernelModules = ["vmd" "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" "8021q"];
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-intel" "vhost_vsock"];
@@ -23,112 +28,20 @@
   # allow remote deploy on aarch64 systems
   boot.binfmt.emulatedSystems = ["aarch64-linux"];
 
-  # fileSystems."/" = {
-  #   device = "/dev/disk/by-uuid/584fb6b8-2499-4226-91c4-5e5049fe37ca";
-  #   fsType = "ext4";
-  # };
-  #
-  # fileSystems."/boot" = {
-  #   device = "/dev/disk/by-uuid/8694-24B1";
-  #   fsType = "vfat";
-  #   options = ["fmask=0077" "dmask=0077"];
-  # };
-  #
-  # swapDevices = [];
-
-  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
-  # (the default) this is the recommended approach. When using systemd-networkd it's
-  # still possible to use this option, but it's recommended to use it in conjunction
-  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  # networking.useDHCP = lib.mkDefault true;
   networking.firewall.enable = true;
   networking.nftables.enable = true;
-  systemd.network = {
-    enable = true;
-    netdevs = {
-      "20-vlan2" = {
-        netdevConfig = {
-          Kind = "vlan";
-          Name = "vlan2";
-        };
-        vlanConfig.Id = 2;
-      };
-      # Create the bridge interface
-      # "20-mvbr0" = {
-      #   netdevConfig = {
-      #     Kind = "bridge";
-      #     Name = "mvbr0";
-      #   };
-      # };
-    };
-    networks = {
-      "30-manage" = {
-        matchConfig.Name = "enp2s0";
-        networkConfig.DHCP = false;
-        # address = ["10.55.10.52/24"];
-        # gateway = ["10.55.10.1"];
-        dns = ["10.55.10.1"];
-        vlan = ["vlan2"];
-        linkConfig.RequiredForOnline = "carrier";
-      };
-      "40-svc" = {
-        matchConfig.Name = "vlan2";
-        address = ["10.55.20.22/24"];
-        gateway = ["10.55.20.1"];
-      };
-      # "40-macvlan" = {
-      #   matchConfig.Name = "mvbr0";
-      #   mode = "bridge";
-      #   parent = "enp2s0";
-      # };
-    };
-  };
-
-  # networking = {
-  #   dhcpcd.enable = false;
-  #   # dhcpcd.denyInterfaces = ["macvtap0@*"];
-  #   # interfaces.enp2s0.ipv4.addresses = [
-  #   #   {
-  #   #     address = "10.55.10.52";
-  #   #     prefixLength = 24;
-  #   #   }
-  #   # ];
-  #   # defaultGateway = "10.55.10.1";
-  #   # nameservers = ["10.55.10.35"];
-  #   # # networking.interfaces.wlp3s0.useDHCP = lib.mkDefault true;
-  #   # vlans.vlan2 = {
-  #   #   id = 2;
-  #   #   interface = "enp2s0";
-  #   # };
-  #   # interfaces.vlan2.ipv4.addresses = [
-  #   #   {
-  #   #     address = "10.55.20.22";
-  #   #     prefixLength = 24;
-  #   #   }
-  #   # ];
-  #   # bridges = {
-  #   #   "virbr0" = {
-  #   #     interfaces = ["vlan2@enp2s0"];
-  #   #   };
-  #   # };
-  #   # interfaces.virbr0.ipv4.addresses = [
-  #   #   {
-  #   #     address = "10.25.0.11";
-  #   #     prefixLength = 24;
-  #   #   }
-  #   # ];
-  #   # interfaces.virbr0.useDHCP = true;
-  # };
-
   networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = lib.mkDefault false;
   networking.networkmanager.enable = false;
-
-  nixpkgs.hostPlatform = "x86_64-linux";
-  hardware.enableRedistributableFirmware = true;
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
-  hardware.graphics.enable = true;
+  systemd.network.networks."10-ethernet-dhcp" = {
+    enable = true;
+    matchConfig.Name = "enp2s0f0np0";
+    networkConfig = {
+      DHCP = "ipv4";
+      IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
+    };
+    linkConfig.RequiredForOnline = "yes"; # Optional
+  };
 
   services.xserver.videoDrivers = ["nvidia"];
 
