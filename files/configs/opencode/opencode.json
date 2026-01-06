@@ -3,8 +3,7 @@
   "plugin": [
     "oh-my-opencode",
     "opencode-openai-codex-auth",
-    "opencode-gemini-auth@latest",
-    "opencode-notifier-apprise"
+    "opencode-gemini-auth@latest"
   ],
   "provider": {
     "openai": {
