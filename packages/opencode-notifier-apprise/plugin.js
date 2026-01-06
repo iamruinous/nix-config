@@ -19,14 +19,11 @@ function getConfig() {
   };
 }
 
-function extractSummary(text) {
-  if (!text) return "Session waiting for input";
+function extractQuestion(text) {
+  if (!text || !text.includes('?')) return null;
 
-  // Split into paragraphs (separated by blank lines)
   const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p);
   
-  // Find last paragraph(s) containing question marks
-  // Work backwards and collect paragraphs until we have the question block
   let questionBlock = [];
   let foundQuestion = false;
   
@@ -37,7 +34,6 @@ function extractSummary(text) {
       foundQuestion = true;
       questionBlock.unshift(p);
     } else if (foundQuestion) {
-      // Include one non-question paragraph as intro, then stop
       questionBlock.unshift(p);
       break;
     }
@@ -51,8 +47,7 @@ function extractSummary(text) {
     return result;
   }
 
-  // Fallback: last 200 chars
-  return text.slice(-200).trim();
+  return null;
 }
 
 async function sendNotification(config, message, title = "OpenCode", type = "info") {
@@ -106,8 +101,12 @@ export const AppriseNotifierPlugin = async () => {
         
         state.idleTimer = setTimeout(async () => {
           state.idleTimer = null;
-          const summary = extractSummary(state.lastMessageText);
-          await sendNotification(config, summary, "OpenCode - Waiting", "info");
+          const question = extractQuestion(state.lastMessageText);
+          
+          // Only notify if there's actually a question
+          if (question) {
+            await sendNotification(config, question, "OpenCode - Question", "info");
+          }
         }, config.idleDelay);
       }
 
