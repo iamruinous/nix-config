@@ -1,0 +1,41 @@
+{
+  "name": "opencode-notifier-apprise",
+  "version": "0.1.0",
+  "description": "OpenCode plugin that sends notifications via Apprise API when user attention is needed",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "apprise",
+    "notifications",
+    "alerts"
+  ],
+  "author": "iamruinous",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamruinous/nix-config"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^0.0.1",
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
