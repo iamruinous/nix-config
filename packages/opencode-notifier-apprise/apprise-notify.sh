@@ -63,6 +63,7 @@ PAYLOAD=$(cat <<EOF
   "title": $(echo -n "$TITLE" | @jq@ -Rs .),
   "type": "$TYPE",
   "format": "text"
+}
 EOF
 )
 
