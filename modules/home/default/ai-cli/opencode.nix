@@ -106,26 +106,28 @@ in {
       # Add apprise-notify CLI tool to PATH
       home.packages = [pkgs.opencode-notifier-apprise];
 
-      # Copy plugin source to local plugin directory
-      # OpenCode loads local plugins from ~/.config/opencode/plugin/<name>/
-      xdg.configFile."opencode/plugin/opencode-notifier-apprise/package.json".source =
-        "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/package.json";
-      xdg.configFile."opencode/plugin/opencode-notifier-apprise/tsconfig.json".source =
-        "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/tsconfig.json";
-      xdg.configFile."opencode/plugin/opencode-notifier-apprise/src" = {
-        source = "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/src";
-        recursive = true;
-      };
-
-      # Build the plugin on activation (requires bun install && bun run build)
+      # Copy plugin source and build on activation
+      # We use activation instead of xdg.configFile because:
+      # 1. xdg.configFile creates symlinks to read-only Nix store
+      # 2. bun needs to write node_modules and dist/ in the plugin directory
       home.activation.opencode-notifier-plugin =
         lib.hm.dag.entryAfter ["writeBoundary" "opencode-plugins"] ''
+          PLUGIN_DIR="${config.xdg.configHome}/opencode/plugin/opencode-notifier-apprise"
+          PLUGIN_SRC="${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise"
+
+          # Create plugin directory
+          $DRY_RUN_CMD mkdir -p "$PLUGIN_DIR"
+
+          # Copy source files (not symlink - we need writable directory for bun)
+          $DRY_RUN_CMD cp -f "$PLUGIN_SRC/package.json" "$PLUGIN_DIR/"
+          $DRY_RUN_CMD cp -f "$PLUGIN_SRC/tsconfig.json" "$PLUGIN_DIR/"
+          $DRY_RUN_CMD rm -rf "$PLUGIN_DIR/src"
+          $DRY_RUN_CMD cp -r "$PLUGIN_SRC/src" "$PLUGIN_DIR/"
+
+          # Install dependencies and build
           if command -v ${pkgs.bun}/bin/bun &> /dev/null; then
-            PLUGIN_DIR="${config.xdg.configHome}/opencode/plugin/opencode-notifier-apprise"
-            if [ -d "$PLUGIN_DIR" ]; then
-              $DRY_RUN_CMD ${pkgs.bun}/bin/bun install --cwd "$PLUGIN_DIR" --silent 2>/dev/null || true
-              $DRY_RUN_CMD ${pkgs.bun}/bin/bun run --cwd "$PLUGIN_DIR" build 2>/dev/null || true
-            fi
+            $DRY_RUN_CMD ${pkgs.bun}/bin/bun install --cwd "$PLUGIN_DIR" --silent 2>/dev/null || true
+            $DRY_RUN_CMD ${pkgs.bun}/bin/bun run --cwd "$PLUGIN_DIR" build 2>/dev/null || true
           fi
         '';
     })
