@@ -22,6 +22,10 @@ in {
 
     shellAbbrs = {
       dl = "curl --create-dirs -O --output-dir /tmp/";
+      # Difftastic git aliases
+      dft = "git dft";
+      dlog = "git dlog";
+      dshow = "git dshow";
     };
 
     functions = {
