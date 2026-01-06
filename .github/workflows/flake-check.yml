@@ -33,7 +33,8 @@ jobs:
         uses: DeterminateSystems/flake-checker-action@v12
 
       - name: Run linting (prek)
-        run: nix develop -c prek run --all-files
+        # Skip no-commit-to-branch hook in CI (we're validating files, not committing)
+        run: SKIP=no-commit-to-branch nix develop -c prek run --all-files
 
       - name: Dry-build NixOS desktop (framework)
         run: nix build .#nixosConfigurations.framework.config.system.build.toplevel --dry-run
