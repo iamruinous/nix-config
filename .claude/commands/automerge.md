@@ -1,0 +1,90 @@
+---
+description: Branch, commit, create PR, and merge in one flow
+---
+
+Automate the full git workflow: create branch, commit changes, create PR, and merge.
+
+**Reference:** Follow all guidelines in `.context/global/git.md`
+
+## Steps
+
+1. **Detect CLI tool**:
+   - Run `git remote get-url origin` to get the remote URL
+   - If URL contains `github.com` → use `gh` (GitHub CLI)
+   - Otherwise → use `tea` (Forgejo CLI)
+
+2. **Check prerequisites**:
+   - Run `git status` to verify there are changes to commit
+   - Run `git branch --show-current` to get current branch
+   - If on `main`:
+     - Run `git checkout main && git pull origin main`
+     - Create a new branch
+   - If already on a feature branch, use it
+
+3. **Create branch** (if on main):
+   - Generate branch name using format: `<type>/<short-description>`
+   - Types: `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`
+   - Example: `feat/add-apprise-notifier`
+   - Run `git checkout -b <branch-name>`
+
+4. **Stage and commit**:
+   - Run `git add -A` to stage all changes
+   - Run `git diff --cached --stat` to review what will be committed
+   - Generate commit message following Conventional Commits with emoji:
+     - ✨ `feat`: New feature
+     - 🐛 `fix`: Bug fix
+     - 📝 `docs`: Documentation
+     - ♻️ `refactor`: Refactoring
+     - ⚙️ `chore`: Maintenance
+   - Include body explaining why/what
+   - MUST include footer: `🤖 Generated with [ruinous.ai](https://agent.ruinous.ai) 🦾✨`
+   - Use HEREDOC format:
+     ```bash
+     git commit -m "$(cat <<'EOF'
+     ✨ feat(scope): short description
+
+     Detailed explanation of what changed and why.
+
+     - Key change 1
+     - Key change 2
+
+     🤖 Generated with [ruinous.ai](https://agent.ruinous.ai) 🦾✨
+     EOF
+     )"
+     ```
+
+5. **Push and create PR**:
+   - Run `git push -u origin <branch-name>`
+   - Generate PR title using conventional commit format
+   - Generate PR body with Summary section
+   - For GitHub:
+     ```bash
+     gh pr create --title "<title>" --body "$(cat <<'EOF'
+     ## Summary
+     <bullet points>
+     EOF
+     )"
+     ```
+   - For Forgejo:
+     ```bash
+     tea pr create --title "<title>" --description "$(cat <<'EOF'
+     ## Summary
+     <bullet points>
+     EOF
+     )"
+     ```
+
+6. **Merge PR**:
+   - For GitHub: `gh pr merge --squash --delete-branch`
+   - For Forgejo: `tea pr merge --style squash` then `git push origin --delete <branch-name>`
+   - Run `git checkout main && git pull origin main`
+   - Run `git branch -d <branch-name>` to delete local branch
+
+## Rules (from .context/global/git.md)
+
+- Never force push
+- Use squash merge to keep history clean
+- Delete remote branch after merge
+- Commit messages MUST have body (not just one-line)
+- All commits MUST include the AI footer
+- Branch names MUST use type prefix
