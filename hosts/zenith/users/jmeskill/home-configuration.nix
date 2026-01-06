@@ -41,7 +41,10 @@ in {
       enable = true;
       syncCredentials = true;
     };
-    opencode.enable = true;
+    opencode = {
+      enable = true;
+      notifier.enable = true;
+    };
     opencode-web = {
       enable = true;
       package = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
