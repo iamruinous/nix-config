@@ -175,5 +175,11 @@
           // (blueprintOutputs.darwinConfigurations or {});
         homeConfigurations = blueprintOutputs.homeConfigurations or {};
       };
+
+      checks = {
+        opencode-module-test = import ./modules/home/default/ai-cli/opencode.test.nix {
+          inherit (blueprintOutputs.legacyPackages.x86_64-linux) lib pkgs;
+        };
+      };
     };
 }

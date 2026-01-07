@@ -23,7 +23,7 @@ in {
       type = types.listOf types.port;
       default = [];
       description = "List of ports to open for OpenCode web services.";
-      example = [18080 18081];
+      example = [18080 18081 18082];
     };
   };
 
