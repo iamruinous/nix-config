@@ -23,12 +23,6 @@ in {
   options.ruinous.ai-cli.opencode = {
     enable = mkEnableOption "OpenCode CLI configuration management";
 
-    syncCredentials = mkOption {
-      type = types.bool;
-      default = false;
-      description = "Whether to sync encrypted auth credentials. Requires agenix secrets to exist.";
-    };
-
     installPlugins = mkOption {
       type = types.bool;
       default = true;
@@ -88,18 +82,6 @@ in {
         ''
       );
     }
-
-    # Optionally sync encrypted credentials
-    (mkIf cfg.syncCredentials {
-      # Auth credentials (OAuth tokens + API keys for all providers)
-      # Location: ~/.local/share/opencode/auth.json
-      age.secrets.opencode_auth = {
-        rekeyFile = flake + /files/configs/opencode/auth.json.age;
-        path = "${config.home.homeDirectory}/.local/share/opencode/auth.json";
-        mode = "600";
-        symlink = false;
-      };
-    })
 
     # Optionally enable Apprise notifier plugin
     (mkIf cfg.notifier.enable {

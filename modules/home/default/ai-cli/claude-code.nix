@@ -17,28 +17,11 @@ with lib; let
 in {
   options.ruinous.ai-cli.claude-code = {
     enable = mkEnableOption "Claude Code CLI configuration management";
-
-    syncCredentials = mkOption {
-      type = types.bool;
-      default = false;
-      description = "Whether to sync encrypted OAuth credentials. Requires agenix secrets to exist.";
-    };
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    # Always sync public settings
-    {
-      home.file.".claude/settings.json".source = claude_settings;
-    }
-
-    # Optionally sync encrypted credentials
-    (mkIf cfg.syncCredentials {
-      age.secrets.claude_credentials = {
-        rekeyFile = flake + /files/configs/claude/credentials.json.age;
-        path = "${config.home.homeDirectory}/.claude/.credentials.json";
-        mode = "600";
-        symlink = false;
-      };
-    })
-  ]);
+  config = mkIf cfg.enable {
+    # Sync public settings only - OAuth credentials must be obtained locally
+    # per-machine since tokens cannot be shared across multiple machines
+    home.file.".claude/settings.json".source = claude_settings;
+  };
 }
