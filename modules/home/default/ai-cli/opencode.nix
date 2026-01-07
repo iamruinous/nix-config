@@ -47,17 +47,20 @@ in {
       '';
     };
 
-
     mcpServers = mkOption {
       type = types.attrsOf (types.submodule ({ name, ... }: {
         options = {
+          type = mkOption {
+            type = types.enum [ "local" "remote" ];
+            description = "Type of the MCP server.";
+          };
           url = mkOption {
             type = types.nullOr types.str;
             default = null;
             description = "URL for a remote MCP server.";
           };
           command = mkOption {
-            type = types.nullOr types.str;
+            type = types.nullOr (types.listOf types.str);
             default = null;
             description = "Command to run a local MCP server.";
           };
@@ -66,10 +69,16 @@ in {
       default = {};
       example = lib.mdDoc ''
         # Add a remote server
-        ruinous.ai-cli.opencode.mcpServers.my-remote-server = { url = "https://example.com/mcp"; };
+        ruinous.ai-cli.opencode.mcpServers.my-remote-server = {
+          type = "remote";
+          url = "https://example.com/mcp";
+        };
 
         # Add a local server
-        ruinous.ai-cli.opencode.mcpServers.my-local-server = { command = "node /path/to/script.js"; };
+        ruinous.ai-cli.opencode.mcpServers.my-local-server = {
+          type = "local";
+          command = [ "node" "/path/to/script.js" ];
+        };
 
         # Override all defaults
         ruinous.ai-cli.opencode.mcpServers = lib.mkForce { ... };
@@ -90,8 +99,8 @@ in {
     # Install opencode and sync configs
     {
       assertions = lib.mapAttrsToList (name: server: {
-        assertion = (server.url != null) != (server.command != null);
-        message = "Exactly one of 'url' or 'command' must be set for MCP server ''${name}'.";
+        assertion = (server.type == "remote" -> server.url != null) && (server.type == "local" -> server.command != null);
+        message = "A remote MCP server must have a 'url' and a local server must have a 'command' for ''${name}'.";
       }) cfg.mcpServers;
 
       # Install opencode binary (Linux only - use brew on macOS)
@@ -107,6 +116,7 @@ in {
 
       ruinous.ai-cli.opencode.mcpServers = {
         todoist = {
+          type = "remote";
           url = "https://ai.todoist.net/mcp";
         };
       };
@@ -166,6 +176,8 @@ in {
                     # If found, update it; otherwise, append it
                     | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end
                   )
+                # Remove all null values from the final JSON
+                | walk(if type == "object" then with_entries(select(.value != null)) else . end)
               ' "$CONFIG_FILE" > "$TMP_FILE"
             
             # If the file actually changed, update it
