@@ -1,21 +1,13 @@
 {
   pkgs,
   lib,
-  flake,
   ...
 }: {
-  # ai utilities and assistants, linux only (installed via brew on macos)
-  environment.systemPackages = lib.optionals pkgs.stdenv.isLinux (with flake.inputs.llm-agents.packages.${pkgs.system}; [
-    # ai code agents
-    claude-code
-    codex
-    crush
-    gemini-cli
-    # gemini-cli-preview
-    opencode
-
-    # sandboxing
+  # Sandboxing tools for AI CLI agents (Linux only)
+  # The actual AI CLI packages (claude-code, gemini-cli, opencode) are installed
+  # via their respective home-manager modules when enabled (ruinous.ai-cli.*)
+  environment.systemPackages = lib.optionals pkgs.stdenv.isLinux [
     pkgs.socat
     pkgs.bubblewrap
-  ]);
+  ];
 }

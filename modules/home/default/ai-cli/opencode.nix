@@ -1,9 +1,9 @@
 # ruinous.ai-cli.opencode.enable = true;
 #
 # Manages OpenCode CLI configuration with:
+# - CLI binary installation (Linux only, use brew on macOS)
 # - Main config (plugins, providers) synced via home-manager
 # - oh-my-opencode agent configuration synced via home-manager
-# - OAuth/API credentials encrypted with agenix (optional)
 # - Automatic plugin installation via activation script
 # - Local plugin support (e.g., opencode-notifier-apprise)
 #
@@ -19,6 +19,7 @@ with lib; let
   cfg = config.ruinous.ai-cli.opencode;
   opencode_config = flake + /files/configs/opencode/opencode.json;
   omo_config = flake + /files/configs/opencode/oh-my-opencode.json;
+  llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 in {
   options.ruinous.ai-cli.opencode = {
     enable = mkEnableOption "OpenCode CLI configuration management";
@@ -45,8 +46,13 @@ in {
   };
 
   config = mkIf cfg.enable (mkMerge [
-    # Always sync public configs
+    # Install opencode and sync configs
     {
+      # Install opencode binary (Linux only - use brew on macOS)
+      home.packages = mkIf pkgs.stdenv.isLinux [
+        llmAgentsPkgs.opencode
+      ];
+
       # Main OpenCode config
       xdg.configFile."opencode/opencode.json".source = opencode_config;
 
