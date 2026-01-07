@@ -85,11 +85,11 @@ with lib; let
             coll_id=$(echo "$collection" | cut -d'/' -f2-)
 
             # Try repairing both local and remote storages
-            echo "Repairing ${pair}_remote/$coll_id..."
-            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "${pair}_remote/$coll_id" 2>/dev/null || true
+            echo "Repairing $${pair}_remote/$coll_id..."
+            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "$${pair}_remote/$coll_id" 2>/dev/null || true
 
-            echo "Repairing ${pair}_local/$coll_id..."
-            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "${pair}_local/$coll_id" 2>/dev/null || true
+            echo "Repairing $${pair}_local/$coll_id..."
+            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "$${pair}_local/$coll_id" 2>/dev/null || true
           fi
         done <<< "$failing_collections"
 
@@ -169,11 +169,11 @@ with lib; let
             pair=$(echo "$collection" | cut -d'/' -f1)
             coll_id=$(echo "$collection" | cut -d'/' -f2-)
 
-            echo "Repairing ${pair}_remote/$coll_id..."
-            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "${pair}_remote/$coll_id" 2>/dev/null || true
+            echo "Repairing $${pair}_remote/$coll_id..."
+            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "$${pair}_remote/$coll_id" 2>/dev/null || true
 
-            echo "Repairing ${pair}_local/$coll_id..."
-            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "${pair}_local/$coll_id" 2>/dev/null || true
+            echo "Repairing $${pair}_local/$coll_id..."
+            yes | ${pkgs.vdirsyncer}/bin/vdirsyncer repair "$${pair}_local/$coll_id" 2>/dev/null || true
           fi
         done <<< "$failing_collections"
 
