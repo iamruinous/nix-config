@@ -1,23 +1,34 @@
-
 {
   lib,
   pkgs,
+  home-manager-lib,
   ...
 }:
 let
   inherit (pkgs) jq;
 in
-lib.runHomeManagerTestSuite {
+home-manager-lib.runHomeManagerTestSuite {
   name = "opencode-module-test";
 
+  extraSpecialArgs = {
+    # This makes the argument available to any module evaluated by the test,
+    # resolving the infinite recursion if blueprint auto-discovers this file.
+    inherit home-manager-lib;
+  };
+
   users.testuser = {
+    imports = [ ./opencode.nix ];
+
     home.stateVersion = "24.05";
 
     ruinous.ai-cli.opencode = {
       enable = true;
       plugins = [ "my-test-plugin@v1.0.0" ];
       mcpServers = {
-        "test-server" = { url = "http://test.dev/mcp"; };
+        "test-server" = {
+          type = "remote";
+          url = "http://test.dev/mcp";
+        };
       };
     };
 
@@ -40,7 +51,9 @@ lib.runHomeManagerTestSuite {
     assert jq -e '.plugin | index("my-test-plugin@v1.0.0")' "$CONFIG_FILE"
 
     # Check that default and custom MCP servers are present
+    assert jq -e '.mcp."todoist".type == "remote"' "$CONFIG_FILE"
     assert jq -e '.mcp."todoist".url == "https://ai.todoist.net/mcp"' "$CONFIG_FILE"
+    assert jq -e '.mcp."test-server".type == "remote"' "$CONFIG_FILE"
     assert jq -e '.mcp."test-server".url == "http://test.dev/mcp"' "$CONFIG_FILE"
 
     echo "Test Case 1: Initial creation and injection PASSED"
