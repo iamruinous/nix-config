@@ -116,8 +116,8 @@ in {
 
       ruinous.ai-cli.opencode.mcpServers = {
         todoist = {
-          type = "remote";
-          url = "https://ai.todoist.net/mcp";
+          type = "local";
+          command = ["bunx" "-y" "mcp-remote" "https://ai.todoist.net/mcp"];
         };
       };
 
