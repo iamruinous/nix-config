@@ -25,56 +25,58 @@ in {
     cp -f ${mcpConfigDir}/tools.yaml "$HOME/.docker/mcp/tools.yaml"
   '';
 
-  # Git config - use zenith-specific defaults for all repos
-  ruinous.git.default = {
-    userEmail = "jade@ruinous.ai";
-    signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
-  };
-
-  ruinous.ai-cli = {
-    opencode = {
-      enable = true;
-      notifier.enable = true;
+  ruinous = {
+    # Git config - use zenith-specific defaults for all repos
+    git.default = {
+      userEmail = "jade@ruinous.ai";
+      signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
     };
-    opencode-web = {
-      enable = true;
-      package = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
-      packages = with pkgs; [
-        uv # Provides uvx for Python-based MCP servers
-        pnpm # For JavaScript-based MCP servers
-        nodejs # Node.js runtime for MCP servers
-        bun
-      ];
-      services = {
-        "nix-config" = {
-          projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
-          port = 18080;
-          logLevel = "WARN";
-          cors = ["zenith.meskill.farm"];
-        };
-        "n8n-agent" = {
-          projectPath = "/home/jmeskill/Projects/ruinous.ai/n8n-agent";
-          port = 18081;
-          logLevel = "WARN";
-          cors = ["zenith.meskill.farm"];
-        };
-        "dossiq-ai" = {
-          projectPath = "/home/jmeskill/Projects/ruinous.ai/dossiq-ai";
-          port = 18082;
-          logLevel = "WARN";
-          cors = ["zenith.meskill.farm"];
+
+    ai-cli = {
+      opencode = {
+        enable = true;
+        notifier.enable = true;
+      };
+      opencode-web = {
+        enable = true;
+        package = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
+        packages = with pkgs; [
+          uv # Provides uvx for Python-based MCP servers
+          pnpm # For JavaScript-based MCP servers
+          nodejs # Node.js runtime for MCP servers
+          bun
+        ];
+        services = {
+          "nix-config" = {
+            projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
+            port = 18080;
+            logLevel = "WARN";
+            cors = ["zenith.meskill.farm"];
+          };
+          "n8n-agent" = {
+            projectPath = "/home/jmeskill/Projects/ruinous.ai/n8n-agent";
+            port = 18081;
+            logLevel = "WARN";
+            cors = ["zenith.meskill.farm"];
+          };
+          "dossiq-ai" = {
+            projectPath = "/home/jmeskill/Projects/ruinous.ai/dossiq-ai";
+            port = 18082;
+            logLevel = "WARN";
+            cors = ["zenith.meskill.farm"];
+          };
         };
       };
-    };
-    kimaki = {
-      enable = true;
-      opencodePackage = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
-      packages = with pkgs; [
-        uv # Provides uvx for Python-based MCP servers
-        pnpm # For JavaScript-based MCP servers
-        nodejs # Node.js runtime for MCP servers
-        bun
-      ];
+      kimaki = {
+        enable = true;
+        opencodePackage = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
+        packages = with pkgs; [
+          uv # Provides uvx for Python-based MCP servers
+          pnpm # For JavaScript-based MCP servers
+          nodejs # Node.js runtime for MCP servers
+          bun
+        ];
+      };
     };
   };
 

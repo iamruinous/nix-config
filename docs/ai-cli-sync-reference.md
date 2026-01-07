@@ -136,7 +136,7 @@ This file contains sensitive OAuth tokens:
 
 | File/Directory | Sync? | Notes |
 |----------------|-------|-------|
-| `opencode.json` | :white_check_mark: | Plugins, provider configuration |
+| `opencode.json` | :white_check_mark: | Plugins (injected by Nix), provider configuration (local) |
 | `oh-my-opencode.json` | :white_check_mark: | Agent model assignments |
 | `package.json` | :white_check_mark: | Plugin manifest (can be generated) |
 | `node_modules/` | :x: | Generated - run `bun install` |
@@ -359,9 +359,9 @@ files/configs/
 
 ### OpenCode Plugins Not Loading
 
-1. Run `bun install` in `~/.config/opencode/`
+1. Run `bun install` in `~/.config/opencode/` (automated by Nix activation)
 2. Check if `node_modules/` was created
-3. Verify plugin names in `opencode.json`
+3. Verify plugin names in `opencode.json` (Nix injects these from `ruinous.ai-cli.opencode.plugins`)
 
 ---
 
