@@ -36,7 +36,7 @@
 
   networking.firewall.enable = true;
   networking.nftables.enable = true;
-  networking.useDHCP = true;
+  networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = lib.mkDefault false;
   networking.networkmanager.enable = false;
   systemd.network.enable = true;
