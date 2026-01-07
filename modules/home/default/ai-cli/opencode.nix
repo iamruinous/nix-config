@@ -176,6 +176,8 @@ in {
                     # If found, update it; otherwise, append it
                     | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end
                   )
+                # Remove all null values from the final JSON
+                | walk(if type == "object" then with_entries(select(.value != null)) else . end)
               ' "$CONFIG_FILE" > "$TMP_FILE"
             
             # If the file actually changed, update it
