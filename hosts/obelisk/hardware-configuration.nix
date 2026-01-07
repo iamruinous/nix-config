@@ -36,7 +36,7 @@
   systemd.network.enable = true;
   systemd.network.networks."10-ethernet-dhcp" = {
     enable = true;
-    matchConfig.Name = "enp2s0f0np0";
+    matchConfig.Name = "enp2s0";
     networkConfig = {
       DHCP = "ipv4";
       IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
