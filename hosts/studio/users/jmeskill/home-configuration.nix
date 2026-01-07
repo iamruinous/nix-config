@@ -4,16 +4,25 @@
     flake.homeModules.darwin
   ];
 
-  ruinous.git.signing.use1Password = true;
+  ruinous = {
+    # allow use of 1password op-ssh-sign
+    git.signing.use1Password = true;
 
-  # Enable rust-motd for system info on login
-  ruinous.rust-motd.enable = true;
+    # Enable rust-motd for system info on login
+    rust-motd.enable = true;
 
-  # Enable todoist
-  ruinous.todoist.enable = true;
+    # Enable todoist
+    todoist.enable = true;
 
-  # Enable vdirsyncer
-  ruinous.vdirsyncer.enable = true;
+    # Enable vdirsyncer
+    vdirsyncer.enable = true;
+
+    # ssh agent forwarding
+    openssh.remote.forwarding.enable = true;
+
+    # enable opencode with my preferred plugins
+    ai-cli.opencode.enable = true;
+  };
 
   # Ensure homebrew is in the PATH
   home.sessionPath = [
@@ -24,7 +33,6 @@
   xdg.configFile."aerospace/aerospace.toml".source = ./aerospace.toml;
 
   programs.wezterm.enable = true;
-  ruinous.openssh.remote.forwarding.enable = true;
 
   home.stateVersion = "26.05";
 }

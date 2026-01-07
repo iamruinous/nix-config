@@ -28,6 +28,7 @@ in {
       dshow = "git dshow";
       # glow + pager
       glp = "glow --pager";
+      oc = "opencode run";
     };
 
     functions = {
