@@ -32,13 +32,6 @@ in {
   };
 
   ruinous.ai-cli = {
-    gemini = {
-      enable = true;
-      email = "jadeisfalling@gmail.com";
-    };
-    claude-code = {
-      enable = true;
-    };
     opencode = {
       enable = true;
       notifier.enable = true;
