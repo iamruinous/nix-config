@@ -11,6 +11,7 @@
   userNames = builtins.attrNames (config.home-manager.users or {});
 
   # Check if a user has a password.age file
+  # The password.age file should contain a pre-hashed password (output of mkpasswd -m sha-512)
   hasPasswordFile = name: builtins.pathExists (usersDir + "/${name}/password.age");
 
   # Get all user names (including root) that have password.age files
@@ -36,9 +37,10 @@
         authorizedKeys = raw.openssh.authorizedKeys or {};
         authorizedPrincipals = raw.openssh.authorizedPrincipals or [];
       };
+      # Point directly to the agenix-decrypted secret path
       hashedPasswordFile =
         if hasPassword
-        then "/run/user/${name}"
+        then config.age.secrets."user_password_${name}".path
         else null;
     };
 
@@ -62,7 +64,7 @@
         };
         hashedPasswordFile =
           if hasPassword
-          then "/run/user/root"
+          then config.age.secrets."user_password_root".path
           else null;
       };
   };
@@ -74,6 +76,8 @@ in {
   users.defaultUserShell = pkgs.fish;
 
   # Define age secrets for each user's password.age file
+  # The password.age file must contain a pre-hashed password (output of mkpasswd -m sha-512)
+  # This is more secure than storing plaintext and avoids timing issues with activation scripts
   age.secrets =
     lib.genAttrs
     (map (name: "user_password_${name}") usersWithPasswords)
@@ -82,26 +86,8 @@ in {
       userName = lib.removePrefix "user_password_" secretName;
     in {
       rekeyFile = usersDir + "/${userName}/password.age";
-      mode = "600";
+      mode = "400";
+      owner = "root";
+      group = "root";
     });
-
-  # Create a separate activation script to hash passwords from agenix secrets
-  # This runs after agenix has decrypted secrets, ensuring passwords are available on boot
-  system.activationScripts.hashUserPasswords = lib.mkIf (usersWithPasswords != []) {
-    deps = ["agenix"];
-    text = let
-      mkpasswd = "${pkgs.mkpasswd}/bin/mkpasswd";
-      hashPassword = userName: ''
-        # Create /run/user directory if it doesn't exist
-        mkdir -p /run/user
-
-        # Read plaintext password from agenix secret and hash it
-        if [ -f "${config.age.secrets."user_password_${userName}".path}" ]; then
-          ${mkpasswd} -m sha-512 "$(cat ${config.age.secrets."user_password_${userName}".path})" > /run/user/${userName}
-          chmod 600 /run/user/${userName}
-        fi
-      '';
-    in
-      lib.concatMapStringsSep "\n" hashPassword usersWithPasswords;
-  };
 }
