@@ -11,10 +11,6 @@ in {
     flake.homeModules.default
   ];
 
-  ruinous.rust-motd.enable = true;
-  ruinous.openssh.tmux.attach.enable = true;
-  ruinous.openssh.remote.forwarding.enable = true;
-
   home.file.".docker/cli-plugins/docker-mcp".source = config.lib.file.mkOutOfStoreSymlink "${pkgs.docker-mcp-gateway}/bin/docker-mcp";
 
   home.activation.mcpConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -26,6 +22,10 @@ in {
   '';
 
   ruinous = {
+    rust-motd.enable = true;
+    openssh.tmux.attach.enable = true;
+    openssh.remote.forwarding.enable = true;
+
     # Git config - use zenith-specific defaults for all repos
     git.default = {
       userEmail = "jade@ruinous.ai";
@@ -39,13 +39,6 @@ in {
       };
       opencode-web = {
         enable = true;
-        package = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
-        packages = with pkgs; [
-          uv # Provides uvx for Python-based MCP servers
-          pnpm # For JavaScript-based MCP servers
-          nodejs # Node.js runtime for MCP servers
-          bun
-        ];
         services = {
           "nix-config" = {
             projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
@@ -69,13 +62,6 @@ in {
       };
       kimaki = {
         enable = true;
-        opencodePackage = flake.inputs.llm-agents.packages.${pkgs.system}.opencode;
-        packages = with pkgs; [
-          uv # Provides uvx for Python-based MCP servers
-          pnpm # For JavaScript-based MCP servers
-          nodejs # Node.js runtime for MCP servers
-          bun
-        ];
       };
     };
   };
