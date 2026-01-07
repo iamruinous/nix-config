@@ -6,7 +6,7 @@
 # Example:
 #   ruinous.ai-cli.opencode-web = {
 #     enable = true;
-#     packages = with pkgs; [uv pnpm nodejs];  # Tools for MCP servers
+#     # Uses llm-agents opencode and common MCP tools by default
 #     services = {
 #       "nix-config" = {
 #         projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
@@ -25,10 +25,21 @@
   config,
   lib,
   pkgs,
+  flake,
   ...
 }:
 with lib; let
   cfg = config.ruinous.ai-cli.opencode-web;
+  llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
+
+  # Default packages for MCP server functionality
+  defaultPackages = with pkgs; [
+    uv # Provides uvx for Python-based MCP servers
+    pnpm # For JavaScript-based MCP servers
+    nodejs # Node.js runtime for MCP servers
+    bun
+    gnumake # postgres-mcp
+  ];
 
   # Packages that are always needed for opencode functionality
   builtinPackages = with pkgs; [
@@ -128,19 +139,20 @@ in {
 
     package = mkOption {
       type = types.package;
-      default = pkgs.opencode;
+      default = llmAgentsPkgs.opencode;
       description = "The opencode package to use.";
-      example = literalExpression "flake.inputs.llm-agents.packages.\${pkgs.system}.opencode";
+      example = literalExpression "pkgs.opencode";
     };
 
     packages = mkOption {
       type = types.listOf types.package;
-      default = [];
+      default = defaultPackages;
       description = ''
         Additional packages to include in the service PATH.
         Useful for MCP servers that need tools like uvx, pnpm, etc.
+        Defaults to common MCP server dependencies (uv, pnpm, nodejs, bun, gnumake).
       '';
-      example = literalExpression "[pkgs.uv pkgs.pnpm pkgs.nodejs]";
+      example = literalExpression "with pkgs; [uv pnpm nodejs]";
     };
 
     services = mkOption {
