@@ -28,6 +28,7 @@
   networking.useDHCP = lib.mkDefault false;
   networking.wireless.enable = lib.mkDefault false;
   networking.networkmanager.enable = false;
+  systemd.network.enable = true;
   systemd.network.networks."10-ethernet-dhcp" = {
     enable = true;
     matchConfig.Name = "enp1s0";
