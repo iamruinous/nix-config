@@ -12,10 +12,10 @@ in {
   ruinous.rust-motd.enable = true;
 
   # Enable todoist
-  ruinous.todoist.sync.enable = true;
+  ruinous.todoist.enable = true;
 
   # Enable vdirsyncer
-  ruinous.vdirsyncer.sync.enable = true;
+  ruinous.vdirsyncer.enable = true;
 
   programs.wezterm.enable = true;
   ruinous.openssh.remote.forwarding.enable = true;

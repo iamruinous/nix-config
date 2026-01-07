@@ -10,10 +10,10 @@
   ruinous.rust-motd.enable = true;
 
   # Enable todoist
-  ruinous.todoist.sync.enable = true;
+  ruinous.todoist.enable = true;
 
   # Enable vdirsyncer
-  ruinous.vdirsyncer.sync.enable = true;
+  ruinous.vdirsyncer.enable = true;
 
   # Ensure homebrew is in the PATH
   home.sessionPath = [

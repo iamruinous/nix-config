@@ -8,10 +8,10 @@ in {
   ];
 
   # Enable todoist
-  # ruinous.todoist.sync.enable = true;
+  # ruinous.todoist.enable = true;
 
   # Enable vdirsyncer
-  # ruinous.vdirsyncer.sync.enable = true;
+  # ruinous.vdirsyncer.enable = true;
 
   ruinous.git.signing.use1Password = true;
   ruinous.rust-motd.enable = true;
