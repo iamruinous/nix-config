@@ -623,7 +623,7 @@
         dependsOn = ["archivebox-sonic"];
       };
       archivebox-sonic = {
-        image = "valeriansaliou/sonic:v1.4.0";
+        image = "valeriansaliou/sonic:v1.4.9";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/archivebox/sonic:/var/lib/sonic/store"
