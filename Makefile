@@ -1,4 +1,4 @@
-.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild linux-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash check
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild linux-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash check user-password
 
 # Colors and styles
 HEADER = gum style --foreground 212 --bold
@@ -120,3 +120,33 @@ check:
 	@$(SUCCESS) "rpc-4-echo (Raspberry Pi 4) OK"
 	@echo ""
 	@gum style --foreground 82 --bold "✓ All sanity checks passed!"
+
+user-password:
+	@if [ -z "$(user)" ]; then $(ERROR) "user is required (e.g., make user-password user=jmeskill)"; exit 1; fi
+	@if [ ! -d "users/$(user)" ]; then $(ERROR) "users/$(user) directory does not exist"; exit 1; fi
+	@$(HEADER) "🔐 Set User Password"
+	@$(INFO) "Setting password for user: $(user)"
+	@$(WARN) "Password will be hashed and encrypted with agenix"
+	@echo ""
+	@PASSWORD=$$(gum input --password --placeholder "Enter password for $(user)") && \
+	CONFIRM=$$(gum input --password --placeholder "Confirm password") && \
+	if [ "$$PASSWORD" != "$$CONFIRM" ]; then \
+		$(ERROR) "Passwords do not match"; \
+		exit 1; \
+	fi && \
+	HASHED=$$(echo "$$PASSWORD" | mkpasswd -m sha-512 --stdin) && \
+	echo "$$HASHED" > /tmp/user-password-$(user).txt && \
+	$(INFO) "Password hashed successfully" && \
+	if [ -f "users/$(user)/password.age" ]; then \
+		rm -f "users/$(user)/password.age"; \
+	fi && \
+	$(INFO) "Encrypting with agenix..." && \
+	agenix edit -i /tmp/user-password-$(user).txt users/$(user)/password.age && \
+	rm -f /tmp/user-password-$(user).txt && \
+	$(INFO) "Rekeying secrets..." && \
+	agenix rekey -a && \
+	$(SUCCESS) "Password set for $(user)"
+	@echo ""
+	@gum style --foreground 229 "Don't forget to commit the changes:"
+	@gum style --foreground 245 "  git add users/$(user)/password.age secrets/"
+	@gum style --foreground 245 "  git commit -m 'chore(users): update password for $(user)'"
