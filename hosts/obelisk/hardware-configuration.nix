@@ -41,7 +41,6 @@
       DHCP = "ipv4";
       IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
     };
-    linkConfig.RequiredForOnline = "yes"; # Optional
   };
 
   services.xserver.videoDrivers = ["nvidia"];

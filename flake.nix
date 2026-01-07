@@ -107,7 +107,7 @@
     # llm-agents
     # <https://github.com/numtide/llm-agents.nix>
     # Pinned to working commit (newer versions have gemini-cli npmDepsHash mismatch)
-    llm-agents.url = "github:numtide/llm-agents.nix/6525195b66f1766dbd02edbc760cee12e86f436f";
+    llm-agents.url = "github:numtide/llm-agents.nix/016e7c897cbf43e420d0ac9afe6a3c7f0b4a5399";
 
     # nixos-raspberrypi
     # <https://https://github.com/nvmd/nixos-raspberrypi>
