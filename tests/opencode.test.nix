@@ -51,8 +51,8 @@ home-manager-lib.runHomeManagerTestSuite {
     assert jq -e '.plugin | index("my-test-plugin@v1.0.0")' "$CONFIG_FILE"
 
     # Check that default and custom MCP servers are present
-    assert jq -e '.mcp."todoist".type == "remote"' "$CONFIG_FILE"
-    assert jq -e '.mcp."todoist".url == "https://ai.todoist.net/mcp"' "$CONFIG_FILE"
+    assert jq -e '.mcp."todoist".type == "local"' "$CONFIG_FILE"
+    assert jq -e '.mcp."todoist".command == ["bunx", "-y", "mcp-remote", "https://ai.todoist.net/mcp"]' "$CONFIG_FILE"
     assert jq -e '.mcp."test-server".type == "remote"' "$CONFIG_FILE"
     assert jq -e '.mcp."test-server".url == "http://test.dev/mcp"' "$CONFIG_FILE"
 
