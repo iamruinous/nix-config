@@ -36,9 +36,10 @@
 
   networking.firewall.enable = true;
   networking.nftables.enable = true;
-  networking.useDHCP = lib.mkDefault false;
+  networking.useDHCP = true;
   networking.wireless.enable = lib.mkDefault false;
   networking.networkmanager.enable = false;
+  systemd.network.enable = true;
   systemd.network.networks."10-ethernet-dhcp" = {
     enable = true;
     matchConfig.Name = "enp194s0"; # Your Ethernet interface name
@@ -49,3 +50,5 @@
     linkConfig.RequiredForOnline = "yes"; # Optional
   };
 }
+# enp246s0f0u2
+
