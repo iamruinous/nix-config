@@ -4,8 +4,15 @@
   config,
   ...
 }: {
-  # Tmux terminal multiplexer configuration
-  programs.tmux = {
+  options.ruinous.tmux = {
+    statusPosition = lib.mkOption {
+      type = lib.types.enum ["top" "bottom"];
+      default = "bottom";
+      description = "Position of the tmux status bar";
+    };
+  };
+
+  config.programs.tmux = {
     enable = lib.mkDefault true;
     shell = "${pkgs.fish}/bin/fish";
     mouse = true;
@@ -59,6 +66,7 @@
 
       # theme
       set -g status "on"
+      set -g status-position ${config.ruinous.tmux.statusPosition}
       set -g status-right-length 150
       set -g status-justify left
 
