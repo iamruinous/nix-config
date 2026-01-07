@@ -35,11 +35,9 @@ in {
     gemini = {
       enable = true;
       email = "jadeisfalling@gmail.com";
-      syncCredentials = true;
     };
     claude-code = {
       enable = true;
-      syncCredentials = true;
     };
     opencode = {
       enable = true;

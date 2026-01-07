@@ -28,15 +28,11 @@ in {
       description = "Google account email for Gemini. If empty, google_accounts.json won't be managed.";
     };
 
-    syncCredentials = mkOption {
-      type = types.bool;
-      default = false;
-      description = "Whether to sync encrypted OAuth credentials. Requires agenix secrets to exist.";
-    };
   };
 
   config = mkIf cfg.enable (mkMerge [
-    # Always sync public settings
+    # Sync public settings only - OAuth credentials must be obtained locally
+    # per-machine since tokens cannot be shared across multiple machines
     {
       # Main settings file
       home.file.".gemini/settings.json".source = gemini_settings;
@@ -47,23 +43,6 @@ in {
       home.file.".gemini/google_accounts.json".text = builtins.toJSON {
         active = cfg.email;
         old = [];
-      };
-    })
-
-    # Optionally sync encrypted credentials
-    (mkIf cfg.syncCredentials {
-      age.secrets.gemini_oauth_creds = {
-        rekeyFile = flake + /files/configs/gemini/oauth_creds.json.age;
-        path = "${config.home.homeDirectory}/.gemini/oauth_creds.json";
-        mode = "600";
-        symlink = false;
-      };
-
-      age.secrets.gemini_mcp_oauth = {
-        rekeyFile = flake + /files/configs/gemini/mcp-oauth-tokens.json.age;
-        path = "${config.home.homeDirectory}/.gemini/mcp-oauth-tokens.json";
-        mode = "600";
-        symlink = false;
       };
     })
   ]);
