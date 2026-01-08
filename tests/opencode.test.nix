@@ -29,6 +29,24 @@ home-manager-lib.runHomeManagerTestSuite {
           type = "remote";
           url = "http://test.dev/mcp";
         };
+        # Test remote server with headers (new feature)
+        "test-server-with-headers" = {
+          type = "remote";
+          url = "https://api.example.com/mcp";
+          headers = {
+            "Authorization" = "Bearer \${MY_TOKEN}";
+            "X-Custom-Header" = "custom-value";
+          };
+        };
+        # Test local server with env (new feature)
+        "test-local-with-env" = {
+          type = "local";
+          command = [ "my-mcp-server" "--transport" "stdio" ];
+          env = {
+            "MY_API_KEY" = "\${MY_API_KEY}";
+            "SERVER_URL" = "https://example.com";
+          };
+        };
       };
     };
 
@@ -55,6 +73,25 @@ home-manager-lib.runHomeManagerTestSuite {
     assert jq -e '.mcp."todoist".command == ["bunx", "-y", "mcp-remote", "https://ai.todoist.net/mcp"]' "$CONFIG_FILE"
     assert jq -e '.mcp."test-server".type == "remote"' "$CONFIG_FILE"
     assert jq -e '.mcp."test-server".url == "http://test.dev/mcp"' "$CONFIG_FILE"
+
+    # Check that GitHub MCP server is configured with headers
+    assert jq -e '.mcp."github".type == "remote"' "$CONFIG_FILE"
+    assert jq -e '.mcp."github".url == "https://api.githubcopilot.com/mcp/"' "$CONFIG_FILE"
+    assert jq -e '.mcp."github".headers.Authorization == "Bearer \${GITHUB_ACCESS_TOKEN}"' "$CONFIG_FILE"
+
+    # Check that Forgejo MCP server is configured with env
+    assert jq -e '.mcp."forgejo".type == "local"' "$CONFIG_FILE"
+    assert jq -e '.mcp."forgejo".env.FORGEJO_ACCESS_TOKEN == "\${FORGEJO_ACCESS_TOKEN}"' "$CONFIG_FILE"
+
+    # Check custom server with headers
+    assert jq -e '.mcp."test-server-with-headers".type == "remote"' "$CONFIG_FILE"
+    assert jq -e '.mcp."test-server-with-headers".headers.Authorization == "Bearer \${MY_TOKEN}"' "$CONFIG_FILE"
+    assert jq -e '.mcp."test-server-with-headers".headers."X-Custom-Header" == "custom-value"' "$CONFIG_FILE"
+
+    # Check custom local server with env
+    assert jq -e '.mcp."test-local-with-env".type == "local"' "$CONFIG_FILE"
+    assert jq -e '.mcp."test-local-with-env".env.MY_API_KEY == "\${MY_API_KEY}"' "$CONFIG_FILE"
+    assert jq -e '.mcp."test-local-with-env".env.SERVER_URL == "https://example.com"' "$CONFIG_FILE"
 
     echo "Test Case 1: Initial creation and injection PASSED"
 

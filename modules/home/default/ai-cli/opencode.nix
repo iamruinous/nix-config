@@ -64,20 +64,44 @@ in {
             default = null;
             description = "Command to run a local MCP server.";
           };
+          headers = mkOption {
+            type = types.nullOr (types.attrsOf types.str);
+            default = null;
+            description = lib.mdDoc ''
+              HTTP headers for remote MCP servers. Useful for authentication.
+              Example: `{ "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}"; }`
+              Note: Environment variable references are passed as-is to the JSON config.
+            '';
+          };
+          env = mkOption {
+            type = types.nullOr (types.attrsOf types.str);
+            default = null;
+            description = lib.mdDoc ''
+              Environment variables for local MCP servers.
+              Example: `{ "FORGEJO_ACCESS_TOKEN" = "\${FORGEJO_ACCESS_TOKEN}"; }`
+              Note: Environment variable references are passed as-is to the JSON config.
+            '';
+          };
         };
       }));
       default = {};
       example = lib.mdDoc ''
-        # Add a remote server
-        ruinous.ai-cli.opencode.mcpServers.my-remote-server = {
+        # Add a remote server with authentication headers
+        ruinous.ai-cli.opencode.mcpServers.github = {
           type = "remote";
-          url = "https://example.com/mcp";
+          url = "https://api.githubcopilot.com/mcp/";
+          headers = {
+            "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}";
+          };
         };
 
-        # Add a local server
-        ruinous.ai-cli.opencode.mcpServers.my-local-server = {
+        # Add a local server with environment variables
+        ruinous.ai-cli.opencode.mcpServers.forgejo = {
           type = "local";
-          command = [ "node" "/path/to/script.js" ];
+          command = [ "forgejo-mcp" "--transport" "stdio" "--url" "https://codeberg.org" ];
+          env = {
+            "FORGEJO_ACCESS_TOKEN" = "\${FORGEJO_ACCESS_TOKEN}";
+          };
         };
 
         # Override all defaults
@@ -118,6 +142,31 @@ in {
         todoist = {
           type = "local";
           command = ["bunx" "-y" "mcp-remote" "https://ai.todoist.net/mcp"];
+        };
+
+        # GitHub MCP Server (Remote)
+        # Requires GITHUB_ACCESS_TOKEN environment variable to be set
+        # Get a token at: https://github.com/settings/tokens
+        # Documentation: https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md
+        github = {
+          type = "remote";
+          url = "https://api.githubcopilot.com/mcp/";
+          headers = {
+            "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}";
+          };
+        };
+
+        # Forgejo MCP Server (Local)
+        # Requires FORGEJO_ACCESS_TOKEN environment variable to be set
+        # Get a token at: https://<your-forgejo-instance>/user/settings/applications
+        # Documentation: https://codeberg.org/goern/forgejo-mcp
+        # Default URL is Codeberg.org; override FORGEJO_URL for self-hosted instances
+        forgejo = {
+          type = "local";
+          command = ["${pkgs.forgejo-mcp}/bin/forgejo-mcp" "--transport" "stdio" "--url" "\${FORGEJO_URL:-https://codeberg.org}"];
+          env = {
+            "FORGEJO_ACCESS_TOKEN" = "\${FORGEJO_ACCESS_TOKEN}";
+          };
         };
       };
 
