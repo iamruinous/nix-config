@@ -23,9 +23,8 @@
       lazygit
       luarocks
       openssl
-      #playwright
-      #playwright-driver.browsers
       ripgrep
+      urlencode
 
       # languages
       bun
@@ -35,9 +34,6 @@
         with ps; [
           pip
           virtualenv
-          # llm
-          # llm-anthropic
-          # llm-gemini
         ]))
       uv
 

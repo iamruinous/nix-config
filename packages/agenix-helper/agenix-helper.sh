@@ -4,9 +4,19 @@
 
 set -euo pipefail
 
+GUM="@gum@/bin/gum"
+
 AGE_IDENTITY_FILE="${AGE_IDENTITY_FILE:-/tmp/id_age}"
 AGE_IDENTITY_ENCRYPTED="${AGE_IDENTITY_ENCRYPTED:-secrets/id_age.age}"
 AGE_IDENTITY_BACKUP="${AGE_IDENTITY_BACKUP:-/tmp/id_age_}"
+
+# User-specific identity for home-manager agenix
+AGE_USER_IDENTITY_FILE="${AGE_USER_IDENTITY_FILE:-$HOME/.config/age/id_age}"
+AGE_USER_IDENTITY_ENCRYPTED="${AGE_USER_IDENTITY_ENCRYPTED:-users/$USER/id_age.age}"
+
+log_success() { $GUM log --level info "$1"; }
+log_warn() { $GUM log --level warn "$1"; }
+log_error() { $GUM log --level error "$1"; }
 
 agenix_unlock() {
   local quiet="${1:-}"
@@ -19,9 +29,8 @@ agenix_unlock() {
     return 1
   fi
 
-  # Check if encrypted identity exists
   if [[ ! -f "$AGE_IDENTITY_ENCRYPTED" ]]; then
-    echo "Error: $AGE_IDENTITY_ENCRYPTED not found"
+    log_error "$AGE_IDENTITY_ENCRYPTED not found"
     return 1
   fi
 
@@ -31,21 +40,24 @@ agenix_unlock() {
     id="$(cat)"
   fi
 
-  # Attempt to decrypt age identity using passphrase (interactive only)
   if [[ -z "$id" ]]; then
-    # Check if we can use 1Password CLI for pinentry
-    if command -v op &>/dev/null && command -v pinentry-1password &>/dev/null && [[ -n "${OP_PIN_ITEM:-}" ]]; then
-      # Use pinentry-1password for passphrase retrieval
-      export PINENTRY_PROGRAM="pinentry-1password"
-      id="$(@rage@/bin/rage -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
-      unset PINENTRY_PROGRAM
-    else
-      # Fall back to standard interactive passphrase prompt
-      id="$(@rage@/bin/rage -d <"$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
+    if command -v op &>/dev/null && [[ -n "${OP_PIN_ITEM:-}" ]]; then
+      local passphrase=""
+      passphrase="$(op read "$OP_PIN_ITEM" 2>/dev/null || true)"
+      if [[ -n "$passphrase" ]]; then
+        id="$(printf '%s' "$passphrase" | @rage@/bin/rage -d -i - "$AGE_IDENTITY_ENCRYPTED" 2>/dev/null || true)"
+      fi
     fi
 
-    if [[ -z "$id" ]] || [[ "$id" =~ "incorrect" ]]; then
-      echo "Error: Failed to decrypt age identity (incorrect passphrase?)"
+    if [[ -z "$id" ]] || [[ "$id" =~ "error" ]]; then
+      $GUM style --foreground 255 --border rounded --border-foreground 208 --padding "1 2" --margin "1 0" \
+        "⚠️  Unlocking agenix identities"
+      $GUM style --foreground 245 --italic "Enter passphrase for $AGE_IDENTITY_ENCRYPTED"
+      id="$(@rage@/bin/rage -d "$AGE_IDENTITY_ENCRYPTED" 2>&1 || true)"
+    fi
+
+    if [[ -z "$id" ]] || [[ "$id" =~ "incorrect" ]] || [[ "$id" =~ "error" ]]; then
+      log_error "Failed to decrypt age identity (incorrect passphrase?)"
       return 1
     fi
   fi
@@ -60,33 +72,67 @@ agenix_unlock() {
   echo "$id" >"$AGE_IDENTITY_FILE"
   chmod 600 "$AGE_IDENTITY_FILE" "$AGE_IDENTITY_BACKUP" 2>/dev/null || true
 
-  # Notify user unless quiet
   if [[ "$quiet" != "quiet" ]]; then
-    echo "🔓 Age identity unlocked at $AGE_IDENTITY_FILE"
+    $GUM style --foreground 82 "🔓 Age identity unlocked at $AGE_IDENTITY_FILE"
+  fi
+
+  # Decrypt and deploy user-specific identity for home-manager agenix
+  if [[ -f "$AGE_USER_IDENTITY_ENCRYPTED" ]]; then
+    local user_id=""
+    
+    user_id="$(@rage@/bin/rage -d -i "$AGE_IDENTITY_FILE" "$AGE_USER_IDENTITY_ENCRYPTED" 2>/dev/null || true)"
+
+    if [[ -n "$user_id" ]] && [[ ! "$user_id" =~ "error" ]]; then
+      mkdir -p "$(dirname "$AGE_USER_IDENTITY_FILE")"
+      printf '%s\n' "$user_id" >"$AGE_USER_IDENTITY_FILE"
+      chmod 600 "$AGE_USER_IDENTITY_FILE"
+
+      if [[ "$quiet" != "quiet" ]]; then
+        $GUM style --foreground 82 "🔓 User identity unlocked at $AGE_USER_IDENTITY_FILE"
+      fi
+    elif [[ "$quiet" != "quiet" ]]; then
+      log_warn "Could not decrypt user identity at $AGE_USER_IDENTITY_ENCRYPTED"
+    fi
   fi
 }
 
 agenix_lock() {
   local quiet="${1:-}"
+  local locked_any=false
 
-  # Remove the decrypted identity files
   if [[ -f "$AGE_IDENTITY_FILE" ]] || [[ -f "$AGE_IDENTITY_BACKUP" ]]; then
     rm -f "$AGE_IDENTITY_FILE" "$AGE_IDENTITY_BACKUP"
+    locked_any=true
+  fi
 
-    if [[ "$quiet" != "quiet" ]]; then
-      echo "🔒 Age identity locked (removed $AGE_IDENTITY_FILE)"
-    fi
+  if [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
+    rm -f "$AGE_USER_IDENTITY_FILE"
+    locked_any=true
+  fi
+
+  if [[ "$quiet" != "quiet" ]] && [[ "$locked_any" == "true" ]]; then
+    $GUM style --foreground 255 --border rounded --border-foreground 196 --padding "1 2" --margin "1 0" \
+      "🔒 Agenix identities locked and removed"
   fi
 }
 
 agenix_status() {
+  local status=0
+
   if [[ -f "$AGE_IDENTITY_FILE" ]]; then
-    echo "🔓 Age identity is unlocked at $AGE_IDENTITY_FILE"
-    return 0
+    log_success "Age identity is unlocked at $AGE_IDENTITY_FILE"
   else
-    echo "🔒 Age identity is locked"
-    return 1
+    log_warn "Age identity is locked"
+    status=1
   fi
+
+  if [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
+    log_success "User identity is unlocked at $AGE_USER_IDENTITY_FILE"
+  else
+    log_warn "User identity is locked"
+  fi
+
+  return $status
 }
 
 # Main command routing
@@ -104,14 +150,16 @@ case "${1:-status}" in
     echo "Usage: $0 {unlock|lock|status} [quiet]"
     echo ""
     echo "Commands:"
-    echo "  unlock, u [quiet]  - Decrypt age identity to $AGE_IDENTITY_FILE"
-    echo "  lock, l [quiet]    - Remove decrypted age identity"
-    echo "  status, s          - Check if age identity is unlocked"
+    echo "  unlock, u [quiet]  - Decrypt age identities"
+    echo "  lock, l [quiet]    - Remove decrypted age identities"
+    echo "  status, s          - Check if age identities are unlocked"
     echo ""
     echo "Environment variables:"
-    echo "  AGE_IDENTITY_FILE      - Path to decrypted identity (default: /tmp/id_age)"
-    echo "  AGE_IDENTITY_ENCRYPTED - Path to encrypted identity (default: secrets/id_age.age)"
-    echo "  OP_PIN_ITEM            - 1Password item reference for passphrase (optional)"
+    echo "  AGE_IDENTITY_FILE           - Path to decrypted master identity (default: /tmp/id_age)"
+    echo "  AGE_IDENTITY_ENCRYPTED      - Path to encrypted master identity (default: secrets/id_age.age)"
+    echo "  AGE_USER_IDENTITY_FILE      - Path to decrypted user identity (default: ~/.config/age/id_age)"
+    echo "  AGE_USER_IDENTITY_ENCRYPTED - Path to encrypted user identity (default: users/\$USER/id_age.age)"
+    echo "  OP_PIN_ITEM                 - 1Password item reference for passphrase (optional)"
     echo ""
     echo "1Password integration:"
     echo "  If op CLI and pinentry-1password are available, set OP_PIN_ITEM to use"

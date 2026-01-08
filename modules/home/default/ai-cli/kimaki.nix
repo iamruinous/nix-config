@@ -26,6 +26,38 @@
 # This creates a systemd user service `kimaki.service` that runs the
 # Kimaki Discord bot. The service will restart automatically and use
 # the credentials stored during interactive setup.
+#
+# ## Using agenix Environment Files (Linux only)
+#
+# You can pass encrypted environment files containing API keys and secrets to
+# the kimaki service using the `environmentFiles` option. This uses systemd's
+# EnvironmentFile directive to load variables at service startup.
+#
+# Example with agenix:
+#
+#   # In your home-configuration.nix or similar:
+#   ruinous.ai-cli.kimaki = {
+#     enable = true;
+#     environmentFiles = [
+#       config.age.secrets.opencode_common_env.path
+#       config.age.secrets.kimaki_env.path
+#     ];
+#   };
+#
+#   # Declare the agenix secrets (in NixOS config or home-manager with agenix):
+#   age.secrets.opencode_common_env = {
+#     rekeyFile = ./files/opencode-web/common.env.age;
+#     mode = "600";
+#   };
+#   age.secrets.kimaki_env = {
+#     rekeyFile = ./files/kimaki/env.age;
+#     mode = "600";
+#   };
+#
+# Files are loaded in order, with later files overriding earlier ones.
+#
+# Note: environmentFiles is only supported on Linux (systemd). On macOS, an
+# assertion will fail if you attempt to use this option.
 {
   config,
   lib,
@@ -135,6 +167,26 @@ in {
       description = "Extra arguments to pass to kimaki.";
       example = [];
     };
+
+    environmentFiles = mkOption {
+      type = types.listOf types.path;
+      default = [];
+      description = ''
+        List of environment files to load into the service.
+        Typically agenix secret paths like config.age.secrets.<name>.path.
+        Variables in these files will be available to kimaki and child processes.
+        Files are loaded in order, with later files overriding earlier ones.
+
+        Note: This option is only supported on Linux (systemd). On macOS (launchd),
+        this option is ignored as launchd does not natively support EnvironmentFile.
+      '';
+      example = literalExpression ''
+        [
+          config.age.secrets.opencode_common_env.path
+          config.age.secrets.kimaki_env.path
+        ]
+      '';
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -143,12 +195,27 @@ in {
       home.file.".kimaki/.keep".text = "";
     }
 
+    # Assertion for macOS environmentFiles usage
+    {
+      assertions = [
+        {
+          assertion = !(pkgs.stdenv.isDarwin && cfg.environmentFiles != []);
+          message = ''
+            kimaki uses environmentFiles, but this is not supported on macOS.
+            launchd does not have native EnvironmentFile support like systemd.
+            Please set environment variables directly or use a wrapper script.
+          '';
+        }
+      ];
+    }
+
     # Linux: systemd user service
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.services.kimaki = {
         Unit = {
           Description = "Kimaki Discord bot for OpenCode control";
-          After = ["network.target"];
+          After = ["network.target"] ++ optionals (cfg.environmentFiles != []) ["agenix.service"];
+          Requires = optionals (cfg.environmentFiles != []) ["agenix.service"];
         };
         Service = {
           Type = "exec";
@@ -173,6 +240,8 @@ in {
             ++ optionals (cfg.geminiApiKeySecret != null) [
               "GEMINI_API_KEY_FILE=${cfg.geminiApiKeySecret}"
             ];
+        } // optionalAttrs (cfg.environmentFiles != []) {
+          EnvironmentFile = cfg.environmentFiles;
         };
         Install = {
           WantedBy = ["default.target"];

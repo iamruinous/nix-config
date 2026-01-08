@@ -564,6 +564,9 @@
           N8N_RUNNERS_ENABLED = "true";
           N8N_RUNNERS_MODE = "external";
           N8N_RUNNERS_BROKER_LISTEN_ADDRESS = "0.0.0.0";
+          # Increase task offer validity window from default 5s to 30s
+          # Prevents "Offer expired" errors when runners need cold-start time
+          N8N_RUNNERS_TASK_REQUEST_TIMEOUT = "30000";
           N8N_PROXY_HOPS = "1";
           DB_TYPE = "postgresdb";
           WEBHOOK_URL = "https://n8h.meskill.farm";
@@ -593,7 +596,9 @@
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
-          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
+          # Disable auto-shutdown to keep runners always warm and ready
+          # Prevents "Offer expired" errors from cold-start delays (~190MB RAM each)
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "0";
           N8N_RUNNERS_TASK_TIMEOUT = "900";
           N8N_RUNNERS_MAX_CONCURRENCY = "10";
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
@@ -608,7 +613,8 @@
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
-          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
+          # Disable auto-shutdown to keep runners always warm and ready
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "0";
           N8N_RUNNERS_TASK_TIMEOUT = "900";
           N8N_RUNNERS_MAX_CONCURRENCY = "10";
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
@@ -622,7 +628,8 @@
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
-          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "300";
+          # Disable auto-shutdown to keep runners always warm and ready
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "0";
           N8N_RUNNERS_TASK_TIMEOUT = "900";
           N8N_RUNNERS_MAX_CONCURRENCY = "10";
           NODE_FUNCTION_ALLOW_BUILTIN = "*";

@@ -12,8 +12,7 @@
 #         projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
 #         port = 18080;
 #         # logLevel = "INFO";   # default
-#         # mdns = true;         # default
-#         # printLogs = true;    # default
+#         # mdns = true;         # default # printLogs = true;    # default
 #         # cors = [];           # default
 #       };
 #     };
@@ -21,6 +20,44 @@
 #
 # This creates a systemd user service `opencode-web-nix-config.service` that can be
 # attached to from other clients using `opencode attach http://<host>:18080`.
+#
+# ## Using agenix Environment Files (Linux only)
+#
+# You can pass encrypted environment files containing API keys and secrets to
+# the opencode-web service using the `environmentFile` option. This uses systemd's
+# EnvironmentFile directive to load variables at service startup.
+#
+# Example with agenix:
+#
+#   # In your home-configuration.nix or similar:
+#   ruinous.ai-cli.opencode-web = {
+#     enable = true;
+#     services = {
+#       "nix-config" = {
+#         projectPath = "/home/jmeskill/Projects/nix-config";
+#         port = 18080;
+#         environmentFiles = [
+#           config.age.secrets.opencode_common_env.path
+#           config.age.secrets.opencode_web_nix_config.path
+#         ];
+#       };
+#     };
+#   };
+#
+#   # Declare the agenix secrets (in NixOS config or home-manager with agenix):
+#   age.secrets.opencode_common_env = {
+#     rekeyFile = ./files/opencode-web/common.env.age;
+#     mode = "600";
+#   };
+#   age.secrets.opencode_web_nix_config = {
+#     rekeyFile = ./files/opencode-web/nix-config.env.age;
+#     mode = "600";
+#   };
+#
+# Files are loaded in order, with later files overriding earlier ones.
+#
+# Note: environmentFiles is only supported on Linux (systemd). On macOS, an
+# assertion will fail if you attempt to use this option.
 {
   config,
   lib,
@@ -85,7 +122,7 @@ with lib; let
 
       logLevel = mkOption {
         type = types.enum ["DEBUG" "INFO" "WARN" "ERROR"];
-        default = "INFO";
+        default = "WARN";
         description = "Log level for the OpenCode server.";
       };
 
@@ -113,6 +150,26 @@ with lib; let
         default = [];
         description = "Extra arguments to pass to opencode web.";
         example = [];
+      };
+
+      environmentFiles = mkOption {
+        type = types.listOf types.path;
+        default = [];
+        description = ''
+          List of environment files to load into the service.
+          Typically agenix secret paths like config.age.secrets.<name>.path.
+          Variables in these files will be available to opencode and MCP servers.
+          Files are loaded in order, with later files overriding earlier ones.
+
+          Note: This option is only supported on Linux (systemd). On macOS (launchd),
+          this option is ignored as launchd does not natively support EnvironmentFile.
+        '';
+        example = literalExpression ''
+          [
+            config.age.secrets.opencode_common_env.path
+            config.age.secrets.opencode_web_nix_config.path
+          ]
+        '';
       };
     };
   };
@@ -178,29 +235,49 @@ in {
   };
 
   config = mkIf cfg.enable (mkMerge [
+    # Assertions for macOS environmentFiles usage
+    {
+      assertions =
+        lib.mapAttrsToList (name: svc: {
+          assertion = !(pkgs.stdenv.isDarwin && svc.environmentFiles != []);
+          message = ''
+            opencode-web service "${name}" uses environmentFiles, but this is not supported on macOS.
+            launchd does not have native EnvironmentFile support like systemd.
+            Please set environment variables directly or use a wrapper script.
+          '';
+        })
+        cfg.services;
+    }
+
     # Linux: systemd user services
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.services = mapAttrs' (name: svc:
         nameValuePair "opencode-web-${name}" {
           Unit = {
             Description = "OpenCode Web UI for ${name}";
-            After = ["network.target"];
+            After = ["network.target"] ++ optionals (svc.environmentFiles != []) ["agenix.service"];
+            Requires = optionals (svc.environmentFiles != []) ["agenix.service"];
           };
-          Service = {
-            Type = "exec";
-            WorkingDirectory = svc.projectPath;
-            ExecStart = concatStringsSep " " (buildArgs svc);
-            Restart = "always";
-            RestartSec = "5s";
-            RestartSteps = 5;
-            RestartMaxDelaySec = "60s";
-            Environment = [
-              "HOME=${config.home.homeDirectory}"
-              "TERM=xterm-256color"
-              # Include wrapped tools (git, openssh, user packages) in PATH for child processes
-              "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
-            ];
-          };
+          Service =
+            {
+              Type = "exec";
+              WorkingDirectory = svc.projectPath;
+              ExecStart = concatStringsSep " " (buildArgs svc);
+              Restart = "always";
+              RestartSec = "5s";
+              RestartSteps = 5;
+              RestartMaxDelaySec = "60s";
+              Environment = [
+                "HOME=${config.home.homeDirectory}"
+                "TERM=xterm-256color"
+                "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
+                "NIX_LD=/run/current-system/sw/share/nix-ld/lib/ld.so"
+                "NIX_LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib"
+              ];
+            }
+            // optionalAttrs (svc.environmentFiles != []) {
+              EnvironmentFile = svc.environmentFiles;
+            };
           Install = {
             WantedBy = ["default.target"];
           };

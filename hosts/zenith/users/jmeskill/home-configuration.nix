@@ -43,27 +43,62 @@ in {
           "nix-config" = {
             projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
             port = 18080;
-            logLevel = "WARN";
             cors = ["zenith.meskill.farm"];
+            environmentFiles = [config.age.secrets.zenith_opencode_web_nix_env.path];
           };
           "n8n-agent" = {
             projectPath = "/home/jmeskill/Projects/ruinous.ai/n8n-agent";
             port = 18081;
-            logLevel = "WARN";
             cors = ["zenith.meskill.farm"];
+            environmentFiles = [
+              config.age.secrets.zenith_opencode_web_shared_env.path
+              config.age.secrets.zenith_opencode_web_n8n_env.path
+            ];
           };
           "dossiq-ai" = {
             projectPath = "/home/jmeskill/Projects/ruinous.ai/dossiq-ai";
             port = 18082;
-            logLevel = "WARN";
             cors = ["zenith.meskill.farm"];
+            environmentFiles = [
+              config.age.secrets.zenith_opencode_web_shared_env.path
+              config.age.secrets.zenith_opencode_web_dossiq_env.path
+            ];
           };
         };
       };
       kimaki = {
         enable = true;
+        environmentFiles = [
+          config.age.secrets.zenith_opencode_web_shared_env.path
+          config.age.secrets.zenith_kimaki_env.path
+        ];
       };
     };
+  };
+
+  age.secrets.zenith_opencode_web_shared_env = {
+    rekeyFile = ./files/opencode-web/shared.env.age;
+    mode = "400";
+  };
+
+  age.secrets.zenith_opencode_web_nix_env = {
+    rekeyFile = ./files/opencode-web/nix.env.age;
+    mode = "400";
+  };
+
+  age.secrets.zenith_opencode_web_n8n_env = {
+    rekeyFile = ./files/opencode-web/n8n.env.age;
+    mode = "400";
+  };
+
+  age.secrets.zenith_opencode_web_dossiq_env = {
+    rekeyFile = ./files/opencode-web/dossiq.env.age;
+    mode = "400";
+  };
+
+  age.secrets.zenith_kimaki_env = {
+    rekeyFile = ./files/kimaki/env.age;
+    mode = "400";
   };
 
   home.stateVersion = "26.05";
