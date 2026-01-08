@@ -82,14 +82,23 @@ in {
               Note: Environment variable references are passed as-is to the JSON config.
             '';
           };
+          oauth = mkOption {
+            type = types.nullOr types.bool;
+            default = null;
+            description = lib.mdDoc ''
+              Whether to use OAuth for authentication. Set to `false` when using
+              Bearer token authentication via headers instead of OAuth flow.
+            '';
+          };
         };
       }));
       default = {};
       example = lib.mdDoc ''
-        # Add a remote server with authentication headers
+        # Add a remote server with Bearer token authentication
         ruinous.ai-cli.opencode.mcpServers.github = {
           type = "remote";
           url = "https://api.githubcopilot.com/mcp/";
+          oauth = false;  # Required when using Bearer token instead of OAuth
           headers = {
             "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}";
           };
@@ -151,6 +160,7 @@ in {
         github = {
           type = "remote";
           url = "https://api.githubcopilot.com/mcp/";
+          oauth = false; # Using Bearer token auth, not OAuth
           headers = {
             "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}";
           };

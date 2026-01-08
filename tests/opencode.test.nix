@@ -74,9 +74,10 @@ home-manager-lib.runHomeManagerTestSuite {
     assert jq -e '.mcp."test-server".type == "remote"' "$CONFIG_FILE"
     assert jq -e '.mcp."test-server".url == "http://test.dev/mcp"' "$CONFIG_FILE"
 
-    # Check that GitHub MCP server is configured with headers
+    # Check that GitHub MCP server is configured with headers and oauth=false
     assert jq -e '.mcp."github".type == "remote"' "$CONFIG_FILE"
     assert jq -e '.mcp."github".url == "https://api.githubcopilot.com/mcp/"' "$CONFIG_FILE"
+    assert jq -e '.mcp."github".oauth == false' "$CONFIG_FILE"
     assert jq -e '.mcp."github".headers.Authorization == "Bearer \${GITHUB_ACCESS_TOKEN}"' "$CONFIG_FILE"
 
     # Check that Forgejo MCP server is configured with env
