@@ -681,6 +681,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Codey OpenCode (zenith)"
+    group: "Development"
+    url: "https://codey.oc.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # TERRANAS SERVICES
   # ===========================

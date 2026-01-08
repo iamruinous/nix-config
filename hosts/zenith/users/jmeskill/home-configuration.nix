@@ -64,6 +64,15 @@ in {
               config.age.secrets.zenith_opencode_web_dossiq_env.path
             ];
           };
+          "codey-agent-system" = {
+            projectPath = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
+            port = 18083;
+            cors = ["zenith.meskill.farm"];
+            environmentFiles = [
+              config.age.secrets.zenith_opencode_web_shared_env.path
+              config.age.secrets.zenith_opencode_web_codey_env.path
+            ];
+          };
         };
       };
       kimaki = {
@@ -93,6 +102,11 @@ in {
 
   age.secrets.zenith_opencode_web_dossiq_env = {
     rekeyFile = ./files/opencode-web/dossiq.env.age;
+    mode = "400";
+  };
+
+  age.secrets.zenith_opencode_web_codey_env = {
+    rekeyFile = ./files/opencode-web/codey.env.age;
     mode = "400";
   };
 
