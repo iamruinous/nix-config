@@ -7,6 +7,36 @@
         "mcp-nixos"
       ],
       "env": {}
+    },
+    "postgres-zenith": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${ZENITH_POSTGRES_DATABASE_URI}"
+      ],
+      "env": {}
+    },
+    "postgres-pilaster": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${PILASTER_POSTGRES_DATABASE_URI}"
+      ],
+      "env": {}
+    },
+    "postgres-monolith": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${MONOLITH_POSTGRES_DATABASE_URI}"
+      ],
+      "env": {}
     }
   }
 }

@@ -7,6 +7,7 @@ pkgs.stdenv.mkDerivation {
   propagatedBuildInputs = [
     pkgs.rage
     pkgs.coreutils
+    pkgs.gum
   ];
 
   passthru.shellPath = "/bin/agenix-helper";
@@ -15,9 +16,9 @@ pkgs.stdenv.mkDerivation {
   buildPhase = ''
     mkdir -p $out/bin
 
-    # Substitute @rage@ with the actual rage path
     substitute ${./agenix-helper.sh} $out/bin/agenix-helper \
-      --replace '@rage@' '${pkgs.rage}'
+      --replace '@rage@' '${pkgs.rage}' \
+      --replace '@gum@' '${pkgs.gum}'
 
     chmod +x $out/bin/agenix-helper
   '';
