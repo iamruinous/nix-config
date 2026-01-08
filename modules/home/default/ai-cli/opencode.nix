@@ -69,8 +69,8 @@ in {
             default = null;
             description = lib.mdDoc ''
               HTTP headers for remote MCP servers. Useful for authentication.
-              Example: `{ "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}"; }`
-              Note: Environment variable references are passed as-is to the JSON config.
+              Use `{env:VAR_NAME}` syntax for environment variable references.
+              Example: `{ "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}"; }`
             '';
           };
           env = mkOption {
@@ -78,8 +78,8 @@ in {
             default = null;
             description = lib.mdDoc ''
               Environment variables for local MCP servers.
-              Example: `{ "FORGEJO_ACCESS_TOKEN" = "\${FORGEJO_ACCESS_TOKEN}"; }`
-              Note: Environment variable references are passed as-is to the JSON config.
+              Use `{env:VAR_NAME}` syntax for environment variable references.
+              Example: `{ "MY_TOKEN" = "{env:MY_TOKEN}"; }`
             '';
           };
           oauth = mkOption {
@@ -100,17 +100,14 @@ in {
           url = "https://api.githubcopilot.com/mcp/";
           oauth = false;  # Required when using Bearer token instead of OAuth
           headers = {
-            "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}";
+            "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}";
           };
         };
 
-        # Add a local server with environment variables
+        # Add a local server with environment variable in command
         ruinous.ai-cli.opencode.mcpServers.forgejo = {
           type = "local";
-          command = [ "forgejo-mcp" "--transport" "stdio" "--url" "https://codeberg.org" ];
-          env = {
-            "FORGEJO_ACCESS_TOKEN" = "\${FORGEJO_ACCESS_TOKEN}";
-          };
+          command = [ "forgejo-mcp" "--transport" "stdio" "--url" "https://codeberg.org" "--token" "{env:FORGEJO_ACCESS_TOKEN}" ];
         };
 
         # Override all defaults
@@ -162,21 +159,18 @@ in {
           url = "https://api.githubcopilot.com/mcp/";
           oauth = false; # Using Bearer token auth, not OAuth
           headers = {
-            "Authorization" = "Bearer \${GITHUB_ACCESS_TOKEN}";
+            "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}";
           };
         };
 
         # Forgejo MCP Server (Local)
         # Requires FORGEJO_ACCESS_TOKEN environment variable to be set
-        # Get a token at: https://<your-forgejo-instance>/user/settings/applications
+        # Get a token at: https://forge.meskill.farm/user/settings/applications
         # Documentation: https://codeberg.org/goern/forgejo-mcp
-        # Default URL is Codeberg.org; override FORGEJO_URL for self-hosted instances
+        # Override FORGEJO_URL for other Forgejo instances
         forgejo = {
           type = "local";
-          command = ["${pkgs.forgejo-mcp}/bin/forgejo-mcp" "--transport" "stdio" "--url" "\${FORGEJO_URL:-https://codeberg.org}"];
-          env = {
-            "FORGEJO_ACCESS_TOKEN" = "\${FORGEJO_ACCESS_TOKEN}";
-          };
+          command = ["${pkgs.forgejo-mcp}/bin/forgejo-mcp" "--transport" "stdio" "--url" "https://forge.meskill.farm" "--token" "{env:FORGEJO_ACCESS_TOKEN}"];
         };
       };
 
