@@ -64,20 +64,50 @@ in {
             default = null;
             description = "Command to run a local MCP server.";
           };
+          headers = mkOption {
+            type = types.nullOr (types.attrsOf types.str);
+            default = null;
+            description = lib.mdDoc ''
+              HTTP headers for remote MCP servers. Useful for authentication.
+              Use `{env:VAR_NAME}` syntax for environment variable references.
+              Example: `{ "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}"; }`
+            '';
+          };
+          env = mkOption {
+            type = types.nullOr (types.attrsOf types.str);
+            default = null;
+            description = lib.mdDoc ''
+              Environment variables for local MCP servers.
+              Use `{env:VAR_NAME}` syntax for environment variable references.
+              Example: `{ "MY_TOKEN" = "{env:MY_TOKEN}"; }`
+            '';
+          };
+          oauth = mkOption {
+            type = types.nullOr types.bool;
+            default = null;
+            description = lib.mdDoc ''
+              Whether to use OAuth for authentication. Set to `false` when using
+              Bearer token authentication via headers instead of OAuth flow.
+            '';
+          };
         };
       }));
       default = {};
       example = lib.mdDoc ''
-        # Add a remote server
-        ruinous.ai-cli.opencode.mcpServers.my-remote-server = {
+        # Add a remote server with Bearer token authentication
+        ruinous.ai-cli.opencode.mcpServers.github = {
           type = "remote";
-          url = "https://example.com/mcp";
+          url = "https://api.githubcopilot.com/mcp/";
+          oauth = false;  # Required when using Bearer token instead of OAuth
+          headers = {
+            "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}";
+          };
         };
 
-        # Add a local server
-        ruinous.ai-cli.opencode.mcpServers.my-local-server = {
+        # Add a local server with environment variable in command
+        ruinous.ai-cli.opencode.mcpServers.forgejo = {
           type = "local";
-          command = [ "node" "/path/to/script.js" ];
+          command = [ "forgejo-mcp" "--transport" "stdio" "--url" "https://codeberg.org" "--token" "{env:FORGEJO_ACCESS_TOKEN}" ];
         };
 
         # Override all defaults
@@ -118,6 +148,29 @@ in {
         todoist = {
           type = "local";
           command = ["bunx" "-y" "mcp-remote" "https://ai.todoist.net/mcp"];
+        };
+
+        # GitHub MCP Server (Remote)
+        # Requires GITHUB_ACCESS_TOKEN environment variable to be set
+        # Get a token at: https://github.com/settings/tokens
+        # Documentation: https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md
+        github = {
+          type = "remote";
+          url = "https://api.githubcopilot.com/mcp/";
+          oauth = false; # Using Bearer token auth, not OAuth
+          headers = {
+            "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}";
+          };
+        };
+
+        # Forgejo MCP Server (Local)
+        # Requires FORGEJO_ACCESS_TOKEN environment variable to be set
+        # Get a token at: https://forge.meskill.farm/user/settings/applications
+        # Documentation: https://codeberg.org/goern/forgejo-mcp
+        # Override FORGEJO_URL for other Forgejo instances
+        forgejo = {
+          type = "local";
+          command = ["${pkgs.forgejo-mcp}/bin/forgejo-mcp" "--transport" "stdio" "--url" "https://forge.meskill.farm" "--token" "{env:FORGEJO_ACCESS_TOKEN}"];
         };
       };
 
