@@ -48,6 +48,13 @@ with lib; let
   opencode_config = flake + /files/configs/opencode/opencode.json;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
+  # Fetch codey-agent-system for global AGENTS.md
+  codeyAgentSystem = pkgs.fetchgit {
+    url = "https://forge.meskill.farm/iamruinous/codey-agent-system";
+    rev = cfg.codeyAgentSystem.rev;
+    sha256 = cfg.codeyAgentSystem.sha256;
+  };
+
   # Permission submodule type for oh-my-opencode agents
   permissionType = types.submodule {
     options = {
@@ -276,6 +283,15 @@ with lib; let
         '';
       };
 
+      codeyAgentSystemEnable = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = ''
+          Override codey-agent-system AGENTS.md for this config directory.
+          If null, inherits from the main codeyAgentSystem.enable setting.
+        '';
+      };
+
       notifier = {
         enable = mkOption {
           type = types.nullOr types.bool;
@@ -322,6 +338,10 @@ with lib; let
       if dirCfg.omoGoogleAuth != null
       then dirCfg.omoGoogleAuth
       else cfg.omoGoogleAuth;
+    codeyAgentSystemEnable =
+      if dirCfg.codeyAgentSystemEnable != null
+      then dirCfg.codeyAgentSystemEnable
+      else cfg.codeyAgentSystem.enable;
     notifierEnable =
       if dirCfg.notifier.enable != null
       then dirCfg.notifier.enable
@@ -489,6 +509,37 @@ in {
       description = "Whether to enable Google authentication in oh-my-opencode.";
     };
 
+    codeyAgentSystem = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether to enable codey-agent-system AGENTS.md from remote repository.";
+      };
+
+      rev = mkOption {
+        type = types.str;
+        default = "v0.2.0";
+        description = "Git revision (tag, branch, or commit) of codey-agent-system to use.";
+        example = "v0.2.0";
+      };
+
+      sha256 = mkOption {
+        type = types.str;
+        default = "sha256-7S/zgfeXzBlEluKkVS/+uz13IWBoZxD7Qnsm7OrIFaw=";
+        description = lib.mdDoc ''
+          SHA256 hash of the codey-agent-system source.
+          Use `nix-prefetch-git https://forge.meskill.farm/iamruinous/codey-agent-system --rev <rev>` to get this value.
+        '';
+        example = "sha256-7S/zgfeXzBlEluKkVS/+uz13IWBoZxD7Qnsm7OrIFaw=";
+      };
+
+      path = mkOption {
+        type = types.str;
+        default = "dist/AGENTS.md";
+        description = "Path to AGENTS.md within the codey-agent-system repository.";
+      };
+    };
+
     notifier = {
       enable = mkEnableOption "OpenCode Apprise notification plugin";
     };
@@ -583,27 +634,31 @@ in {
       home.file = mkMerge (map (name: let
         pc = processedConfigs.${name};
         resolved = pc.resolved;
-      in {
-        "${resolved.configDir}/oh-my-opencode.json".text =
-          generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth;
-        "${resolved.configDir}/package.json".text = builtins.toJSON {
-          name = "opencode-plugins";
-          dependencies = builtins.listToAttrs (
-            map (plugin: let
-              parts = lib.splitString "@" plugin;
-              pname = builtins.head parts;
-              version =
-                if builtins.length parts > 1
-                then builtins.elemAt parts 1
-                else "latest";
-            in {
-              name = pname;
-              value = version;
-            })
-            resolved.plugins
-          );
-        };
-      }) (attrNames cfg.configs));
+      in
+        {
+          "${resolved.configDir}/oh-my-opencode.json".text =
+            generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth;
+          "${resolved.configDir}/package.json".text = builtins.toJSON {
+            name = "opencode-plugins";
+            dependencies = builtins.listToAttrs (
+              map (plugin: let
+                parts = lib.splitString "@" plugin;
+                pname = builtins.head parts;
+                version =
+                  if builtins.length parts > 1
+                  then builtins.elemAt parts 1
+                  else "latest";
+              in {
+                name = pname;
+                value = version;
+              })
+              resolved.plugins
+            );
+          };
+        }
+        // optionalAttrs resolved.codeyAgentSystemEnable {
+          "${resolved.configDir}/AGENTS.md".source = "${codeyAgentSystem}/${cfg.codeyAgentSystem.path}";
+        }) (attrNames cfg.configs));
     }
 
     # Generate activation scripts for all config directories
