@@ -31,8 +31,7 @@
 #     ];
 #   };
 #
-# Note: environmentFiles is only supported on Linux (systemd). On macOS, an
-# assertion will fail if you attempt to use this option.
+# Note: opencode-web is linux-only and requires systemd.
 {
   config,
   lib,
@@ -44,12 +43,27 @@ with lib; let
   cfg = config.ruinous.ai-cli.opencode-web;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
-  # Default packages for MCP server functionality
+  # Default packages for service functionality (tools available in PATH)
   defaultPackages = with pkgs; [
-    uv # Provides uvx for Python-based MCP servers
-    pnpm # For JavaScript-based MCP servers
-    nodejs # Node.js runtime for MCP servers
+    gh
+    tea
+    cloudflare-cli
+
+    ripgrep
+    jq
+    fd
+    miller
+    yq-go
+
+    python3
+    uv # provides uv/uvx
+
+    nodejs # provides node + npm
+    pnpm
     bun
+
+    docker
+
     gnumake # postgres-mcp
   ];
 
@@ -181,8 +195,7 @@ in {
         Variables in these files will be available to opencode and MCP servers.
         Files are loaded in order, with later files overriding earlier ones.
 
-        Note: This option is only supported on Linux (systemd). On macOS (launchd),
-        this option is ignored as launchd does not natively support EnvironmentFile.
+        Note: opencode-web is linux-only and requires systemd.
       '';
       example = literalExpression ''
         [
@@ -193,15 +206,13 @@ in {
   };
 
   config = mkIf cfg.enable (mkMerge [
-    # Assertion for macOS environmentFiles usage
+    # Assertion for linux-only usage
     {
       assertions = [
         {
-          assertion = !(pkgs.stdenv.isDarwin && cfg.environmentFiles != []);
+          assertion = pkgs.stdenv.isLinux;
           message = ''
-            opencode-web uses environmentFiles, but this is not supported on macOS.
-            launchd does not have native EnvironmentFile support like systemd.
-            Please set environment variables directly or use a wrapper script.
+            opencode-web is linux-only (systemd user service).
           '';
         }
       ];
@@ -239,28 +250,6 @@ in {
           };
         Install = {
           WantedBy = ["default.target"];
-        };
-      };
-    })
-
-    # macOS: launchd agent
-    (mkIf pkgs.stdenv.isDarwin {
-      launchd.agents.opencode-web = {
-        enable = true;
-        config = {
-          Label = "com.opencode.web";
-          ProgramArguments = buildArgs;
-          WorkingDirectory = cfg.projectPath;
-          RunAtLoad = true;
-          KeepAlive = true;
-          StandardOutPath = "${config.home.homeDirectory}/Library/Logs/opencode-web.log";
-          StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/opencode-web.error.log";
-          EnvironmentVariables = {
-            HOME = config.home.homeDirectory;
-            TERM = "xterm-256color";
-          } // optionalAttrs (cfg.configDir != null) {
-            OPENCODE_CONFIG_DIR = cfg.configDir;
-          };
         };
       };
     })
