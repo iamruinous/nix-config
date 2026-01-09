@@ -35,48 +35,38 @@ in {
     ai-cli = {
       opencode = {
         enable = true;
-        notifier.enable = true;
-      };
-      opencode-web = {
-        enable = true;
-        services = {
-          "nix-config" = {
-            projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
-            port = 18080;
-            cors = ["zenith.meskill.farm"];
-            environmentFiles = [config.age.secrets.zenith_opencode_web_nix_env.path];
+        # Disabled: notifier causing performance issues, needs debugging
+        # notifier.enable = true;
+
+        # Multiple config directories for independent sessions
+        configs = {
+          default = {}; # ~/.config/opencode for interactive use
+
+          web = {
+            configDir = "${config.home.homeDirectory}/.config/opencode-web";
+            notifier.enable = false;
           };
-          "n8n-agent" = {
-            projectPath = "/home/jmeskill/Projects/ruinous.ai/n8n-agent";
-            port = 18081;
-            cors = ["zenith.meskill.farm"];
-            environmentFiles = [
-              config.age.secrets.zenith_opencode_web_shared_env.path
-              config.age.secrets.zenith_opencode_web_n8n_env.path
-            ];
-          };
-          "dossiq-ai" = {
-            projectPath = "/home/jmeskill/Projects/ruinous.ai/dossiq-ai";
-            port = 18082;
-            cors = ["zenith.meskill.farm"];
-            environmentFiles = [
-              config.age.secrets.zenith_opencode_web_shared_env.path
-              config.age.secrets.zenith_opencode_web_dossiq_env.path
-            ];
-          };
-          "codey-agent-system" = {
-            projectPath = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
-            port = 18083;
-            cors = ["zenith.meskill.farm"];
-            environmentFiles = [
-              config.age.secrets.zenith_opencode_web_shared_env.path
-              config.age.secrets.zenith_opencode_web_codey_env.path
-            ];
+
+          kimaki = {
+            configDir = "${config.home.homeDirectory}/.config/opencode-kimaki";
+            notifier.enable = false;
           };
         };
       };
+      opencode-web = {
+        enable = true;
+        projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
+        port = 18080;
+        cors = ["zenith.meskill.farm"];
+        configDir = "${config.home.homeDirectory}/.config/opencode-web";
+        environmentFiles = [
+          config.age.secrets.zenith_opencode_web_shared_env.path
+          config.age.secrets.zenith_opencode_web_nix_env.path
+        ];
+      };
       kimaki = {
         enable = true;
+        configDir = "${config.home.homeDirectory}/.config/opencode-kimaki";
         environmentFiles = [
           config.age.secrets.zenith_opencode_web_shared_env.path
           config.age.secrets.zenith_kimaki_env.path
@@ -92,21 +82,6 @@ in {
 
   age.secrets.zenith_opencode_web_nix_env = {
     rekeyFile = ./files/opencode-web/nix.env.age;
-    mode = "400";
-  };
-
-  age.secrets.zenith_opencode_web_n8n_env = {
-    rekeyFile = ./files/opencode-web/n8n.env.age;
-    mode = "400";
-  };
-
-  age.secrets.zenith_opencode_web_dossiq_env = {
-    rekeyFile = ./files/opencode-web/dossiq.env.age;
-    mode = "400";
-  };
-
-  age.secrets.zenith_opencode_web_codey_env = {
-    rekeyFile = ./files/opencode-web/codey.env.age;
     mode = "400";
   };
 

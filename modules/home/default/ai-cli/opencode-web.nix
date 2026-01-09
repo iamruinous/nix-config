@@ -1,60 +1,35 @@
 # ruinous.ai-cli.opencode-web.enable = true;
 #
-# Manages OpenCode Web UI services as persistent user daemons.
-# Each service runs `opencode web` bound to a specific port for a project directory.
+# Manages a single OpenCode Web UI service as a persistent user daemon.
+# Runs `opencode web` bound to a specific port for a project directory.
 #
 # Example:
 #   ruinous.ai-cli.opencode-web = {
 #     enable = true;
-#     # Uses llm-agents opencode and common MCP tools by default
-#     services = {
-#       "nix-config" = {
-#         projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
-#         port = 18080;
-#         # logLevel = "INFO";   # default
-#         # mdns = true;         # default # printLogs = true;    # default
-#         # cors = [];           # default
-#       };
-#     };
+#     projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
+#     port = 18080;
+#     configDir = "${config.home.homeDirectory}/.config/opencode-web";
 #   };
 #
-# This creates a systemd user service `opencode-web-nix-config.service` that can be
+# This creates a systemd user service `opencode-web.service` that can be
 # attached to from other clients using `opencode attach http://<host>:18080`.
 #
 # ## Using agenix Environment Files (Linux only)
 #
 # You can pass encrypted environment files containing API keys and secrets to
-# the opencode-web service using the `environmentFile` option. This uses systemd's
+# the opencode-web service using the `environmentFiles` option. This uses systemd's
 # EnvironmentFile directive to load variables at service startup.
 #
 # Example with agenix:
 #
-#   # In your home-configuration.nix or similar:
 #   ruinous.ai-cli.opencode-web = {
 #     enable = true;
-#     services = {
-#       "nix-config" = {
-#         projectPath = "/home/jmeskill/Projects/nix-config";
-#         port = 18080;
-#         environmentFiles = [
-#           config.age.secrets.opencode_common_env.path
-#           config.age.secrets.opencode_web_nix_config.path
-#         ];
-#       };
-#     };
+#     projectPath = "/home/jmeskill/Projects/nix-config";
+#     port = 18080;
+#     environmentFiles = [
+#       config.age.secrets.opencode_env.path
+#     ];
 #   };
-#
-#   # Declare the agenix secrets (in NixOS config or home-manager with agenix):
-#   age.secrets.opencode_common_env = {
-#     rekeyFile = ./files/opencode-web/common.env.age;
-#     mode = "600";
-#   };
-#   age.secrets.opencode_web_nix_config = {
-#     rekeyFile = ./files/opencode-web/nix-config.env.age;
-#     mode = "600";
-#   };
-#
-# Files are loaded in order, with later files overriding earlier ones.
 #
 # Note: environmentFiles is only supported on Linux (systemd). On macOS, an
 # assertion will fail if you attempt to use this option.
@@ -99,100 +74,25 @@ with lib; let
     '';
   };
 
-  # Define the service submodule type
-  serviceOpts = {name, ...}: {
-    options = {
-      projectPath = mkOption {
-        type = types.str;
-        description = "Absolute path to the project directory for this OpenCode instance.";
-        example = "/home/user/Projects/my-project";
-      };
-
-      port = mkOption {
-        type = types.port;
-        description = "Port number for this OpenCode web server.";
-        example = 18080;
-      };
-
-      hostname = mkOption {
-        type = types.str;
-        default = "0.0.0.0";
-        description = "Hostname/IP to bind to. Use 0.0.0.0 for all interfaces.";
-      };
-
-      logLevel = mkOption {
-        type = types.enum ["DEBUG" "INFO" "WARN" "ERROR"];
-        default = "WARN";
-        description = "Log level for the OpenCode server.";
-      };
-
-      mdns = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable mDNS service discovery.";
-      };
-
-      cors = mkOption {
-        type = types.listOf types.str;
-        default = [];
-        description = "Additional domains to allow for CORS.";
-        example = ["https://example.com"];
-      };
-
-      printLogs = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Print logs to stderr.";
-      };
-
-      extraArgs = mkOption {
-        type = types.listOf types.str;
-        default = [];
-        description = "Extra arguments to pass to opencode web.";
-        example = [];
-      };
-
-      environmentFiles = mkOption {
-        type = types.listOf types.path;
-        default = [];
-        description = ''
-          List of environment files to load into the service.
-          Typically agenix secret paths like config.age.secrets.<name>.path.
-          Variables in these files will be available to opencode and MCP servers.
-          Files are loaded in order, with later files overriding earlier ones.
-
-          Note: This option is only supported on Linux (systemd). On macOS (launchd),
-          this option is ignored as launchd does not natively support EnvironmentFile.
-        '';
-        example = literalExpression ''
-          [
-            config.age.secrets.opencode_common_env.path
-            config.age.secrets.opencode_web_nix_config.path
-          ]
-        '';
-      };
-    };
-  };
-
-  # Build command arguments for a service
-  buildArgs = svc:
+  # Build command arguments
+  buildArgs =
     [
       "${wrappedOpencode}/bin/opencode"
       "web"
       "--hostname"
-      svc.hostname
+      cfg.hostname
       "--port"
-      (toString svc.port)
+      (toString cfg.port)
       "--log-level"
-      svc.logLevel
+      cfg.logLevel
     ]
-    ++ optionals svc.mdns ["--mdns"]
-    ++ optionals svc.printLogs ["--print-logs"]
-    ++ concatMap (domain: ["--cors" domain]) svc.cors
-    ++ svc.extraArgs;
+    ++ optionals cfg.mdns ["--mdns"]
+    ++ optionals cfg.printLogs ["--print-logs"]
+    ++ concatMap (domain: ["--cors" domain]) cfg.cors
+    ++ cfg.extraArgs;
 in {
   options.ruinous.ai-cli.opencode-web = {
-    enable = mkEnableOption "OpenCode Web UI services";
+    enable = mkEnableOption "OpenCode Web UI service";
 
     package = mkOption {
       type = types.package;
@@ -212,99 +112,157 @@ in {
       example = literalExpression "with pkgs; [uv pnpm nodejs]";
     };
 
-    services = mkOption {
-      type = types.attrsOf (types.submodule serviceOpts);
-      default = {};
+    projectPath = mkOption {
+      type = types.str;
+      description = "Absolute path to the project directory for the OpenCode instance.";
+      example = "/home/user/Projects/my-project";
+    };
+
+    port = mkOption {
+      type = types.port;
+      default = 18080;
+      description = "Port number for the OpenCode web server.";
+    };
+
+    hostname = mkOption {
+      type = types.str;
+      default = "0.0.0.0";
+      description = "Hostname/IP to bind to. Use 0.0.0.0 for all interfaces.";
+    };
+
+    logLevel = mkOption {
+      type = types.enum ["DEBUG" "INFO" "WARN" "ERROR"];
+      default = "WARN";
+      description = "Log level for the OpenCode server.";
+    };
+
+    mdns = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable mDNS service discovery.";
+    };
+
+    cors = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Additional domains to allow for CORS.";
+      example = ["https://example.com"];
+    };
+
+    printLogs = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Print logs to stderr.";
+    };
+
+    extraArgs = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Extra arguments to pass to opencode web.";
+    };
+
+    configDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
       description = ''
-        Attribute set of OpenCode web services to run.
-        Each key becomes the service name suffix (e.g., "nix-config" -> "opencode-web-nix-config").
+        Custom config directory for the opencode-web service.
+        When set, OPENCODE_CONFIG_DIR environment variable is set to this path,
+        keeping service sessions independent from interactive opencode usage.
+      '';
+      example = "/home/user/.config/opencode-web";
+    };
+
+    environmentFiles = mkOption {
+      type = types.listOf types.path;
+      default = [];
+      description = ''
+        List of environment files to load into the service.
+        Typically agenix secret paths like config.age.secrets.<name>.path.
+        Variables in these files will be available to opencode and MCP servers.
+        Files are loaded in order, with later files overriding earlier ones.
+
+        Note: This option is only supported on Linux (systemd). On macOS (launchd),
+        this option is ignored as launchd does not natively support EnvironmentFile.
       '';
       example = literalExpression ''
-        {
-          "nix-config" = {
-            projectPath = "/home/user/Projects/nix-config";
-            port = 18080;
-          };
-          "another-project" = {
-            projectPath = "/home/user/Projects/another";
-            port = 18081;
-          };
-        }
+        [
+          config.age.secrets.opencode_env.path
+        ]
       '';
     };
   };
 
   config = mkIf cfg.enable (mkMerge [
-    # Assertions for macOS environmentFiles usage
+    # Assertion for macOS environmentFiles usage
     {
-      assertions =
-        lib.mapAttrsToList (name: svc: {
-          assertion = !(pkgs.stdenv.isDarwin && svc.environmentFiles != []);
+      assertions = [
+        {
+          assertion = !(pkgs.stdenv.isDarwin && cfg.environmentFiles != []);
           message = ''
-            opencode-web service "${name}" uses environmentFiles, but this is not supported on macOS.
+            opencode-web uses environmentFiles, but this is not supported on macOS.
             launchd does not have native EnvironmentFile support like systemd.
             Please set environment variables directly or use a wrapper script.
           '';
-        })
-        cfg.services;
+        }
+      ];
     }
 
-    # Linux: systemd user services
+    # Linux: systemd user service
     (mkIf pkgs.stdenv.isLinux {
-      systemd.user.services = mapAttrs' (name: svc:
-        nameValuePair "opencode-web-${name}" {
-          Unit = {
-            Description = "OpenCode Web UI for ${name}";
-            After = ["network.target"] ++ optionals (svc.environmentFiles != []) ["agenix.service"];
-            Requires = optionals (svc.environmentFiles != []) ["agenix.service"];
+      systemd.user.services.opencode-web = {
+        Unit = {
+          Description = "OpenCode Web UI";
+          After = ["network.target"] ++ optionals (cfg.environmentFiles != []) ["agenix.service"];
+          Requires = optionals (cfg.environmentFiles != []) ["agenix.service"];
+        };
+        Service =
+          {
+            Type = "exec";
+            WorkingDirectory = cfg.projectPath;
+            ExecStart = concatStringsSep " " buildArgs;
+            Restart = "always";
+            RestartSec = "5s";
+            RestartSteps = 5;
+            RestartMaxDelaySec = "60s";
+            Environment = [
+              "HOME=${config.home.homeDirectory}"
+              "TERM=xterm-256color"
+              "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
+              "NIX_LD=/run/current-system/sw/share/nix-ld/lib/ld.so"
+              "NIX_LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib"
+            ] ++ optionals (cfg.configDir != null) [
+              "OPENCODE_CONFIG_DIR=${cfg.configDir}"
+            ];
+          }
+          // optionalAttrs (cfg.environmentFiles != []) {
+            EnvironmentFile = cfg.environmentFiles;
           };
-          Service =
-            {
-              Type = "exec";
-              WorkingDirectory = svc.projectPath;
-              ExecStart = concatStringsSep " " (buildArgs svc);
-              Restart = "always";
-              RestartSec = "5s";
-              RestartSteps = 5;
-              RestartMaxDelaySec = "60s";
-              Environment = [
-                "HOME=${config.home.homeDirectory}"
-                "TERM=xterm-256color"
-                "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
-                "NIX_LD=/run/current-system/sw/share/nix-ld/lib/ld.so"
-                "NIX_LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib"
-              ];
-            }
-            // optionalAttrs (svc.environmentFiles != []) {
-              EnvironmentFile = svc.environmentFiles;
-            };
-          Install = {
-            WantedBy = ["default.target"];
-          };
-        })
-      cfg.services;
+        Install = {
+          WantedBy = ["default.target"];
+        };
+      };
     })
 
-    # macOS: launchd agents
+    # macOS: launchd agent
     (mkIf pkgs.stdenv.isDarwin {
-      launchd.agents = mapAttrs' (name: svc:
-        nameValuePair "opencode-web-${name}" {
-          enable = true;
-          config = {
-            Label = "com.opencode.web.${name}";
-            ProgramArguments = buildArgs svc;
-            WorkingDirectory = svc.projectPath;
-            RunAtLoad = true;
-            KeepAlive = true;
-            StandardOutPath = "${config.home.homeDirectory}/Library/Logs/opencode-web-${name}.log";
-            StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/opencode-web-${name}.error.log";
-            EnvironmentVariables = {
-              HOME = config.home.homeDirectory;
-              TERM = "xterm-256color";
-            };
+      launchd.agents.opencode-web = {
+        enable = true;
+        config = {
+          Label = "com.opencode.web";
+          ProgramArguments = buildArgs;
+          WorkingDirectory = cfg.projectPath;
+          RunAtLoad = true;
+          KeepAlive = true;
+          StandardOutPath = "${config.home.homeDirectory}/Library/Logs/opencode-web.log";
+          StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/opencode-web.error.log";
+          EnvironmentVariables = {
+            HOME = config.home.homeDirectory;
+            TERM = "xterm-256color";
+          } // optionalAttrs (cfg.configDir != null) {
+            OPENCODE_CONFIG_DIR = cfg.configDir;
           };
-        })
-      cfg.services;
+        };
+      };
     })
   ]);
 }
