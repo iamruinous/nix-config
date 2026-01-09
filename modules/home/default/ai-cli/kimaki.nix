@@ -56,8 +56,7 @@
 #
 # Files are loaded in order, with later files overriding earlier ones.
 #
-# Note: environmentFiles is only supported on Linux (systemd). On macOS, an
-# assertion will fail if you attempt to use this option.
+# Note: kimaki is linux-only and requires systemd.
 {
   config,
   lib,
@@ -69,12 +68,27 @@ with lib; let
   cfg = config.ruinous.ai-cli.kimaki;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
-  # Default packages for MCP server functionality
+  # Default packages for service functionality (tools available in PATH)
   defaultPackages = with pkgs; [
-    uv # Provides uvx for Python-based MCP servers
-    pnpm # For JavaScript-based MCP servers
-    nodejs # Node.js runtime for MCP servers
+    gh
+    tea
+    cloudflare-cli
+
+    ripgrep
+    jq
+    fd
+    miller
+    yq-go
+
+    python3
+    uv # provides uv/uvx
+
+    nodejs # provides node + npm
+    pnpm
     bun
+
+    docker
+
     gnumake # postgres-mcp
   ];
 
@@ -188,8 +202,7 @@ in {
         Variables in these files will be available to kimaki and child processes.
         Files are loaded in order, with later files overriding earlier ones.
 
-        Note: This option is only supported on Linux (systemd). On macOS (launchd),
-        this option is ignored as launchd does not natively support EnvironmentFile.
+        Note: kimaki is linux-only and requires systemd.
       '';
       example = literalExpression ''
         [
@@ -206,15 +219,13 @@ in {
       home.file.".kimaki/.keep".text = "";
     }
 
-    # Assertion for macOS environmentFiles usage
+    # Assertion for linux-only usage
     {
       assertions = [
         {
-          assertion = !(pkgs.stdenv.isDarwin && cfg.environmentFiles != []);
+          assertion = pkgs.stdenv.isLinux;
           message = ''
-            kimaki uses environmentFiles, but this is not supported on macOS.
-            launchd does not have native EnvironmentFile support like systemd.
-            Please set environment variables directly or use a wrapper script.
+            kimaki is linux-only (systemd user service).
           '';
         }
       ];
@@ -263,36 +274,5 @@ in {
       };
     })
 
-    # macOS: launchd agent
-    (mkIf pkgs.stdenv.isDarwin {
-      launchd.agents.kimaki = {
-        enable = true;
-        config = {
-          Label = "com.kimaki.discord-bot";
-          ProgramArguments = kimakiCommand;
-          WorkingDirectory = cfg.workingDirectory;
-          RunAtLoad = true;
-          KeepAlive = true;
-          StandardOutPath = "${config.home.homeDirectory}/Library/Logs/kimaki.log";
-          StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/kimaki.error.log";
-            EnvironmentVariables =
-            {
-              HOME = config.home.homeDirectory;
-              TERM = "xterm-256color";
-              PATH = "${wrappedOpencode}/bin:${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/usr/local/bin:/usr/bin:/bin";
-              npm_config_cache = "${config.home.homeDirectory}/.npm";
-            }
-            // optionalAttrs (cfg.configDir != null) {
-              OPENCODE_CONFIG_DIR = cfg.configDir;
-            }
-            // optionalAttrs (cfg.discordTokenSecret != null) {
-              DISCORD_TOKEN_FILE = cfg.discordTokenSecret;
-            }
-            // optionalAttrs (cfg.geminiApiKeySecret != null) {
-              GEMINI_API_KEY_FILE = cfg.geminiApiKeySecret;
-            };
-        };
-      };
-    })
   ]);
 }
