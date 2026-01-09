@@ -166,9 +166,12 @@ with lib; let
   removeNulls = attrs:
     lib.filterAttrsRecursive (n: v: v != null) attrs;
 
-  # Generate oh-my-opencode.json content from config
+  # JSON format helper for pretty-printed output
+  jsonFormat = pkgs.formats.json {};
+
+  # Generate oh-my-opencode.json content from config (pretty-printed)
   generateOmoConfig = agents: googleAuth:
-    builtins.toJSON (removeNulls {
+    removeNulls {
       "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
       google_auth = googleAuth;
       agents =
@@ -186,7 +189,7 @@ with lib; let
             }
         )
         agents;
-    });
+    };
 
   # MCP server submodule type (shared between main config and per-directory configs)
   mcpServerType = types.submodule ({name, ...}: {
@@ -636,8 +639,8 @@ in {
         resolved = pc.resolved;
       in
         {
-          "${resolved.configDir}/oh-my-opencode.json".text =
-            generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth;
+          "${resolved.configDir}/oh-my-opencode.json".source =
+            jsonFormat.generate "oh-my-opencode.json" (generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth);
           "${resolved.configDir}/package.json".text = builtins.toJSON {
             name = "opencode-plugins";
             dependencies = builtins.listToAttrs (
