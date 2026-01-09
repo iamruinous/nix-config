@@ -651,39 +651,9 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "Nix OpenCode (obelisk)"
+  - name: "OpenCode (zenith)"
     group: "Development"
-    url: "https://nix.oc.meskill.farm"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "n8n OpenCode (obelisk)"
-    group: "Automation"
-    url: "https://n8n.oc.meskill.farm"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "Dossiq OpenCode (obelisk)"
-    group: "AI"
-    url: "https://dossiq.oc.meskill.farm"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "Codey OpenCode (zenith)"
-    group: "Development"
-    url: "https://codey.oc.meskill.farm"
+    url: "https://opencode.meskill.farm"
     interval: 5m
     conditions:
       - "[STATUS] == 200"

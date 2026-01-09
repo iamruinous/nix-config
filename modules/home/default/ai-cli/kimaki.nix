@@ -136,6 +136,17 @@ in {
       description = "Working directory for the kimaki service.";
     };
 
+    configDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom config directory for kimaki/opencode.
+        When set, OPENCODE_CONFIG_DIR environment variable is set to this path,
+        keeping service sessions independent from interactive opencode usage.
+      '';
+      example = "/home/user/.config/opencode-web";
+    };
+
     discordTokenSecret = mkOption {
       type = types.nullOr types.path;
       default = null;
@@ -234,6 +245,9 @@ in {
               # Node.js npm cache directory
               "npm_config_cache=${config.home.homeDirectory}/.npm"
             ]
+            ++ optionals (cfg.configDir != null) [
+              "OPENCODE_CONFIG_DIR=${cfg.configDir}"
+            ]
             ++ optionals (cfg.discordTokenSecret != null) [
               "DISCORD_TOKEN_FILE=${cfg.discordTokenSecret}"
             ]
@@ -261,12 +275,15 @@ in {
           KeepAlive = true;
           StandardOutPath = "${config.home.homeDirectory}/Library/Logs/kimaki.log";
           StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/kimaki.error.log";
-          EnvironmentVariables =
+            EnvironmentVariables =
             {
               HOME = config.home.homeDirectory;
               TERM = "xterm-256color";
               PATH = "${wrappedOpencode}/bin:${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/usr/local/bin:/usr/bin:/bin";
               npm_config_cache = "${config.home.homeDirectory}/.npm";
+            }
+            // optionalAttrs (cfg.configDir != null) {
+              OPENCODE_CONFIG_DIR = cfg.configDir;
             }
             // optionalAttrs (cfg.discordTokenSecret != null) {
               DISCORD_TOKEN_FILE = cfg.discordTokenSecret;
