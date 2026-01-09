@@ -12,15 +12,15 @@
 #   ruinous.ai-cli.opencode = {
 #     enable = true;
 #     plugins = [ "my-plugin" ];  # shared defaults
-#     
+#
 #     configs = {
 #       default = {};  # ~/.config/opencode with all defaults
-#       
+#
 #       web = {
 #         configDir = "${config.home.homeDirectory}/.config/opencode-web";
 #         notifier.enable = false;  # disable notifier for services
 #       };
-#       
+#
 #       kimaki = {
 #         configDir = "${config.home.homeDirectory}/.config/opencode-kimaki";
 #         notifier.enable = false;
@@ -43,10 +43,10 @@ with lib; let
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
   # MCP server submodule type (shared between main config and per-directory configs)
-  mcpServerType = types.submodule ({ name, ... }: {
+  mcpServerType = types.submodule ({name, ...}: {
     options = {
       type = mkOption {
-        type = types.enum [ "local" "remote" ];
+        type = types.enum ["local" "remote"];
         description = "Type of the MCP server.";
       };
       url = mkOption {
@@ -89,7 +89,7 @@ with lib; let
   });
 
   # Config directory submodule type
-  configDirType = types.submodule ({ name, ... }: {
+  configDirType = types.submodule ({name, ...}: {
     options = {
       configDir = mkOption {
         type = types.nullOr types.str;
@@ -143,14 +143,28 @@ with lib; let
 
   # Resolve effective settings for a config directory
   resolveConfig = name: dirCfg: {
-    configDir = 
-      if dirCfg.configDir != null then dirCfg.configDir
-      else if name == "default" then "${config.xdg.configHome}/opencode"
+    configDir =
+      if dirCfg.configDir != null
+      then dirCfg.configDir
+      else if name == "default"
+      then "${config.xdg.configHome}/opencode"
       else throw "configDir must be specified for non-default config '${name}'";
-    plugins = if dirCfg.plugins != null then dirCfg.plugins else cfg.plugins;
-    mcpServers = if dirCfg.mcpServers != null then dirCfg.mcpServers else cfg.mcpServers;
-    notifierEnable = if dirCfg.notifier.enable != null then dirCfg.notifier.enable else cfg.notifier.enable;
-    installPlugins = if dirCfg.installPlugins != null then dirCfg.installPlugins else cfg.installPlugins;
+    plugins =
+      if dirCfg.plugins != null
+      then dirCfg.plugins
+      else cfg.plugins;
+    mcpServers =
+      if dirCfg.mcpServers != null
+      then dirCfg.mcpServers
+      else cfg.mcpServers;
+    notifierEnable =
+      if dirCfg.notifier.enable != null
+      then dirCfg.notifier.enable
+      else cfg.notifier.enable;
+    installPlugins =
+      if dirCfg.installPlugins != null
+      then dirCfg.installPlugins
+      else cfg.installPlugins;
   };
 
   # Generate config files and activation scripts for a config directory
@@ -218,7 +232,7 @@ with lib; let
             # Remove all null values from the final JSON
             | walk(if type == "object" then with_entries(select(.value != null)) else . end)
           ' "$CONFIG_FILE" > "$TMP_FILE"
-        
+
         # If the file actually changed, update it
         if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null; then
           $DRY_RUN_CMD cp "$TMP_FILE" "$CONFIG_FILE"
@@ -251,7 +265,6 @@ with lib; let
 
   # Check if any config has notifier enabled
   anyNotifierEnabled = any (c: c.resolved.notifierEnable) (attrValues processedConfigs);
-
 in {
   options.ruinous.ai-cli.opencode = {
     enable = mkEnableOption "OpenCode CLI configuration management";
@@ -328,12 +341,12 @@ in {
       example = literalExpression ''
         {
           default = {};  # ~/.config/opencode with all defaults
-          
+
           web = {
             configDir = "''${config.home.homeDirectory}/.config/opencode-web";
             notifier.enable = false;
           };
-          
+
           kimaki = {
             configDir = "''${config.home.homeDirectory}/.config/opencode-kimaki";
             notifier.enable = false;
@@ -346,10 +359,12 @@ in {
   config = mkIf cfg.enable (mkMerge [
     # Base configuration and defaults
     {
-      assertions = lib.mapAttrsToList (name: server: {
-        assertion = (server.type == "remote" -> server.url != null) && (server.type == "local" -> server.command != null);
-        message = "A remote MCP server must have a 'url' and a local server must have a 'command' for '${name}'.";
-      }) cfg.mcpServers;
+      assertions =
+        lib.mapAttrsToList (name: server: {
+          assertion = (server.type == "remote" -> server.url != null) && (server.type == "local" -> server.command != null);
+          message = "A remote MCP server must have a 'url' and a local server must have a 'command' for '${name}'.";
+        })
+        cfg.mcpServers;
 
       # Install opencode binary (Linux only - use brew on macOS)
       home.packages = mkIf pkgs.stdenv.isLinux [
@@ -357,9 +372,12 @@ in {
       ];
 
       ruinous.ai-cli.opencode.plugins = [
-        "oh-my-opencode@v2.14.0"
+        "oh-my-opencode@v3.0.0-beta.2"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
+        "opencode-anthropic-auth@0.0.7"
+        # Patched version of anthropic-auth with tool renaming for OAuth
+        # This bypasses the "credential only authorized for Claude Code" restriction
       ];
 
       ruinous.ai-cli.opencode.mcpServers = {
@@ -416,11 +434,13 @@ in {
       home.activation = mkMerge (map (name: let
         pc = processedConfigs.${name};
         safeName = builtins.replaceStrings ["-" "/" " "] ["_" "_" "_"] name;
-      in {
-        "opencode-plugins-${safeName}" = pc.activation;
-      } // optionalAttrs pc.resolved.notifierEnable {
-        "opencode-notifier-${safeName}" = pc.notifierActivation;
-      }) (attrNames cfg.configs));
+      in
+        {
+          "opencode-plugins-${safeName}" = pc.activation;
+        }
+        // optionalAttrs pc.resolved.notifierEnable {
+          "opencode-notifier-${safeName}" = pc.notifierActivation;
+        }) (attrNames cfg.configs));
     }
 
     # Install notifier package if any config has it enabled

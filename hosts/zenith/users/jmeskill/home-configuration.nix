@@ -40,7 +40,9 @@ in {
 
         # Multiple config directories for independent sessions
         configs = {
-          default = {}; # ~/.config/opencode for interactive use
+          default = {
+            notifier.enable = false;
+          }; # ~/.config/opencode for interactive use
 
           web = {
             configDir = "${config.home.homeDirectory}/.config/opencode-web";
