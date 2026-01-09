@@ -152,6 +152,41 @@ CUPS printer driver for the Nelko PL70e-BT Bluetooth label printer.
 
 ---
 
+### [opencode-notifier-apprise](opencode-notifier-apprise/README.md)
+
+OpenCode plugin that sends notifications via Apprise API when user attention is needed.
+
+**Purpose**: Notifies users of idle sessions, permission requests, and errors.
+
+**Key Features**:
+- Automatic notification on session idle
+- Permission request alerts
+- Error reporting
+- Apprise API integration (Slack, Discord, Telegram, etc.)
+
+**Used By**: Systems with OpenCode enabled
+
+**Version**: 0.1.0
+
+---
+
+### [opencode-anthropic-auth-patch](opencode-anthropic-auth-patch/README.md)
+
+Patched Anthropic auth plugin for OpenCode with tool renaming.
+
+**Purpose**: Fixes "This credential is only authorized for use with Claude Code" error when using Claude OAuth with MCP tools.
+
+**Key Features**:
+- Prefixes tools with `oc_` on requests
+- Strips `oc_` prefix on responses
+- Allows using Claude Pro/Max OAuth with MCP tools
+
+**Used By**: All hosts with OpenCode enabled
+
+**Version**: 0.0.6-oc
+
+---
+
 ### [ssh-agent-check](ssh-agent-check/README.md)
 
 Fast, cached SSH agent availability checker.
@@ -256,6 +291,8 @@ environment.systemPackages = with pkgs; [
   forgejo-shell
   messy-restricted-shell
   nelko-pl70ebt
+  opencode-notifier-apprise
+  opencode-anthropic-auth-patch
   pinentry-1password
   ssh-agent-check
   eztunnel

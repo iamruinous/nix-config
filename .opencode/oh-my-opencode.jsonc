@@ -30,10 +30,11 @@
   // context7, websearch_exa, grep_app enabled by default
   "disabled_mcps": [],
 
-  // Ralph Loop disabled by default (opt-in)
+  // Ralph Loop - enables autonomous self-correction for all agents
+  // Agents will Plan -> Execute -> Verify -> Self-correct up to max_iterations
   "ralph_loop": {
-    "enabled": false,
-    "default_max_iterations": 100
+    "enabled": true,
+    "default_max_iterations": 10
   },
 
   // Claude Code compatibility - all enabled
