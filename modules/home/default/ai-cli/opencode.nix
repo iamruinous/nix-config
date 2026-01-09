@@ -1,4 +1,4 @@
-# ruinous.ai-cli.opencode.enable = true;
+# ruinous.oi-cli.opencode.enable = true;
 #
 # Manages OpenCode CLI configuration with:
 # - CLI binary installation (Linux only, use brew on macOS)
@@ -12,6 +12,13 @@
 #   ruinous.ai-cli.opencode = {
 #     enable = true;
 #     plugins = [ "my-plugin" ];  # shared defaults
+#
+#     # oh-my-opencode agent model overrides
+#     omoAgents = {
+#       Sisyphus.model = "anthropic/claude-opus-4-5";
+#       oracle.model = "openai/gpt-5.2";
+#       explore.model = "opencode/grok-code";
+#     };
 #
 #     configs = {
 #       default = {};  # ~/.config/opencode with all defaults
@@ -39,8 +46,140 @@
 with lib; let
   cfg = config.ruinous.ai-cli.opencode;
   opencode_config = flake + /files/configs/opencode/opencode.json;
-  omo_config = flake + /files/configs/opencode/oh-my-opencode.json;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
+
+  # Permission submodule type for oh-my-opencode agents
+  permissionType = types.submodule {
+    options = {
+      edit = mkOption {
+        type = types.nullOr (types.enum ["ask" "allow" "deny"]);
+        default = null;
+        description = "Permission for file editing.";
+      };
+      bash = mkOption {
+        type = types.nullOr (
+          types.either
+          (types.enum ["ask" "allow" "deny"])
+          (types.attrsOf (types.enum ["ask" "allow" "deny"]))
+        );
+        default = null;
+        description = "Permission for bash commands. Can be a string or an object mapping commands to permissions.";
+      };
+      webfetch = mkOption {
+        type = types.nullOr (types.enum ["ask" "allow" "deny"]);
+        default = null;
+        description = "Permission for web fetching.";
+      };
+      doom_loop = mkOption {
+        type = types.nullOr (types.enum ["ask" "allow" "deny"]);
+        default = null;
+        description = "Permission for doom loop detection.";
+      };
+      external_directory = mkOption {
+        type = types.nullOr (types.enum ["ask" "allow" "deny"]);
+        default = null;
+        description = "Permission for external directory access.";
+      };
+    };
+  };
+
+  # oh-my-opencode agent submodule type
+  omoAgentType = types.submodule {
+    options = {
+      model = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Model identifier for this agent (e.g., 'anthropic/claude-opus-4-5').";
+        example = "anthropic/claude-opus-4-5";
+      };
+      category = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Category for this agent.";
+      };
+      skills = mkOption {
+        type = types.nullOr (types.listOf types.str);
+        default = null;
+        description = "List of skills for this agent.";
+      };
+      temperature = mkOption {
+        type = types.nullOr types.float;
+        default = null;
+        description = "Temperature setting (0-2).";
+      };
+      top_p = mkOption {
+        type = types.nullOr types.float;
+        default = null;
+        description = "Top-p sampling setting (0-1).";
+      };
+      prompt = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Custom prompt for this agent.";
+      };
+      prompt_append = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Text to append to the agent's prompt.";
+      };
+      tools = mkOption {
+        type = types.nullOr (types.attrsOf types.bool);
+        default = null;
+        description = "Tool enable/disable map.";
+      };
+      disable = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = "Whether to disable this agent.";
+      };
+      description = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Description of this agent.";
+      };
+      mode = mkOption {
+        type = types.nullOr (types.enum ["subagent" "primary" "all"]);
+        default = null;
+        description = "Agent mode.";
+      };
+      color = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Agent color in hex format (e.g., '#FF5733').";
+      };
+      permission = mkOption {
+        type = types.nullOr permissionType;
+        default = null;
+        description = "Permission settings for this agent.";
+      };
+    };
+  };
+
+  # Helper to recursively remove null values from an attrset
+  removeNulls = attrs:
+    lib.filterAttrsRecursive (n: v: v != null) attrs;
+
+  # Generate oh-my-opencode.json content from config
+  generateOmoConfig = agents: googleAuth:
+    builtins.toJSON (removeNulls {
+      "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
+      google_auth = googleAuth;
+      agents =
+        lib.mapAttrs (
+          name: agentCfg:
+            removeNulls {
+              inherit (agentCfg) model category skills temperature top_p prompt prompt_append tools disable description mode color;
+              permission =
+                if agentCfg.permission != null
+                then
+                  removeNulls {
+                    inherit (agentCfg.permission) edit bash webfetch doom_loop external_directory;
+                  }
+                else null;
+            }
+        )
+        agents;
+    });
 
   # MCP server submodule type (shared between main config and per-directory configs)
   mcpServerType = types.submodule ({name, ...}: {
@@ -119,6 +258,24 @@ with lib; let
         '';
       };
 
+      omoAgents = mkOption {
+        type = types.nullOr (types.attrsOf omoAgentType);
+        default = null;
+        description = ''
+          Override oh-my-opencode agents for this config directory.
+          If null, inherits from the main omoAgents setting.
+        '';
+      };
+
+      omoGoogleAuth = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = ''
+          Override oh-my-opencode Google auth setting for this config directory.
+          If null, inherits from the main omoGoogleAuth setting.
+        '';
+      };
+
       notifier = {
         enable = mkOption {
           type = types.nullOr types.bool;
@@ -157,6 +314,14 @@ with lib; let
       if dirCfg.mcpServers != null
       then dirCfg.mcpServers
       else cfg.mcpServers;
+    omoAgents =
+      if dirCfg.omoAgents != null
+      then dirCfg.omoAgents
+      else cfg.omoAgents;
+    omoGoogleAuth =
+      if dirCfg.omoGoogleAuth != null
+      then dirCfg.omoGoogleAuth
+      else cfg.omoGoogleAuth;
     notifierEnable =
       if dirCfg.notifier.enable != null
       then dirCfg.notifier.enable
@@ -172,32 +337,6 @@ with lib; let
     resolved = resolveConfig name dirCfg;
     safeName = builtins.replaceStrings ["-" "/"] ["_" "_"] name;
   in {
-    # xdg.configFile entries for this directory
-    configFiles = {
-      "${resolved.configDir}/oh-my-opencode.json" = {
-        source = omo_config;
-      };
-      "${resolved.configDir}/package.json" = {
-        text = builtins.toJSON {
-          name = "opencode-plugins";
-          dependencies = builtins.listToAttrs (
-            map (plugin: let
-              parts = lib.splitString "@" plugin;
-              pname = builtins.head parts;
-              version =
-                if builtins.length parts > 1
-                then builtins.elemAt parts 1
-                else "latest";
-            in {
-              name = pname;
-              value = version;
-            })
-            resolved.plugins
-          );
-        };
-      };
-    };
-
     # Activation script for this directory
     activation = lib.hm.dag.entryAfter ["writeBoundary"] ''
       CONFIG_DIR="${resolved.configDir}"
@@ -322,6 +461,34 @@ in {
       '';
     };
 
+    omoAgents = mkOption {
+      type = types.attrsOf omoAgentType;
+      default = {};
+      example = literalExpression ''
+        {
+          Sisyphus.model = "anthropic/claude-opus-4-5";
+          oracle.model = "openai/gpt-5.2";
+          librarian.model = "anthropic/claude-sonnet-4-5";
+          explore.model = "xai/grok-code-fast-1";
+          frontend-ui-ux-engineer = {
+            model = "google/gemini-2.5-pro";
+            temperature = 0.7;
+          };
+        }
+      '';
+      description = lib.mdDoc ''
+        Configuration for oh-my-opencode agents.
+        Each agent can have model, temperature, skills, and other settings.
+        This attrset is merged with defaults. Use `lib.mkForce` to override all defaults.
+      '';
+    };
+
+    omoGoogleAuth = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether to enable Google authentication in oh-my-opencode.";
+    };
+
     notifier = {
       enable = mkEnableOption "OpenCode Apprise notification plugin";
     };
@@ -376,9 +543,18 @@ in {
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
         "opencode-anthropic-auth@0.0.7"
-        # Patched version of anthropic-auth with tool renaming for OAuth
-        # This bypasses the "credential only authorized for Claude Code" restriction
       ];
+
+      # Default oh-my-opencode agent model configurations
+      ruinous.ai-cli.opencode.omoAgents = {
+        Sisyphus.model = "anthropic/claude-opus-4-5";
+        oracle.model = "openai/gpt-5.2";
+        librarian.model = "anthropic/claude-sonnet-4-5";
+        explore.model = "opencode/grok-code";
+        frontend-ui-ux-engineer.model = "google/gemini-2.5-pro";
+        document-writer.model = "google/gemini-2.5-flash";
+        multimodal-looker.model = "google/gemini-2.5-flash-image";
+      };
 
       ruinous.ai-cli.opencode.mcpServers = {
         todoist = {
@@ -408,7 +584,8 @@ in {
         pc = processedConfigs.${name};
         resolved = pc.resolved;
       in {
-        "${resolved.configDir}/oh-my-opencode.json".source = omo_config;
+        "${resolved.configDir}/oh-my-opencode.json".text =
+          generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth;
         "${resolved.configDir}/package.json".text = builtins.toJSON {
           name = "opencode-plugins";
           dependencies = builtins.listToAttrs (
