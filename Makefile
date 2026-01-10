@@ -1,4 +1,4 @@
-.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild linux-rebuild remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash check user-password
+.PHONY: update-flake bootstrap-mac install-nix install-nix-darwin darwin-rebuild linux-rebuild dry-build remote-rebuild remote-dry-build refresh-readme restore-readme pi-sdimage pi-flash check user-password
 
 # Colors and styles
 HEADER = gum style --foreground 212 --bold
@@ -35,6 +35,12 @@ linux-rebuild:
 	@$(INFO) "Rebuilding NixOS configuration for $$(hostname)..."
 	@sudo nixos-rebuild switch --flake .#$$(hostname)
 	@$(SUCCESS) "Linux rebuild complete"
+
+dry-build:
+	@$(HEADER) "🧪 Dry Build"
+	@$(INFO) "Dry-building configuration for $$(hostname)..."
+	@nixos-rebuild dry-build --flake .#$$(hostname)
+	@$(SUCCESS) "Dry-build complete for $$(hostname)"
 
 remote-rebuild:
 	@if [ -z "$(remotehost)" ]; then $(ERROR) "remotehost is required (e.g., make remote-rebuild remotehost=monolith)"; exit 1; fi

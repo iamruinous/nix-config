@@ -45,22 +45,23 @@ in {
           }; # ~/.config/opencode for interactive use
 
           web = {
-            configDir = "${config.home.homeDirectory}/.config/opencode-web";
+            configDir = "${config.home.homeDirectory}/.config/openportal";
             notifier.enable = false;
           };
 
           kimaki = {
-            configDir = "${config.home.homeDirectory}/.config/opencode-kimaki";
+            configDir = "${config.home.homeDirectory}/.config/kimaki";
             notifier.enable = false;
           };
         };
       };
-      opencode-web = {
+      openportal = {
         enable = true;
-        projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
-        port = 18080;
-        cors = ["zenith.meskill.farm"];
-        configDir = "${config.home.homeDirectory}/.config/opencode-web";
+        projectPath = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
+        hostname = "172.17.0.1"; # Bind to docker interface
+        configDir = "${config.home.homeDirectory}/.config/openportal";
+        cacheDir = "${config.home.homeDirectory}/.cache/openportal";
+        stateDir = "${config.home.homeDirectory}/.local/state/openportal";
         environmentFiles = [
           config.age.secrets.zenith_opencode_web_shared_env.path
           config.age.secrets.zenith_opencode_web_nix_env.path
@@ -68,7 +69,9 @@ in {
       };
       kimaki = {
         enable = true;
-        configDir = "${config.home.homeDirectory}/.config/opencode-kimaki";
+        configDir = "${config.home.homeDirectory}/.config/kimaki";
+        cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
+        stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
         environmentFiles = [
           config.age.secrets.zenith_opencode_web_shared_env.path
           config.age.secrets.zenith_kimaki_env.path
