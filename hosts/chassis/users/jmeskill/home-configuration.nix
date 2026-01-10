@@ -13,11 +13,34 @@ in {
   # Enable vdirsyncer
   # ruinous.vdirsyncer.enable = true;
 
-  ruinous.git.signing.use1Password = true;
-  ruinous.rust-motd.enable = true;
   programs.wezterm.enable = true;
-  ruinous.openssh.remote.forwarding.enable = true;
-  ruinous.openssh.tmux.attach.enable = true;
+  ruinous = {
+    git.signing.use1Password = true;
+    rust-motd.enable = true;
+    openssh.tmux.attach.enable = true;
+    openssh.remote.forwarding.enable = true;
+
+    # Git config - use zenith-specific defaults for all repos
+    git.default = {
+      userEmail = "jade@ruinous.ai";
+      signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
+    };
+
+    ai-cli = {
+      opencode = {
+        enable = true;
+        # Disabled: notifier causing performance issues, needs debugging
+        # notifier.enable = true;
+
+        # Multiple config directories for independent sessions
+        configs = {
+          default = {
+            notifier.enable = false;
+          }; # ~/.config/opencode for interactive use
+        };
+      };
+    };
+  };
 
   programs.plasma = {
     enable = true;

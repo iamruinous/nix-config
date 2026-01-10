@@ -36,4 +36,13 @@
       IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
     };
   };
+
+  # Enable Wake-on-LAN for the ethernet interface
+  systemd.network.links."10-ethernet-wol" = {
+    enable = true;
+    matchConfig.OriginalName = "enp191s0";
+    linkConfig = {
+      WakeOnLan = "magic";
+    };
+  };
 }
