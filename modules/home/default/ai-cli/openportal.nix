@@ -11,6 +11,8 @@
 #     port = 18080;           # Web UI port
 #     opencodePort = 19090;   # OpenCode server port
 #     configDir = "${config.home.homeDirectory}/.config/openportal";
+#     cacheDir = "${config.home.homeDirectory}/.cache/openportal";
+#     stateDir = "${config.home.homeDirectory}/.local/state/openportal";
 #   };
 #
 # This creates a systemd user service `openportal.service`.
@@ -155,6 +157,32 @@ in {
       example = "/home/user/.config/openportal";
     };
 
+    cacheDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom cache directory for the opencode service.
+        When set, XDG_CACHE_HOME environment variable is set to this path,
+        keeping service cache independent from interactive opencode usage.
+      '';
+      example = "/home/user/.cache/openportal";
+    };
+
+    stateDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom state directory for the opencode service.
+        When set, XDG_STATE_HOME environment variable is set to this path,
+        keeping service state (logs, history) independent from interactive opencode usage.
+
+        Authentication tokens are shared with interactive opencode via symlinks:
+        - <stateDir>/opencode/auth.json -> ~/.local/state/opencode/auth.json
+        - <stateDir>/opencode/mcp-auth.json -> ~/.local/state/opencode/mcp-auth.json
+      '';
+      example = "/home/user/.local/state/openportal";
+    };
+
     environmentFiles = mkOption {
       type = types.listOf types.path;
       default = [];
@@ -187,6 +215,16 @@ in {
       ];
     }
 
+    # Symlink shared auth files when using isolated stateDir
+    (mkIf (cfg.stateDir != null) {
+      home.file = {
+        "${cfg.stateDir}/opencode/auth.json".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/auth.json";
+        "${cfg.stateDir}/opencode/mcp-auth.json".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/mcp-auth.json";
+      };
+    })
+
     # Linux: systemd user service
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.services.openportal = {
@@ -214,6 +252,12 @@ in {
               ]
               ++ optionals (cfg.configDir != null) [
                 "OPENCODE_CONFIG_DIR=${cfg.configDir}"
+              ]
+              ++ optionals (cfg.cacheDir != null) [
+                "XDG_CACHE_HOME=${cfg.cacheDir}"
+              ]
+              ++ optionals (cfg.stateDir != null) [
+                "XDG_STATE_HOME=${cfg.stateDir}"
               ];
           }
           // optionalAttrs (cfg.environmentFiles != []) {

@@ -21,6 +21,10 @@
 #     # Uses llm-agents opencode by default; override if needed:
 #     # opencodePackage = pkgs.opencode;
 #     # Common MCP tools (uv, pnpm, nodejs, bun, gnumake) included by default
+#     # Isolate state/cache from interactive opencode:
+#     configDir = "${config.home.homeDirectory}/.config/kimaki";
+#     cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
+#     stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
 #   };
 #
 # This creates a systemd user service `kimaki.service` that runs the
@@ -158,7 +162,33 @@ in {
         When set, OPENCODE_CONFIG_DIR environment variable is set to this path,
         keeping service sessions independent from interactive opencode usage.
       '';
-      example = "/home/user/.config/opencode-web";
+      example = "/home/user/.config/kimaki";
+    };
+
+    cacheDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom cache directory for the kimaki/opencode service.
+        When set, XDG_CACHE_HOME environment variable is set to this path,
+        keeping service cache independent from interactive opencode usage.
+      '';
+      example = "/home/user/.cache/kimaki";
+    };
+
+    stateDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom state directory for the kimaki/opencode service.
+        When set, XDG_STATE_HOME environment variable is set to this path,
+        keeping service state (logs, history) independent from interactive opencode usage.
+
+        Authentication tokens are shared with interactive opencode via symlinks:
+        - <stateDir>/opencode/auth.json -> ~/.local/state/opencode/auth.json
+        - <stateDir>/opencode/mcp-auth.json -> ~/.local/state/opencode/mcp-auth.json
+      '';
+      example = "/home/user/.local/state/kimaki";
     };
 
     discordTokenSecret = mkOption {
@@ -231,6 +261,16 @@ in {
       ];
     }
 
+    # Symlink shared auth files when using isolated stateDir
+    (mkIf (cfg.stateDir != null) {
+      home.file = {
+        "${cfg.stateDir}/opencode/auth.json".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/auth.json";
+        "${cfg.stateDir}/opencode/mcp-auth.json".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/mcp-auth.json";
+      };
+    })
+
     # Linux: systemd user service
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.services.kimaki = {
@@ -258,6 +298,12 @@ in {
             ]
             ++ optionals (cfg.configDir != null) [
               "OPENCODE_CONFIG_DIR=${cfg.configDir}"
+            ]
+            ++ optionals (cfg.cacheDir != null) [
+              "XDG_CACHE_HOME=${cfg.cacheDir}"
+            ]
+            ++ optionals (cfg.stateDir != null) [
+              "XDG_STATE_HOME=${cfg.stateDir}"
             ]
             ++ optionals (cfg.discordTokenSecret != null) [
               "DISCORD_TOKEN_FILE=${cfg.discordTokenSecret}"
