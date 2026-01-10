@@ -154,6 +154,20 @@ in {
       example = "/home/user/.local/state/kimaki";
     };
 
+    dataDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom data directory for the kimaki/opencode service.
+        When set, XDG_DATA_HOME environment variable is set to this path,
+        keeping service data (project registry) independent from interactive opencode usage.
+
+        OpenCode stores registered projects in $XDG_DATA_HOME/opencode/storage/project/.
+        When isolated, kimaki's opencode instances will have their own project registries.
+      '';
+      example = "/home/user/.local/share/kimaki";
+    };
+
     includeSystemPath = mkOption {
       type = types.bool;
       default = true;
@@ -266,6 +280,7 @@ in {
               configDir = cfg.configDir;
               cacheDir = cfg.cacheDir;
               stateDir = cfg.stateDir;
+              dataDir = cfg.dataDir;
               includeSystemPath = cfg.includeSystemPath;
               # Include wrapped opencode in PATH for child processes
               prependPaths = ["${wrappedOpencode}/bin"];

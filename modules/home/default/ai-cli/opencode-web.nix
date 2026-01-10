@@ -178,6 +178,21 @@ in {
       example = "/home/user/.local/state/opencode-web";
     };
 
+    dataDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom data directory for the opencode-web service.
+        When set, XDG_DATA_HOME environment variable is set to this path,
+        keeping service data (project registry) independent from interactive opencode usage.
+
+        OpenCode stores registered projects in $XDG_DATA_HOME/opencode/storage/project/.
+        When isolated, the service starts with an empty project registry and auto-registers
+        the projectPath on first run.
+      '';
+      example = "/home/user/.local/share/opencode-web";
+    };
+
     includeSystemPath = mkOption {
       type = types.bool;
       default = true;
@@ -252,6 +267,7 @@ in {
               configDir = cfg.configDir;
               cacheDir = cfg.cacheDir;
               stateDir = cfg.stateDir;
+              dataDir = cfg.dataDir;
               includeSystemPath = cfg.includeSystemPath;
             };
           }
