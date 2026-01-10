@@ -8,7 +8,7 @@
     # List of recipient keys (age or ssh) used to decrypt secrets
     identityPaths =
       if builtins.hasAttr "home" config
-      then ["${config.home.homeDirectory}/.config/age/id_age"]
+      then ["${config.home.homeDirectory}/.config/age/user_id_age"]
       else ["/etc/ssh/ssh_host_ed25519_key"];
 
     # Directory where secrets are symlinked to by default
@@ -26,9 +26,10 @@
         then "home/${hostName}-${username}"
         else "nixos/${hostName}";
     in {
-      # Master identity decrypted to /tmp/id_age by agenix-helper
+      # Master identities for agenix-rekey operations (always in /tmp for consistent rekey)
       # Run `agenix-helper unlock` before rekeying operations
-      masterIdentities = [/tmp/id_age /tmp/id_age_];
+      # The agenix-helper creates symlinks: /tmp/host_id_age -> ~/.local/state/agenix-helper/host_id_age
+      masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_"];
 
       # Public ssh host key derived from 32-byte hex
       # > nixos generate
