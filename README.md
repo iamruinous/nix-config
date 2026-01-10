@@ -29,7 +29,6 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 ├── lib/                  # Custom Nix library functions
 ├── secrets/              # Encrypted secrets managed with agenix
 ├── files/                # Static configuration files
-├── .context/             # Unified AI agent context (SSOT)
 ├── .claude/              # oh-my-opencode agents and commands
 ├── .opencode/            # oh-my-opencode project configuration
 └── Makefile              # Helper commands for common operations
@@ -75,7 +74,6 @@ opencode
 | File | Purpose |
 |------|---------|
 | **AGENTS.md** | Primary context beacon for OpenCode |
-| **.context/index.md** | Single source of truth index |
 | **.claude/agents/** | Custom agent definitions |
 | **.claude/commands/** | Slash commands |
 
