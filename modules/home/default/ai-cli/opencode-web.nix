@@ -45,49 +45,13 @@ with lib; let
   cfg = config.ruinous.ai-cli.opencode-web;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
-  # Default packages for service functionality (tools available in PATH)
-  defaultPackages = with pkgs; [
-    gh
-    tea
-    cloudflare-cli
-
-    ripgrep
-    jq
-    fd
-    miller
-    yq-go
-
-    python3
-    uv # provides uv/uvx
-
-    nodejs # provides node + npm
-    pnpm
-    bun
-
-    docker
-
-    gnumake # postgres-mcp
-  ];
-
-  # Packages that are always needed for opencode functionality
-  builtinPackages = with pkgs; [
-    git # Git is essential for opencode's VCS operations
-    openssh # SSH for git operations and signing
-  ];
+  # Import shared OpenCode library from top-level lib/
+  opcodeLib = import ../../../../lib/opencode/wrapper.nix {inherit lib pkgs;};
 
   # Create a wrapped opencode with all necessary environment setup
-  wrappedOpencode = pkgs.symlinkJoin {
-    name = "opencode-wrapped";
-    paths = [cfg.package];
-    buildInputs = [pkgs.makeWrapper];
-    postBuild = ''
-      wrapProgram $out/bin/opencode \
-        --prefix PATH : ${lib.makeBinPath (builtinPackages ++ cfg.packages)} \
-        --set NIX_LD /run/current-system/sw/share/nix-ld/lib/ld.so \
-        --prefix NIX_LD_LIBRARY_PATH : ${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]} \
-        --prefix NIX_LD_LIBRARY_PATH : /run/current-system/sw/share/nix-ld/lib \
-        --set OPENCODE_LIBC ${pkgs.glibc}/lib/libc.so.6
-    '';
+  wrappedOpencode = opcodeLib.mkWrappedOpencode {
+    package = cfg.package;
+    extraPackages = cfg.packages;
   };
 
   # Build command arguments
@@ -119,7 +83,7 @@ in {
 
     packages = mkOption {
       type = types.listOf types.package;
-      default = defaultPackages;
+      default = opcodeLib.defaultPackages;
       description = ''
         Additional packages to include in the service PATH.
         Useful for MCP servers that need tools like uvx, pnpm, etc.
@@ -214,6 +178,16 @@ in {
       example = "/home/user/.local/state/opencode-web";
     };
 
+    includeSystemPath = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Include system and user profile paths in the service PATH.
+        When enabled, adds /run/current-system/sw/bin and /etc/profiles/per-user/$USER/bin
+        to PATH, giving access to all system and home-manager installed packages.
+      '';
+    };
+
     environmentFiles = mkOption {
       type = types.listOf types.path;
       default = [];
@@ -248,11 +222,10 @@ in {
 
     # Symlink shared auth files when using isolated stateDir
     (mkIf (cfg.stateDir != null) {
-      home.file = {
-        "${cfg.stateDir}/opencode/auth.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/auth.json";
-        "${cfg.stateDir}/opencode/mcp-auth.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/mcp-auth.json";
+      home.file = opcodeLib.mkAuthSymlinks {
+        stateDir = cfg.stateDir;
+        homeDirectory = config.home.homeDirectory;
+        mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
       };
     })
 
@@ -273,23 +246,14 @@ in {
             RestartSec = "5s";
             RestartSteps = 5;
             RestartMaxDelaySec = "60s";
-            Environment =
-              [
-                "HOME=${config.home.homeDirectory}"
-                "TERM=xterm-256color"
-                "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
-                "NIX_LD=/run/current-system/sw/share/nix-ld/lib/ld.so"
-                "NIX_LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib"
-              ]
-              ++ optionals (cfg.configDir != null) [
-                "OPENCODE_CONFIG_DIR=${cfg.configDir}"
-              ]
-              ++ optionals (cfg.cacheDir != null) [
-                "XDG_CACHE_HOME=${cfg.cacheDir}"
-              ]
-              ++ optionals (cfg.stateDir != null) [
-                "XDG_STATE_HOME=${cfg.stateDir}"
-              ];
+            Environment = opcodeLib.mkSystemdEnvironment {
+              homeDirectory = config.home.homeDirectory;
+              extraPackages = cfg.packages;
+              configDir = cfg.configDir;
+              cacheDir = cfg.cacheDir;
+              stateDir = cfg.stateDir;
+              includeSystemPath = cfg.includeSystemPath;
+            };
           }
           // optionalAttrs (cfg.environmentFiles != []) {
             EnvironmentFile = cfg.environmentFiles;

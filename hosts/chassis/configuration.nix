@@ -20,6 +20,9 @@
   services.flatpak.enable = true;
   services.desktopManager.plasma6.enable = true;
 
+  # enable dynamic libraries for tools like ruff
+  programs.nix-ld.enable = true;
+
   # Enable power management (suspend/sleep support)
   powerManagement.enable = true;
   boot.plymouth.enable = true;

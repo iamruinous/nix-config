@@ -72,50 +72,13 @@ with lib; let
   cfg = config.ruinous.ai-cli.kimaki;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
-  # Default packages for service functionality (tools available in PATH)
-  defaultPackages = with pkgs; [
-    gh
-    tea
-    cloudflare-cli
-
-    ripgrep
-    jq
-    fd
-    miller
-    yq-go
-
-    python3
-    uv # provides uv/uvx
-
-    nodejs # provides node + npm
-    pnpm
-    bun
-
-    docker
-
-    gnumake # postgres-mcp
-  ];
-
-  # Packages that are always needed for opencode functionality
-  builtinPackages = with pkgs; [
-    git # Git is essential for opencode's VCS operations
-    openssh # SSH for git operations and signing
-    nodejs # Node.js runtime for kimaki
-  ];
+  # Import shared OpenCode library from top-level lib/
+  opcodeLib = import ../../../../lib/opencode/wrapper.nix {inherit lib pkgs;};
 
   # Create a wrapped opencode with all necessary environment setup
-  wrappedOpencode = pkgs.symlinkJoin {
-    name = "opencode-wrapped";
-    paths = [cfg.opencodePackage];
-    buildInputs = [pkgs.makeWrapper];
-    postBuild = ''
-      wrapProgram $out/bin/opencode \
-        --prefix PATH : ${lib.makeBinPath (builtinPackages ++ cfg.packages)} \
-        --set NIX_LD /run/current-system/sw/share/nix-ld/lib/ld.so \
-        --prefix NIX_LD_LIBRARY_PATH : ${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]} \
-        --prefix NIX_LD_LIBRARY_PATH : /run/current-system/sw/share/nix-ld/lib \
-        --set OPENCODE_LIBC ${pkgs.glibc}/lib/libc.so.6
-    '';
+  wrappedOpencode = opcodeLib.mkWrappedOpencode {
+    package = cfg.opencodePackage;
+    extraPackages = cfg.packages;
   };
 
   # Build the command to run kimaki via npx
@@ -139,7 +102,7 @@ in {
 
     packages = mkOption {
       type = types.listOf types.package;
-      default = defaultPackages;
+      default = opcodeLib.defaultPackages;
       description = ''
         Additional packages to include in the service PATH.
         Useful for MCP servers that need tools like uvx, pnpm, etc.
@@ -189,6 +152,16 @@ in {
         - <stateDir>/opencode/mcp-auth.json -> ~/.local/state/opencode/mcp-auth.json
       '';
       example = "/home/user/.local/state/kimaki";
+    };
+
+    includeSystemPath = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Include system and user profile paths in the service PATH.
+        When enabled, adds /run/current-system/sw/bin and /etc/profiles/per-user/$USER/bin
+        to PATH, giving access to all system and home-manager installed packages.
+      '';
     };
 
     discordTokenSecret = mkOption {
@@ -263,11 +236,10 @@ in {
 
     # Symlink shared auth files when using isolated stateDir
     (mkIf (cfg.stateDir != null) {
-      home.file = {
-        "${cfg.stateDir}/opencode/auth.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/auth.json";
-        "${cfg.stateDir}/opencode/mcp-auth.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/state/opencode/mcp-auth.json";
+      home.file = opcodeLib.mkAuthSymlinks {
+        stateDir = cfg.stateDir;
+        homeDirectory = config.home.homeDirectory;
+        mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
       };
     })
 
@@ -279,46 +251,44 @@ in {
           After = ["network.target"] ++ optionals (cfg.environmentFiles != []) ["agenix.service"];
           Requires = optionals (cfg.environmentFiles != []) ["agenix.service"];
         };
-        Service = {
-          Type = "exec";
-          WorkingDirectory = cfg.workingDirectory;
-          ExecStart = concatStringsSep " " kimakiCommand;
-          Restart = "always";
-          RestartSec = "5s";
-          RestartSteps = 5;
-          RestartMaxDelaySec = "60s";
-          Environment =
-            [
-              "HOME=${config.home.homeDirectory}"
-              "TERM=xterm-256color"
-              # Include wrapped tools in PATH for child processes
-              "PATH=${wrappedOpencode}/bin:${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
-              # Node.js npm cache directory
-              "npm_config_cache=${config.home.homeDirectory}/.npm"
-            ]
-            ++ optionals (cfg.configDir != null) [
-              "OPENCODE_CONFIG_DIR=${cfg.configDir}"
-            ]
-            ++ optionals (cfg.cacheDir != null) [
-              "XDG_CACHE_HOME=${cfg.cacheDir}"
-            ]
-            ++ optionals (cfg.stateDir != null) [
-              "XDG_STATE_HOME=${cfg.stateDir}"
-            ]
-            ++ optionals (cfg.discordTokenSecret != null) [
-              "DISCORD_TOKEN_FILE=${cfg.discordTokenSecret}"
-            ]
-            ++ optionals (cfg.geminiApiKeySecret != null) [
-              "GEMINI_API_KEY_FILE=${cfg.geminiApiKeySecret}"
-            ];
-        } // optionalAttrs (cfg.environmentFiles != []) {
-          EnvironmentFile = cfg.environmentFiles;
-        };
+        Service =
+          {
+            Type = "exec";
+            WorkingDirectory = cfg.workingDirectory;
+            ExecStart = concatStringsSep " " kimakiCommand;
+            Restart = "always";
+            RestartSec = "5s";
+            RestartSteps = 5;
+            RestartMaxDelaySec = "60s";
+            Environment = opcodeLib.mkSystemdEnvironment {
+              homeDirectory = config.home.homeDirectory;
+              extraPackages = cfg.packages;
+              configDir = cfg.configDir;
+              cacheDir = cfg.cacheDir;
+              stateDir = cfg.stateDir;
+              includeSystemPath = cfg.includeSystemPath;
+              # Include wrapped opencode in PATH for child processes
+              prependPaths = ["${wrappedOpencode}/bin"];
+              extraEnv =
+                [
+                  # Node.js npm cache directory
+                  "npm_config_cache=${config.home.homeDirectory}/.npm"
+                ]
+                ++ optionals (cfg.discordTokenSecret != null) [
+                  "DISCORD_TOKEN_FILE=${cfg.discordTokenSecret}"
+                ]
+                ++ optionals (cfg.geminiApiKeySecret != null) [
+                  "GEMINI_API_KEY_FILE=${cfg.geminiApiKeySecret}"
+                ];
+            };
+          }
+          // optionalAttrs (cfg.environmentFiles != []) {
+            EnvironmentFile = cfg.environmentFiles;
+          };
         Install = {
           WantedBy = ["default.target"];
         };
       };
     })
-
   ]);
 }
