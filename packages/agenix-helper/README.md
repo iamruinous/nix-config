@@ -16,10 +16,11 @@ This implementation is inspired by [suderman/nixos](https://github.com/suderman/
 
 1. Your age identity is stored encrypted at `secrets/id_age.age`
 2. When you run `agenix-helper unlock`, it prompts for your passphrase
-3. The decrypted key is stored temporarily at `/tmp/id_age` with `600` permissions (owner read/write only)
-4. The `.envrc` automatically exports environment variables pointing to the unlocked key
-5. All subsequent agenix operations use the unlocked key without prompting
-6. When done, run `agenix-helper lock` to remove the decrypted key
+3. The decrypted **host identity** is stored at `~/.local/state/agenix-helper/host_id_age` with `600` permissions
+4. The decrypted **user identity** (for home-manager agenix) is stored at `~/.config/age/user_id_age`
+5. The `.envrc` automatically exports environment variables pointing to the unlocked key
+6. All subsequent agenix operations use the unlocked key without prompting
+7. When done, run `agenix-helper lock` to remove the decrypted keys
 
 ## Usage
 
@@ -54,7 +55,8 @@ cd ~/Projects/nix-config
 # Unlock once at the start of your session
 agenix-helper unlock
 # Enter passphrase: ********
-# 🔓 Age identity unlocked at /tmp/id_age
+# 🔓 Host identity unlocked at ~/.local/state/agenix-helper/host_id_age
+# 🔓 User identity unlocked at ~/.config/age/user_id_age
 
 # Now work with secrets normally - no more passphrase prompts!
 agenix edit secrets/nixos/pilaster/my-secret.age
@@ -63,7 +65,7 @@ agenix edit secrets/nixos/framework/another-secret.age
 
 # When done for the day
 agenix-helper lock
-# 🔒 Age identity locked (removed /tmp/id_age)
+# 🔒 Agenix identities locked and removed
 ```
 
 ### Integration with direnv
@@ -76,11 +78,12 @@ cd ~/Projects/nix-config
 # ⚠️  Age identity not unlocked. Run 'agenix-helper unlock' to unlock manually.
 
 agenix-helper unlock
-# 🔓 Age identity unlocked at /tmp/id_age
+# 🔓 Host identity unlocked at ~/.local/state/agenix-helper/host_id_age
+# 🔓 User identity unlocked at ~/.config/age/user_id_age
 
 # Environment variables are automatically set:
-echo $SOPS_AGE_KEY_FILE     # /tmp/id_age
-echo $AGE_IDENTITIES_FILE   # /tmp/id_age
+echo $SOPS_AGE_KEY_FILE     # ~/.local/state/agenix-helper/host_id_age
+echo $AGE_IDENTITIES_FILE   # ~/.local/state/agenix-helper/host_id_age
 ```
 
 ## 1Password Integration
@@ -141,27 +144,30 @@ Examples:
 
 Customize behavior with these environment variables:
 
-- `AGE_IDENTITY_FILE` - Path to decrypted identity (default: `/tmp/id_age`)
-- `AGE_IDENTITY_ENCRYPTED` - Path to encrypted identity (default: `secrets/id_age.age`)
-- `AGE_IDENTITY_BACKUP` - Path to backup identity (default: `/tmp/id_age_`)
+- `AGE_IDENTITY_DIR` - Directory for host identity files (default: `~/.local/state/agenix-helper`)
+- `AGE_IDENTITY_FILE` - Path to decrypted host identity (default: `$AGE_IDENTITY_DIR/host_id_age`)
+- `AGE_IDENTITY_ENCRYPTED` - Path to encrypted host identity (default: `secrets/id_age.age`)
+- `AGE_IDENTITY_BACKUP` - Path to backup host identity (default: `$AGE_IDENTITY_DIR/host_id_age_`)
+- `AGE_USER_IDENTITY_FILE` - Path to decrypted user identity (default: `~/.config/age/user_id_age`)
+- `AGE_USER_IDENTITY_ENCRYPTED` - Path to encrypted user identity (default: `users/$USER/id_age.age`)
 - `OP_PIN_ITEM` - 1Password secret reference for passphrase (optional, enables 1Password integration)
 
 ## Security Considerations
 
 ### Secure Storage
-- Decrypted key stored at `/tmp/id_age` with `600` permissions (owner read/write only)
-- `/tmp` is typically cleared on system reboot
-- Old identity backed up to `/tmp/id_age_` when unlocking again
+- Host identity stored at `~/.local/state/agenix-helper/host_id_age` with `600` permissions (owner read/write only)
+- User identity stored at `~/.config/age/user_id_age` with `600` permissions
+- Directory `~/.local/state/agenix-helper/` created with `700` permissions
+- Old identity backed up when unlocking again
 
 ### Best Practices
 1. **Lock when done**: Always run `agenix-helper lock` when finished working with secrets
-2. **System reboot**: The unlocked key is automatically cleared on reboot
-3. **Shared systems**: Don't use this on multi-user systems where others have root access
-4. **Screen lock**: Lock your screen when stepping away from your workstation
-5. **Review habits**: Consider your threat model - if you need maximum security, enter the passphrase for each operation instead
+2. **Shared systems**: Don't use this on multi-user systems where others have root access
+3. **Screen lock**: Lock your screen when stepping away from your workstation
+4. **Review habits**: Consider your threat model - if you need maximum security, enter the passphrase for each operation instead
 
 ### What This Doesn't Protect Against
-- Root users on the same system (they can read `/tmp/id_age`)
+- Root users on the same system (they can read your home directory)
 - Physical access to your unlocked system
 - Memory dumps or forensics while the key is unlocked
 
@@ -191,9 +197,22 @@ home.packages = with pkgs; [
 
 ## Implementation Details
 
+### Two Identity Files
+
+agenix-helper manages two separate identity files:
+
+1. **Host Identity** (`~/.local/state/agenix-helper/host_id_age`)
+   - Used for `agenix-rekey` operations (rekeying secrets for hosts)
+   - Decrypted from `secrets/id_age.age` using your passphrase
+
+2. **User Identity** (`~/.config/age/user_id_age`)
+   - Used by home-manager's agenix module for runtime secret decryption
+   - Decrypted from `users/$USER/id_age.age` using the host identity
+   - Allows systemd user services to decrypt secrets at runtime
+
 ### Quiet Mode
 In quiet mode (`agenix-helper unlock quiet`):
-- Checks if `/tmp/id_age` already exists
+- Checks if `~/.local/state/agenix-helper/host_id_age` already exists
 - If yes, returns success immediately (exit code 0)
 - If no, returns failure silently (exit code 1)
 - Never prompts for passphrase
