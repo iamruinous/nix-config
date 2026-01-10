@@ -54,6 +54,34 @@ with lib; let
     extraPackages = cfg.packages;
   };
 
+  # Determine the data directory for project storage
+  # If dataDir is set, use that; otherwise use the default XDG_DATA_HOME
+  projectStorageDir =
+    if cfg.dataDir != null
+    then "${cfg.dataDir}/opencode/storage/project"
+    else "${config.home.homeDirectory}/.local/share/opencode/storage/project";
+
+  # Generate a project ID from the worktree path (SHA1 hash, matching opencode's behavior)
+  mkProjectId = path: builtins.hashString "sha1" path;
+
+  # Generate JSON content for a project entry
+  mkProjectJson = path: let
+    id = mkProjectId path;
+    # Use current time in milliseconds (approximated via $EPOCHREALTIME in activation)
+    # The actual timestamp will be set during activation
+  in ''
+    {
+      "id": "${id}",
+      "worktree": "${path}",
+      "vcs": "git",
+      "time": {
+        "created": __TIMESTAMP__,
+        "updated": __TIMESTAMP__
+      },
+      "sandboxes": []
+    }
+  '';
+
   # Build command arguments
   buildArgs =
     [
@@ -178,6 +206,41 @@ in {
       example = "/home/user/.local/state/opencode-web";
     };
 
+    dataDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Custom data directory for the opencode-web service.
+        When set, XDG_DATA_HOME environment variable is set to this path,
+        keeping service data (project registry) independent from interactive opencode usage.
+
+        OpenCode stores registered projects in $XDG_DATA_HOME/opencode/storage/project/.
+        When isolated, the service starts with an empty project registry and auto-registers
+        the projectPath on first run.
+      '';
+      example = "/home/user/.local/share/opencode-web";
+    };
+
+    projects = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = ''
+        List of project paths to register in the opencode project registry.
+        These projects will appear in the "Recent Projects" list in the web UI.
+
+        Each path is registered by creating a JSON file in the opencode storage directory.
+        The dataDir option controls whether these are written to an isolated directory
+        or the shared ~/.local/share/opencode/storage/project/.
+
+        Note: Projects are synced during home-manager activation. Existing project
+        entries (with matching paths) are preserved to maintain timestamps and icons.
+      '';
+      example = [
+        "/home/user/Projects/my-project"
+        "/home/user/Projects/another-project"
+      ];
+    };
+
     includeSystemPath = mkOption {
       type = types.bool;
       default = true;
@@ -229,6 +292,45 @@ in {
       };
     })
 
+    # Sync declarative project registry during activation
+    (mkIf (cfg.projects != []) {
+      home.activation.syncOpencodeProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        # Ensure storage directory exists
+        mkdir -p "${projectStorageDir}"
+
+        # Get current timestamp in milliseconds
+        TIMESTAMP=$(date +%s)000
+
+        ${concatMapStringsSep "\n" (path: let
+          id = mkProjectId path;
+          jsonFile = "${projectStorageDir}/${id}.json";
+        in ''
+          # Project: ${path}
+          if [ -f "${jsonFile}" ]; then
+            # Preserve existing entry (keeps timestamps, icons, etc.)
+            $VERBOSE_ECHO "opencode-web: project already registered: ${path}"
+          else
+            # Create new project entry
+            $VERBOSE_ECHO "opencode-web: registering project: ${path}"
+            cat > "${jsonFile}" << 'PROJECTEOF'
+          {
+            "id": "${id}",
+            "worktree": "${path}",
+            "vcs": "git",
+            "time": {
+              "created": TIMESTAMP_PLACEHOLDER,
+              "updated": TIMESTAMP_PLACEHOLDER
+            },
+            "sandboxes": []
+          }
+          PROJECTEOF
+            # Replace timestamp placeholder with actual value
+            ${pkgs.gnused}/bin/sed -i "s/TIMESTAMP_PLACEHOLDER/$TIMESTAMP/g" "${jsonFile}"
+          fi
+        '') cfg.projects}
+      '';
+    })
+
     # Linux: systemd user service
     (mkIf pkgs.stdenv.isLinux {
       systemd.user.services.opencode-web = {
@@ -252,6 +354,7 @@ in {
               configDir = cfg.configDir;
               cacheDir = cfg.cacheDir;
               stateDir = cfg.stateDir;
+              dataDir = cfg.dataDir;
               includeSystemPath = cfg.includeSystemPath;
             };
           }

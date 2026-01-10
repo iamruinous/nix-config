@@ -66,6 +66,20 @@ in {
           config.age.secrets.zenith_opencode_web_shared_env.path
           config.age.secrets.zenith_opencode_web_nix_env.path
         ];
+        # Declarative project registry for Recent Projects list
+        projects = [
+          "/home/jmeskill/Projects/ruinous.ai/codey-agent-system"
+          "/home/jmeskill/Projects/ruinous.ai/dossiq-ai"
+          "/home/jmeskill/Projects/ruinous.ai/ml-pspd"
+          "/home/jmeskill/Projects/ruinous.ai/n8n-agent"
+          "/home/jmeskill/Projects/ruinous.ai/n8n-messy-discord-bot"
+          "/home/jmeskill/Projects/ruinous.ai/nix-config"
+          "/home/jmeskill/Projects/kimaki/codey-agent-system"
+          "/home/jmeskill/Projects/kimaki/dossiq-ai"
+          "/home/jmeskill/Projects/kimaki/ml-pspd"
+          "/home/jmeskill/Projects/kimaki/n8n-agent"
+          "/home/jmeskill/Projects/kimaki/nix-config"
+        ];
       };
       kimaki = {
         enable = true;

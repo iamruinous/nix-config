@@ -25,5 +25,14 @@
     })
   ];
 
-  home.uid = lib.mkDefault osConfig.users.users.${config.home.username}.uid;
+  # Set home.uid from osConfig if available, otherwise fall back to typical Linux UID
+  # osConfig may be null or the user may not be defined in osConfig.users
+  home.uid = lib.mkDefault (
+    let
+      userConfig = osConfig.users.users.${config.home.username} or null;
+    in
+      if userConfig != null && userConfig ? uid && userConfig.uid != null
+      then userConfig.uid
+      else 1000 # Default to typical first user UID on Linux
+  );
 }

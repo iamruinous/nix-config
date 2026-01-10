@@ -11,6 +11,7 @@ pkgs.mkShell {
       gitleaks # Secret scanner (for pre-commit hook)
       go # Go compiler for building/testing Go packages
       gum # Pretty TUI for Makefile commands
+      nixd # Nix language server for LSP diagnostics
       pnpm # For running Node.js-based MCP servers
       uv # Provides uvx for running Python-based MCP servers
       postgresql # cli for postgres
@@ -33,7 +34,7 @@ pkgs.mkShell {
     fi
 
     # Show helpful message on shell startup if age identity is not unlocked
-    if ! ${pkgs.coreutils}/bin/test -f /tmp/id_age 2>/dev/null; then
+    if ! ${pkgs.coreutils}/bin/test -f "$HOME/.local/state/agenix-helper/host_id_age" 2>/dev/null; then
       echo ""
       echo "💡 Tip: Run 'agenix-helper unlock' to decrypt your age identity for agenix operations"
       echo "   Available commands: agenix-helper {unlock|lock|status}"

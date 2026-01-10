@@ -27,6 +27,7 @@
 #       configDir = cfg.configDir;
 #       cacheDir = cfg.cacheDir;
 #       stateDir = cfg.stateDir;
+#       dataDir = cfg.dataDir;
 #       includeSystemPath = cfg.includeSystemPath;
 #     };
 #   }
@@ -78,7 +79,9 @@
   mkWrappedOpencode = {
     package,
     extraPackages ? [],
-  }:
+  }: let
+    ldLibPath = "${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib";
+  in
     pkgs.symlinkJoin {
       name = "opencode-wrapped";
       paths = [package];
@@ -87,8 +90,8 @@
         wrapProgram $out/bin/opencode \
           --prefix PATH : ${lib.makeBinPath (builtinPackages ++ extraPackages)} \
           --set NIX_LD /run/current-system/sw/share/nix-ld/lib/ld.so \
-          --prefix NIX_LD_LIBRARY_PATH : ${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]} \
-          --prefix NIX_LD_LIBRARY_PATH : /run/current-system/sw/share/nix-ld/lib \
+          --set NIX_LD_LIBRARY_PATH ${ldLibPath} \
+          --set LD_LIBRARY_PATH ${ldLibPath} \
           --set OPENCODE_LIBC ${pkgs.glibc}/lib/libc.so.6
       '';
     };
@@ -119,16 +122,21 @@
     configDir ? null,
     cacheDir ? null,
     stateDir ? null,
+    dataDir ? null,
     includeSystemPath ? true,
     prependPaths ? [], # Additional paths to prepend (e.g., wrapped opencode bin)
     extraEnv ? [],
   }:
+  let
+    ldLibraryPath = "${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib";
+  in
     [
       "HOME=${homeDirectory}"
       "TERM=xterm-256color"
       "PATH=${mkPath {inherit extraPackages includeSystemPath prependPaths;}}"
       "NIX_LD=/run/current-system/sw/share/nix-ld/lib/ld.so"
-      "NIX_LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib"
+      "NIX_LD_LIBRARY_PATH=${ldLibraryPath}"
+      "LD_LIBRARY_PATH=${ldLibraryPath}"
     ]
     ++ lib.optionals (configDir != null) [
       "OPENCODE_CONFIG_DIR=${configDir}"
@@ -138,6 +146,9 @@
     ]
     ++ lib.optionals (stateDir != null) [
       "XDG_STATE_HOME=${stateDir}"
+    ]
+    ++ lib.optionals (dataDir != null) [
+      "XDG_DATA_HOME=${dataDir}"
     ]
     ++ extraEnv;
 

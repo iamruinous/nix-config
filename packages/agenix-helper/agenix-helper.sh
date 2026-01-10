@@ -6,12 +6,14 @@ set -euo pipefail
 
 GUM="@gum@/bin/gum"
 
-AGE_IDENTITY_FILE="${AGE_IDENTITY_FILE:-/tmp/id_age}"
+# Default to XDG state directory for better systemd service compatibility
+AGE_IDENTITY_DIR="${AGE_IDENTITY_DIR:-$HOME/.local/state/agenix-helper}"
+AGE_IDENTITY_FILE="${AGE_IDENTITY_FILE:-$AGE_IDENTITY_DIR/host_id_age}"
 AGE_IDENTITY_ENCRYPTED="${AGE_IDENTITY_ENCRYPTED:-secrets/id_age.age}"
-AGE_IDENTITY_BACKUP="${AGE_IDENTITY_BACKUP:-/tmp/id_age_}"
+AGE_IDENTITY_BACKUP="${AGE_IDENTITY_BACKUP:-$AGE_IDENTITY_DIR/host_id_age_}"
 
 # User-specific identity for home-manager agenix
-AGE_USER_IDENTITY_FILE="${AGE_USER_IDENTITY_FILE:-$HOME/.config/age/id_age}"
+AGE_USER_IDENTITY_FILE="${AGE_USER_IDENTITY_FILE:-$HOME/.config/age/user_id_age}"
 AGE_USER_IDENTITY_ENCRYPTED="${AGE_USER_IDENTITY_ENCRYPTED:-users/$USER/id_age.age}"
 
 log_success() { $GUM log --level info "$1"; }
@@ -66,14 +68,16 @@ agenix_unlock() {
   if [[ -f "$AGE_IDENTITY_FILE" ]]; then
     mv "$AGE_IDENTITY_FILE" "$AGE_IDENTITY_BACKUP"
   fi
+
+  mkdir -p "$AGE_IDENTITY_DIR"
+  chmod 700 "$AGE_IDENTITY_DIR"
   touch "$AGE_IDENTITY_BACKUP" 2>/dev/null || true
 
-  # Write decrypted age identity to tmp directory
   echo "$id" >"$AGE_IDENTITY_FILE"
   chmod 600 "$AGE_IDENTITY_FILE" "$AGE_IDENTITY_BACKUP" 2>/dev/null || true
 
   if [[ "$quiet" != "quiet" ]]; then
-    $GUM style --foreground 82 "🔓 Age identity unlocked at $AGE_IDENTITY_FILE"
+    $GUM style --foreground 82 "🔓 Host identity unlocked at $AGE_IDENTITY_FILE"
   fi
 
   # Decrypt and deploy user-specific identity for home-manager agenix
@@ -155,9 +159,10 @@ case "${1:-status}" in
     echo "  status, s          - Check if age identities are unlocked"
     echo ""
     echo "Environment variables:"
-    echo "  AGE_IDENTITY_FILE           - Path to decrypted master identity (default: /tmp/id_age)"
-    echo "  AGE_IDENTITY_ENCRYPTED      - Path to encrypted master identity (default: secrets/id_age.age)"
-    echo "  AGE_USER_IDENTITY_FILE      - Path to decrypted user identity (default: ~/.config/age/id_age)"
+    echo "  AGE_IDENTITY_DIR            - Directory for identity files (default: ~/.local/state/agenix-helper)"
+    echo "  AGE_IDENTITY_FILE           - Path to decrypted host identity (default: \$AGE_IDENTITY_DIR/host_id_age)"
+    echo "  AGE_IDENTITY_ENCRYPTED      - Path to encrypted host identity (default: secrets/id_age.age)"
+    echo "  AGE_USER_IDENTITY_FILE      - Path to decrypted user identity (default: ~/.config/age/user_id_age)"
     echo "  AGE_USER_IDENTITY_ENCRYPTED - Path to encrypted user identity (default: users/\$USER/id_age.age)"
     echo "  OP_PIN_ITEM                 - 1Password item reference for passphrase (optional)"
     echo ""
