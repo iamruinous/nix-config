@@ -87,6 +87,9 @@
       };
       ollama = {
         image = "docker.io/ollama/ollama:0.13.5";
+        environment = {
+          OLLAMA_DEFAULT_MODEL = "qwen2.5-coder-7b";
+        };
         devices = ["nvidia.com/gpu=all"];
         networks = ["servicenet"];
         volumes = [

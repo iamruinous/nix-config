@@ -30,7 +30,7 @@
   # OpenPortal firewall ports (web UI + OpenCode backend)
   ruinous.openportal.firewall = {
     enable = true;
-    ports = [3000 4000];
+    ports = [18080 19090];
   };
 
   environment.systemPackages = with pkgs; [

@@ -489,16 +489,36 @@ in {
       default = {};
       example = literalExpression ''
         {
-          Sisyphus.model = "anthropic/claude-opus-4-5";
-          oracle.model = "openai/gpt-5.2";
-          librarian.model = "anthropic/claude-sonnet-4-5";
+          Sisyphus.model = "openai/gpt-5.2";
+          oracle.model = "gpt-5.1-codex-max";
+          librarian.model = "google/gemini-2.5-pro";
           explore.model = "xai/grok-code-fast-1";
           frontend-ui-ux-engineer = {
             model = "google/gemini-2.5-pro";
             temperature = 0.7;
           };
+          document-writer.model = "google/gemini-2.5-flash";
+          multimodal-looker.model = "google/gemini-2.5-flash-image";
         }
       '';
+      # "Sisyphus": { "model": "openai/gpt-5.2" },
+      # "oracle": { "model": "openai/gpt-5.1-codex-max" },
+      # "librarian": { "model": "google/gemini-2.5-pro" },
+      # "explore": { "model": "opencode/grok-code" },
+      # "frontend-ui-ux-engineer": { "model": "google/gemini-2.5-pro" },
+      # "document-writer": { "model": "google/gemini-2.5-flash" },
+      # "multimodal-looker": { "model": "google/gemini-2.5-flash-image" }
+      #   {
+      #     Sisyphus.model = "anthropic/claude-opus-4-5";
+      #     oracle.model = "openai/gpt-5.2";
+      #     librarian.model = "anthropic/claude-sonnet-4-5";
+      #     explore.model = "xai/grok-code-fast-1";
+      #     frontend-ui-ux-engineer = {
+      #       model = "google/gemini-2.5-pro";
+      #       temperature = 0.7;
+      #     };
+      #   }
+      # '';
       description = lib.mdDoc ''
         Configuration for oh-my-opencode agents.
         Each agent can have model, temperature, skills, and other settings.
@@ -521,14 +541,14 @@ in {
 
       rev = mkOption {
         type = types.str;
-        default = "v0.2.0";
+        default = "v0.4.0";
         description = "Git revision (tag, branch, or commit) of codey-agent-system to use.";
-        example = "v0.2.0";
+        example = "v0.4.0";
       };
 
       sha256 = mkOption {
         type = types.str;
-        default = "sha256-7S/zgfeXzBlEluKkVS/+uz13IWBoZxD7Qnsm7OrIFaw=";
+        default = "sha256-HQmAgpL33CglGXMPAjBfA3fdwt1zAAHGPHPwDmwtes4=";
         description = lib.mdDoc ''
           SHA256 hash of the codey-agent-system source.
           Use `nix-prefetch-git https://forge.meskill.farm/iamruinous/codey-agent-system --rev <rev>` to get this value.
@@ -596,18 +616,28 @@ in {
         "oh-my-opencode@v3.0.0-beta.2"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
-        "opencode-anthropic-auth@0.0.7"
+        "opencode-anthropic-auth@0.0.8"
       ];
 
       # Default oh-my-opencode agent model configurations
       ruinous.ai-cli.opencode.omoAgents = {
-        Sisyphus.model = "anthropic/claude-opus-4-5";
-        oracle.model = "openai/gpt-5.2";
-        librarian.model = "anthropic/claude-sonnet-4-5";
-        explore.model = "opencode/grok-code";
-        frontend-ui-ux-engineer.model = "google/gemini-2.5-pro";
+        Sisyphus.model = "openai/gpt-5.2";
+        oracle.model = "gpt-5.1-codex-max";
+        librarian.model = "google/gemini-2.5-pro";
+        explore.model = "xai/grok-code-fast-1";
+        frontend-ui-ux-engineer = {
+          model = "google/gemini-2.5-pro";
+          temperature = 0.7;
+        };
         document-writer.model = "google/gemini-2.5-flash";
         multimodal-looker.model = "google/gemini-2.5-flash-image";
+        # Sisyphus.model = "anthropic/claude-opus-4-5";
+        # oracle.model = "openai/gpt-5.2";
+        # librarian.model = "anthropic/claude-sonnet-4-5";
+        # explore.model = "opencode/grok-code";
+        # frontend-ui-ux-engineer.model = "google/gemini-2.5-pro";
+        # document-writer.model = "google/gemini-2.5-flash";
+        # multimodal-looker.model = "google/gemini-2.5-flash-image";
       };
 
       ruinous.ai-cli.opencode.mcpServers = {

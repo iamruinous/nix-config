@@ -143,6 +143,7 @@
           "--security-opt=seccomp=unconfined"
         ];
         environment = {
+          OLLAMA_DEFAULT_MODEL = "qwen2.5-coder-32b";
           # Strix Halo (gfx1151) workarounds
           # OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
           # HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
