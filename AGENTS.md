@@ -12,8 +12,9 @@
 |---------|-------------|
 | `nixos-rebuild switch --flake .#<hostname>` | Apply NixOS configuration |
 | `darwin-rebuild switch --flake .#<hostname>` | Apply macOS configuration |
+| `make dry-build` | Dry-build local host configuration |
 | `make remote-rebuild remotehost=<hostname>` | Deploy to remote host |
-| `make remote-dry-build remotehost=<hostname>` | Verify build without applying |
+| `make remote-dry-build remotehost=<hostname>` | Verify remote build without applying |
 | `nix build .#<package-name>` | Build a package |
 | `agenix-helper unlock` | Unlock secrets for editing |
 | `agenix-helper lock` | Lock secrets after editing |

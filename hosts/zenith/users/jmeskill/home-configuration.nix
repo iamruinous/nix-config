@@ -45,7 +45,7 @@ in {
           }; # ~/.config/opencode for interactive use
 
           web = {
-            configDir = "${config.home.homeDirectory}/.config/opencode-web";
+            configDir = "${config.home.homeDirectory}/.config/openportal";
             notifier.enable = false;
           };
 
@@ -55,12 +55,11 @@ in {
           };
         };
       };
-      opencode-web = {
+      openportal = {
         enable = true;
-        projectPath = "/home/jmeskill/Projects/ruinous.ai/nix-config";
-        port = 18080;
-        cors = ["zenith.meskill.farm"];
-        configDir = "${config.home.homeDirectory}/.config/opencode-web";
+        projectPath = "/home/jmeskill/Projects/ruinous.ai";
+        hostname = "0.0.0.0"; # Bind to docker interface
+        configDir = "${config.home.homeDirectory}/.config/openportal";
         environmentFiles = [
           config.age.secrets.zenith_opencode_web_shared_env.path
           config.age.secrets.zenith_opencode_web_nix_env.path
