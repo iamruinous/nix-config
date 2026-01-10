@@ -45,7 +45,7 @@ in {
           }; # ~/.config/opencode for interactive use
 
           web = {
-            configDir = "${config.home.homeDirectory}/.config/openportal";
+            configDir = "${config.home.homeDirectory}/.config/opencode-web";
             notifier.enable = false;
           };
 
@@ -55,13 +55,13 @@ in {
           };
         };
       };
-      openportal = {
+      opencode-web = {
         enable = true;
         projectPath = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
         hostname = "172.17.0.1"; # Bind to docker interface
-        configDir = "${config.home.homeDirectory}/.config/openportal";
-        cacheDir = "${config.home.homeDirectory}/.cache/openportal";
-        stateDir = "${config.home.homeDirectory}/.local/state/openportal";
+        configDir = "${config.home.homeDirectory}/.config/opencode-web";
+        cacheDir = "${config.home.homeDirectory}/.cache/opencode-web";
+        stateDir = "${config.home.homeDirectory}/.local/state/opencode-web";
         environmentFiles = [
           config.age.secrets.zenith_opencode_web_shared_env.path
           config.age.secrets.zenith_opencode_web_nix_env.path
