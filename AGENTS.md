@@ -110,12 +110,17 @@ Key points:
 
 ---
 
-## Recipes
+## Slash Commands
 
-| Recipe | Location | Slash Command |
-|--------|----------|---------------|
-| Create PostgreSQL Database | `.context/project/recipes/create-db.md` | `/create-db-<host>` |
-| Create Raspberry Pi Host | `.context/project/recipes/create-pi-host.md` | `/create-pi-host` |
+| Command | Description |
+|---------|-------------|
+| `/create-db-<host>` | Create PostgreSQL database (pilaster, monolith, zenith) |
+| `/create-pi-host` | Bootstrap new Raspberry Pi cluster host |
+| `/automerge` | Branch, commit, create PR, and merge in one flow |
+| `/pr` | Branch, commit, create PR (without auto-merge) |
+| `/refresh-readme` | Show README.md changes and refresh |
+
+Command definitions: `.claude/commands/`
 
 ---
 
@@ -124,7 +129,20 @@ Key points:
 | MCP | Purpose |
 |-----|---------|
 | **nixos** | NixOS/Home Manager/Darwin options search |
-| **postgres-*** | Database introspection & queries |
+| **postgres-pilaster** | Pilaster database queries |
+| **postgres-monolith** | Monolith database queries |
+| **postgres-zenith** | Zenith database queries |
+
+---
+
+## Development Standards
+
+| Standard | Tool/Command |
+|----------|--------------|
+| **Nix Formatting** | `alejandra` |
+| **CI Validation** | `make check` |
+| **Modularity** | Prefer reusable modules in `modules/` over ad-hoc config |
+| **Container Images** | Pin tags (no `:latest`) |
 
 ---
 
