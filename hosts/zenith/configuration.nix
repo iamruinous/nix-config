@@ -27,10 +27,10 @@
   # enable dynamic libraries for tools like ruff
   programs.nix-ld.enable = true;
 
-  # OpenPortal firewall ports (web UI + OpenCode backend)
-  ruinous.openportal.firewall = {
+  # OpenCode Web UI firewall port
+  ruinous.opencode-web.firewall = {
     enable = true;
-    ports = [18080 19090];
+    ports = [18080];
   };
 
   environment.systemPackages = with pkgs; [

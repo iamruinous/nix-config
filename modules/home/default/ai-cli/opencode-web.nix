@@ -1,40 +1,39 @@
-# ruinous.ai-cli.openportal.enable = true;
+# ruinous.ai-cli.opencode-web.enable = true;
 #
-# Manages an OpenPortal service as a persistent user daemon.
-# OpenPortal is a mobile-friendly web UI for OpenCode.
-# See: https://github.com/hosenur/portal
+# Manages a single OpenCode Web UI service as a persistent user daemon.
+# Runs `opencode web` bound to a specific port for a project directory.
 #
 # Example:
-#   ruinous.ai-cli.openportal = {
+#   ruinous.ai-cli.opencode-web = {
 #     enable = true;
 #     projectPath = "/home/jmeskill/Projects/github/iamruinous/nix-config";
-#     port = 18080;           # Web UI port
-#     opencodePort = 19090;   # OpenCode server port
-#     configDir = "${config.home.homeDirectory}/.config/openportal";
-#     cacheDir = "${config.home.homeDirectory}/.cache/openportal";
-#     stateDir = "${config.home.homeDirectory}/.local/state/openportal";
+#     port = 18080;
+#     configDir = "${config.home.homeDirectory}/.config/opencode-web";
+#     cacheDir = "${config.home.homeDirectory}/.cache/opencode-web";
+#     stateDir = "${config.home.homeDirectory}/.local/state/opencode-web";
 #   };
 #
-# This creates a systemd user service `openportal.service`.
+# This creates a systemd user service `opencode-web.service` that can be
+# attached to from other clients using `opencode attach http://<host>:18080`.
 #
 # ## Using agenix Environment Files (Linux only)
 #
 # You can pass encrypted environment files containing API keys and secrets to
-# the service using the `environmentFiles` option. This uses systemd's
+# the opencode-web service using the `environmentFiles` option. This uses systemd's
 # EnvironmentFile directive to load variables at service startup.
 #
 # Example with agenix:
 #
-#   ruinous.ai-cli.openportal = {
+#   ruinous.ai-cli.opencode-web = {
 #     enable = true;
 #     projectPath = "/home/jmeskill/Projects/nix-config";
 #     port = 18080;
 #     environmentFiles = [
-#       config.age.secrets.openportal_env.path
+#       config.age.secrets.opencode_env.path
 #     ];
 #   };
 #
-# Note: openportal is linux-only and requires systemd.
+# Note: opencode-web is linux-only and requires systemd.
 {
   config,
   lib,
@@ -43,7 +42,7 @@
   ...
 }:
 with lib; let
-  cfg = config.ruinous.ai-cli.openportal;
+  cfg = config.ruinous.ai-cli.opencode-web;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
   # Default packages for service functionality (tools available in PATH)
@@ -70,37 +69,51 @@ with lib; let
     gnumake # postgres-mcp
   ];
 
-  # Packages that are always needed for opencode/openportal functionality
+  # Packages that are always needed for opencode functionality
   builtinPackages = with pkgs; [
     git # Git is essential for opencode's VCS operations
     openssh # SSH for git operations and signing
-    bun # Required to run openportal via bunx
   ];
 
-  # Build command arguments for openportal
-  # See: https://github.com/hosenur/portal
+  # Create a wrapped opencode with all necessary environment setup
+  wrappedOpencode = pkgs.symlinkJoin {
+    name = "opencode-wrapped";
+    paths = [cfg.package];
+    buildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram $out/bin/opencode \
+        --prefix PATH : ${lib.makeBinPath (builtinPackages ++ cfg.packages)} \
+        --set NIX_LD /run/current-system/sw/share/nix-ld/lib/ld.so \
+        --prefix NIX_LD_LIBRARY_PATH : ${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]} \
+        --prefix NIX_LD_LIBRARY_PATH : /run/current-system/sw/share/nix-ld/lib \
+        --set OPENCODE_LIBC ${pkgs.glibc}/lib/libc.so.6
+    '';
+  };
+
+  # Build command arguments
   buildArgs =
     [
-      "${pkgs.bun}/bin/bunx"
-      "openportal"
-      "--directory"
-      cfg.projectPath
+      "${wrappedOpencode}/bin/opencode"
+      "web"
       "--hostname"
       cfg.hostname
       "--port"
       (toString cfg.port)
-      "--opencode-port"
-      (toString cfg.opencodePort)
+      "--log-level"
+      cfg.logLevel
     ]
-    ++ optionals (cfg.name != null) ["--name" cfg.name];
+    ++ optionals cfg.mdns ["--mdns"]
+    ++ optionals cfg.printLogs ["--print-logs"]
+    ++ concatMap (domain: ["--cors" domain]) cfg.cors
+    ++ cfg.extraArgs;
 in {
-  options.ruinous.ai-cli.openportal = {
-    enable = mkEnableOption "OpenPortal Web UI service (mobile-friendly OpenCode interface)";
+  options.ruinous.ai-cli.opencode-web = {
+    enable = mkEnableOption "OpenCode Web UI service";
 
     package = mkOption {
       type = types.package;
       default = llmAgentsPkgs.opencode;
-      description = "The opencode package to use (OpenPortal spawns opencode internally).";
+      description = "The opencode package to use.";
       example = literalExpression "pkgs.opencode";
     };
 
@@ -124,55 +137,73 @@ in {
     port = mkOption {
       type = types.port;
       default = 18080;
-      description = "Port number for the OpenPortal web UI.";
-    };
-
-    opencodePort = mkOption {
-      type = types.port;
-      default = 19090;
-      description = "Port number for the OpenCode server (backend).";
+      description = "Port number for the OpenCode web server.";
     };
 
     hostname = mkOption {
       type = types.str;
-      default = "localhost";
+      default = "0.0.0.0";
       description = "Hostname/IP to bind to. Use 0.0.0.0 for all interfaces.";
     };
 
-    name = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = "Instance name (defaults to directory name if not specified).";
-      example = "my-project";
+    logLevel = mkOption {
+      type = types.enum ["DEBUG" "INFO" "WARN" "ERROR"];
+      default = "WARN";
+      description = "Log level for the OpenCode server.";
+    };
+
+    mdns = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable mDNS service discovery.";
+    };
+
+    cors = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Additional domains to allow for CORS.";
+      example = ["https://example.com"];
+    };
+
+    printLogs = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Print logs to stderr.";
+    };
+
+    extraArgs = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Extra arguments to pass to opencode web.";
     };
 
     configDir = mkOption {
       type = types.nullOr types.str;
       default = null;
       description = ''
-        Custom config directory for the opencode service.
+        Custom config directory for the opencode-web service.
         When set, OPENCODE_CONFIG_DIR environment variable is set to this path,
         keeping service sessions independent from interactive opencode usage.
       '';
-      example = "/home/user/.config/openportal";
+      example = "/home/user/.config/opencode-web";
     };
 
     cacheDir = mkOption {
       type = types.nullOr types.str;
       default = null;
       description = ''
-        Custom cache directory for the opencode service.
+        Custom cache directory for the opencode-web service.
         When set, XDG_CACHE_HOME environment variable is set to this path,
         keeping service cache independent from interactive opencode usage.
       '';
-      example = "/home/user/.cache/openportal";
+      example = "/home/user/.cache/opencode-web";
     };
 
     stateDir = mkOption {
       type = types.nullOr types.str;
       default = null;
       description = ''
-        Custom state directory for the opencode service.
+        Custom state directory for the opencode-web service.
         When set, XDG_STATE_HOME environment variable is set to this path,
         keeping service state (logs, history) independent from interactive opencode usage.
 
@@ -180,7 +211,7 @@ in {
         - <stateDir>/opencode/auth.json -> ~/.local/state/opencode/auth.json
         - <stateDir>/opencode/mcp-auth.json -> ~/.local/state/opencode/mcp-auth.json
       '';
-      example = "/home/user/.local/state/openportal";
+      example = "/home/user/.local/state/opencode-web";
     };
 
     environmentFiles = mkOption {
@@ -192,7 +223,7 @@ in {
         Variables in these files will be available to opencode and MCP servers.
         Files are loaded in order, with later files overriding earlier ones.
 
-        Note: openportal is linux-only and requires systemd.
+        Note: opencode-web is linux-only and requires systemd.
       '';
       example = literalExpression ''
         [
@@ -209,7 +240,7 @@ in {
         {
           assertion = pkgs.stdenv.isLinux;
           message = ''
-            openportal is linux-only (systemd user service).
+            opencode-web is linux-only (systemd user service).
           '';
         }
       ];
@@ -227,9 +258,9 @@ in {
 
     # Linux: systemd user service
     (mkIf pkgs.stdenv.isLinux {
-      systemd.user.services.openportal = {
+      systemd.user.services.opencode-web = {
         Unit = {
-          Description = "OpenPortal Web UI (mobile-friendly OpenCode interface)";
+          Description = "OpenCode Web UI";
           After = ["network.target"] ++ optionals (cfg.environmentFiles != []) ["agenix.service"];
           Requires = optionals (cfg.environmentFiles != []) ["agenix.service"];
         };
@@ -246,7 +277,7 @@ in {
               [
                 "HOME=${config.home.homeDirectory}"
                 "TERM=xterm-256color"
-                "PATH=${lib.makeBinPath ([cfg.package] ++ builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
+                "PATH=${lib.makeBinPath (builtinPackages ++ cfg.packages)}:/run/current-system/sw/bin:/usr/bin:/bin"
                 "NIX_LD=/run/current-system/sw/share/nix-ld/lib/ld.so"
                 "NIX_LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:/run/current-system/sw/share/nix-ld/lib"
               ]
