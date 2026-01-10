@@ -12,9 +12,11 @@
       else ["/etc/ssh/ssh_host_ed25519_key"];
 
     # Directory where secrets are symlinked to by default
+    # For home-manager, use XDG state directory since config.home.uid
+    # can be null in standalone home-manager mode
     secretsDir =
       if builtins.hasAttr "home" config
-      then "/run/user/${toString config.home.uid}/agenix"
+      then "${config.home.homeDirectory}/.local/state/agenix"
       else "/run/agenix";
 
     # https://github.com/oddlama/agenix-rekey
@@ -25,11 +27,17 @@
         if builtins.hasAttr "home" config
         then "home/${hostName}-${username}"
         else "nixos/${hostName}";
+      # XDG state directory path for the unlocked host identity
+      # agenix-rekey evaluates ALL hosts, so paths for other users will fail - that's OK
+      # as long as ONE valid identity exists for the current user
+      hostIdentityPath =
+        if username != ""
+        then "/home/${username}/.local/state/agenix-helper/host_id_age"
+        else "/root/.local/state/agenix-helper/host_id_age";
     in {
-      # Master identities for agenix-rekey operations (always in /tmp for consistent rekey)
+      # Master identities for agenix-rekey operations
       # Run `agenix-helper unlock` before rekeying operations
-      # The agenix-helper creates symlinks: /tmp/host_id_age -> ~/.local/state/agenix-helper/host_id_age
-      masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_"];
+      masterIdentities = [hostIdentityPath];
 
       # Public ssh host key derived from 32-byte hex
       # > nixos generate
