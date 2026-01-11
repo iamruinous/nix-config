@@ -32,9 +32,18 @@ rage -d -i identity.age file.age
 agenix-helper unlock
 ```
 
+### Environment Variables
+
+| Variable | Description | Precedence |
+|----------|-------------|------------|
+| `PINENTRY_USER_DATA` | Dynamic per-call secret reference | **Highest** (checked first) |
+| `OP_PIN_ITEM` | Static secret reference | Fallback if PINENTRY_USER_DATA not set |
+
+**Note:** `PINENTRY_USER_DATA` is passed by programs like `rage` to pinentry programs, allowing dynamic per-call configuration. This is particularly useful when the calling program (like `agenix-helper`) needs to specify which secret to retrieve at runtime.
+
 ### 1Password Secret Reference Format
 
-The `OP_PIN_ITEM` should be in the format: `op://vault/item/field`
+Both `OP_PIN_ITEM` and `PINENTRY_USER_DATA` should be in the format: `op://vault/item/field`
 
 Examples:
 - `op://Private/age-identity/password`
@@ -45,28 +54,61 @@ Examples:
 The `agenix-helper unlock` command automatically detects and uses `pinentry-1password` when:
 1. The `op` command is available on the system
 2. The `pinentry-1password` package is installed
-3. The `OP_PIN_ITEM` environment variable is set
+3. Either `AGENIX_HELPER_OP_HOST_SECRET` or `AGENIX_HELPER_OP_USER_SECRET` is set
 
 This allows you to unlock your age identity using a passphrase stored in 1Password:
 
 ```bash
-export OP_PIN_ITEM="op://Private/age-identity/passphrase"
+export AGENIX_HELPER_OP_HOST_SECRET="op://Private/age-identity/passphrase"
 agenix-helper unlock
 ```
+
+`agenix-helper` will set `OP_PIN_ITEM` and `PINENTRY_PROGRAM` automatically before calling `rage`.
 
 ## How It Works
 
 The program implements the pinentry protocol:
 1. Reads commands from stdin
-2. When it receives `GETPIN`, it executes `op read $OP_PIN_ITEM`
-3. Returns the secret in the pinentry protocol format
-4. Handles errors gracefully with appropriate error codes
+2. When it receives `GETPIN`, it retrieves the secret reference from `PINENTRY_USER_DATA` (if set) or `OP_PIN_ITEM`
+3. Executes `op read <secret-reference>` to retrieve the passphrase
+4. Returns the secret in the pinentry protocol format
+5. Handles errors gracefully with appropriate error codes
 
 ## Error Handling
 
-- If `OP_PIN_ITEM` is not set, returns error code 83886179
+- If neither `PINENTRY_USER_DATA` nor `OP_PIN_ITEM` is set, returns error code 83886179
 - If `op` command is not found, returns error code 83886179
 - If reading from 1Password fails, returns error code 83886179
+
+## Testing
+
+This package includes Nix-based tests. To run them:
+
+```bash
+# Run all tests
+nix build .#pinentry-1password.passthru.tests.greeting
+nix build .#pinentry-1password.passthru.tests.getinfo-version
+nix build .#pinentry-1password.passthru.tests.getpin-op-pin-item
+nix build .#pinentry-1password.passthru.tests.getpin-pinentry-user-data
+# ... and more
+
+# Or run specific tests
+nix build .#pinentry-1password.passthru.tests.getpin-pinentry-user-data
+```
+
+Available tests:
+- `greeting` - Initial OK greeting
+- `getinfo-version` - Version info response
+- `getinfo-pid` - PID info response
+- `getinfo-flavor` - Flavor info response
+- `getpin-op-pin-item` - GETPIN with OP_PIN_ITEM
+- `getpin-pinentry-user-data` - GETPIN with PINENTRY_USER_DATA (takes precedence)
+- `getpin-no-config` - Error when no config set
+- `set-commands` - SET* commands return OK
+- `option-command` - OPTION command handling
+- `reset-command` - RESET command clears state
+- `getpin-failure` - GETPIN failure error handling
+- `confirm-command` - CONFIRM auto-confirms
 
 ## Security Considerations
 

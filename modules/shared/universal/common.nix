@@ -31,6 +31,7 @@
       neofetch
       procs
       rsync
+      wakeonlan
       xplr
       xz
     ]
