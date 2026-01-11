@@ -27,17 +27,11 @@
         if builtins.hasAttr "home" config
         then "home/${hostName}-${username}"
         else "nixos/${hostName}";
-      # XDG state directory path for the unlocked host identity
-      # agenix-rekey evaluates ALL hosts, so paths for other users will fail - that's OK
-      # as long as ONE valid identity exists for the current user
-      hostIdentityPath =
-        if username != ""
-        then "/home/${username}/.local/state/agenix-helper/host_id_age"
-        else "/root/.local/state/agenix-helper/host_id_age";
     in {
-      # Master identities for agenix-rekey operations
+      # Master identities for agenix-rekey operations (static /tmp paths)
+      # agenix-rekey evaluates ALL hosts, so we use /tmp symlinks created by agenix-helper
       # Run `agenix-helper unlock` before rekeying operations
-      masterIdentities = [hostIdentityPath];
+      masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_"];
 
       # Public ssh host key derived from 32-byte hex
       # > nixos generate

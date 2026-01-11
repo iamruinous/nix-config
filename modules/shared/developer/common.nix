@@ -49,6 +49,7 @@
       lua-language-server
       marksman
       nil
+      nixd
       ruff
       selene
       stylua

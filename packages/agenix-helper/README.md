@@ -88,69 +88,89 @@ echo $AGE_IDENTITIES_FILE   # ~/.local/state/agenix-helper/host_id_age
 
 ## 1Password Integration
 
-If you have the [1Password CLI (`op`)](https://developer.1password.com/docs/cli) installed and configured, `agenix-helper` can automatically retrieve your passphrase from 1Password instead of prompting interactively.
+If you have the [1Password CLI (`op`)](https://developer.1password.com/docs/cli) installed and configured, `agenix-helper` can automatically retrieve passphrases from 1Password instead of prompting interactively.
+
+This integration uses the [`pinentry-1password`](../pinentry-1password/README.md) package, which implements the standard pinentry protocol that `rage` natively supports via the `PINENTRY_PROGRAM` environment variable.
 
 ### Requirements
 
-1. Install and configure 1Password CLI
-2. Install the `pinentry-1password` package (available in this flake)
-3. Set the `OP_PIN_ITEM` environment variable to your 1Password secret reference
+1. Install and configure 1Password CLI (`op`)
+2. Install `pinentry-1password` package
+3. Be signed in to 1Password (`op signin` or biometric unlock)
 
 ### Setup
 
 ```bash
-# Install the packages
-environment.systemPackages = with pkgs; [
-  agenix-helper
-  pinentry-1password
-  _1password  # or install via other means
-];
-
-# Set the 1Password secret reference (in your shell config or .envrc)
-export OP_PIN_ITEM="op://Private/age-identity/passphrase"
-
-# Now unlock without interactive passphrase prompt
-agenix-helper unlock
-# Will automatically retrieve passphrase from 1Password!
+# Set the 1Password secret references (in your shell config or .envrc)
+# Default: These values are used if you haven't set custom values
+export AGENIX_HELPER_OP_HOST_SECRET="${AGENIX_HELPER_OP_HOST_SECRET:-op://Private/agenix-helper-unlock/host-passphrase}"
+export AGENIX_HELPER_OP_USER_SECRET="${AGENIX_HELPER_OP_USER_SECRET:-op://Private/agenix-helper-unlock/user-passphrase}"
+# Override with your custom values if needed:
+# export AGENIX_HELPER_OP_HOST_SECRET="op://your-custom-host-passphrase"
+# export AGENIX_HELPER_OP_USER_SECRET="op://your-custom-user-passphrase"
 ```
+
+### Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `AGENIX_HELPER_OP_HOST_SECRET` | 1Password reference for host identity passphrase (`secrets/id_age.age`) |
+| `AGENIX_HELPER_OP_USER_SECRET` | 1Password reference for user identity passphrase (`users/$USER/id_age.age`) |
 
 ### How It Works
 
 When you run `agenix-helper unlock`:
-1. It checks if `op` command is available
-2. It checks if `pinentry-1password` is available
-3. It checks if `OP_PIN_ITEM` environment variable is set
-4. If all conditions are met, it sets `PINENTRY_PROGRAM=pinentry-1password`
-5. The `rage` tool uses pinentry to request the passphrase
-6. `pinentry-1password` retrieves it from 1Password via `op read`
+1. Checks if `op` command and `pinentry-1password` are available
+2. If `AGENIX_HELPER_OP_HOST_SECRET` is set:
+   - Sets `OP_PIN_ITEM` to the secret reference
+   - Sets `PINENTRY_PROGRAM=pinentry-1password`
+   - Calls `rage -d` which delegates passphrase retrieval to pinentry-1password
+   - pinentry-1password uses `op read $OP_PIN_ITEM` to fetch the passphrase
+3. Falls back to interactive prompt if 1Password integration is unavailable
+4. Same process for user identity using `AGENIX_HELPER_OP_USER_SECRET`
 
 ### 1Password Secret Reference Format
 
-The `OP_PIN_ITEM` should be in the format: `op://vault/item/field`
+References should be in the format: `op://vault/item/field`
 
 Examples:
-- `op://Private/age-identity/password`
-- `op://Work/nixos-secrets/passphrase`
-- `op://Personal/encryption-keys/age-passphrase`
+- `op://Private/age-host-identity/passphrase`
+- `op://Work/nixos-secrets/host-passphrase`
+- `op://Personal/encryption-keys/user-passphrase`
 
 ### Benefits
 
-- No need to remember or type your passphrase
+- No need to remember or type passphrases
 - Works seamlessly with 1Password's biometric unlock
-- Still secure (passphrase never stored on disk by agenix-helper)
+- Supports separate passphrases for host and user identities
+- Uses standard pinentry protocol (native rage support)
+- Still secure (passphrases never stored on disk)
 - Falls back to interactive prompt if 1Password is unavailable
+
+### Debugging
+
+If 1Password integration isn't working, enable debug logging:
+
+```bash
+AGENIX_HELPER_DEBUG=1 agenix-helper unlock
+```
+
+This will show which code paths are taken and help identify the issue.
 
 ## Environment Variables
 
 Customize behavior with these environment variables:
 
+### Path Configuration
 - `AGE_IDENTITY_DIR` - Directory for host identity files (default: `~/.local/state/agenix-helper`)
 - `AGE_IDENTITY_FILE` - Path to decrypted host identity (default: `$AGE_IDENTITY_DIR/host_id_age`)
 - `AGE_IDENTITY_ENCRYPTED` - Path to encrypted host identity (default: `secrets/id_age.age`)
 - `AGE_IDENTITY_BACKUP` - Path to backup host identity (default: `$AGE_IDENTITY_DIR/host_id_age_`)
 - `AGE_USER_IDENTITY_FILE` - Path to decrypted user identity (default: `~/.config/age/user_id_age`)
 - `AGE_USER_IDENTITY_ENCRYPTED` - Path to encrypted user identity (default: `users/$USER/id_age.age`)
-- `OP_PIN_ITEM` - 1Password secret reference for passphrase (optional, enables 1Password integration)
+
+### 1Password Integration
+- `OP_PIN_ITEM` - 1Password reference for age identity passphrase (used by pinentry-1password)
 
 ## Security Considerations
 
@@ -192,8 +212,13 @@ home.packages = with pkgs; [
 
 ## Dependencies
 
-- `rage` - Rust version of age encryption tool
+- `rage` - Rust version of age encryption tool (supports PINENTRY_PROGRAM)
+- `gum` - Terminal UI components
 - `coreutils` - Basic Unix utilities (for mv, chmod, etc.)
+
+### Optional (for 1Password integration)
+- `pinentry-1password` - Pinentry implementation using 1Password CLI
+- `op` - 1Password CLI
 
 ## Implementation Details
 
@@ -204,6 +229,7 @@ agenix-helper manages two separate identity files:
 1. **Host Identity** (`~/.local/state/agenix-helper/host_id_age`)
    - Used for `agenix-rekey` operations (rekeying secrets for hosts)
    - Decrypted from `secrets/id_age.age` using your passphrase
+   - Symlinked to `/tmp/host_id_age` for agenix-rekey compatibility (see below)
 
 2. **User Identity** (`~/.config/age/user_id_age`)
    - Used by home-manager's agenix module for runtime secret decryption
@@ -224,6 +250,15 @@ In interactive mode (`agenix-helper unlock`):
 - Prompts for passphrase if key not already unlocked
 - Displays success/error messages
 - Returns exit code 0 on success, 1 on failure
+
+### Why /tmp Symlinks?
+
+agenix-rekey evaluates ALL host configurations to collect their `masterIdentities` paths. If we used user-specific paths like `/home/$USER/.local/state/agenix-helper/host_id_age`, agenix would try to access paths for other users (git, messy, root) and fail with "Permission denied" or "No such file" errors.
+
+The solution is to use static `/tmp` paths that all configurations reference:
+- `agenix-helper unlock` creates symlinks: `/tmp/host_id_age` → `~/.local/state/agenix-helper/host_id_age`
+- `secrets/default.nix` uses `masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_"]`
+- All host configurations evaluate to the same paths, avoiding permission issues
 
 ## Version
 
