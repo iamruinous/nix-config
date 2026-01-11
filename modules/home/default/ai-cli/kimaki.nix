@@ -231,9 +231,11 @@ in {
   };
 
   config = mkIf cfg.enable (mkMerge [
-    # Ensure kimaki data directory exists
+    # Ensure kimaki data directory exists and symlink opencode binary
+    # Kimaki hardcodes the path ~/.opencode/bin/opencode, so we create a symlink
     {
       home.file.".kimaki/.keep".text = "";
+      home.file.".opencode/bin/opencode".source = "${wrappedOpencode}/bin/opencode";
     }
 
     # Assertion for linux-only usage
