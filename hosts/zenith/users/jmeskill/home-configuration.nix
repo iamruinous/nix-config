@@ -63,8 +63,7 @@ in {
         cacheDir = "${config.home.homeDirectory}/.cache/opencode-web";
         stateDir = "${config.home.homeDirectory}/.local/state/opencode-web";
         environmentFiles = [
-          config.age.secrets.zenith_opencode_web_shared_env.path
-          config.age.secrets.zenith_opencode_web_nix_env.path
+          config.age.secrets.zenith_opencode_web_env.path
         ];
         # Declarative project registry for Recent Projects list
         projects = [
@@ -87,20 +86,15 @@ in {
         cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
         stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
         environmentFiles = [
-          config.age.secrets.zenith_opencode_web_shared_env.path
+          config.age.secrets.zenith_opencode_web_env.path
           config.age.secrets.zenith_kimaki_env.path
         ];
       };
     };
   };
 
-  age.secrets.zenith_opencode_web_shared_env = {
-    rekeyFile = ./files/opencode-web/shared.env.age;
-    mode = "400";
-  };
-
-  age.secrets.zenith_opencode_web_nix_env = {
-    rekeyFile = ./files/opencode-web/nix.env.age;
+  age.secrets.zenith_opencode_web_env = {
+    rekeyFile = ./files/opencode-web/env.age;
     mode = "400";
   };
 

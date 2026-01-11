@@ -31,6 +31,16 @@ agenix_unlock() {
     return 1
   fi
 
+  # Check if already unlocked (idempotent behavior)
+  if [[ -f "$AGE_IDENTITY_FILE" ]] && [[ -L /tmp/host_id_age ]]; then
+    $GUM style --foreground 82 "✓ Already unlocked at $AGE_IDENTITY_FILE"
+    $GUM style --foreground 245 "  Symlinked to /tmp/host_id_age for agenix-rekey"
+    if [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
+      $GUM style --foreground 82 "✓ User identity already unlocked at $AGE_USER_IDENTITY_FILE"
+    fi
+    return 0
+  fi
+
   if [[ ! -f "$AGE_IDENTITY_ENCRYPTED" ]]; then
     log_error "$AGE_IDENTITY_ENCRYPTED not found"
     return 1
@@ -76,8 +86,14 @@ agenix_unlock() {
   echo "$id" >"$AGE_IDENTITY_FILE"
   chmod 600 "$AGE_IDENTITY_FILE" "$AGE_IDENTITY_BACKUP" 2>/dev/null || true
 
+  # Create /tmp symlinks for agenix-rekey compatibility
+  # agenix-rekey evaluates ALL host configs, so we need static paths that don't vary by user
+  ln -sf "$AGE_IDENTITY_FILE" /tmp/host_id_age
+  ln -sf "$AGE_IDENTITY_BACKUP" /tmp/host_id_age_
+
   if [[ "$quiet" != "quiet" ]]; then
     $GUM style --foreground 82 "🔓 Host identity unlocked at $AGE_IDENTITY_FILE"
+    $GUM style --foreground 245 "   Symlinked to /tmp/host_id_age for agenix-rekey"
   fi
 
   # Decrypt and deploy user-specific identity for home-manager agenix
@@ -106,6 +122,7 @@ agenix_lock() {
 
   if [[ -f "$AGE_IDENTITY_FILE" ]] || [[ -f "$AGE_IDENTITY_BACKUP" ]]; then
     rm -f "$AGE_IDENTITY_FILE" "$AGE_IDENTITY_BACKUP"
+    rm -f /tmp/host_id_age /tmp/host_id_age_
     locked_any=true
   fi
 
