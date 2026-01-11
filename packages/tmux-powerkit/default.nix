@@ -29,27 +29,24 @@ in
     nativeBuildInputs = [pkgs.makeWrapper];
 
     postInstall = ''
-      # Patch all shell scripts to use proper shebang and have PATH set
+      # Fix shebangs in all scripts to use Nix bash
       for script in $(find $out/share/tmux-plugins/tmux-powerkit -name "*.sh" -o -name "*.tmux"); do
         if [ -f "$script" ]; then
-          # Replace /usr/bin/env bash with direct bash path
           sed -i 's|#!/usr/bin/env bash|#!${pkgs.bash}/bin/bash|g' "$script"
-          # Add PATH export after shebang for sourced scripts
-          if grep -q "^#!.*bash" "$script"; then
-            sed -i '2i export PATH="${runtimePath}:$PATH"' "$script"
-          fi
+          sed -i 's|#!/bin/bash|#!${pkgs.bash}/bin/bash|g' "$script"
         fi
       done
 
-      # Wrap the main entry point script
+      # Only wrap the entry points - NOT every sourced script
+      # The wrapper sets PATH once, and sourced scripts inherit it
       wrapProgram $out/share/tmux-plugins/tmux-powerkit/tmux-powerkit.tmux \
-        --prefix PATH : ${runtimePath}
+        --set PATH ${runtimePath}
 
-      # Wrap bin scripts
+      # Wrap bin scripts (these are called directly by tmux)
       for script in $out/share/tmux-plugins/tmux-powerkit/bin/*; do
         if [ -f "$script" ] && [ -x "$script" ] && [[ ! "$script" =~ -wrapped$ ]]; then
           wrapProgram "$script" \
-            --prefix PATH : ${runtimePath}
+            --set PATH ${runtimePath}
         fi
       done
     '';
