@@ -35,10 +35,18 @@ assuan_result() {
   fi
 }
 
-# Check if OP_PIN_ITEM is set (only when GETPIN is called)
+get_op_item() {
+  # PINENTRY_USER_DATA takes precedence (allows dynamic per-call configuration)
+  # Falls back to OP_PIN_ITEM for static configuration
+  echo "${PINENTRY_USER_DATA:-${OP_PIN_ITEM:-}}"
+}
+
 check_op_config() {
-  if [[ -z "${OP_PIN_ITEM:-}" ]]; then
-    assuan_result "$GPG_ERR_GENERAL" "No OP_PIN_ITEM configured"
+  local op_item
+  op_item="$(get_op_item)"
+
+  if [[ -z "$op_item" ]]; then
+    assuan_result "$GPG_ERR_GENERAL" "No OP_PIN_ITEM or PINENTRY_USER_DATA configured"
     return 1
   fi
 
@@ -71,7 +79,7 @@ while IFS= read -r line; do
         continue
       fi
 
-      if pin=$(op read "$OP_PIN_ITEM" 2>/dev/null); then
+      if pin=$(op read "$(get_op_item)" 2>/dev/null); then
         echo "D $pin"
         assuan_result "$GPG_ERR_NO_ERROR"
       else

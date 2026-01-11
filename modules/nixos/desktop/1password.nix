@@ -2,6 +2,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.programs._1password;
@@ -17,5 +18,10 @@ in {
       enable = lib.mkDefault true;
       polkitPolicyOwners = ["jmeskill"]; # TODO: generalize user
     };
+
+    # default system packages
+    environment.systemPackages = with pkgs; [
+      pinentry-1password
+    ];
   };
 }

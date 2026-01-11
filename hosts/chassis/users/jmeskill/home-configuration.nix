@@ -7,7 +7,7 @@
   programs.wezterm.enable = true;
   ruinous = {
     # allow use of 1password op-ssh-sign
-    git.signing.use1Password = true;
+    #git.signing.use1Password = true;
 
     # Enable rust-motd for system info on login
     rust-motd.enable = true;
@@ -26,10 +26,10 @@
     ai-cli.opencode.enable = true;
 
     # Git config - use zenith-specific defaults for all repos
-    # git.default = {
-    #   userEmail = "jade@ruinous.ai";
-    #   signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
-    # };
+    git.default = {
+      userEmail = "jade@ruinous.ai";
+      signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
+    };
 
     # KDE Plasma configuration
     kde.enable = true;
