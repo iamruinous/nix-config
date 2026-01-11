@@ -7,7 +7,7 @@
   options.ruinous.tmux = {
     statusPosition = lib.mkOption {
       type = lib.types.enum ["top" "bottom"];
-      default = "bottom";
+      default = "top";
       description = "Position of the tmux status bar";
     };
   };
@@ -63,7 +63,7 @@
 
       # Powerkit - modular status bar framework with tokyo-night theme
       {
-        plugin = pkgs.tmux-powerkit;
+        plugin = pkgs.tmuxPlugins.tmux-powerkit;
         extraConfig = ''
           # Use Tokyo Night theme from powerkit
           set -g @powerkit_theme "tokyo-night"
