@@ -1,4 +1,16 @@
 {pkgs, ...}: let
+  # Platform-specific dependencies
+  # procps (ps, free, top) is Linux-only; Darwin has these in system
+  linuxDeps = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+    pkgs.procps   # for ps, top, free on Linux
+    pkgs.hostname # hostname on Linux
+  ];
+
+  darwinDeps = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+    # Darwin has ps/top in system, but we need to ensure /usr/bin is in PATH
+    # for system commands like sw_vers, system_profiler, etc.
+  ];
+
   runtimeDeps = [
     pkgs.bash
     pkgs.coreutils
@@ -6,13 +18,14 @@
     pkgs.gawk
     pkgs.gnugrep
     pkgs.gnused
-    pkgs.hostname
     pkgs.jq
     pkgs.bc
-    pkgs.procps # for ps, top, free
     pkgs.tmux
-  ];
-  runtimePath = pkgs.lib.makeBinPath runtimeDeps;
+  ] ++ linuxDeps ++ darwinDeps;
+
+  # On Darwin, include /usr/bin for system commands (ps, top, sw_vers, etc.)
+  darwinSystemPath = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ":/usr/bin:/bin";
+  runtimePath = (pkgs.lib.makeBinPath runtimeDeps) + darwinSystemPath;
 in
   pkgs.tmuxPlugins.mkTmuxPlugin {
     pluginName = "tmux-powerkit";
