@@ -21,17 +21,89 @@
     baseIndex = 1;
     terminal = "tmux-256color";
     historyLimit = 100000;
+    escapeTime = 0;
 
-    plugins = with pkgs; [
-      tmuxPlugins.better-mouse-mode
-      tmuxPlugins.copycat
-      tmuxPlugins.pain-control
-      tmuxPlugins.resurrect
-      tmuxPlugins.sensible
-      tmuxPlugins.yank
+    plugins = with pkgs.tmuxPlugins; [
+      # Core functionality plugins
+      better-mouse-mode
+      copycat
+      pain-control
+      resurrect
+      sensible
+      yank
+
+      # Tokyo Night theme
+      {
+        plugin = tokyo-night-tmux;
+        extraConfig = ''
+          # Theme variant: night (default), storm, or day
+          set -g @tokyo-night-tmux_theme night
+
+          # Number styles: digital, roman, fsquare, hsquare, dsquare, super, sub
+          set -g @tokyo-night-tmux_window_id_style digital
+          set -g @tokyo-night-tmux_pane_id_style hsquare
+          set -g @tokyo-night-tmux_zoom_id_style dsquare
+
+          # Date/time widget
+          set -g @tokyo-night-tmux_show_datetime 1
+          set -g @tokyo-night-tmux_date_format YMD
+          set -g @tokyo-night-tmux_time_format 24H
+
+          # Path widget
+          set -g @tokyo-night-tmux_show_path 1
+          set -g @tokyo-night-tmux_path_format relative
+
+          # Git widget (requires jq, gh/glab)
+          set -g @tokyo-night-tmux_show_wbg 0
+
+          # Hostname widget
+          set -g @tokyo-night-tmux_show_hostname 1
+        '';
+      }
+
+      # Powerkit - modular status bar framework with tokyo-night theme
+      {
+        plugin = pkgs.tmux-powerkit;
+        extraConfig = ''
+          # Use Tokyo Night theme from powerkit
+          set -g @powerkit_theme "tokyo-night"
+          set -g @powerkit_theme_variant "night"
+
+          # Plugins to show (customize as needed)
+          set -g @powerkit_plugins "git,cpu,memory,datetime"
+
+          # Separator style: normal, rounded, slant, flame, pixel, honeycomb
+          set -g @powerkit_separator_style "rounded"
+
+          # Spacing between elements
+          set -g @powerkit_elements_spacing "both"
+
+          # Transparent background
+          set -g @powerkit_transparent "false"
+
+          # Status position
+          set -g @powerkit_status_position "${config.ruinous.tmux.statusPosition}"
+
+          # Git plugin settings
+          set -g @powerkit_plugin_git_show_branch "true"
+          set -g @powerkit_plugin_git_show_files "true"
+          set -g @powerkit_plugin_git_max_length "30"
+
+          # CPU plugin settings
+          set -g @powerkit_plugin_cpu_warning_threshold "70"
+          set -g @powerkit_plugin_cpu_critical_threshold "90"
+
+          # DateTime format (preset_1 = %Y-%m-%d %H:%M:%S)
+          set -g @powerkit_plugin_datetime_format "preset_1"
+        '';
+      }
     ];
 
     extraConfig = ''
+      # Secondary prefix key
+      set-option -g prefix2 C-u
+
+      # Visual notifications
       set-option -g visual-activity off
       set-option -g visual-bell off
       set-option -g visual-silence off
@@ -39,19 +111,19 @@
       set-window-option -g monitor-activity on
       set-option -g bell-action none
 
-      #set -g default-terminal "screen-256color"
-      #set-option -ga terminal-overrides ",*256col*:RGB"
+      # Terminal features for true color support
       set -as terminal-features ",xterm-256color:RGB"
-      set-window-option -g mode-keys vi
 
+      # Vi copy mode bindings
       bind-key -T copy-mode-vi v send-keys -X begin-selection
       bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 
+      # Shift+PageUp/Down for scrolling
       bind -n S-PPage copy-mode -u
       bind -T copy-mode S-PPage send -X page-up
       bind -T copy-mode S-NPage send -X page-down
 
-      # Reorder windows
+      # Reorder windows (prefix + R)
       bind R move-window -r \; display-message "Windows reordered..."
 
       # Reload tmux config (prefix + r)
@@ -60,29 +132,14 @@
       # Refresh SSH_AUTH_SOCK - opens popup for interactive pane selection
       bind u display-popup -E "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh"
 
-      # session management
+      # Session management
       bind S command-prompt -p "New Session:" "new-session -A -s '%%'"
       bind K confirm kill-session
 
-      # theme
-      set -g status "on"
+      # Status bar position (can be overridden by theme)
       set -g status-position ${config.ruinous.tmux.statusPosition}
-      set -g status-right-length 150
-      set -g status-justify left
 
-      set -g status-left "#[fg=black,bg=blue,bold]#{?client_prefix,, tmux  #[fg=blue bg=black nobold nounderscore noitalics]}#[fg=black,bg=#41a6b5,bold]#{?client_prefix, tmux 󰘳 #[fg=#41a6b5 bg=black nobold nounderscore noitalics],}#[fg=blue,bg=default,nobold,noitalics,nounderscore] "
-
-      set -g window-status-current-format "#[fg=#dddddd,bg=#1F2335]   #I #W  #{?window_last_flag,,} "
-      set -g window-status-format "#[fg=brightwhite,bg=#1a1b26,nobold,noitalics,nounderscore]   #I #W #F  "
-
-      set -g pane-border-style "fg=#3b4261"
-      set -g pane-active-border-style "fg=#7aa2f7"
-
-      set -g status-bg "#1a1b26"
-
-      set -g status-right "#[bg=default,fg=#24283B]#[fg=white,bg=#24283B] %Y-%m-%d #[]❬ %H:%M #[fg=blue,bg=#24283B,nobold,nounderscore,noitalics]#[fg=black,bg=blue,bold]󰹑 #S "
-      set -g window-status-separator ""
-
+      # Allow passthrough for certain escape sequences (e.g., for image protocols)
       set -g allow-passthrough on
     '';
   };
