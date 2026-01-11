@@ -291,6 +291,28 @@
           "/data/docker/dawarich/storage:/var/app/storage"
         ];
       };
+      # Nominatim - OpenStreetMap geocoding service
+      # Initial import of US-West will take several hours
+      # Data persisted to /data/docker/nominatim/postgres
+      nominatim = {
+        image = "mediagis/nominatim:5.0";
+        environment = {
+          # Import US West region (smaller dataset for faster initial import)
+          # Change to desired region: https://download.geofabrik.de/
+          PBF_URL = "https://download.geofabrik.de/north-america/us-west-latest.osm.pbf";
+          REPLICATION_URL = "https://download.geofabrik.de/north-america/us-west-updates/";
+          # Tune for zenith's 128GB RAM
+          POSTGRES_SHARED_BUFFERS = "8GB";
+          POSTGRES_MAINTENANCE_WORK_MEM = "16GB";
+          THREADS = "16";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_nominatim.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/nominatim/postgres:/var/lib/postgresql/14/main"
+        ];
+      };
+
       # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
       # See: https://github.com/ROCm/ROCm/issues/4909
       # Re-enable when ROCm properly supports Strix Halo
@@ -342,6 +364,11 @@
 
   age.secrets.zenith_docker_env_dawarich = {
     rekeyFile = ./files/docker/env/dawarich.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_nominatim = {
+    rekeyFile = ./files/docker/env/nominatim.env.age;
     mode = "600";
   };
 
