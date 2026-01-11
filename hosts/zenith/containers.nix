@@ -263,7 +263,7 @@
       dawarich-sidekiq = {
         image = "freikin/dawarich:0.27.3";
         dependsOn = ["dawarich-db" "redis" "dawarich-app"];
-        entrypoint = "sidekiq-entrypoint.sh";
+        # Uses default entrypoint "bundle exec" with sidekiq command
         cmd = ["sidekiq"];
         environment = {
           RAILS_ENV = "production";
