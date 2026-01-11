@@ -40,6 +40,7 @@
       # lsp and formatters
       alejandra
       basedpyright
+      bash-language-server
       biome
       golangci-lint
       golangci-lint-langserver
