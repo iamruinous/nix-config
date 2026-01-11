@@ -230,7 +230,7 @@
         ];
       };
       dawarich-app = {
-        image = "freikin/dawarich:0.27.3";
+        image = "freikin/dawarich:0.37.2";
         dependsOn = ["dawarich-db" "redis"];
         entrypoint = "web-entrypoint.sh";
         cmd = ["bin/rails" "server" "-p" "3000" "-b" "::"];
@@ -258,12 +258,13 @@
           "/data/docker/dawarich/public:/var/app/public"
           "/data/docker/dawarich/watched:/var/app/tmp/imports/watched"
           "/data/docker/dawarich/storage:/var/app/storage"
+          "/data/docker/dawarich/db_data:/dawarich_db_data"
         ];
       };
       dawarich-sidekiq = {
-        image = "freikin/dawarich:0.27.3";
+        image = "freikin/dawarich:0.37.2";
         dependsOn = ["dawarich-db" "redis" "dawarich-app"];
-        # Uses default entrypoint "bundle exec" with sidekiq command
+        entrypoint = "sidekiq-entrypoint.sh";
         cmd = ["sidekiq"];
         environment = {
           RAILS_ENV = "production";
