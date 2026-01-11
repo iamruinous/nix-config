@@ -1,190 +1,38 @@
-{flake, ...}: let
-  # wallpaper_dir = ../../../../files/wallpapers/nixos;
-  # workspace-wallpaper = "${wallpaper_dir}/pixel_sakura_static.png";
-in {
+{flake, ...}: {
   imports = [
-    flake.inputs.plasma-manager.homeModules.plasma-manager
     flake.homeModules.default
+    flake.homeModules.kde
   ];
-
-  # Enable todoist
-  # ruinous.todoist.enable = true;
-
-  # Enable vdirsyncer
-  # ruinous.vdirsyncer.enable = true;
 
   programs.wezterm.enable = true;
   ruinous = {
+    # allow use of 1password op-ssh-sign
     git.signing.use1Password = true;
+
+    # Enable rust-motd for system info on login
     rust-motd.enable = true;
-    openssh.tmux.attach.enable = true;
+
+    # Enable todoist
+    # todoist.enable = true;
+
+    # Enable vdirsyncer
+    # vdirsyncer.enable = true;
+
+    # ssh agent forwarding
     openssh.remote.forwarding.enable = true;
+    openssh.tmux.attach.enable = true;
+
+    # enable opencode with my preferred plugins
+    ai-cli.opencode.enable = true;
 
     # Git config - use zenith-specific defaults for all repos
-    git.default = {
-      userEmail = "jade@ruinous.ai";
-      signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
-    };
+    # git.default = {
+    #   userEmail = "jade@ruinous.ai";
+    #   signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
+    # };
 
-    ai-cli = {
-      opencode = {
-        enable = true;
-        # Disabled: notifier causing performance issues, needs debugging
-        # notifier.enable = true;
-
-        # Multiple config directories for independent sessions
-        configs = {
-          default = {
-            notifier.enable = false;
-          }; # ~/.config/opencode for interactive use
-        };
-      };
-    };
-  };
-
-  programs.plasma = {
-    enable = true;
-    # kscreenlocker.appearance.wallpaper = "${workspace-wallpaper}";
-    workspace = {
-      # wallpaper = "${workspace-wallpaper}";
-      lookAndFeel = "org.kde.breeze.desktop";
-      colorScheme = "BreezeDark";
-      cursor.theme = "breeze_cursors";
-    };
-    kwin = {
-      virtualDesktops = {
-        rows = 1;
-        number = 6;
-      };
-      tiling = {
-        padding = 4;
-        layout = {
-          id = "c8a4a66d-bbca-5e7f-8a37-ce3b4a705568";
-          tiles = {
-            layoutDirection = "horizontal";
-            tiles = [
-              {width = 0.25;}
-              {width = 0.5;}
-              {width = 0.25;}
-            ];
-          };
-        };
-      };
-    };
-    window-rules = [
-      {
-        description = "Google Chrome nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "google-chrome";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 1";
-          };
-        };
-      }
-      {
-        description = "Obsidian nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "obsidian";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 2";
-          };
-        };
-      }
-      {
-        description = "WezTerm nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "org.wezfurlong.wezterm";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 3";
-          };
-        };
-      }
-      {
-        description = "Todoist nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "Todoist";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 4";
-          };
-        };
-      }
-      {
-        description = "Steam nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "steam";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 5";
-          };
-        };
-      }
-      {
-        description = "Glance nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "chrome-ljlamgbgefobjkjkepgbmbebcoaheadj-Default";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 6";
-          };
-        };
-      }
-      {
-        description = "Gemini nix";
-        match = {
-          window-class = {
-            type = "exact";
-            value = "chrome-gdfaincndogidkdcdkhapmbffkckdkhn-Default";
-            match-whole = false;
-          };
-        };
-        apply = {
-          desktops = {
-            apply = "initially";
-            value = "Desktop 6";
-          };
-        };
-      }
-    ];
+    # KDE Plasma configuration
+    kde.enable = true;
   };
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion

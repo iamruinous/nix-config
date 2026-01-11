@@ -24,6 +24,7 @@
     pciutils
     usbutils
     isd
+    ethtool
   ];
 
   # direnv integration

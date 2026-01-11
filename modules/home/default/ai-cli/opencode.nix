@@ -541,14 +541,14 @@ in {
 
       rev = mkOption {
         type = types.str;
-        default = "v0.5.3";
+        default = "v0.7.0";
         description = "Git revision (tag, branch, or commit) of codey-agent-system to use.";
         example = "v0.4.0";
       };
 
       sha256 = mkOption {
         type = types.str;
-        default = "sha256-BBdr9kHDPq1SH36iv1xcMaL/n9ZEEJ8+yOZExqw0YC0=";
+        default = "sha256-kp0ZBb0ioecX04tq9LAeYSUYNVDSA27BZg9aKrfL9Wg=";
         description = lib.mdDoc ''
           SHA256 hash of the codey-agent-system source.
           Use `nix-prefetch-git https://forge.meskill.farm/iamruinous/codey-agent-system --rev <rev>` to get this value.
