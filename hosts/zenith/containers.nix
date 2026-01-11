@@ -215,6 +215,81 @@
           "${config.age.secrets.zenith_docker_env_mcp_gateway.path}:/secrets/mcp.env:ro"
         ];
       };
+      # Dawarich - Location tracking and history
+      dawarich-db = {
+        image = "postgis/postgis:17-3.5-alpine";
+        environment = {
+          POSTGRES_USER = "dawarich";
+          POSTGRES_DB = "dawarich_production";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_dawarich.path];
+        networks = ["datanet"];
+        volumes = [
+          "/data/docker/dawarich/db:/var/lib/postgresql/data"
+          "/data/docker/dawarich/shared:/var/shared"
+        ];
+      };
+      dawarich-app = {
+        image = "freikin/dawarich:0.27.3";
+        dependsOn = ["dawarich-db" "redis"];
+        entrypoint = "web-entrypoint.sh";
+        cmd = ["bin/rails" "server" "-p" "3000" "-b" "::"];
+        environment = {
+          RAILS_ENV = "production";
+          REDIS_URL = "redis://redis:6379";
+          DATABASE_HOST = "dawarich-db";
+          DATABASE_PORT = "5432";
+          DATABASE_USERNAME = "dawarich";
+          DATABASE_NAME = "dawarich_production";
+          MIN_MINUTES_SPENT_IN_CITY = "60";
+          APPLICATION_HOSTS = "localhost,timeline.meskill.farm,timeline-int.meskill.farm";
+          TIME_ZONE = "America/Phoenix";
+          APPLICATION_PROTOCOL = "https";
+          RAILS_LOG_TO_STDOUT = "true";
+          SELF_HOSTED = "true";
+          STORE_GEODATA = "true";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_dawarich.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        volumes = [
+          "/data/docker/dawarich/public:/var/app/public"
+          "/data/docker/dawarich/watched:/var/app/tmp/imports/watched"
+          "/data/docker/dawarich/storage:/var/app/storage"
+        ];
+      };
+      dawarich-sidekiq = {
+        image = "freikin/dawarich:0.27.3";
+        dependsOn = ["dawarich-db" "redis" "dawarich-app"];
+        entrypoint = "sidekiq-entrypoint.sh";
+        cmd = ["sidekiq"];
+        environment = {
+          RAILS_ENV = "production";
+          REDIS_URL = "redis://redis:6379";
+          DATABASE_HOST = "dawarich-db";
+          DATABASE_PORT = "5432";
+          DATABASE_USERNAME = "dawarich";
+          DATABASE_NAME = "dawarich_production";
+          APPLICATION_HOSTS = "localhost,timeline.meskill.farm,timeline-int.meskill.farm";
+          BACKGROUND_PROCESSING_CONCURRENCY = "10";
+          APPLICATION_PROTOCOL = "https";
+          RAILS_LOG_TO_STDOUT = "true";
+          SELF_HOSTED = "true";
+          STORE_GEODATA = "true";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_dawarich.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        volumes = [
+          "/data/docker/dawarich/public:/var/app/public"
+          "/data/docker/dawarich/watched:/var/app/tmp/imports/watched"
+          "/data/docker/dawarich/storage:/var/app/storage"
+        ];
+      };
       # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
       # See: https://github.com/ROCm/ROCm/issues/4909
       # Re-enable when ROCm properly supports Strix Halo
@@ -261,6 +336,11 @@
 
   age.secrets.zenith_docker_env_mcp_gateway = {
     rekeyFile = ./files/docker/env/mcp-gateway.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_dawarich = {
+    rekeyFile = ./files/docker/env/dawarich.env.age;
     mode = "600";
   };
 

@@ -13,6 +13,7 @@
     flake.sharedModules.developer
 
     ./hardware-configuration.nix
+    ./cloudflared.nix
     ./containers.nix
     ./disko.nix
   ];
