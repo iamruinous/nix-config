@@ -11,7 +11,12 @@ in {
   programs.ssh = {
     enable = lib.mkDefault true;
     enableDefaultConfig = lib.mkDefault false;
+
+    # Wildcard patterns and match conditions that can't use the hosts module
     matchBlocks = {
+      # ─────────────────────────────────────────────────────────────────────────
+      # Special match conditions (ordering prefix ensures proper precedence)
+      # ─────────────────────────────────────────────────────────────────────────
       "z-ssh-zenith" = {
         match = "host * exec \"test $(uname -n) = 'zenith'\"";
         extraOptions = {
@@ -26,171 +31,79 @@ in {
           IdentityAgent = "\"${identityAgent}\"";
         };
       };
+    };
+  };
 
-      # cabin
-      "cabinpi" = {
-        hostname = "pi.cabin.meskill.network";
-        user = "root";
-      };
-      "hacabin" = {
-        hostname = "ha.cabin.meskill.network";
-        user = "hass";
-      };
-      "plexicabin" = {
-        hostname = "plexi.cabin.meskill.network";
-        user = "root";
-      };
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Declarative SSH Hosts (format: "user@hostname")
+  # ═══════════════════════════════════════════════════════════════════════════
+  ruinous.ssh.hosts = {
+    # ─────────────────────────────────────────────────────────────────────────
+    # Cabin Network
+    # ─────────────────────────────────────────────────────────────────────────
+    cabinpi.host = "root@pi.cabin.meskill.network";
+    hacabin.host = "hass@ha.cabin.meskill.network";
+    plexicabin.host = "root@plexi.cabin.meskill.network";
 
-      # svc
-      "armistice" = {
-        hostname = "armistice.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "monolith" = {
-        hostname = "monolith.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "obelisk" = {
-        hostname = "obelisk.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "pilaster" = {
-        hostname = "pilaster.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "tip" = {
-        hostname = "tip.svc.farmhouse.meskill.network";
-        user = "root";
-      };
-      "zenith" = {
-        hostname = "zenith.svc.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
+    # ─────────────────────────────────────────────────────────────────────────
+    # Service Network
+    # ─────────────────────────────────────────────────────────────────────────
+    armistice.host = "jmeskill@armistice.svc.farmhouse.meskill.network";
+    monolith.host = "jmeskill@monolith.svc.farmhouse.meskill.network";
+    obelisk.host = "jmeskill@obelisk.svc.farmhouse.meskill.network";
+    pilaster.host = "jmeskill@pilaster.svc.farmhouse.meskill.network";
+    zenith.host = "jmeskill@zenith.svc.farmhouse.meskill.network";
 
-      # ttys
-      "mtty" = {
-        hostname = "messy.tty.meskill.farm";
-        user = "messy";
-      };
-      "rtty" = {
-        hostname = "ruinous.tty.meskill.farm";
-        user = "jmeskill";
-      };
+    # ─────────────────────────────────────────────────────────────────────────
+    # TTY Hosts
+    # ─────────────────────────────────────────────────────────────────────────
+    mtty.host = "messy@messy.tty.meskill.farm";
+    rtty.host = "jmeskill@ruinous.tty.meskill.farm";
 
-      # manage
-      "void" = {
-        hostname = "void.manage.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "gap" = {
-        hostname = "gap.manage.farmhouse.meskill.network";
-        user = "jmeskill";
-      };
-      "it" = {
-        hostname = "it.manage.farmhouse.meskill.network";
-        user = "root";
-      };
-      "nut" = {
-        hostname = "nut.manage.farmhouse.meskill.network";
-        user = "root";
-      };
-      "pbs" = {
-        hostname = "pbs.manage.farmhouse.meskill.network";
-        user = "root";
-      };
-      "pit" = {
-        hostname = "pit.manage.farmhouse.meskill.network";
-        user = "root";
-      };
-      "terranas" = {
-        hostname = "terranas.manage.farmhouse.meskill.network";
-        user = "admin";
-      };
-      "truenas" = {
-        hostname = "truenas.manage.farmhouse.meskill.network";
-        user = "admin";
-      };
-      "unifi" = {
-        hostname = "unifi.manage.farmhouse.meskill.network";
-        user = "root";
-      };
+    # ─────────────────────────────────────────────────────────────────────────
+    # Management Network
+    # ─────────────────────────────────────────────────────────────────────────
+    void.host = "jmeskill@void.manage.farmhouse.meskill.network";
+    gap.host = "jmeskill@gap.manage.farmhouse.meskill.network";
+    pbs.host = "root@pbs.manage.farmhouse.meskill.network";
+    terranas.host = "admin@terranas.manage.farmhouse.meskill.network";
+    truenas.host = "admin@truenas.manage.farmhouse.meskill.network";
+    unifi.host = "root@unifi.manage.farmhouse.meskill.network";
 
-      # rsync
-      "de1381b.rsync.net rsync.net" = {
-        hostname = "de1381b.rsync.net";
-        user = "root";
-      };
+    # ─────────────────────────────────────────────────────────────────────────
+    # Desktops/Laptops
+    # ─────────────────────────────────────────────────────────────────────────
+    chassis.host = "jmeskill@chassis.home.farmhouse.meskill.network";
 
-      # pico.sh
-      "pico.sh" = {
-        hostname = "pico.sh";
-        user = "iamruinous";
-        extraOptions = {
-          ForwardAgent = "no";
-          AddKeysToAgent = "no";
-        };
-      };
+    # ─────────────────────────────────────────────────────────────────────────
+    # External Services
+    # ─────────────────────────────────────────────────────────────────────────
+    "de1381b.rsync.net" = {
+      host = "root@de1381b.rsync.net";
+      aliases = ["rsync.net"];
+    };
 
-      # ruinous computers
-      "mail.ruinous.social" = {
-        hostname = "mail.ruinous.social";
-        user = "iamruinous";
+    "pico.sh" = {
+      host = "iamruinous@pico.sh";
+      extraOptions = {
+        ForwardAgent = "no";
+        AddKeysToAgent = "no";
       };
+    };
 
-      "ruinous.computer tty.ruinous.computer" = {
-        hostname = "tty.ruinous.computer";
-        user = "iamruinous";
-      };
+    # ─────────────────────────────────────────────────────────────────────────
+    # Ruinous Computers
+    # ─────────────────────────────────────────────────────────────────────────
+    "mail.ruinous.social".host = "iamruinous@mail.ruinous.social";
 
-      "ruinous.social tty.ruinous.social" = {
-        hostname = "tty.ruinous.social";
-        user = "jmeskill";
-      };
+    "ruinous.computer" = {
+      host = "iamruinous@tty.ruinous.computer";
+      aliases = ["tty.ruinous.computer"];
+    };
 
-      # tailscale
-      "*.greyhound-triceratops.ts.net 100.*" = {
-        user = "root";
-      };
-      "ts-monolith" = {
-        hostname = "monolith.greyhound-triceratops.ts.net";
-        user = "jmeskill";
-      };
-      "ts-moonstone" = {
-        hostname = "moonstone.greyhound-triceratops.ts.net";
-        user = "jmeskill";
-      };
-      "ts-nut" = {
-        hostname = "nut.greyhound-triceratops.ts.net";
-        user = "root";
-      };
-      "ts-obelisk" = {
-        hostname = "obelisk.greyhound-triceratops.ts.net";
-        user = "jmeskill";
-      };
-      "ts-obsidian" = {
-        hostname = "obsidian.greyhound-triceratops.ts.net";
-        user = "root";
-      };
-      "ts-onyx" = {
-        hostname = "onyx.greyhound-triceratops.ts.net";
-        user = "root";
-      };
-      "ts-pit" = {
-        hostname = "pit.greyhound-triceratops.ts.net";
-        user = "root";
-      };
-      "ts-terranas" = {
-        hostname = "terranas.greyhound-triceratops.ts.net";
-        user = "admin";
-      };
-      "ts-tip" = {
-        hostname = "tip.greyhound-triceratops.ts.net";
-        user = "admin";
-      };
-      "ts-truenas" = {
-        hostname = "truenas.greyhound-triceratops.ts.net";
-        user = "root";
-      };
+    "ruinous.social" = {
+      host = "jmeskill@tty.ruinous.social";
+      aliases = ["tty.ruinous.social"];
     };
   };
 }
