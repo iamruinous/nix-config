@@ -1,28 +1,20 @@
 # tmuxp - declarative tmux session management
 #
-# This module provides idiomatic Nix configuration that maps directly to tmuxp's
-# YAML structure. Sessions are saved to ~/.config/tmuxp/ for use with `tmuxp load`.
+# Simplified interface: one command per window (no panes).
+# Windows are ordered by list position.
 #
 # Usage:
 #   ruinous.tmuxp = {
 #     enable = true;
-#
-#     # Session name is the attribute key
 #     sessions.nix-config = {
-#       start_directory = "~/Projects/github/iamruinous/nix-config";
-#
-#       # Window name is the attribute key
-#       windows.main = {
-#         layout = "main-vertical";
-#         focus = true;
-#         panes = [
-#           "opencode --server"
-#           "sleep 2 && opencode"
-#         ];
-#       };
-#
-#       windows.editor.panes = ["nvim ."];
-#       windows.shell = {};  # Empty = blank shell
+#       startDirectory = "~/Projects/github/iamruinous/nix-config";
+#       startCommands = ["direnv exec . true"];
+#       windows = [
+#         { name = "server"; command = "opencode serve --port 9500"; detached = true; }
+#         { name = "opencode"; command = "sleep 2 && opencode attach http://localhost:9500"; focus = true; }
+#         { name = "editor"; command = "nvim ."; }
+#         { name = "shell"; }  # blank shell
+#       ];
 #     };
 #   };
 #
@@ -37,104 +29,70 @@
 with lib; let
   cfg = config.ruinous.tmuxp;
 
-  # Convert a pane to tmuxp format
-  # Supports: string, list of strings, or attrset
-  paneToTmuxp = pane:
-    if builtins.isString pane then
-      if pane == "" then "blank" else pane
-    else if builtins.isList pane then
-      { shell_command = pane; }
-    else
-      pane;
+  # Convert window to tmuxp format
+  windowToTmuxp = idx: win: let
+    command = win.command or null;
+    detached = win.detached or false;
+    # If detached, run command in background and leave shell available
+    pane =
+      if command == null || command == ""
+      then "blank"
+      else if detached
+      then "${command} &; disown"
+      else command;
+  in
+    {
+      window_name = win.name;
+      window_index = idx;
+      panes = [pane];
+    }
+    // optionalAttrs (win.focus or false) {focus = true;}
+    // optionalAttrs (win.startDirectory or null != null) {start_directory = win.startDirectory;}
+    // optionalAttrs (win.environment or {} != {}) {inherit (win) environment;};
 
-  # Convert windows attrset to tmuxp windows list
+  # Convert windows list to tmuxp windows list
   windowsToTmuxp = windows:
-    mapAttrsToList (name: win: 
-      { window_name = name; panes = map paneToTmuxp (win.panes or ["blank"]); }
-      // optionalAttrs (win.layout or null != null) { inherit (win) layout; }
-      // optionalAttrs (win.focus or false) { focus = true; }
-      // optionalAttrs (win.start_directory or null != null) { inherit (win) start_directory; }
-      // optionalAttrs (win.shell_command_before or [] != []) { inherit (win) shell_command_before; }
-      // optionalAttrs (win.options or {} != {}) { inherit (win) options; }
-      // optionalAttrs (win.environment or {} != {}) { inherit (win) environment; }
-    ) windows;
+    imap0 windowToTmuxp windows;
 
   # Convert a session to tmuxp JSON
-  sessionToJson = name: session:
-    let
-      sessionName = if session.session_name != null then session.session_name else name;
-    in
+  sessionToJson = name: session: let
+    sessionName =
+      if session.sessionName != null
+      then session.sessionName
+      else name;
+  in
     builtins.toJSON (
-      { session_name = sessionName; windows = windowsToTmuxp (session.windows or {}); }
-      // optionalAttrs (session.start_directory or null != null) { inherit (session) start_directory; }
-      // optionalAttrs (session.shell_command_before or [] != []) { inherit (session) shell_command_before; }
-      // optionalAttrs (session.environment or {} != {}) { inherit (session) environment; }
-      // optionalAttrs (session.before_script or null != null) { inherit (session) before_script; }
-      // optionalAttrs (session.options or {} != {}) { inherit (session) options; }
-      // optionalAttrs (session.global_options or {} != {}) { inherit (session) global_options; }
-      // optionalAttrs (!(session.suppress_history or true)) { inherit (session) suppress_history; }
+      {
+        session_name = sessionName;
+        windows = windowsToTmuxp (session.windows or []);
+      }
+      // optionalAttrs (session.startDirectory or null != null) {start_directory = session.startDirectory;}
+      // optionalAttrs (session.startCommands or [] != []) {shell_command_before = session.startCommands;}
+      // optionalAttrs (session.environment or {} != {}) {inherit (session) environment;}
+      // optionalAttrs (session.beforeScript or null != null) {before_script = session.beforeScript;}
+      // optionalAttrs (!(session.suppressHistory or true)) {suppress_history = session.suppressHistory;}
     );
 
-  # Window type - flexible attrset matching tmuxp schema
+  # Window type
   windowType = types.submodule {
-    freeformType = types.attrsOf types.anything;
     options = {
-      panes = mkOption {
-        type = types.listOf (types.oneOf [
-          types.str
-          (types.listOf types.str)
-          (types.attrsOf types.anything)
-        ]);
-        default = ["blank"];
-        description = ''
-          List of panes. Each pane can be:
-          - A string command: "nvim ."
-          - Empty string "" or "blank" for blank shell
-          - A list of commands: ["cd /var/log" "ls -la"]
-          - An attrset for full control: { shell_command = ["cmd1" "cmd2"]; focus = true; }
-        '';
-        example = [
-          "nvim ."
-          ["cd /var/log" "tail -f syslog"]
-          { shell_command = "htop"; focus = true; }
-        ];
+      name = mkOption {
+        type = types.str;
+        description = "Window name";
+        example = "editor";
       };
 
-      layout = mkOption {
-        type = types.nullOr (types.enum [
-          "even-horizontal"
-          "even-vertical"
-          "main-horizontal"
-          "main-vertical"
-          "tiled"
-        ]);
+      command = mkOption {
+        type = types.nullOr types.str;
         default = null;
-        description = "Tmux layout for this window";
+        description = "Command to run in the window (null or empty for blank shell)";
+        example = "nvim .";
       };
 
-      focus = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Focus this window when session loads";
-      };
-
-      start_directory = mkOption {
+      startDirectory = mkOption {
         type = types.nullOr types.str;
         default = null;
         description = "Override start directory for this window";
-      };
-
-      shell_command_before = mkOption {
-        type = types.listOf types.str;
-        default = [];
-        description = "Commands to run before each pane in this window";
-      };
-
-      options = mkOption {
-        type = types.attrsOf types.anything;
-        default = {};
-        description = "Window-level tmux options";
-        example = { automatic-rename = true; };
       };
 
       environment = mkOption {
@@ -142,34 +100,45 @@ with lib; let
         default = {};
         description = "Environment variables for this window";
       };
+
+      detached = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Run command in background, leaving shell available";
+      };
+
+      focus = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Focus this window when session loads";
+      };
     };
   };
 
-  # Session type - flexible attrset matching tmuxp schema
+  # Session type
   sessionType = types.submodule {
-    freeformType = types.attrsOf types.anything;
     options = {
-      session_name = mkOption {
+      sessionName = mkOption {
         type = types.nullOr types.str;
         default = null;
         description = "Override session name (defaults to attribute name)";
       };
 
-      start_directory = mkOption {
+      startDirectory = mkOption {
         type = types.nullOr types.str;
         default = null;
         description = "Starting directory for the session";
         example = "~/Projects/my-app";
       };
 
-      shell_command_before = mkOption {
+      startCommands = mkOption {
         type = types.listOf types.str;
         default = [];
-        description = "Commands to run before each pane";
-        example = ["source .venv/bin/activate"];
+        description = "Commands to run before each window";
+        example = ["direnv exec . true"];
       };
 
-      before_script = mkOption {
+      beforeScript = mkOption {
         type = types.nullOr types.str;
         default = null;
         description = "Script to run before session starts (must return 0)";
@@ -182,47 +151,28 @@ with lib; let
         description = "Environment variables for the session";
       };
 
-      options = mkOption {
-        type = types.attrsOf types.anything;
-        default = {};
-        description = "Session-level tmux options";
-      };
-
-      global_options = mkOption {
-        type = types.attrsOf types.anything;
-        default = {};
-        description = "Global (server-wide) tmux options";
-      };
-
-      suppress_history = mkOption {
+      suppressHistory = mkOption {
         type = types.bool;
         default = true;
-        description = "Suppress shell history for pane commands";
+        description = "Suppress shell history for commands";
       };
 
       windows = mkOption {
-        type = types.attrsOf windowType;
-        default = {};
+        type = types.listOf windowType;
+        default = [];
         description = ''
-          Windows for this session. Attribute name becomes window_name.
+          Windows for this session. Order in list determines window index.
         '';
         example = literalExpression ''
-          {
-            editor = {
-              panes = ["nvim ."];
-              focus = true;
-            };
-            server = {
-              layout = "even-horizontal";
-              panes = ["npm run dev" "npm run test:watch"];
-            };
-            shell = {};  # blank shell
-          }
+          [
+            { name = "server"; command = "npm run dev"; detached = true; }
+            { name = "editor"; command = "nvim ."; focus = true; }
+            { name = "shell"; }
+          ]
         '';
       };
     };
   };
-
 in {
   options.ruinous.tmuxp = {
     enable = mkEnableOption "tmuxp declarative session management";
@@ -239,35 +189,15 @@ in {
       example = literalExpression ''
         {
           nix-config = {
-            start_directory = "~/Projects/github/iamruinous/nix-config";
+            startDirectory = "~/Projects/github/iamruinous/nix-config";
+            startCommands = ["direnv exec . true"];
 
-            windows.code = {
-              layout = "main-vertical";
-              focus = true;
-              panes = [
-                "opencode --server"
-                "sleep 2 && opencode"
-              ];
-            };
-
-            windows.editor.panes = ["nvim ."];
-            windows.tests.panes = [""];
-            windows.shell = {};
-          };
-
-          my-webapp = {
-            start_directory = "~/Projects/webapp";
-            shell_command_before = ["source .venv/bin/activate"];
-
-            windows.app = {
-              layout = "main-horizontal";
-              panes = [
-                "npm run dev"
-                ["npm run test:watch"]
-              ];
-            };
-
-            windows.shell = {};
+            windows = [
+              { name = "server"; command = "opencode serve --port 9500"; detached = true; }
+              { name = "opencode"; command = "sleep 2 && opencode attach http://localhost:9500"; focus = true; }
+              { name = "editor"; command = "nvim ."; }
+              { name = "shell"; }
+            ];
           };
         }
       '';
@@ -278,10 +208,13 @@ in {
     home.packages = [pkgs.tmuxp];
 
     # Generate session files in ~/.config/tmuxp/
-    xdg.configFile = mapAttrs' (name: session:
-      nameValuePair "tmuxp/${name}.json" {
-        text = sessionToJson name session;
-      }
-    ) cfg.sessions;
+    xdg.configFile =
+      mapAttrs' (
+        name: session:
+          nameValuePair "tmuxp/${name}.json" {
+            text = sessionToJson name session;
+          }
+      )
+      cfg.sessions;
   };
 }
