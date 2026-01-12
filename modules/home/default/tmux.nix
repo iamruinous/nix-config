@@ -50,7 +50,10 @@
   keybindingLines = lib.concatStringsSep "\n" (lib.mapAttrsToList mkKeybind cfg.keybindings);
 
   # Helper to convert bool to tmux on/off
-  boolToOnOff = b: if b then "on" else "off";
+  boolToOnOff = b:
+    if b
+    then "on"
+    else "off";
 in {
   options.ruinous.tmux = {
     statusPosition = lib.mkOption {
@@ -217,8 +220,15 @@ in {
 
       plugins = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = ["cpu" "memory" "datetime"];
+        default = ["cpu" "memory" "datetime" "ssh"];
         description = "List of powerkit plugins to display in the status bar";
+        example = lib.literalExpression ''
+          # To add a plugin (e.g., battery) without redefining the whole list:
+          # ruinous.tmux.powerkit.plugins = config.ruinous.tmux.powerkit.plugins ++ ["battery"];
+          #
+          # Or using lib.mkOptionDefault to extend defaults:
+          # ruinous.tmux.powerkit.plugins = lib.mkOptionDefault ["cpu" "memory" "datetime" "ssh" "battery"];
+        '';
       };
 
       separatorStyle = lib.mkOption {
@@ -262,7 +272,7 @@ in {
       datetime = {
         format = lib.mkOption {
           type = lib.types.str;
-          default = "preset_1";
+          default = "time-12h";
           description = "DateTime format (preset_1 = %Y-%m-%d %H:%M:%S)";
         };
       };

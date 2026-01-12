@@ -1,4 +1,8 @@
-{flake, ...}: let
+{
+  config,
+  flake,
+  ...
+}: let
   wallpaper_dir = ../../../../files/wallpapers/nixos;
   workspace-wallpaper = "${wallpaper_dir}/pixel_sakura_static.png";
 in {
@@ -10,6 +14,7 @@ in {
   ruinous = {
     # this system has a battery
     starship.battery.enable = true;
+    tmux.powerkit.plugins = config.ruinous.tmux.powerkit.plugins ++ ["battery"];
 
     # allow use of 1password op-ssh-sign
     git.signing.use1Password = true;

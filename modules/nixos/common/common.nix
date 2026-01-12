@@ -30,6 +30,7 @@
   # direnv integration
   programs.direnv = {
     enable = lib.mkDefault true;
+    silent = true;
     enableFishIntegration = true;
     enableBashIntegration = true;
     enableZshIntegration = true;
