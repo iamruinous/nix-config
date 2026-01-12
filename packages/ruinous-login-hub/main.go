@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -53,19 +54,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		// Let the list handle filtering first
-		if m.list.FilterState() == list.Filtering {
-			var cmd tea.Cmd
-			m.list, cmd = m.list.Update(msg)
-			return m, cmd
+		// Handle quit
+		if msg.String() == "ctrl+c" {
+			return m, tea.Quit
 		}
 
-		// Handle our custom keys only when not filtering
-		switch msg.String() {
-		case "q", "ctrl+c":
-			return m, tea.Quit
-
-		case "enter":
+		// Handle selection
+		if msg.String() == "enter" {
 			selected := m.list.SelectedItem()
 			if item, ok := selected.(menuItem); ok {
 				return m, executeAction(item)
@@ -73,7 +68,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Let the list handle all other updates (including starting filter mode)
+	// Let the list handle all updates (navigation and filtering)
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -84,7 +79,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("241")).
 		MarginTop(1)
 
-	instructions := "↑/↓: navigate • /: filter • enter: select • q: quit"
+	instructions := "ctrl+j/k: navigate • type to filter • enter: select • ctrl+c: quit"
 
 	// Don't apply styling to banner - it has its own colors from toilet
 	return fmt.Sprintf(
@@ -165,6 +160,7 @@ func discoverTmuxpSessions() []string {
 
 	return sessions
 }
+
 func buildMenuItems() []list.Item {
 	items := []list.Item{}
 
@@ -257,6 +253,22 @@ func main() {
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
+
+	// Customize key bindings to use Ctrl+J/K for navigation
+	l.KeyMap.CursorUp = key.NewBinding(
+		key.WithKeys("ctrl+k"),
+		key.WithHelp("ctrl+k", "up"),
+	)
+	l.KeyMap.CursorDown = key.NewBinding(
+		key.WithKeys("ctrl+j"),
+		key.WithHelp("ctrl+j", "down"),
+	)
+	
+	// Disable vim-style navigation keys so they can be typed for filtering
+	l.KeyMap.NextPage = key.NewBinding(key.WithKeys())
+	l.KeyMap.PrevPage = key.NewBinding(key.WithKeys())
+	l.KeyMap.GoToStart = key.NewBinding(key.WithKeys())
+	l.KeyMap.GoToEnd = key.NewBinding(key.WithKeys())
 
 	m := model{
 		list:   l,
