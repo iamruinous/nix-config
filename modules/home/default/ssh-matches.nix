@@ -17,6 +17,14 @@ in {
       # ─────────────────────────────────────────────────────────────────────────
       # Special match conditions (ordering prefix ensures proper precedence)
       # ─────────────────────────────────────────────────────────────────────────
+      "z-ssh-chassis" = {
+        match = "host * exec \"test $(uname -n) = 'chassis'\"";
+        extraOptions = {
+          IdentityAgent = "none";
+          IdentityFile = "~/.ssh/id_codey_ed25519";
+        };
+      };
+
       "z-ssh-zenith" = {
         match = "host * exec \"test $(uname -n) = 'zenith'\"";
         extraOptions = {
