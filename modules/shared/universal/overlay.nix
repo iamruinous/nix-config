@@ -15,6 +15,7 @@
       nelko-pl70ebt = perSystem.self.nelko-pl70ebt;
       opencode-notifier-apprise = perSystem.self.opencode-notifier-apprise;
       pinentry-1password = perSystem.self.pinentry-1password;
+      ruinous-login-hub = perSystem.self.ruinous-login-hub;
       ssh-agent-check = perSystem.self.ssh-agent-check;
       wezterm-codesigned = perSystem.self.wezterm-codesigned;
 

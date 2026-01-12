@@ -12,7 +12,7 @@ in {
   ];
 
   ruinous.rust-motd.enable = true;
-  ruinous.openssh.tmux.attach.enable = true;
+  ruinous.loginHub.enable = true;
 
   home.file.".docker/cli-plugins/docker-mcp".source = config.lib.file.mkOutOfStoreSymlink "${pkgs.docker-mcp-gateway}/bin/docker-mcp";
 
