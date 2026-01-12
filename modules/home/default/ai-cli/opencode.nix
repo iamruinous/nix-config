@@ -48,11 +48,11 @@ with lib; let
   opencode_config = flake + /files/configs/opencode/opencode.json;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
-  # Fetch codey-agent-system for global AGENTS.md
-  codeyAgentSystem = pkgs.fetchgit {
-    url = "https://forge.meskill.farm/iamruinous/codey-agent-system";
-    rev = cfg.codeyAgentSystem.rev;
+  # Fetch codey-agent-system release zip for global AGENTS.md
+  codeyAgentSystem = pkgs.fetchzip {
+    url = "https://forge.meskill.farm/iamruinous/codey-agent-system/releases/download/v${cfg.codeyAgentSystem.version}/codey-agent-system-${cfg.codeyAgentSystem.version}.zip";
     sha256 = cfg.codeyAgentSystem.sha256;
+    stripRoot = false;
   };
 
   # Permission submodule type for oh-my-opencode agents
@@ -536,30 +536,24 @@ in {
       enable = mkOption {
         type = types.bool;
         default = true;
-        description = "Whether to enable codey-agent-system AGENTS.md from remote repository.";
+        description = "Whether to enable codey-agent-system from remote repository.";
       };
 
-      rev = mkOption {
+      version = mkOption {
         type = types.str;
-        default = "v0.7.0";
-        description = "Git revision (tag, branch, or commit) of codey-agent-system to use.";
-        example = "v0.4.0";
+        default = "0.10.2";
+        description = "Version of codey-agent-system to use.";
+        example = "0.10.2";
       };
 
       sha256 = mkOption {
         type = types.str;
-        default = "sha256-kp0ZBb0ioecX04tq9LAeYSUYNVDSA27BZg9aKrfL9Wg=";
+        default = "sha256-DsAr/1eFzz+7ZqmWkGRKvPop0EvM4Dz8DYWCk4BGg+g=";
         description = lib.mdDoc ''
-          SHA256 hash of the codey-agent-system source.
-          Use `nix-prefetch-git https://forge.meskill.farm/iamruinous/codey-agent-system --rev <rev>` to get this value.
+          SHA256 hash of the codey-agent-system release zip.
+          Use `nix-prefetch-url --unpack https://forge.meskill.farm/iamruinous/codey-agent-system/releases/download/v<version>/codey-agent-system-<version>.zip` to get this value.
         '';
-        example = "sha256-7S/zgfeXzBlEluKkVS/+uz13IWBoZxD7Qnsm7OrIFaw=";
-      };
-
-      path = mkOption {
-        type = types.str;
-        default = "dist/AGENTS.md";
-        description = "Path to AGENTS.md within the codey-agent-system repository.";
+        example = "sha256-3jpGG34JACGPvYq+X/DdTX6DblY728I3OyuqWSH9gs4=";
       };
     };
 
@@ -613,7 +607,7 @@ in {
       ];
 
       ruinous.ai-cli.opencode.plugins = [
-        "oh-my-opencode@v3.0.0-beta.3"
+        "oh-my-opencode@v3.0.0-beta.5"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
         "opencode-anthropic-auth@0.0.8"
@@ -690,7 +684,9 @@ in {
           };
         }
         // optionalAttrs resolved.codeyAgentSystemEnable {
-          "${resolved.configDir}/AGENTS.md".source = "${codeyAgentSystem}/${cfg.codeyAgentSystem.path}";
+          "${resolved.configDir}/AGENTS.md".source = "${codeyAgentSystem}/AGENTS.md";
+          "${resolved.configDir}/protocols".source = "${codeyAgentSystem}/protocols";
+          "${resolved.configDir}/skill".source = "${codeyAgentSystem}/skill";
         }) (attrNames cfg.configs));
     }
 
