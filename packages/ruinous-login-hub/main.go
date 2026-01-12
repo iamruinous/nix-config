@@ -53,6 +53,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		// Let the list handle filtering first
+		if m.list.FilterState() == list.Filtering {
+			var cmd tea.Cmd
+			m.list, cmd = m.list.Update(msg)
+			return m, cmd
+		}
+
+		// Handle our custom keys only when not filtering
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -65,6 +73,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	// Let the list handle all other updates (including starting filter mode)
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -133,6 +142,12 @@ func discoverTmuxpSessions() []string {
 	for _, file := range files {
 		base := filepath.Base(file)
 		name := strings.TrimSuffix(base, ".json")
+		
+		// Skip "hub" since we have a dedicated Hub Session option
+		if name == "hub" {
+			continue
+		}
+		
 		sessions = append(sessions, name)
 	}
 
@@ -140,7 +155,6 @@ func discoverTmuxpSessions() []string {
 
 	return sessions
 }
-
 func buildMenuItems() []list.Item {
 	items := []list.Item{}
 
