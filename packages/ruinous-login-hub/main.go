@@ -80,7 +80,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("241")).
 		MarginTop(1)
 
-	instructions := "↑/↓: navigate • enter: select • q: quit"
+	instructions := "↑/↓: navigate • /: filter • enter: select • q: quit"
 
 	return fmt.Sprintf(
 		"%s\n%s\n%s",
@@ -231,7 +231,7 @@ func main() {
 	l := list.New(items, delegate, 0, 0)
 	l.Title = ""
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 
 	m := model{
