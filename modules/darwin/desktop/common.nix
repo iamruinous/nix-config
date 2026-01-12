@@ -11,6 +11,7 @@
   # direnv integration
   programs.direnv = {
     enable = lib.mkDefault true;
+    silent = true;
   };
 
   # Fish configuration

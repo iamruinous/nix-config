@@ -56,6 +56,53 @@ in {
         };
       };
 
+      # KWin configFile for settings not covered by structured options
+      configFile = {
+        # Krohnkite plugin (set to false to disable)
+        "kwinrc"."Plugins"."krohnkiteEnabled" = true;
+        "kwinrc"."Plugins"."desktopchangeosdEnabled" = false;
+
+        # Window behavior
+        "kwinrc"."Windows"."FocusPolicy" = "FocusFollowsMouse";
+        "kwinrc"."Windows"."Placement" = "Maximizing";
+
+        # TabBox (Alt+Tab behavior)
+        "kwinrc"."TabBox"."ApplicationsMode" = 1;
+        "kwinrc"."TabBox"."DesktopMode" = 2;
+        "kwinrc"."TabBox"."HighlightWindows" = false;
+        "kwinrc"."TabBox"."MinimizedMode" = 1;
+        "kwinrc"."TabBox"."OrderMinimizedMode" = 1;
+        "kwinrc"."TabBox"."ShowDesktopMode" = 1;
+
+        # Xwayland scaling
+        "kwinrc"."Xwayland"."Scale" = 1.7;
+
+        # Krohnkite shortcuts (in kglobalshortcutsrc under [kwin] section)
+        # Format: "shortcut,default,description"
+        "kglobalshortcutsrc"."kwin"."KrohnkiteFocusDown" = "Meta+J,none,Krohnkite: Focus Down";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteFocusLeft" = "Meta+H,none,Krohnkite: Focus Left";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteFocusUp" = "Meta+K,none,Krohnkite: Focus Up";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteFocusPrev" = "Meta+\\\\,,none,Krohnkite: Focus Previous";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteShiftDown" = "Meta+Shift+J,none,Krohnkite: Move Down/Next";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteShiftLeft" = "Meta+Shift+H,none,Krohnkite: Move Left";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteShiftRight" = "Meta+Shift+L,none,Krohnkite: Move Right";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteShiftUp" = "Meta+Shift+K,none,Krohnkite: Move Up/Prev";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteToggleFloat" = "Meta+F,none,Krohnkite: Toggle Float";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteFloatAll" = "Meta+Shift+F,none,Krohnkite: Toggle Float All";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteMonocleLayout" = "Meta+M,none,Krohnkite: Monocle Layout";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteSetMaster" = "Meta+Return,none,Krohnkite: Set master";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteNextLayout" = "Meta+\\\\\\\\,none,Krohnkite: Next Layout";
+        "kglobalshortcutsrc"."kwin"."KrohnkitePreviousLayout" = "Meta+|,none,Krohnkite: Previous Layout";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteIncrease" = "Meta+I,none,Krohnkite: Increase";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteGrowHeight" = "Meta+Ctrl+J,none,Krohnkite: Grow Height";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteShrinkHeight" = "Meta+Ctrl+K,none,Krohnkite: Shrink Height";
+        "kglobalshortcutsrc"."kwin"."KrohnkiteShrinkWidth" = "Meta+Ctrl+H,none,Krohnkite: Shrink Width";
+        "kglobalshortcutsrc"."kwin"."KrohnkitegrowWidth" = "Meta+Ctrl+L,none,Krohnkite: Grow Width";
+
+        # Built-in KWin tile editor shortcut
+        "kglobalshortcutsrc"."kwin"."Edit Tiles" = "Meta+T,Meta+T,Toggle Tiles Editor";
+      };
+
       window-rules = [
         {
           description = "Google Chrome";
@@ -102,6 +149,22 @@ in {
             desktops = {
               apply = "initially";
               value = "Desktop_3";
+            };
+          };
+        }
+        {
+          description = "Discord";
+          match = {
+            window-class = {
+              type = "exact";
+              value = "discord";
+              match-whole = false;
+            };
+          };
+          apply = {
+            desktops = {
+              apply = "initially";
+              value = "Desktop_4";
             };
           };
         }

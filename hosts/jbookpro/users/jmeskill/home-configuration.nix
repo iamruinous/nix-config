@@ -1,4 +1,8 @@
-{flake, ...}: {
+{
+  config,
+  flake,
+  ...
+}: {
   imports = [
     flake.homeModules.default
     flake.homeModules.darwin
@@ -7,6 +11,7 @@
   ruinous = {
     # this system has a battery
     starship.battery.enable = true;
+    tmux.powerkit.plugins = config.ruinous.tmux.powerkit.plugins ++ ["battery"];
 
     # allow use of 1password op-ssh-sign
     git.signing.use1Password = true;

@@ -1,6 +1,6 @@
 {perSystem, ...}: {
   nixpkgs.overlays = [
-    (_final: _prev: {
+    (final: prev: {
       inherit (perSystem) self;
       agenix-helper = perSystem.self.agenix-helper;
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
@@ -16,6 +16,11 @@
       pinentry-1password = perSystem.self.pinentry-1password;
       ssh-agent-check = perSystem.self.ssh-agent-check;
       wezterm-codesigned = perSystem.self.wezterm-codesigned;
+
+      # Extend tmuxPlugins with our custom plugins
+      tmuxPlugins = prev.tmuxPlugins // {
+        tmux-powerkit = perSystem.self.tmux-powerkit;
+      };
     })
   ];
 }
