@@ -218,17 +218,32 @@ in {
         description = "Powerkit theme variant";
       };
 
-      plugins = lib.mkOption {
+      # Base plugins are always installed by default.
+      # Use extraPlugins to add more without redefining the base set.
+      # To override basePlugins entirely, use lib.mkForce.
+      basePlugins = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = ["cpu" "memory" "datetime" "ssh"];
-        description = "List of powerkit plugins to display in the status bar";
-        example = lib.literalExpression ''
-          # To add a plugin (e.g., battery) without redefining the whole list:
-          # ruinous.tmux.powerkit.plugins = config.ruinous.tmux.powerkit.plugins ++ ["battery"];
-          #
-          # Or using lib.mkOptionDefault to extend defaults:
-          # ruinous.tmux.powerkit.plugins = lib.mkOptionDefault ["cpu" "memory" "datetime" "ssh" "battery"];
+        description = ''
+          Base powerkit plugins that are always installed.
+          These provide the core status bar functionality.
+
+          To override completely (not recommended):
+            ruinous.tmux.powerkit.basePlugins = lib.mkForce ["datetime"];
         '';
+      };
+
+      extraPlugins = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = ''
+          Additional powerkit plugins to add to the status bar.
+          These are appended to basePlugins.
+
+          Example - add battery indicator on laptops:
+            ruinous.tmux.powerkit.extraPlugins = ["battery"];
+        '';
+        example = ["battery"];
       };
 
       separatorStyle = lib.mkOption {
@@ -313,8 +328,8 @@ in {
           set -g @powerkit_theme "${powerkitCfg.theme}"
           set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"
 
-          # Plugins to show
-          set -g @powerkit_plugins "${lib.concatStringsSep "," powerkitCfg.plugins}"
+          # Plugins to show (basePlugins + extraPlugins)
+          set -g @powerkit_plugins "${lib.concatStringsSep "," (powerkitCfg.basePlugins ++ powerkitCfg.extraPlugins)}"
 
           # Separator styles
           set -g @powerkit_separator_style "${powerkitCfg.separatorStyle}"
