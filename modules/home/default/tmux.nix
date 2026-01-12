@@ -48,6 +48,9 @@
 
   # Generate all keybinding lines from attrset
   keybindingLines = lib.concatStringsSep "\n" (lib.mapAttrsToList mkKeybind cfg.keybindings);
+
+  # Helper to convert bool to tmux on/off
+  boolToOnOff = b: if b then "on" else "off";
 in {
   options.ruinous.tmux = {
     statusPosition = lib.mkOption {
@@ -336,11 +339,11 @@ in {
       ''}
 
       # Visual notifications
-      set-option -g visual-activity ${lib.boolToString cfg.visualActivity}
-      set-option -g visual-bell ${lib.boolToString cfg.visualBell}
-      set-option -g visual-silence ${lib.boolToString cfg.visualSilence}
-      set-option -g focus-events ${lib.boolToString cfg.focusEvents}
-      set-window-option -g monitor-activity ${lib.boolToString cfg.monitorActivity}
+      set-option -g visual-activity ${boolToOnOff cfg.visualActivity}
+      set-option -g visual-bell ${boolToOnOff cfg.visualBell}
+      set-option -g visual-silence ${boolToOnOff cfg.visualSilence}
+      set-option -g focus-events ${boolToOnOff cfg.focusEvents}
+      set-window-option -g monitor-activity ${boolToOnOff cfg.monitorActivity}
       set-option -g bell-action ${cfg.bellAction}
 
       # Terminal features
