@@ -56,6 +56,9 @@ in
       wrapProgram $out/share/tmux-plugins/tmux-powerkit/tmux-powerkit.tmux \
         --set PATH ${runtimePath}
 
+      # Create symlink for mkTmuxPlugin convention (converts hyphens to underscores)
+      ln -sf tmux-powerkit.tmux $out/share/tmux-plugins/tmux-powerkit/tmux_powerkit.tmux
+
       # Wrap bin scripts (these are called directly by tmux)
       for script in $out/share/tmux-plugins/tmux-powerkit/bin/*; do
         if [ -f "$script" ] && [ -x "$script" ] && [[ ! "$script" =~ -wrapped$ ]]; then
