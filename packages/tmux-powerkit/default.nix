@@ -23,8 +23,9 @@
     pkgs.tmux
   ] ++ linuxDeps ++ darwinDeps;
 
-  # On Darwin, include /usr/bin for system commands (ps, top, sw_vers, etc.)
-  darwinSystemPath = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ":/usr/bin:/bin";
+  # On Darwin, include /usr/bin, /usr/sbin, /bin, /sbin for system commands
+  # (ps, top, sw_vers, sysctl, etc.)
+  darwinSystemPath = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ":/usr/bin:/usr/sbin:/bin:/sbin";
   runtimePath = (pkgs.lib.makeBinPath runtimeDeps) + darwinSystemPath;
 in
   pkgs.tmuxPlugins.mkTmuxPlugin {
