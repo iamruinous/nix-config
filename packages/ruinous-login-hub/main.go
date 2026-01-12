@@ -80,20 +80,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	bannerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("86")).
-		Bold(true).
-		MarginBottom(1)
-
 	helpStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("241")).
 		MarginTop(1)
 
 	instructions := "↑/↓: navigate • /: filter • enter: select • q: quit"
 
+	// Don't apply styling to banner - it has its own colors from toilet
 	return fmt.Sprintf(
 		"%s\n%s\n%s",
-		bannerStyle.Render(m.banner),
+		m.banner,
 		m.list.View(),
 		helpStyle.Render(instructions),
 	)
@@ -106,16 +102,30 @@ func generateBanner() string {
 	}
 
 	toiletPath, err := exec.LookPath("toilet")
-	if err == nil {
-		cmd := exec.Command(toiletPath, "-f", "standard", hostname)
-		output, err := cmd.Output()
-		if err == nil && len(output) > 0 {
-			return "SSH Login Hub\n\n" + string(output)
-		}
+	if err != nil {
+		// Fallback if toilet somehow isn't available
+		return fmt.Sprintf(`
+╔═══════════════════════════════════╗
+║  %s
+╚═══════════════════════════════════╝`, hostname)
 	}
 
-	return fmt.Sprintf(`SSH Login Hub
+	// Use toilet with smblock font and metal filter for gradient colors
+	cmd := exec.Command(toiletPath, "-f", "smblock", "-F", "metal", hostname)
+	output, err := cmd.Output()
+	if err == nil && len(output) > 0 {
+		return string(output)
+	}
 
+	// Fallback to toilet without filter if metal fails
+	cmd = exec.Command(toiletPath, "-f", "smblock", hostname)
+	output, err = cmd.Output()
+	if err == nil && len(output) > 0 {
+		return string(output)
+	}
+
+	// Final fallback
+	return fmt.Sprintf(`
 ╔═══════════════════════════════════╗
 ║  %s
 ╚═══════════════════════════════════╝`, hostname)
