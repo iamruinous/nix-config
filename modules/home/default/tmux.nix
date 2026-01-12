@@ -174,6 +174,16 @@ in {
           key = "K";
           command = "confirm kill-session";
         };
+
+        # Session navigation (prefix + [ / ])
+        prev-session = {
+          key = "[";
+          command = "switch-client -p";
+        };
+        next-session = {
+          key = "]";
+          command = "switch-client -n";
+        };
       };
       description = ''
         Attrset of tmux keybindings. Each binding specifies:

@@ -31,6 +31,13 @@
       enable = true;
 
       sessions = {
+        # Hub session - always running, use for session management
+        hub = {
+          windows = [
+            {name = "shell"; focus = true;}
+          ];
+        };
+
         nix = {
           startDirectory = "~/Projects/github/iamruinous/nix-config";
           startCommands = ["direnv exec . true"];
