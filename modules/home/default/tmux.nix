@@ -3,12 +3,89 @@
   pkgs,
   config,
   ...
-}: {
+}: let
+  cfg = config.ruinous.tmux;
+  powerkitCfg = cfg.powerkit;
+in {
   options.ruinous.tmux = {
     statusPosition = lib.mkOption {
       type = lib.types.enum ["top" "bottom"];
       default = "top";
       description = "Position of the tmux status bar";
+    };
+
+    powerkit = {
+      enable = lib.mkEnableOption "tmux-powerkit status bar framework" // {default = true;};
+
+      theme = lib.mkOption {
+        type = lib.types.str;
+        default = "tokyo-night";
+        description = "Powerkit theme name";
+      };
+
+      themeVariant = lib.mkOption {
+        type = lib.types.str;
+        default = "night";
+        description = "Powerkit theme variant";
+      };
+
+      plugins = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = ["cpu" "memory" "datetime"];
+        description = "List of powerkit plugins to display in the status bar";
+      };
+
+      separatorStyle = lib.mkOption {
+        type = lib.types.enum ["normal" "rounded" "slant" "slantup" "trapezoid" "flame" "pixel" "honeycomb" "none"];
+        default = "rounded";
+        description = "Separator style between status bar segments";
+      };
+
+      edgeSeparatorStyle = lib.mkOption {
+        type = lib.types.enum ["normal" "rounded" "slant" "slantup" "trapezoid" "flame" "pixel" "honeycomb" "none" "same"];
+        default = "rounded";
+        description = "Edge separator style for status bar";
+      };
+
+      elementsSpacing = lib.mkOption {
+        type = lib.types.enum ["false" "true" "both" "windows" "plugins"];
+        default = "true";
+        description = "Spacing between status bar elements";
+      };
+
+      transparent = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Enable transparent background for status bar";
+      };
+
+      cpu = {
+        warningThreshold = lib.mkOption {
+          type = lib.types.int;
+          default = 70;
+          description = "CPU usage percentage to trigger warning state";
+        };
+
+        criticalThreshold = lib.mkOption {
+          type = lib.types.int;
+          default = 90;
+          description = "CPU usage percentage to trigger critical state";
+        };
+      };
+
+      datetime = {
+        format = lib.mkOption {
+          type = lib.types.str;
+          default = "preset_1";
+          description = "DateTime format (preset_1 = %Y-%m-%d %H:%M:%S)";
+        };
+      };
+
+      extraConfig = lib.mkOption {
+        type = lib.types.lines;
+        default = "";
+        description = "Additional powerkit configuration";
+      };
     };
   };
 
@@ -32,71 +109,41 @@
       sensible
       yank
 
-      # Tokyo Night theme
-      {
-        plugin = tokyo-night-tmux;
-        extraConfig = ''
-          # Theme variant: night (default), storm, or day
-          set -g @tokyo-night-tmux_theme night
-
-          # Number styles: digital, roman, fsquare, hsquare, dsquare, super, sub
-          set -g @tokyo-night-tmux_window_id_style digital
-          set -g @tokyo-night-tmux_pane_id_style hsquare
-          set -g @tokyo-night-tmux_zoom_id_style dsquare
-
-          # Date/time widget
-          set -g @tokyo-night-tmux_show_datetime 1
-          set -g @tokyo-night-tmux_date_format YMD
-          set -g @tokyo-night-tmux_time_format 24H
-
-          # Path widget
-          set -g @tokyo-night-tmux_show_path 1
-          set -g @tokyo-night-tmux_path_format relative
-
-          # Git widget (requires jq, gh/glab)
-          set -g @tokyo-night-tmux_show_wbg 0
-
-          # Hostname widget
-          set -g @tokyo-night-tmux_show_hostname 1
-        '';
-      }
-
-      # Powerkit - modular status bar framework with tokyo-night theme
-      {
+      # Powerkit - modular status bar framework
+      (lib.mkIf powerkitCfg.enable {
         plugin = pkgs.tmuxPlugins.tmux-powerkit;
         extraConfig = ''
-          # Use Tokyo Night theme from powerkit
-          set -g @powerkit_theme "tokyo-night"
-          set -g @powerkit_theme_variant "night"
+          # Theme configuration
+          set -g @powerkit_theme "${powerkitCfg.theme}"
+          set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"
 
-          # Plugins to show (customize as needed)
-          set -g @powerkit_plugins "git,cpu,memory,datetime"
+          # Plugins to show
+          set -g @powerkit_plugins "${lib.concatStringsSep "," powerkitCfg.plugins}"
 
-          # Separator style: normal, rounded, slant, flame, pixel, honeycomb
-          set -g @powerkit_separator_style "rounded"
+          # Separator styles
+          set -g @powerkit_separator_style "${powerkitCfg.separatorStyle}"
+          set -g @powerkit_edge_separator_style "${powerkitCfg.edgeSeparatorStyle}"
 
           # Spacing between elements
-          set -g @powerkit_elements_spacing "both"
+          set -g @powerkit_elements_spacing "${powerkitCfg.elementsSpacing}"
 
           # Transparent background
-          set -g @powerkit_transparent "false"
+          set -g @powerkit_transparent "${lib.boolToString powerkitCfg.transparent}"
 
           # Status position
-          set -g @powerkit_status_position "${config.ruinous.tmux.statusPosition}"
-
-          # Git plugin settings
-          set -g @powerkit_plugin_git_show_branch "true"
-          set -g @powerkit_plugin_git_show_files "true"
-          set -g @powerkit_plugin_git_max_length "30"
+          set -g @powerkit_status_position "${cfg.statusPosition}"
 
           # CPU plugin settings
-          set -g @powerkit_plugin_cpu_warning_threshold "70"
-          set -g @powerkit_plugin_cpu_critical_threshold "90"
+          set -g @powerkit_plugin_cpu_warning_threshold "${toString powerkitCfg.cpu.warningThreshold}"
+          set -g @powerkit_plugin_cpu_critical_threshold "${toString powerkitCfg.cpu.criticalThreshold}"
 
-          # DateTime format (preset_1 = %Y-%m-%d %H:%M:%S)
-          set -g @powerkit_plugin_datetime_format "preset_1"
+          # DateTime format
+          set -g @powerkit_plugin_datetime_format "${powerkitCfg.datetime.format}"
+
+          # Additional user configuration
+          ${powerkitCfg.extraConfig}
         '';
-      }
+      })
     ];
 
     extraConfig = ''
