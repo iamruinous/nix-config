@@ -965,7 +965,7 @@
         ];
       };
       tasktrove = {
-        image = "ghcr.io/dohsimpson/tasktrove:v0.11.1";
+        image = "ghcr.io/dohsimpson/tasktrove:v0.12.4";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/tasktrove/config:/app/data"
