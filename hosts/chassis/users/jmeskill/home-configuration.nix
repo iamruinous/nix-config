@@ -25,6 +25,29 @@
     # enable opencode with my preferred plugins
     ai-cli.opencode.enable = true;
 
+    # tmuxp for declarative project sessions
+    # Usage: tmuxp load nix-config
+    tmuxp = {
+      enable = true;
+
+      sessions.nix-config = {
+        start_directory = "~/Projects/github/iamruinous/nix-config";
+
+        windows.opencode = {
+          layout = "main-vertical";
+          focus = true;
+          panes = [
+            "opencode --server"
+            "sleep 2 && opencode"
+          ];
+        };
+
+        windows.editor.panes = ["nvim ."];
+        windows.tests = {}; # blank shell for test watcher
+        windows.shell = {}; # general shell
+      };
+    };
+
     # Git config - use zenith-specific defaults for all repos
     git.default = {
       userEmail = "jade@ruinous.ai";

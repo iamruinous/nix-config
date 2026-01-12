@@ -316,7 +316,6 @@ in {
       better-mouse-mode
       copycat
       pain-control
-      resurrect
       sensible
       yank
 
