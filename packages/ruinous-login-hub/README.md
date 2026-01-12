@@ -81,3 +81,12 @@ This package is typically used with:
 ## Background
 
 Created to provide a consistent, user-friendly entry point for SSH sessions, making it easy to jump into the right tmux session or tmuxp environment without memorizing commands.
+
+### Filtering
+
+Press `/` to activate filter mode and type to narrow down the list. For example:
+- Type `kim` to show only sessions matching "kimaki"
+- Type `hub` to quickly find the Hub Session
+- Press `Esc` to clear the filter
+
+The filter searches across session names and descriptions.
