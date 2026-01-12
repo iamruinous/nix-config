@@ -79,7 +79,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("241")).
 		MarginTop(1)
 
-	instructions := "ctrl+j/k: navigate • type to filter • enter: select • ctrl+c: quit"
+	instructions := "ctrl+j/k: navigate • /: filter • enter: select • ctrl+c: quit"
 
 	// Don't apply styling to banner - it has its own colors from toilet
 	return fmt.Sprintf(
@@ -147,12 +147,12 @@ func discoverTmuxpSessions() []string {
 	for _, file := range files {
 		base := filepath.Base(file)
 		name := strings.TrimSuffix(base, ".json")
-		
+
 		// Skip "hub" since we have a dedicated Hub Session option
 		if name == "hub" {
 			continue
 		}
-		
+
 		sessions = append(sessions, name)
 	}
 
@@ -263,7 +263,7 @@ func main() {
 		key.WithKeys("ctrl+j"),
 		key.WithHelp("ctrl+j", "down"),
 	)
-	
+
 	// Disable vim-style navigation keys so they can be typed for filtering
 	l.KeyMap.NextPage = key.NewBinding(key.WithKeys())
 	l.KeyMap.PrevPage = key.NewBinding(key.WithKeys())
