@@ -26,25 +26,20 @@ in {
       dft = "git dft";
       dlog = "git dlog";
       dshow = "git dshow";
-      # glow + pager
       glp = "glow --pager";
       oc = "opencode run";
+      tm = "tmuxp load --yes";
+      l = "xplr";
     };
 
     functions = {
       fish_user_key_bindings = ''
-        bind \t complete-and-search
         bind \cw backward-kill-word
 
         # Alt+left
         bind \e\[1\;3D backward-kill-bigword
         bind \ek kill-whole-line
       '';
-
-      l = {
-        wraps = "xplr";
-        body = "xplr $argv";
-      };
 
       find = {
         wraps = "fd";
