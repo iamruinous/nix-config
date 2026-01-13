@@ -26,104 +26,81 @@ in {
     loginHub.enable = true;
     openssh.remote.forwarding.enable = true;
 
-    # Git config - use zenith-specific defaults for all repos
     git.default = {
       userEmail = "jade@ruinous.ai";
       signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
     };
 
-    # tmuxp for declarative project sessions
-    # Usage: tmuxp load nix-config
+    # Hub session - always running, for general use
     tmuxp = {
       enable = true;
-
-      sessions = {
-        # Hub session - always running, use for session management
-        hub = {
-          windows = [
-            {
-              name = "shell";
-              focus = true;
-            }
-            {
-              name = "docker";
-              command = "sudo lazydocker";
-            }
-          ];
-        };
-
-        nix = {
-          startDirectory = "~/Projects/github/iamruinous/nix-config";
-          startCommands = ["direnv exec . true"];
-
-          windows = [
-            {
-              name = "server";
-              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9500";
-            }
-            {
-              name = "opencode";
-              command = "sleep 2 && opencode attach http://localhost:9500";
-              focus = true;
-            }
-            {
-              name = "editor";
-              command = "nvim .";
-            }
-            {name = "shell";}
-          ];
-        };
+      sessions.hub = {
+        windows = [
+          {name = "shell"; focus = true;}
+          {name = "docker"; command = "sudo lazydocker";}
+        ];
       };
     };
 
     ai-cli = {
       opencode = {
         enable = true;
-        # Disabled: notifier causing performance issues, needs debugging
-        # notifier.enable = true;
-
-        # Multiple config directories for independent sessions
-        configs = {
-          default = {
-            notifier.enable = false;
-          }; # ~/.config/opencode for interactive use
-
-          web = {
-            configDir = "${config.home.homeDirectory}/.config/opencode-web";
-            notifier.enable = false;
-          };
-
-          kimaki = {
-            configDir = "${config.home.homeDirectory}/.config/kimaki";
-            notifier.enable = false;
-          };
-        };
+        configs.default.notifier.enable = false;
       };
-      opencode-web = {
+
+      # Unified project-centric configuration
+      # Generates tmuxp sessions + web services from same config
+      opencode-projects = {
         enable = true;
-        projectPath = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
-        hostname = "172.17.0.1"; # Bind to docker interface
-        configDir = "${config.home.homeDirectory}/.config/opencode-web";
-        cacheDir = "${config.home.homeDirectory}/.cache/opencode-web";
-        stateDir = "${config.home.homeDirectory}/.local/state/opencode-web";
+
         environmentFiles = [
           config.age.secrets.zenith_opencode_web_env.path
         ];
-        # Declarative project registry for Recent Projects list
-        projects = [
-          "/home/jmeskill/Projects/ruinous.ai/codey-agent-system"
-          "/home/jmeskill/Projects/ruinous.ai/dossiq-ai"
-          "/home/jmeskill/Projects/ruinous.ai/ml-pspd"
-          "/home/jmeskill/Projects/ruinous.ai/n8n-agent"
-          "/home/jmeskill/Projects/ruinous.ai/n8n-messy-discord-bot"
-          "/home/jmeskill/Projects/ruinous.ai/nix-config"
-          "/home/jmeskill/Projects/kimaki/codey-agent-system"
-          "/home/jmeskill/Projects/kimaki/dossiq-ai"
-          "/home/jmeskill/Projects/kimaki/ml-pspd"
-          "/home/jmeskill/Projects/kimaki/n8n-agent"
-          "/home/jmeskill/Projects/kimaki/nix-config"
-        ];
+
+        projects = {
+          # nix-config - CLI only (tmuxp session)
+          nix = {
+            workdir = "/home/jmeskill/Projects/github/iamruinous/nix-config";
+            port = 9500;
+          };
+
+          # codey-agent-system - Web service (systemd)
+          codey = {
+            workdir = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
+            port = 9501;
+            web = {
+              enable = true;
+              hostname = "172.17.0.1";
+            };
+          };
+
+          # dossiq-ai
+          dossiq = {
+            workdir = "/home/jmeskill/Projects/ruinous.ai/dossiq-ai";
+            port = 9502;
+          };
+
+          # ml-pspd
+          ml-pspd = {
+            workdir = "/home/jmeskill/Projects/ruinous.ai/ml-pspd";
+            port = 9503;
+          };
+
+          # n8n-agent
+          n8n-agent = {
+            workdir = "/home/jmeskill/Projects/ruinous.ai/n8n-agent";
+            port = 9504;
+          };
+
+          # n8n-messy-discord-bot
+          messy-bot = {
+            workdir = "/home/jmeskill/Projects/ruinous.ai/n8n-messy-discord-bot";
+            port = 9505;
+          };
+        };
       };
+
+      # Kimaki (separate identity) - keep as-is for now
       kimaki = {
         enable = true;
         configDir = "${config.home.homeDirectory}/.config/kimaki";
