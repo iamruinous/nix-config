@@ -46,7 +46,7 @@ remote-rebuild:
 	@if [ -z "$(remotehost)" ]; then $(ERROR) "remotehost is required (e.g., make remote-rebuild remotehost=monolith)"; exit 1; fi
 	@$(HEADER) "🖥️  Remote Rebuild"
 	@$(INFO) "Rebuilding $(remotehost).meskill.farm..."
-	@nixos-rebuild --sudo --target-host $(remotehost).meskill.farm switch --flake .#$(remotehost) --accept-flake-config
+	@NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true" nixos-rebuild --sudo --target-host $(remotehost).meskill.farm switch --flake .#$(remotehost) --accept-flake-config
 	@$(SUCCESS) "Remote rebuild complete for $(remotehost)"
 
 remote-dry-build:
@@ -75,7 +75,7 @@ pi-sdimage:
 	@if [ -z "$(pihost)" ]; then $(ERROR) "pihost is required (e.g., make pi-sdimage pihost=rpc-5-alpha)"; exit 1; fi
 	@$(HEADER) "🥧 Build Raspberry Pi SD Image"
 	@$(INFO) "Building SD image for $(pihost) on armistice..."
-	@nix build .#nixosConfigurations.$(pihost).config.system.build.sdImage \
+	@NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true" nix build .#nixosConfigurations.$(pihost).config.system.build.sdImage \
 		--builders "ssh://armistice.meskill.farm aarch64-linux - 12 1 benchmark,big-parallel,kvm" \
 		--max-jobs 0 \
 		--cores 0 \
