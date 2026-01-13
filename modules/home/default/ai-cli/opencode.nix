@@ -48,13 +48,6 @@ with lib; let
   opencode_config = flake + /files/configs/opencode/opencode.json;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
-  # Fetch codey-agent-system release zip for global AGENTS.md
-  codeyAgentSystem = pkgs.fetchzip {
-    url = "https://forge.meskill.farm/iamruinous/codey-agent-system/releases/download/v${cfg.codeyAgentSystem.version}/codey-agent-system-${cfg.codeyAgentSystem.version}.zip";
-    sha256 = cfg.codeyAgentSystem.sha256;
-    stripRoot = false;
-  };
-
   # Permission submodule type for oh-my-opencode agents
   permissionType = types.submodule {
     options = {
@@ -536,24 +529,7 @@ in {
       enable = mkOption {
         type = types.bool;
         default = true;
-        description = "Whether to enable codey-agent-system from remote repository.";
-      };
-
-      version = mkOption {
-        type = types.str;
-        default = "0.10.2";
-        description = "Version of codey-agent-system to use.";
-        example = "0.10.2";
-      };
-
-      sha256 = mkOption {
-        type = types.str;
-        default = "sha256-DsAr/1eFzz+7ZqmWkGRKvPop0EvM4Dz8DYWCk4BGg+g=";
-        description = lib.mdDoc ''
-          SHA256 hash of the codey-agent-system release zip.
-          Use `nix-prefetch-url --unpack https://forge.meskill.farm/iamruinous/codey-agent-system/releases/download/v<version>/codey-agent-system-<version>.zip` to get this value.
-        '';
-        example = "sha256-3jpGG34JACGPvYq+X/DdTX6DblY728I3OyuqWSH9gs4=";
+        description = "Whether to enable codey-agent-system (AGENTS.md, protocols, skills).";
       };
     };
 
@@ -684,9 +660,9 @@ in {
           };
         }
         // optionalAttrs resolved.codeyAgentSystemEnable {
-          "${resolved.configDir}/AGENTS.md".source = "${codeyAgentSystem}/AGENTS.md";
-          "${resolved.configDir}/protocols".source = "${codeyAgentSystem}/protocols";
-          "${resolved.configDir}/skill".source = "${codeyAgentSystem}/skill";
+          "${resolved.configDir}/AGENTS.md".source = "${pkgs.codey-agent-system}/share/codey-agent-system/AGENTS.md";
+          "${resolved.configDir}/protocols".source = "${pkgs.codey-agent-system}/share/codey-agent-system/protocols";
+          "${resolved.configDir}/skill".source = "${pkgs.codey-agent-system}/share/codey-agent-system/skill";
         }) (attrNames cfg.configs));
     }
 

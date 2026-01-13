@@ -8,7 +8,7 @@
   ];
 
   ruinous.rust-motd.enable = true;
-  ruinous.openssh.tmux.attach.enable = true;
+  ruinous.loginHub.enable = true;
 
   # systemd.user.tmpfiles.rules = [
   #   "L+    /home/jmeskill/.local/bin/op-ssh-sign -    -    -     - ${pkgs.openssh}/bin/ssh-keygen"

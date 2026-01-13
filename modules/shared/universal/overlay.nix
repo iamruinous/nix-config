@@ -5,6 +5,7 @@
       agenix-helper = perSystem.self.agenix-helper;
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
+      codey-agent-system = perSystem.self.codey-agent-system;
       docker-image-updater = perSystem.self.docker-image-updater;
       docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
       eztunnel = perSystem.self.eztunnel;
@@ -14,6 +15,7 @@
       nelko-pl70ebt = perSystem.self.nelko-pl70ebt;
       opencode-notifier-apprise = perSystem.self.opencode-notifier-apprise;
       pinentry-1password = perSystem.self.pinentry-1password;
+      ruinous-login-hub = perSystem.self.ruinous-login-hub;
       ssh-agent-check = perSystem.self.ssh-agent-check;
       wezterm-codesigned = perSystem.self.wezterm-codesigned;
 

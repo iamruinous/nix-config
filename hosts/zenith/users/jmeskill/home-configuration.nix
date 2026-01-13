@@ -23,7 +23,7 @@ in {
 
   ruinous = {
     rust-motd.enable = true;
-    openssh.tmux.attach.enable = true;
+    loginHub.enable = true;
     openssh.remote.forwarding.enable = true;
 
     # Git config - use zenith-specific defaults for all repos

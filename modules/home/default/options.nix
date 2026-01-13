@@ -32,10 +32,36 @@ in {
   options = {
     ruinous.starship.battery.enable = lib.mkEnableOption "enable battery in starship";
 
+    # DEPRECATED: Use ruinous.loginHub.enable instead.
+    # This option is kept for backward compatibility during migration.
+    # Migration path: Replace with ruinous.loginHub.enable = true;
     ruinous.openssh.tmux.attach.enable = lib.mkEnableOption "automatically start tmux on ssh";
     ruinous.openssh.remote.forwarding.enable = lib.mkEnableOption "forward agent on remote interactive shell";
 
     ruinous.tea.enable = lib.mkEnableOption "Whether to enable tea (Gitea CLI) with encrypted config";
+
+    # SSH login hub options
+    ruinous.loginHub = {
+      enable = lib.mkEnableOption "SSH login hub with TUI menu";
+
+      bypassEnvVar = lib.mkOption {
+        type = lib.types.str;
+        default = "BYPASS_LOGIN_HUB";
+        description = "Environment variable to bypass the login hub";
+      };
+
+      hubSessionName = lib.mkOption {
+        type = lib.types.str;
+        default = "hub";
+        description = "Name of the hub tmux session";
+      };
+
+      showTmuxpSessions = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Auto-discover and show tmuxp sessions in menu";
+      };
+    };
 
     ruinous.ssh.hosts = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule hostOpts);

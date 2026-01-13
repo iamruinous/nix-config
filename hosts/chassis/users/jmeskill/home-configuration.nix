@@ -20,7 +20,9 @@
 
     # ssh agent forwarding
     openssh.remote.forwarding.enable = true;
-    openssh.tmux.attach.enable = true;
+    
+    # SSH login hub with TUI menu
+    loginHub.enable = true;
 
     # enable opencode with my preferred plugins
     ai-cli.opencode.enable = true;
@@ -34,7 +36,10 @@
         # Hub session - always running, use for session management
         hub = {
           windows = [
-            {name = "shell"; focus = true;}
+            {
+              name = "shell";
+              focus = true;
+            }
           ];
         };
 
@@ -45,7 +50,7 @@
           windows = [
             {
               name = "server";
-              command = "opencode serve --hostname 127.0.0.1 --port 9500";
+              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9500";
             }
             {
               name = "opencode";
@@ -67,7 +72,7 @@
           windows = [
             {
               name = "server";
-              command = "opencode serve --hostname 127.0.0.1 --port 9501";
+              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9501";
             }
             {
               name = "opencode";
@@ -89,7 +94,7 @@
           windows = [
             {
               name = "server";
-              command = "opencode serve --hostname 127.0.0.1 --port 9503";
+              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9503";
             }
             {
               name = "opencode";
@@ -111,7 +116,7 @@
           windows = [
             {
               name = "server";
-              command = "opencode serve --hostname 127.0.0.1 --port 9502";
+              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9502";
             }
             {
               name = "opencode";
@@ -121,6 +126,10 @@
             {
               name = "editor";
               command = "nvim .";
+            }
+            {
+              name = "shell";
+              command = "uv run ptw";
             }
             {name = "shell";}
           ];
@@ -133,7 +142,7 @@
           windows = [
             {
               name = "server";
-              command = "opencode serve --hostname 127.0.0.1 --port 9503";
+              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9503";
             }
             {
               name = "opencode";

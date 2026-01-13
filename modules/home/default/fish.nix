@@ -6,6 +6,17 @@
   ...
 }: let
   cfg = config.ruinous.openssh.tmux.attach;
+  loginHubCfg = config.ruinous.loginHub;
+  
+  loginHubScript =
+    if loginHubCfg.enable
+    then ''
+      if test -z "$TMUX" -a -n "$SSH_TTY" -a -z "$BYPASS_LOGIN_HUB"
+        exec ${pkgs.ruinous-login-hub}/bin/ruinous-login-hub
+      end
+    ''
+    else "";
+  
   tmuxAttachScript =
     if cfg.enable
     then ''
@@ -108,6 +119,7 @@ in {
       # Suppress the default "Welcome to fish" greeting
       set -g fish_greeting
 
+      ${loginHubScript}
       ${tmuxAttachScript}
 
       # Check SSH_AUTH_SOCK validity
