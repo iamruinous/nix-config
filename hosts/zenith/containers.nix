@@ -289,6 +289,78 @@
         ];
       };
 
+      # n8n Development Environment
+      # External access via Cloudflare tunnel (n8n.meskill.dev, n8h.meskill.dev)
+      # Internal access via Caddy (n8n-dev-int.meskill.farm)
+      n8n-dev = {
+        image = "docker.io/n8nio/n8n:2.2.1";
+        environment = {
+          TZ = "America/Phoenix";
+          GENERIC_TIMEZONE = "America/Phoenix";
+          N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = "true";
+          N8N_RUNNERS_ENABLED = "true";
+          N8N_RUNNERS_MODE = "external";
+          N8N_RUNNERS_BROKER_LISTEN_ADDRESS = "0.0.0.0";
+          N8N_RUNNERS_TASK_REQUEST_TIMEOUT = "30000";
+          N8N_PROXY_HOPS = "1";
+          DB_TYPE = "postgresdb";
+          WEBHOOK_URL = "https://n8h.meskill.dev";
+          N8N_EDITOR_BASE_URL = "https://n8n.meskill.dev";
+          N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE = "true";
+          N8N_BLOCK_ENV_ACCESS_IN_NODE = "false";
+          N8N_NATIVE_PYTHON_RUNNER = "true";
+          WEAVIATE_URL = "http://weaviate-dev:8080";
+          NODE_FUNCTION_ALLOW_BUILTIN = "*";
+          N8N_BLOCK_INTERNAL_NETWORKS = "false";
+          OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS = "true";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_n8n_dev.path];
+        networks = ["servicenet" "datanet"];
+        dependsOn = ["postgres" "redis" "weaviate-dev"];
+        volumes = [
+          "/data/docker/n8n-dev/config:/home/node/.n8n"
+          "/etc/timezone:/etc/timezone:ro"
+          "/etc/localtime:/etc/localtime:ro"
+        ];
+      };
+
+      # n8n Runner for external task execution (JavaScript & Python)
+      n8n-dev-runner-alpha = {
+        image = "docker.io/n8nio/runners:2.2.1";
+        environment = {
+          TZ = "America/Phoenix";
+          N8N_RUNNERS_TASK_BROKER_URI = "http://n8n-dev:5679";
+          N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "0";
+          N8N_RUNNERS_TASK_TIMEOUT = "900";
+          N8N_RUNNERS_MAX_CONCURRENCY = "10";
+          NODE_FUNCTION_ALLOW_BUILTIN = "*";
+          N8N_BLOCK_INTERNAL_NETWORKS = "false";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_n8n_dev_runner.path];
+        networks = ["servicenet"];
+        dependsOn = ["n8n-dev"];
+      };
+
+      # Weaviate vector database for AI workflows
+      weaviate-dev = {
+        image = "cr.weaviate.io/semitechnologies/weaviate:1.35.1";
+        cmd = ["--host" "0.0.0.0" "--port" "8080" "--scheme" "http"];
+        environment = {
+          QUERY_DEFAULTS_LIMIT = "25";
+          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED = "false";
+          AUTHENTICATION_APIKEY_ENABLED = "true";
+          PERSISTENCE_DATA_PATH = "/var/lib/weaviate";
+          CLUSTER_HOSTNAME = "weaviate-dev";
+          DEFAULT_VECTORIZER_MODULE = "none";
+          ENABLE_API_BASED_MODULES = "true";
+        };
+        environmentFiles = [config.age.secrets.zenith_docker_env_weaviate_dev.path];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/weaviate-dev/data:/var/lib/weaviate"
+        ];
+      };
+
       # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
       # See: https://github.com/ROCm/ROCm/issues/4909
       # Re-enable when ROCm properly supports Strix Halo
@@ -345,11 +417,31 @@
     mode = "600";
   };
 
+  age.secrets.zenith_docker_env_n8n_dev = {
+    rekeyFile = ./files/docker/env/n8n-dev.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_n8n_dev_runner = {
+    rekeyFile = ./files/docker/env/n8n-dev-runner.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_weaviate_dev = {
+    rekeyFile = ./files/docker/env/weaviate-dev.env.age;
+    mode = "600";
+  };
+
   # docker-caddy restart triggers now handled by docker-caddy module (see caddy.nix)
 
   # Restart docker-mcp-gateway service when config secret changes
   systemd.services.docker-mcp-gateway = {
     restartTriggers = [config.age.secrets.zenith_docker_env_mcp_gateway.rekeyFile];
+  };
+
+  # Restart docker-n8n-dev service when config secret changes
+  systemd.services.docker-n8n-dev = {
+    restartTriggers = [config.age.secrets.zenith_docker_env_n8n_dev.rekeyFile];
   };
 
   # Pull optimized models for zenith's 96GB VRAM after ollama starts

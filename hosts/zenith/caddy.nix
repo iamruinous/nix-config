@@ -74,6 +74,13 @@
         upstream = "nominatim:8080";
         description = "Nominatim geocoding (alt)";
       };
+
+      # n8n Development Environment (internal)
+      # External access via Cloudflare tunnel (n8n.meskill.dev, n8h.meskill.dev)
+      "n8n-dev-int.meskill.farm" = {
+        upstream = "n8n-dev:5678";
+        description = "n8n development environment (internal)";
+      };
     };
   };
 
