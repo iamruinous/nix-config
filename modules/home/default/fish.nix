@@ -7,7 +7,7 @@
 }: let
   cfg = config.ruinous.openssh.tmux.attach;
   loginHubCfg = config.ruinous.loginHub;
-  
+
   loginHubScript =
     if loginHubCfg.enable
     then ''
@@ -16,7 +16,7 @@
       end
     ''
     else "";
-  
+
   tmuxAttachScript =
     if cfg.enable
     then ''
@@ -41,6 +41,7 @@ in {
       oc = "opencode run";
       tm = "tmuxp load --yes";
       l = "xplr";
+      ssh-raw = "ssh -o 'SetEnv=BYPASS_LOGIN_HUB=true'";
     };
 
     functions = {
