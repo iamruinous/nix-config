@@ -285,9 +285,6 @@ with lib; let
   # Projects with web service enabled (explicit or via caddy.fqdn)
   webProjects = filterAttrs (_: projectHasWeb) cfg.projects;
 
-  # Projects with caddy integration (for route generation)
-  caddyProjects = filterAttrs (_: p: p.caddy.fqdn != null) cfg.projects;
-
   # Generate fish function for auto-attaching to running services
   # This creates a wrapper that checks if PWD matches a known project with web service
   mkOpencodeFishFunction = let

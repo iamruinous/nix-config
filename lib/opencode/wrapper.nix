@@ -1,4 +1,4 @@
-# Shared library for OpenCode-based services (opencode-web, kimaki)
+# Shared library for OpenCode-based services (opencode-projects, kimaki)
 #
 # This module provides common functionality for services that wrap OpenCode:
 # - Default packages for MCP server dependencies
