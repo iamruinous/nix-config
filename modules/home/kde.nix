@@ -77,6 +77,12 @@ in {
         # Xwayland scaling
         "kwinrc"."Xwayland"."Scale" = 1.7;
 
+        # kwinrc - Krohnkite script settings
+        "kwinrc"."Script-krohnkite"."screenGapBottom" = 6;
+        "kwinrc"."Script-krohnkite"."screenGapLeft" = 6;
+        "kwinrc"."Script-krohnkite"."screenGapRight" = 6;
+        "kwinrc"."Script-krohnkite"."screenGapTop" = 6;
+
         # Krohnkite shortcuts (in kglobalshortcutsrc under [kwin] section)
         # Format: "shortcut,default,description"
         "kglobalshortcutsrc"."kwin"."KrohnkiteFocusDown" = "Meta+J,none,Krohnkite: Focus Down";

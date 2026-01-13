@@ -234,7 +234,9 @@ agenix-helper manages two separate identity files:
 2. **User Identity** (`~/.config/age/user_id_age`)
    - Used by home-manager's agenix module for runtime secret decryption
    - Decrypted from `users/$USER/id_age.age` using the host identity
+   - Symlinked to `/tmp/user_id_age` for agenix-rekey compatibility
    - Allows systemd user services to decrypt secrets at runtime
+   - Enables `agenix rekey` for secrets encrypted with user identity
 
 ### Quiet Mode
 In quiet mode (`agenix-helper unlock quiet`):
@@ -256,9 +258,12 @@ In interactive mode (`agenix-helper unlock`):
 agenix-rekey evaluates ALL host configurations to collect their `masterIdentities` paths. If we used user-specific paths like `/home/$USER/.local/state/agenix-helper/host_id_age`, agenix would try to access paths for other users (git, messy, root) and fail with "Permission denied" or "No such file" errors.
 
 The solution is to use static `/tmp` paths that all configurations reference:
-- `agenix-helper unlock` creates symlinks: `/tmp/host_id_age` → `~/.local/state/agenix-helper/host_id_age`
-- `secrets/default.nix` uses `masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_"]`
+- `agenix-helper unlock` creates symlinks:
+  - `/tmp/host_id_age` → `~/.local/state/agenix-helper/host_id_age`
+  - `/tmp/user_id_age` → `~/.config/age/user_id_age`
+- `secrets/default.nix` uses `masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_" "/tmp/user_id_age"]`
 - All host configurations evaluate to the same paths, avoiding permission issues
+- Both host and user identities are available for decrypting rekeyFile secrets
 
 ## Version
 

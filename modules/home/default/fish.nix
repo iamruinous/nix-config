@@ -68,6 +68,11 @@ in {
         body = "moor $argv";
       };
 
+      pbcopy = {
+        wraps = "osc-copy";
+        body = "osc-copy $argv";
+      };
+
       top = {
         wraps = "btop";
         body = "btop $argv";

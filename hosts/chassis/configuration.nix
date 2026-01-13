@@ -10,6 +10,7 @@
 
     ./disko.nix
     ./hardware-configuration.nix
+    ./caddy.nix
   ];
 
   networking.hostName = "chassis";
@@ -25,6 +26,9 @@
 
   # Enable power management (suspend/sleep support)
   powerManagement.enable = true;
+
+  # KDE Remote Desktop (krfb) - VNC port for screen sharing
+  networking.firewall.allowedTCPPorts = [5900];
   boot.plymouth.enable = true;
   users.mutableUsers = false;
 

@@ -119,11 +119,13 @@ The RPC is a cluster of Raspberry Pi devices for edge computing and experimentat
 ### Desktop
 
 #### [chassis](chassis/README.md)
-**Framework Desktop Max+ 395** - High-performance workstation
+**Framework Desktop Max+ 395** - **Primary AI Development Hub**
 - AMD Ryzen AI Max+ 395 (16 cores, 32 threads), 128 GB LPDDR5x
 - Radeon 8060S GPU, 50 TOPS NPU (126 TOPS total)
 - Btrfs with Disko, dual-boot with Windows
 - Lanzaboote secure boot, fwupd firmware updates
+- **OpenCode web services** (*.oc.ruinous.ai) via native Caddy
+- SSH/tmux remote development, KDE Remote Desktop
 
 ### Laptop
 

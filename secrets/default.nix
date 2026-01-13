@@ -31,7 +31,8 @@
       # Master identities for agenix-rekey operations (static /tmp paths)
       # agenix-rekey evaluates ALL hosts, so we use /tmp symlinks created by agenix-helper
       # Run `agenix-helper unlock` before rekeying operations
-      masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_"];
+      # Includes both host identity (secrets/id_age.age) and user identity (users/$USER/id_age.age)
+      masterIdentities = ["/tmp/host_id_age" "/tmp/host_id_age_" "/tmp/user_id_age"];
 
       # Public ssh host key derived from 32-byte hex
       # > nixos generate

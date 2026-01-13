@@ -13,6 +13,7 @@
       forgejo-shell = perSystem.self.forgejo-shell;
       messy-restricted-shell = perSystem.self.messy-restricted-shell;
       nelko-pl70ebt = perSystem.self.nelko-pl70ebt;
+      osc-copy = perSystem.self.osc-copy;
       opencode-notifier-apprise = perSystem.self.opencode-notifier-apprise;
       pinentry-1password = perSystem.self.pinentry-1password;
       ruinous-login-hub = perSystem.self.ruinous-login-hub;
@@ -20,9 +21,11 @@
       wezterm-codesigned = perSystem.self.wezterm-codesigned;
 
       # Extend tmuxPlugins with our custom plugins
-      tmuxPlugins = prev.tmuxPlugins // {
-        tmux-powerkit = perSystem.self.tmux-powerkit;
-      };
+      tmuxPlugins =
+        prev.tmuxPlugins
+        // {
+          tmux-powerkit = perSystem.self.tmux-powerkit;
+        };
     })
   ];
 }

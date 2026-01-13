@@ -33,10 +33,11 @@ agenix_unlock() {
 
   # Check if already unlocked (idempotent behavior)
   if [[ -f "$AGE_IDENTITY_FILE" ]] && [[ -L /tmp/host_id_age ]]; then
-    $GUM style --foreground 82 "✓ Already unlocked at $AGE_IDENTITY_FILE"
+    $GUM style --foreground 82 "✓ Host identity already unlocked at $AGE_IDENTITY_FILE"
     $GUM style --foreground 245 "  Symlinked to /tmp/host_id_age for agenix-rekey"
-    if [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
+    if [[ -f "$AGE_USER_IDENTITY_FILE" ]] && [[ -L /tmp/user_id_age ]]; then
       $GUM style --foreground 82 "✓ User identity already unlocked at $AGE_USER_IDENTITY_FILE"
+      $GUM style --foreground 245 "  Symlinked to /tmp/user_id_age for agenix-rekey"
     fi
     return 0
   fi
@@ -107,8 +108,13 @@ agenix_unlock() {
       printf '%s\n' "$user_id" >"$AGE_USER_IDENTITY_FILE"
       chmod 600 "$AGE_USER_IDENTITY_FILE"
 
+      # Create /tmp symlink for user identity for agenix-rekey compatibility
+      # This allows rekeyFile secrets encrypted for user identities to be decrypted
+      ln -sf "$AGE_USER_IDENTITY_FILE" /tmp/user_id_age
+
       if [[ "$quiet" != "quiet" ]]; then
         $GUM style --foreground 82 "🔓 User identity unlocked at $AGE_USER_IDENTITY_FILE"
+        $GUM style --foreground 245 "   Symlinked to /tmp/user_id_age for agenix-rekey"
       fi
     elif [[ "$quiet" != "quiet" ]]; then
       log_warn "Could not decrypt user identity at $AGE_USER_IDENTITY_ENCRYPTED"
@@ -128,6 +134,7 @@ agenix_lock() {
 
   if [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
     rm -f "$AGE_USER_IDENTITY_FILE"
+    rm -f /tmp/user_id_age
     locked_any=true
   fi
 
@@ -140,15 +147,22 @@ agenix_lock() {
 agenix_status() {
   local status=0
 
-  if [[ -f "$AGE_IDENTITY_FILE" ]]; then
-    log_success "Age identity is unlocked at $AGE_IDENTITY_FILE"
+  if [[ -f "$AGE_IDENTITY_FILE" ]] && [[ -L /tmp/host_id_age ]]; then
+    log_success "Host identity is unlocked at $AGE_IDENTITY_FILE"
+    log_success "  Symlinked to /tmp/host_id_age for agenix-rekey"
+  elif [[ -f "$AGE_IDENTITY_FILE" ]]; then
+    log_warn "Host identity exists but /tmp/host_id_age symlink missing"
+    status=1
   else
-    log_warn "Age identity is locked"
+    log_warn "Host identity is locked"
     status=1
   fi
 
-  if [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
+  if [[ -f "$AGE_USER_IDENTITY_FILE" ]] && [[ -L /tmp/user_id_age ]]; then
     log_success "User identity is unlocked at $AGE_USER_IDENTITY_FILE"
+    log_success "  Symlinked to /tmp/user_id_age for agenix-rekey"
+  elif [[ -f "$AGE_USER_IDENTITY_FILE" ]]; then
+    log_warn "User identity exists but /tmp/user_id_age symlink missing"
   else
     log_warn "User identity is locked"
   fi

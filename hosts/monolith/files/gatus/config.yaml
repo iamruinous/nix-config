@@ -637,6 +637,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Weaviate Dev (zenith)"
+    group: "AI"
+    url: "https://weaviate.meskill.dev/v1/.well-known/ready"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # OBELISK SERVICES
   # ===========================
@@ -651,9 +661,63 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "OpenCode (zenith)"
+  # ===========================
+  # CHASSIS SERVICES (OpenCode)
+  # ===========================
+
+  - name: "OpenCode - nix (chassis)"
     group: "Development"
-    url: "https://opencode.meskill.farm"
+    url: "https://nix.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "OpenCode - codey (chassis)"
+    group: "Development"
+    url: "https://codey.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "OpenCode - dossiq (chassis)"
+    group: "Development"
+    url: "https://dossiq.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "OpenCode - n8n-agent (chassis)"
+    group: "Development"
+    url: "https://n8n-agent.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "OpenCode - messy-bot (chassis)"
+    group: "Development"
+    url: "https://messy-bot.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "OpenCode - kimaki-discord (chassis)"
+    group: "Development"
+    url: "https://kimaki-discord.oc.ruinous.ai"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
