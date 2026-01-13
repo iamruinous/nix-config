@@ -6,6 +6,7 @@ pkgs.mkShell {
     [
       cloudflared
       cloudflare-cli
+      flarectl # Official Cloudflare CLI (better than cloudflare-cli for some operations)
       commitlint # Git commit message linter (for pre-commit hook)
       doggo # Modern DNS client for lookups
       gitleaks # Secret scanner (for pre-commit hook)
