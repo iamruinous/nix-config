@@ -3,8 +3,7 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443];
-  networking.firewall.allowedUDPPorts = [443];
+  # Note: Port 80, 443 handled by docker-caddy module (see caddy.nix)
 
   virtualisation.docker.autoPrune.enable = true;
 
@@ -36,44 +35,11 @@
     };
   };
 
+  # Caddy reverse proxy is now managed by docker-caddy module (see caddy.nix)
+
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
-      caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
-        capabilities = {
-          "NET_ADMIN" = true;
-        };
-        ports = [
-          "80:80"
-          "443:443"
-          "443:443/udp"
-          "2019:2019"
-        ];
-        networks = ["servicenet" "proxynet"];
-        # healthcheck = {
-        #   test = [
-        #     "CMD"
-        #     "wget"
-        #     "--no-verbose"
-        #     "--tries=1"
-        #     "--spider"
-        #     "http://127.0.0.1:2019/metrics"
-        #   ];
-        #   start-period = "60s";
-        #   interval = "60s";
-        #   timeout = "5s";
-        #   retries = 3;
-        # };
-        volumes = [
-          "${config.age.secrets.obelisk_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
-          "/data/docker/caddy/site:/srv"
-          "/data/docker/caddy/data:/data"
-          "/data/docker/caddy/config:/config"
-          "/data/docker/caddy/static:/static"
-          "/var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
-        ];
-      };
       open-webui = {
         image = "ghcr.io/open-webui/open-webui:v0.6.43";
         environment = {
@@ -99,15 +65,5 @@
     };
   };
 
-  age.secrets.obelisk_caddy_caddyfile = {
-    rekeyFile = ./files/caddy/Caddyfile.age;
-    mode = "600";
-  };
-
-  # Restart docker-caddy service when Caddyfile secret changes
-  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
-  systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.obelisk_caddy_caddyfile.rekeyFile];
-  };
 }
 
