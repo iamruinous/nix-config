@@ -35,10 +35,11 @@ func (i menuItem) Description() string { return i.description }
 func (i menuItem) FilterValue() string { return i.title }
 
 type model struct {
-	list   list.Model
-	banner string
-	width  int
-	height int
+	list       list.Model
+	banner     string
+	width      int
+	height     int
+	execOnQuit func() // Function to execute after quitting bubbletea
 }
 
 func (m model) Init() tea.Cmd {
@@ -53,13 +54,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width, msg.Height-strings.Count(m.banner, "\n")-4)
 		return m, nil
 
+	case execMsg:
+		m.execOnQuit = msg.execFunc
+		return m, tea.Quit
+
 	case tea.KeyMsg:
-		// Handle quit
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
 
-		// Handle selection
 		if msg.String() == "enter" {
 			selected := m.list.SelectedItem()
 			if item, ok := selected.(menuItem); ok {
@@ -68,7 +71,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Let the list handle all updates (navigation and filtering)
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -189,15 +191,20 @@ func buildMenuItems() []list.Item {
 	return items
 }
 
+type execMsg struct {
+	execFunc func()
+}
+
 func executeAction(item menuItem) tea.Cmd {
 	return func() tea.Msg {
 		switch item.action {
 		case actionHubSession:
-			execTmuxHub()
+			return execMsg{execFunc: execTmuxHub}
 		case actionTmuxpSession:
-			execTmuxp(item.sessionName)
+			sessionName := item.sessionName
+			return execMsg{execFunc: func() { execTmuxp(sessionName) }}
 		case actionPlainShell:
-			execPlainShell()
+			return execMsg{execFunc: execPlainShell}
 		}
 		return nil
 	}
@@ -297,8 +304,13 @@ func main() {
 	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
+	finalModel, err := p.Run()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
+	}
+
+	if fm, ok := finalModel.(model); ok && fm.execOnQuit != nil {
+		fm.execOnQuit()
 	}
 }
