@@ -2,6 +2,8 @@
 #
 # Routes migrated from Caddyfile.age
 # See files/caddy/README.md for route documentation
+#
+# NOTE: OpenCode web services moved to chassis (native Caddy)
 {config, ...}: {
   services.docker-caddy = {
     enable = true;
@@ -45,11 +47,7 @@
         description = "Model Context Protocol gateway";
       };
 
-      # OpenCode development server
-      "opencode.meskill.farm" = {
-        upstream = "host.docker.internal:18080";
-        description = "OpenCode development server";
-      };
+
 
       # Dawarich timeline (internal)
       "timeline-int.meskill.farm" = {
@@ -74,6 +72,12 @@
       "n8n.meskill.dev" = {
         upstream = "n8n-dev:5678";
         description = "n8n development environment (internal)";
+      };
+
+      # Weaviate development vector database
+      "weaviate.meskill.dev" = {
+        upstream = "weaviate-dev:8080";
+        description = "Weaviate development vector database";
       };
     };
 

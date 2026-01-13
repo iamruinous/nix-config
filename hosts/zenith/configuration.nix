@@ -29,11 +29,8 @@
   # enable dynamic libraries for tools like ruff
   programs.nix-ld.enable = true;
 
-  # OpenCode Web UI firewall port
-  ruinous.opencode-web.firewall = {
-    enable = true;
-    ports = [18080];
-  };
+  # OpenCode web services are accessed via Caddy reverse proxy
+  # No direct firewall ports needed - Caddy handles external access
 
   environment.systemPackages = with pkgs; [
     docker-mcp-gateway

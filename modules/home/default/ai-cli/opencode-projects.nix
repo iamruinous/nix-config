@@ -22,8 +22,8 @@
 #       codey = {
 #         workdir = "/home/jmeskill/Projects/ruinous.ai/codey-agent-system";
 #         port = 9501;
-#         web.enable = true;
-#         web.hostname = "172.17.0.1";
+#         # Enable web service with Caddy reverse proxy
+#         caddy.fqdn = "codey.oc.ruinous.ai";
 #       };
 #     };
 #   };
@@ -32,8 +32,8 @@
 #   - Per-project state: ~/.local/state/opencode-<project>/
 #   - Per-project config: ~/.config/opencode-<project>/
 #   - Per-project cache: ~/.cache/opencode-<project>/
-#   - tmuxp sessions: tmuxp load <project>
-#   - Web services: opencode-<project>.service (if web.enable = true)
+#   - tmuxp sessions: tmuxp load <project> (attach mode, no server window)
+#   - Web services: opencode-<project>.service (when caddy.fqdn is set)
 #
 {
   config,
@@ -105,11 +105,26 @@ with lib; let
         };
       };
 
+      caddy = {
+        fqdn = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = ''
+            FQDN for Caddy reverse proxy (e.g., "myproject.oc.ruinous.ai").
+            When set, automatically enables web service and configures CORS.
+          '';
+          example = "myproject.oc.ruinous.ai";
+        };
+      };
+
       web = {
         enable = mkOption {
           type = types.bool;
           default = false;
-          description = "Create a systemd user service for the web UI.";
+          description = ''
+            Create a systemd user service for the web UI.
+            Automatically enabled when caddy.fqdn is set.
+          '';
         };
 
         hostname = mkOption {
@@ -133,7 +148,7 @@ with lib; let
         cors = mkOption {
           type = types.listOf types.str;
           default = [];
-          description = "Additional domains to allow for CORS.";
+          description = "Additional domains to allow for CORS (caddy.fqdn is automatically added).";
         };
 
         printLogs = mkOption {
@@ -159,13 +174,28 @@ with lib; let
     extraPackages = cfg.packages;
   };
 
+  # Check if a project has web service enabled (explicit or via caddy)
+  projectHasWeb = project: project.web.enable || project.caddy.fqdn != null;
+
   # Generate tmuxp session for a project
-  mkTmuxpSession = name: project: {
+  # When web service is enabled (via caddy or explicit), use attach mode
+  # Otherwise, run the server in tmux
+  mkTmuxpSession = name: project: let
+    hasWebService = projectHasWeb project;
+  in {
     startDirectory = project.workdir;
     startCommands = ["direnv exec . true"];
 
     windows =
-      [
+      (if hasWebService then [
+        # Web service is running via systemd, just attach to it
+        {
+          name = "opencode";
+          command = "opencode attach http://localhost:${toString project.port}";
+          focus = true;
+        }
+      ] else [
+        # No web service, run server in tmux
         {
           name = "server";
           command = "opencode serve --print-logs --hostname ${project.hostname} --port ${toString project.port}";
@@ -175,6 +205,8 @@ with lib; let
           command = "sleep 2 && opencode attach http://localhost:${toString project.port}";
           focus = true;
         }
+      ])
+      ++ [
         {
           name = "editor";
           command = "nvim .";
@@ -187,6 +219,12 @@ with lib; let
   # Generate systemd service for a project
   mkWebService = name: project: let
     paths = mkProjectPaths name;
+
+    # Combine explicit CORS domains with caddy FQDN
+    allCorsDomains =
+      project.web.cors
+      ++ optionals (project.caddy.fqdn != null) ["https://${project.caddy.fqdn}"];
+
     buildArgs = [
       "${wrappedOpencode}/bin/opencode"
       "web"
@@ -199,7 +237,7 @@ with lib; let
     ]
     ++ optionals project.web.mdns ["--mdns"]
     ++ optionals project.web.printLogs ["--print-logs"]
-    ++ concatMap (domain: ["--cors" domain]) project.web.cors;
+    ++ concatMap (domain: ["--cors" domain]) allCorsDomains;
 
     allEnvFiles = cfg.environmentFiles ++ project.environmentFiles;
   in {
@@ -244,8 +282,11 @@ with lib; let
   # Projects with tmuxp enabled
   tmuxpProjects = filterAttrs (_: p: p.tmuxp.enable) cfg.projects;
 
-  # Projects with web service enabled
-  webProjects = filterAttrs (_: p: p.web.enable) cfg.projects;
+  # Projects with web service enabled (explicit or via caddy.fqdn)
+  webProjects = filterAttrs (_: projectHasWeb) cfg.projects;
+
+  # Projects with caddy integration (for route generation)
+  caddyProjects = filterAttrs (_: p: p.caddy.fqdn != null) cfg.projects;
 
 in {
   options.ruinous.ai-cli.opencode-projects = {
@@ -306,18 +347,19 @@ in {
           my-app = {
             workdir = "/home/user/Projects/my-app";
             port = 9501;
-            web.enable = true;
+            caddy.fqdn = "my-app.oc.example.com";
           };
         }
       '';
     };
+
   };
 
   config = mkIf cfg.enable (mkMerge [
     {
       assertions = [
         {
-          assertion = pkgs.stdenv.isLinux || (all (_: p: !p.web.enable) (attrValues cfg.projects));
+          assertion = pkgs.stdenv.isLinux || (all (_: p: !projectHasWeb p) (attrValues cfg.projects));
           message = "OpenCode web services are Linux-only (require systemd).";
         }
       ];
@@ -334,6 +376,7 @@ in {
     })
 
     # Generate web services (Linux only)
+    # Creates systemd user services for projects with web.enable or caddy.fqdn
     (mkIf (pkgs.stdenv.isLinux && webProjects != {}) {
       systemd.user.services = mapAttrs' (name: project:
         nameValuePair "opencode-${name}" (mkWebService name project)

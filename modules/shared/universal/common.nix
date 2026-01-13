@@ -11,6 +11,7 @@
       # config management
       agenix-helper
       ssh-agent-check
+      osc-copy
 
       # prompt stuff
       figlet
