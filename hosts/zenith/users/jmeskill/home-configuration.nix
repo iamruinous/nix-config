@@ -32,6 +32,50 @@ in {
       signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
     };
 
+    # tmuxp for declarative project sessions
+    # Usage: tmuxp load nix-config
+    tmuxp = {
+      enable = true;
+
+      sessions = {
+        # Hub session - always running, use for session management
+        hub = {
+          windows = [
+            {
+              name = "shell";
+              focus = true;
+            }
+            {
+              name = "docker";
+              command = "sudo lazydocker";
+            }
+          ];
+        };
+
+        nix = {
+          startDirectory = "~/Projects/github/iamruinous/nix-config";
+          startCommands = ["direnv exec . true"];
+
+          windows = [
+            {
+              name = "server";
+              command = "opencode serve --print-logs --hostname 127.0.0.1 --port 9500";
+            }
+            {
+              name = "opencode";
+              command = "sleep 2 && opencode attach http://localhost:9500";
+              focus = true;
+            }
+            {
+              name = "editor";
+              command = "nvim .";
+            }
+            {name = "shell";}
+          ];
+        };
+      };
+    };
+
     ai-cli = {
       opencode = {
         enable = true;
