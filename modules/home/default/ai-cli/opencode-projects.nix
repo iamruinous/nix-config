@@ -288,6 +288,37 @@ with lib; let
   # Projects with caddy integration (for route generation)
   caddyProjects = filterAttrs (_: p: p.caddy.fqdn != null) cfg.projects;
 
+  # Generate fish function for auto-attaching to running services
+  # This creates a wrapper that checks if PWD matches a known project with web service
+  mkOpencodeFishFunction = let
+    # Build case statement entries for each web project
+    caseEntries = concatStringsSep "\n    " (map (name: let
+      project = webProjects.${name};
+    in ''
+case "${project.workdir}"
+      # Project: ${name}
+      command opencode attach "http://localhost:${toString project.port}" $argv
+      return'') (attrNames webProjects));
+  in ''
+# Auto-attach wrapper for opencode
+# If in a known project directory with a running web service, attach to it
+# Otherwise, run opencode normally
+
+# If arguments are passed (like 'run', 'serve', etc.), run normally
+if test (count $argv) -gt 0
+  command opencode $argv
+  return
+end
+
+# Check if PWD matches a known project with web service
+switch "$PWD"
+    ${caseEntries}
+end
+
+# No match, run opencode normally
+command opencode $argv
+'';
+
 in {
   options.ruinous.ai-cli.opencode-projects = {
     enable = mkEnableOption "Unified OpenCode project configuration";
@@ -394,6 +425,11 @@ in {
           mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
         }
       ) webProjects);
+    })
+
+    # Generate fish function for auto-attach (only if there are web projects)
+    (mkIf (webProjects != {}) {
+      programs.fish.functions.opencode = mkOpencodeFishFunction;
     })
 
     # Sync project registries during activation
