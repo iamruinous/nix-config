@@ -341,7 +341,7 @@
       };
       # remotenet
       rustdesk-hbbr = {
-        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+        image = "docker.io/rustdesk/rustdesk-server:1.1.15";
         cmd = ["hbbr"];
         networks = ["remotenet"];
         ports = [
@@ -355,7 +355,7 @@
         ];
       };
       rustdesk-hbbs = {
-        image = "docker.io/rustdesk/rustdesk-server:1.1.14";
+        image = "docker.io/rustdesk/rustdesk-server:1.1.15";
         cmd = ["hbbs"];
         networks = ["remotenet"];
         ports = [

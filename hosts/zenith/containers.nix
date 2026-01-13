@@ -119,7 +119,7 @@
         cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false"];
       };
       "forgejo-runner" = {
-        image = "code.forgejo.org/forgejo/runner:12.4";
+        image = "code.forgejo.org/forgejo/runner:12.5";
         dependsOn = ["forgejo-dind"];
         environment = {
           DOCKER_HOST = "tcp://forgejo-dind:2375";
