@@ -4,8 +4,8 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 1883 8083 8084 8883];
-  networking.firewall.allowedUDPPorts = [443];
+  # Note: Port 80, 443 handled by docker-caddy module (see caddy.nix)
+  networking.firewall.allowedTCPPorts = [1883 8083 8084 8883];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -52,46 +52,11 @@
     };
   };
 
+  # Caddy reverse proxy is now managed by docker-caddy module (see caddy.nix)
+
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
-      caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
-        networks = [
-          "proxynet"
-          "servicenet"
-        ];
-        ports = [
-          "80:80"
-          "443:443"
-          "443:443/udp"
-          "2019:2019"
-        ];
-        capabilities = {
-          "NET_ADMIN" = true;
-        };
-        # healthcheck = {
-        #   test = [
-        #     "CMD"
-        #     "wget"
-        #     "--no-verbose"
-        #     "--tries=1"
-        #     "--spider"
-        #     "http://127.0.0.1:2019/metrics"
-        #   ];
-        #   start-period = "60s";
-        #   interval = "60s";
-        #   timeout = "5s";
-        #   retries = 3;
-        # };
-        volumes = [
-          "${config.age.secrets.monolith_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
-          "/data/docker/caddy/site:/srv"
-          "/data/docker/caddy/data:/data"
-          "/data/docker/caddy/config:/config"
-          "/var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
-        ];
-      };
       mosquitto = {
         image = "docker.io/eclipse-mosquitto:2";
         networks = [
@@ -1019,16 +984,9 @@
     };
   };
 
-  age.secrets.monolith_caddy_caddyfile = {
-    rekeyFile = ./files/caddy/Caddyfile.age;
-    mode = "600";
-  };
+  # Caddy secrets now in caddy.nix (uses secrets.age instead of Caddyfile.age)
+  # docker-caddy restart triggers now handled by docker-caddy module
 
-  # Restart docker-caddy service when Caddyfile secret changes
-  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
-  systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.monolith_caddy_caddyfile.rekeyFile];
-  };
   # Restart docker-n8n service when env secret changes
   systemd.services.docker-n8n = {
     restartTriggers = [config.age.secrets.monolith_docker_env_n8n.rekeyFile];
