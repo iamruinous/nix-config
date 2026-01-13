@@ -3,8 +3,9 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 3306 3493 5050 5432 8080 8095 8097 9000 21115 21116 21117];
-  networking.firewall.allowedUDPPorts = [69 443 21116];
+  # Note: Port 80, 443 handled by docker-caddy module (see caddy.nix)
+  networking.firewall.allowedTCPPorts = [3306 3493 5050 5432 8080 8095 8097 9000 21115 21116 21117];
+  networking.firewall.allowedUDPPorts = [69 21116];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -59,32 +60,11 @@
     };
   };
 
+  # Caddy reverse proxy is now managed by docker-caddy module (see caddy.nix)
+
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
-      caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
-        networks = [
-          "proxynet"
-          "servicenet"
-        ];
-        ports = [
-          "80:80"
-          "443:443"
-          "443:443/udp"
-          "2019:2019"
-        ];
-        capabilities = {
-          "NET_ADMIN" = true;
-        };
-        volumes = [
-          "${config.age.secrets.pilaster_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
-          "/data/docker/caddy/site:/srv"
-          "/data/docker/caddy/data:/data"
-          "/data/docker/caddy/config:/config"
-          "/var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
-        ];
-      };
       postgres = {
         image = "docker.io/postgres:18";
         ports = ["5432:5432"];
@@ -643,11 +623,6 @@
     };
   };
 
-  # Restart docker-caddy service when Caddyfile secret changes
-  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
-  systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.pilaster_caddy_caddyfile.rekeyFile];
-  };
   # Restart docker-meshtastic-message-relay service when config secret changes
   systemd.services.docker-meshtastic-message-relay = {
     restartTriggers = [config.age.secrets.pilaster_meshtastic_relay_config.rekeyFile];
@@ -655,10 +630,6 @@
   # Restart docker-mcp-gateway service when config secret changes
   systemd.services.docker-mcp-gateway = {
     restartTriggers = [config.age.secrets.pilaster_docker_env_mcp_gateway.rekeyFile];
-  };
-  age.secrets.pilaster_caddy_caddyfile = {
-    rekeyFile = ./files/caddy/Caddyfile.age;
-    mode = "600";
   };
   age.secrets.pilaster_docker_env_authentik = {
     rekeyFile = ./files/docker/env/authentik.env.age;

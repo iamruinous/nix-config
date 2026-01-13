@@ -34,6 +34,8 @@ NixOS server for Docker containers and network services.
 - **MCP Gateway**: Model Context Protocol gateway for AI tool integration (mcp.x.meskill.farm)
 - **Open WebUI**: Web interface for Ollama (ai.x.meskill.farm)
 - **Ollama**: Local LLM inference with AMD ROCm GPU support (ollama.x.meskill.farm)
+- **n8n-dev**: Workflow automation development environment (n8n.meskill.dev, webhooks: n8h.meskill.dev)
+- **Weaviate-dev**: Vector database for AI workflows (used by n8n-dev)
 
 ### Development
 - Developer tools and environment

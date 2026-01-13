@@ -3,8 +3,9 @@
   pkgs,
   ...
 }: {
-  networking.firewall.allowedTCPPorts = [80 443 21115 21116 21117];
-  networking.firewall.allowedUDPPorts = [443 21116];
+  # Note: Port 80, 443 handled by docker-caddy module (see caddy.nix)
+  networking.firewall.allowedTCPPorts = [21115 21116 21117];
+  networking.firewall.allowedUDPPorts = [21116];
 
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune.enable = true;
@@ -65,45 +66,11 @@
     };
   };
 
+  # Caddy reverse proxy is now managed by docker-caddy module (see caddy.nix)
+
   virtualisation.oci-containers = {
     backend = "docker";
     containers = {
-      caddy = {
-        image = "ghcr.io/caddybuilds/caddy-cloudflare:2.10.2";
-        networks = [
-          "proxynet"
-          "servicenet"
-        ];
-        ports = [
-          "80:80"
-          "443:443"
-          "443:443/udp"
-          "2019:2019"
-        ];
-        capabilities = {
-          "NET_ADMIN" = true;
-        };
-        # healthcheck = {
-        #   test = [
-        #     "CMD"
-        #     "wget"
-        #     "--no-verbose"
-        #     "--tries=1"
-        #     "--spider"
-        #     "http://127.0.0.1:2019/metrics"
-        #   ];
-        #   start-period = "60s";
-        #   interval = "60s";
-        #   timeout = "5s";
-        #   retries = 3;
-        # };
-        volumes = [
-          "${config.age.secrets.tty_ruinous_social_caddy_caddyfile.path}:/etc/caddy/Caddyfile"
-          "/data/docker/caddy/site:/srv"
-          "/data/docker/caddy/data:/data"
-          "/data/docker/caddy/config:/config"
-        ];
-      };
       postgres = {
         image = "docker.io/postgres:17";
         environment = {
@@ -372,17 +339,6 @@
         ];
       };
     };
-  };
-
-  age.secrets.tty_ruinous_social_caddy_caddyfile = {
-    rekeyFile = ./files/caddy/Caddyfile.age;
-    mode = "600";
-  };
-
-  # Restart docker-caddy service when Caddyfile secret changes
-  # Use rekeyFile (nix store path) instead of path (runtime path) so trigger fires on content change
-  systemd.services.docker-caddy = {
-    restartTriggers = [config.age.secrets.tty_ruinous_social_caddy_caddyfile.rekeyFile];
   };
 
   # mosquitto container chowns the file
