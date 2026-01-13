@@ -79,7 +79,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("241")).
 		MarginTop(1)
 
-	instructions := "ctrl+j/k: navigate • /: filter • enter: select • ctrl+c: quit"
+	instructions := "↑↓/jk: navigate • /: filter • enter: select • ctrl+c: quit"
 
 	// Don't apply styling to banner - it has its own colors from toilet
 	return fmt.Sprintf(
@@ -197,9 +197,30 @@ func executeAction(item menuItem) tea.Cmd {
 		case actionTmuxpSession:
 			execTmuxp(item.sessionName)
 		case actionPlainShell:
-			os.Exit(0)
+			execPlainShell()
 		}
 		return nil
+	}
+}
+
+func execPlainShell() {
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+
+	shellPath, err := exec.LookPath(shell)
+	if err != nil {
+		shellPath = shell
+	}
+
+	args := []string{filepath.Base(shell)}
+	env := os.Environ()
+
+	err = syscall.Exec(shellPath, args, env)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error executing shell: %v\n", err)
+		os.Exit(1)
 	}
 }
 
@@ -254,14 +275,14 @@ func main() {
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 
-	// Customize key bindings to use Ctrl+J/K for navigation
+	// Add j/k navigation alongside standard arrow keys
 	l.KeyMap.CursorUp = key.NewBinding(
-		key.WithKeys("ctrl+k"),
-		key.WithHelp("ctrl+k", "up"),
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "up"),
 	)
 	l.KeyMap.CursorDown = key.NewBinding(
-		key.WithKeys("ctrl+j"),
-		key.WithHelp("ctrl+j", "down"),
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "down"),
 	)
 
 	// Disable vim-style navigation keys so they can be typed for filtering
