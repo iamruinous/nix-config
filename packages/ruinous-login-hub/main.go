@@ -35,10 +35,11 @@ func (i menuItem) Description() string { return i.description }
 func (i menuItem) FilterValue() string { return i.title }
 
 type model struct {
-	list   list.Model
-	banner string
-	width  int
-	height int
+	list       list.Model
+	banner     string
+	width      int
+	height     int
+	execOnQuit func() // Function to execute after quitting bubbletea
 }
 
 func (m model) Init() tea.Cmd {
@@ -53,13 +54,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width, msg.Height-strings.Count(m.banner, "\n")-4)
 		return m, nil
 
+	case execMsg:
+		m.execOnQuit = msg.execFunc
+		return m, tea.Quit
+
 	case tea.KeyMsg:
-		// Handle quit
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
 
-		// Handle selection
 		if msg.String() == "enter" {
 			selected := m.list.SelectedItem()
 			if item, ok := selected.(menuItem); ok {
@@ -68,7 +71,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Let the list handle all updates (navigation and filtering)
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -79,7 +81,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("241")).
 		MarginTop(1)
 
-	instructions := "ctrl+j/k: navigate • /: filter • enter: select • ctrl+c: quit"
+	instructions := "↑↓/jk: navigate • /: filter • enter: select • ctrl+c: quit"
 
 	// Don't apply styling to banner - it has its own colors from toilet
 	return fmt.Sprintf(
@@ -189,17 +191,43 @@ func buildMenuItems() []list.Item {
 	return items
 }
 
+type execMsg struct {
+	execFunc func()
+}
+
 func executeAction(item menuItem) tea.Cmd {
 	return func() tea.Msg {
 		switch item.action {
 		case actionHubSession:
-			execTmuxHub()
+			return execMsg{execFunc: execTmuxHub}
 		case actionTmuxpSession:
-			execTmuxp(item.sessionName)
+			sessionName := item.sessionName
+			return execMsg{execFunc: func() { execTmuxp(sessionName) }}
 		case actionPlainShell:
-			os.Exit(0)
+			return execMsg{execFunc: execPlainShell}
 		}
 		return nil
+	}
+}
+
+func execPlainShell() {
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+
+	shellPath, err := exec.LookPath(shell)
+	if err != nil {
+		shellPath = shell
+	}
+
+	args := []string{filepath.Base(shell)}
+	env := os.Environ()
+
+	err = syscall.Exec(shellPath, args, env)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error executing shell: %v\n", err)
+		os.Exit(1)
 	}
 }
 
@@ -254,14 +282,14 @@ func main() {
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 
-	// Customize key bindings to use Ctrl+J/K for navigation
+	// Add j/k navigation alongside standard arrow keys
 	l.KeyMap.CursorUp = key.NewBinding(
-		key.WithKeys("ctrl+k"),
-		key.WithHelp("ctrl+k", "up"),
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "up"),
 	)
 	l.KeyMap.CursorDown = key.NewBinding(
-		key.WithKeys("ctrl+j"),
-		key.WithHelp("ctrl+j", "down"),
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "down"),
 	)
 
 	// Disable vim-style navigation keys so they can be typed for filtering
@@ -276,8 +304,13 @@ func main() {
 	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
+	finalModel, err := p.Run()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
+	}
+
+	if fm, ok := finalModel.(model); ok && fm.execOnQuit != nil {
+		fm.execOnQuit()
 	}
 }

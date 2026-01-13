@@ -82,6 +82,17 @@ This package is typically used with:
 
 Created to provide a consistent, user-friendly entry point for SSH sessions, making it easy to jump into the right tmux session or tmuxp environment without memorizing commands.
 
+### Navigation
+
+| Key | Action |
+|-----|--------|
+| `↓` / `j` | Move down |
+| `↑` / `k` | Move up |
+| `/` | Activate filter mode |
+| `Enter` | Select option |
+| `Esc` | Clear filter |
+| `Ctrl+C` | Quit |
+
 ### Filtering
 
 Press `/` to activate filter mode and type to narrow down the list. For example:

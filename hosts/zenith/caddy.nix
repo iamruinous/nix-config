@@ -71,7 +71,7 @@
 
       # n8n Development Environment (internal)
       # External access via Cloudflare tunnel (n8n.meskill.dev, n8h.meskill.dev)
-      "n8n.meskill.farm" = {
+      "n8n.meskill.dev" = {
         upstream = "n8n-dev:5678";
         description = "n8n development environment (internal)";
       };
@@ -79,23 +79,15 @@
 
     # Complex routes with raw Caddy config
     rawRoutes = {
-      # MQTT broker (websocket)
-      "mqtt.meskill.farm" = {
-        description = "MQTT broker (websocket)";
-        config = ''
-          reverse_proxy mosquitto:9001
-        '';
-      };
-
       # n8n webhooks only (restricted)
-      "n8h.meskill.farm" = {
+      "n8h.meskill.dev" = {
         description = "n8n webhooks only (restricted)";
         config = ''
           handle /webhook/* {
-            reverse_proxy n8n:5678
+            reverse_proxy n8n-dev:5678
           }
           handle /mcp/* {
-            reverse_proxy n8n:5678
+            reverse_proxy n8n-dev:5678
           }
           handle {
             abort
@@ -103,7 +95,6 @@
         '';
       };
     };
-  };
   };
 
   # Caddy secrets (global config with ACME credentials)
