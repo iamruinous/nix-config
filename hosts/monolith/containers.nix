@@ -8,7 +8,10 @@
   networking.firewall.allowedTCPPorts = [1883 8083 8084 8883];
 
   virtualisation.docker.storageDriver = "btrfs";
-  virtualisation.docker.autoPrune.enable = true;
+  virtualisation.docker.autoPrune = {
+    enable = true;
+    flags = ["--all"]; # Remove all unused images, not just dangling
+  };
 
   systemd.services.docker-servicenet-network = {
     description = "create docker servicenet network";
