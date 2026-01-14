@@ -391,6 +391,8 @@
           # Target the integrated Radeon 8060S
           HIP_VISIBLE_DEVICES = "0";
           ROCM_PATH = "/opt/rocm";
+          # Memory optimization for APU with shared memory
+          PYTORCH_HIP_ALLOC_CONF = "expandable_segments:True";
         };
         networks = ["servicenet"];
         volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
@@ -405,7 +407,10 @@
           "--tensor-parallel-size"
           "1"
           "--max-model-len"
-          "32768"
+          "8192" # Reduced from 32768 to fit in 62GB VRAM
+          "--gpu-memory-utilization"
+          "0.90" # Leave headroom for KV cache and overhead
+          "--enforce-eager" # Disable CUDA graphs to reduce memory during init
         ];
       };
     };
