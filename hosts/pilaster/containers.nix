@@ -8,7 +8,10 @@
   networking.firewall.allowedUDPPorts = [69 21116];
 
   virtualisation.docker.storageDriver = "btrfs";
-  virtualisation.docker.autoPrune.enable = true;
+  virtualisation.docker.autoPrune = {
+    enable = true;
+    flags = ["--all"]; # Remove all unused images, not just dangling
+  };
 
   # this is for services that need to talk to each other
   # they are not accessed directly, but typically through Caddy
