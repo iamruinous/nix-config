@@ -13,8 +13,7 @@
       "294618f0-8cf4-4ef9-9744-5cfeead72799" = {
         credentialsFile = "${config.age.secrets.zenith_cloudflared_n8n_dev.path}";
         ingress = {
-          "n8n.meskill.dev" = "https://n8n-dev-int.meskill.farm";
-          "n8h.meskill.dev" = "https://n8n-dev-int.meskill.farm";
+          "n8h.meskill.dev" = "https://n8n.meskill.dev";
         };
         default = "http_status:404";
       };
