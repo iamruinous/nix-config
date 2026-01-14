@@ -383,8 +383,9 @@
 
       # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
       # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
-      # Model: Qwen2.5-Coder-7B-Instruct BF16 (~14GB) - stable on ROCm
-      # Note: AWQ/torch.compile crash on Strix Halo, using BF16 smaller model
+      # Model: Qwen2.5-Coder-7B-Instruct FP16 (~14GB weights + KV cache)
+      # Note: AWQ/torch.compile crash on Strix Halo, using FP16 smaller model
+      # Context: 65K tokens for large OpenCode requests (~22GB total with KV cache)
       vllm = {
         image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
         extraOptions = [
@@ -425,7 +426,7 @@
           "--tensor-parallel-size"
           "1"
           "--max-model-len"
-          "16384"
+          "65536"
           "--gpu-memory-utilization"
           "0.85"
           "--dtype"
