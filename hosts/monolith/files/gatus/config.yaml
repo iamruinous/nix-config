@@ -637,7 +637,7 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "vLLM (zenith)"
+  - name: "llama.cpp (zenith)"
     group: "AI"
     url: "https://zenith.vllm.ruinous.ai/health"
     interval: 5m

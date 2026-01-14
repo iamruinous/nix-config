@@ -411,8 +411,10 @@
       };
 
       # llama.cpp server with ROCm GPU acceleration
+      # NOTE: Using CPU-only mode temporarily. ROCm 5.6.0 in the server-rocm image
+      # does not support Strix Halo (gfx1151). Need ROCm 6.x+ image or custom build.
       llama-cpp = {
-        image = "ghcr.io/ggerganov/llama.cpp:server-rocm";
+        image = "ghcr.io/ggerganov/llama.cpp:server";
         dependsOn = ["llama-cpp-init"];
         extraOptions = [
           "--device=/dev/kfd"
@@ -439,15 +441,14 @@
           "--model"
           "/models/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf"
           "--ctx-size"
-          "100000"
+          "32768"
           "--host"
           "0.0.0.0"
           "--port"
           "8000"
           "--n-gpu-layers"
-          "99"
+          "0"
           "--flash-attn"
-          "--jinja"
         ];
       };
 

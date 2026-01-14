@@ -17,19 +17,19 @@
 
     # Simple reverse proxy routes
     routes = {
-      # Ollama API (zenith-specific)
+      # llama.cpp API (zenith-specific, legacy Ollama domain)
       "zenith.ollama.meskill.farm" = {
         upstream = "llama-cpp:8000";
-        description = "Ollama API (zenith-specific)";
+        description = "llama.cpp API (zenith-specific, Ollama-compatible)";
         extraConfig = ''
           header_up Host localhost
         '';
       };
 
-      # Ollama API (generic)
+      # llama.cpp API (generic, legacy Ollama domain)
       "ollama.x.meskill.farm" = {
         upstream = "llama-cpp:8000";
-        description = "Ollama API (generic)";
+        description = "llama.cpp API (generic, Ollama-compatible)";
         extraConfig = ''
           header_up Host localhost
         '';
@@ -41,10 +41,10 @@
         description = "Model Context Protocol gateway";
       };
 
-      # vLLM OpenAI-compatible API
+      # llama.cpp OpenAI-compatible API (legacy vLLM domain)
       "zenith.vllm.ruinous.ai" = {
         upstream = "llama-cpp:8000";
-        description = "vLLM OpenAI-compatible API";
+        description = "llama.cpp OpenAI-compatible API";
       };
 
       # Open WebUI chat interface (ruinous.ai)
