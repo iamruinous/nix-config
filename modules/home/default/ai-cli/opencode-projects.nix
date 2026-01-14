@@ -465,6 +465,21 @@ in {
       programs.fish.functions.opencode = mkOpencodeFishFunction;
     })
 
+    # Allow direnv for web projects (required for systemd services to use direnv exec)
+    (mkIf (pkgs.stdenv.isLinux && webProjects != {}) {
+      home.activation.allowDirenvForOpencodeProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        ${concatMapStringsSep "\n" (name: let
+          project = webProjects.${name};
+        in ''
+          # Project: ${name}
+          if [ -f "${project.workdir}/.envrc" ]; then
+            $VERBOSE_ECHO "opencode-projects: allowing direnv for ${name}"
+            ${pkgs.direnv}/bin/direnv allow "${project.workdir}"
+          fi
+        '') (attrNames webProjects)}
+      '';
+    })
+
     # Sync project registries during activation
     {
       home.activation.syncOpencodeProjectRegistries = lib.hm.dag.entryAfter ["writeBoundary"] ''
