@@ -365,7 +365,7 @@
       # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
       # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
       vllm = {
-        image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.11.2";
+        image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
