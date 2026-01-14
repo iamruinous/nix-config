@@ -377,7 +377,7 @@ endpoints:
 
   - name: "Weaviate (monolith)"
     group: "AI"
-    url: "http://weaviate:8080/v1/.well-known/ready"
+    url: "https://weaviate.meskill.farm/v1/.well-known/ready"
     interval: 5m
     conditions:
       - "[STATUS] == 200"

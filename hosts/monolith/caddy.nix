@@ -238,6 +238,12 @@
         description = "Gatus uptime monitoring";
       };
 
+      # Weaviate vector database
+      "weaviate.meskill.farm" = {
+        upstream = "weaviate:8080";
+        description = "Weaviate vector database";
+      };
+
       # Zigbee2MQTT
       "zigbee.meskill.farm" = {
         upstream = "zigbee2mqtt:8080";
