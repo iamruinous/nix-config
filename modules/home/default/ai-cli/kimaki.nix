@@ -250,10 +250,11 @@ in {
       ];
     }
 
-    # Symlink shared auth files when using isolated stateDir
-    (mkIf (cfg.stateDir != null) {
+    # Symlink shared auth files when using isolated dataDir
+    # OpenCode looks for auth.json in XDG_DATA_HOME/opencode/, not XDG_STATE_HOME
+    (mkIf (cfg.dataDir != null) {
       home.file = opcodeLib.mkAuthSymlinks {
-        stateDir = cfg.stateDir;
+        dataDir = cfg.dataDir;
         homeDirectory = config.home.homeDirectory;
         mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
       };
