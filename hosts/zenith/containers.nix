@@ -133,7 +133,7 @@
         ];
       };
       open-webui = {
-        image = "ghcr.io/open-webui/open-webui:v0.6.43";
+        image = "ghcr.io/open-webui/open-webui:v0.7.2";
         dependsOn = ["ollama" "vllm"];
         environment = {
           OLLAMA_BASE_URL = "http://ollama:11434";
