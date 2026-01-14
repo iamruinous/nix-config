@@ -230,7 +230,7 @@ with lib; let
       project.web.cors
       ++ optionals (project.caddy.fqdn != null) ["https://${project.caddy.fqdn}"];
 
-    buildArgs = [
+    opencodeArgs = [
       "${wrappedOpencode}/bin/opencode"
       "web"
       "--hostname"
@@ -244,6 +244,10 @@ with lib; let
     ++ optionals project.web.printLogs ["--print-logs"]
     ++ concatMap (domain: ["--cors" domain]) allCorsDomains;
 
+    # Use direnv exec to load the project's environment (.envrc + .envrc.local)
+    # This provides all environment variables and utilities configured by direnv
+    execStartCmd = "${pkgs.direnv}/bin/direnv exec ${project.workdir} ${concatStringsSep " " opencodeArgs}";
+
     allEnvFiles = cfg.environmentFiles ++ project.environmentFiles;
   in {
     Unit = {
@@ -254,7 +258,7 @@ with lib; let
     Service = {
       Type = "exec";
       WorkingDirectory = project.workdir;
-      ExecStart = concatStringsSep " " buildArgs;
+      ExecStart = execStartCmd;
       Restart = "always";
       RestartSec = "5s";
       RestartSteps = 5;
