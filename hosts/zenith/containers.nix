@@ -95,7 +95,7 @@
         cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false"];
       };
       "forgejo-runner" = {
-        image = "code.forgejo.org/forgejo/runner:12.5";
+        image = "code.forgejo.org/forgejo/runner:12.5.2";
         dependsOn = ["forgejo-dind"];
         environment = {
           DOCKER_HOST = "tcp://forgejo-dind:2375";
@@ -142,7 +142,7 @@
         ];
       };
       postgres = {
-        image = "docker.io/postgres:18";
+        image = "docker.io/postgres:18.1";
         ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/18/docker";
@@ -158,7 +158,7 @@
         ];
       };
       redis = {
-        image = "docker.io/redis:7";
+        image = "docker.io/redis:7.2.12";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
@@ -271,7 +271,7 @@
       # Initial import of US-West will take several hours
       # Data persisted to /data/docker/nominatim/postgres
       nominatim = {
-        image = "mediagis/nominatim:5.0";
+        image = "mediagis/nominatim:5.2.0";
         environment = {
           # Import US West region (smaller dataset for faster initial import)
           # Change to desired region: https://download.geofabrik.de/
@@ -293,7 +293,7 @@
       # External access via Cloudflare tunnel (n8n.meskill.dev, n8h.meskill.dev)
       # Internal access via Caddy (n8n-dev-int.meskill.farm)
       n8n-dev = {
-        image = "docker.io/n8nio/n8n:2.2.1";
+        image = "docker.io/n8nio/n8n:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -326,7 +326,7 @@
 
       # n8n Runner for external task execution (JavaScript & Python)
       n8n-dev-runner-alpha = {
-        image = "docker.io/n8nio/runners:2.2.1";
+        image = "docker.io/n8nio/runners:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n-dev:5679";

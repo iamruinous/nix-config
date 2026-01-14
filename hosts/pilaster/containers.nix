@@ -66,7 +66,7 @@
     backend = "docker";
     containers = {
       postgres = {
-        image = "docker.io/postgres:18";
+        image = "docker.io/postgres:18.1";
         ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/18/docker";
@@ -234,7 +234,7 @@
         ];
       };
       wikijs = {
-        image = "ghcr.io/requarks/wiki:2";
+        image = "ghcr.io/requarks/wiki:2.5.277";
         environment = {
           DB_TYPE = "postgres";
           DB_HOST = "postgres";
@@ -265,7 +265,7 @@
         ];
       };
       mariadb = {
-        image = "docker.io/mariadb:11";
+        image = "docker.io/mariadb:11.8.5";
         ports = ["3306:3306"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_mariadb.path];
         networks = [
@@ -279,7 +279,7 @@
       };
       # Personal CRM Evaluation
       monica = {
-        image = "docker.io/monica:4";
+        image = "docker.io/monica:4.1.2";
         environmentFiles = [config.age.secrets.pilaster_docker_env_monica.path];
         networks = [
           "datanet"
@@ -291,7 +291,7 @@
         ];
       };
       redis = {
-        image = "docker.io/redis:7";
+        image = "docker.io/redis:7.2.12";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
@@ -299,7 +299,7 @@
         ];
       };
       twenty = {
-        image = "docker.io/twentycrm/twenty:v1.14";
+        image = "docker.io/twentycrm/twenty:v1.15";
         environment = {
           REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
@@ -319,7 +319,7 @@
         ];
       };
       twenty-worker = {
-        image = "docker.io/twentycrm/twenty:v1.14";
+        image = "docker.io/twentycrm/twenty:v1.15";
         cmd = ["yarn" "worker:prod"];
         environment = {
           REDIS_URL = "redis://redis:6379";
@@ -417,7 +417,7 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.31.0";
+        image = "docker.io/getmeili/meilisearch:v1.32";
         environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [

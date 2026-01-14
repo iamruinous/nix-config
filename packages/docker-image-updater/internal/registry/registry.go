@@ -93,6 +93,14 @@ func (c *Checker) ListTags(image string) ([]string, error) {
 // ListTagsWithLimit returns available tags for an image, limited to n tags.
 // Uses the OCI Distribution API with pagination for efficiency.
 func (c *Checker) ListTagsWithLimit(image string, limit int) ([]string, error) {
+	return c.ListTagsWithLimitAndStart(image, limit, "")
+}
+
+// ListTagsWithLimitAndStart returns available tags for an image, limited to n tags,
+// starting after the specified tag (lexicographically). This is useful for images
+// with many tags where we want to skip to a specific major version.
+// Uses the OCI Distribution API with pagination for efficiency.
+func (c *Checker) ListTagsWithLimitAndStart(image string, limit int, startAfter string) ([]string, error) {
 	// Normalize the image to full form
 	normalized := scanner.NormalizeImage(image)
 	imageBase := extractImageBase(normalized)
@@ -120,7 +128,13 @@ func (c *Checker) ListTagsWithLimit(image string, limit int) ([]string, error) {
 
 	// Build the tags list URL with pagination
 	// The n parameter limits the number of tags returned
-	url := fmt.Sprintf("https://%s/v2/%s/tags/list?n=%d", repo.Registry.Name(), repo.RepositoryStr(), limit)
+	// The last parameter starts listing after the specified tag (lexicographic order)
+	var url string
+	if startAfter != "" {
+		url = fmt.Sprintf("https://%s/v2/%s/tags/list?n=%d&last=%s", repo.Registry.Name(), repo.RepositoryStr(), limit, startAfter)
+	} else {
+		url = fmt.Sprintf("https://%s/v2/%s/tags/list?n=%d", repo.Registry.Name(), repo.RepositoryStr(), limit)
+	}
 
 	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 	if err != nil {
@@ -148,6 +162,71 @@ func (c *Checker) ListTagsWithLimit(image string, limit int) ([]string, error) {
 	}
 
 	return tagsResp.Tags, nil
+}
+
+// ListTagsForVersion returns available tags for an image, using smart pagination
+// to start from the major version of the current tag. This handles repositories
+// with many tags (like n8n with 2400+ tags) where the OCI API returns tags
+// lexicographically and simple pagination would miss newer major versions.
+//
+// The function fetches pages of tags starting from the current major version
+// and continues paginating until it has seen tags beyond the current version.
+func (c *Checker) ListTagsForVersion(image string, currentTag string, limit int) ([]string, error) {
+	major, minor, patch, ok := ParseVersion(currentTag)
+	if !ok || major == 0 {
+		return c.ListTagsWithLimit(image, limit)
+	}
+
+	// Use current major as startAfter - lexicographically "2" > "1.999.999"
+	// so this skips all previous major version tags
+	startAfter := fmt.Sprintf("%d", major)
+
+	// Collect tags across multiple pages until we've covered past current version
+	var allTags []string
+	pageSize := limit
+	if pageSize < 100 {
+		pageSize = 100 // Use larger pages for efficiency
+	}
+
+	// Keep fetching until we see tags that are lexicographically past our version
+	// or until we get an empty/small response (no more tags)
+	for i := 0; i < 10; i++ { // Safety limit of 10 pages
+		tags, err := c.ListTagsWithLimitAndStart(image, pageSize, startAfter)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(tags) == 0 {
+			break
+		}
+
+		allTags = append(allTags, tags...)
+
+		// Check if we've gone past our current version
+		// The last tag in the response tells us where we are lexicographically
+		lastTag := tags[len(tags)-1]
+
+		// Parse the last tag to see if we've covered enough
+		lastMajor, lastMinor, lastPatch, lastOk := ParseVersion(lastTag)
+		if lastOk {
+			// We've found tags beyond current version - good enough
+			if lastMajor > major ||
+				(lastMajor == major && lastMinor > minor) ||
+				(lastMajor == major && lastMinor == minor && lastPatch > patch) {
+				break
+			}
+		}
+
+		// If we got fewer tags than requested, there are no more
+		if len(tags) < pageSize {
+			break
+		}
+
+		// Continue from the last tag
+		startAfter = lastTag
+	}
+
+	return allTags, nil
 }
 
 // GetDigest returns the digest for a specific image:tag using go-containerregistry.
@@ -247,15 +326,12 @@ func (c *Checker) CheckForUpdate(container scanner.Container) *UpdateResult {
 	}
 
 	if IsSemverTag(currentTag) {
-		tags, err := c.ListTags(container.Image)
+		tags, err := c.ListTagsForVersion(container.Image, currentTag, c.maxTags)
 		if err != nil {
 			result.Error = err
 			return result
 		}
 
-		// If we got exactly maxTags tags and didn't find an update,
-		// the latest might not be in our limited set - but for semver
-		// we sort and find the highest, which should work for recent updates
 		latestTag := FindLatestVersionWithConstraint(tags, currentTag, constraint)
 		if latestTag != "" {
 			result.LatestTag = latestTag

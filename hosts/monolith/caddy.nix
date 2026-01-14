@@ -228,7 +228,7 @@
 
       # TaskTrove task manager
       "tasks.meskill.farm" = {
-        upstream = "tasktrove:8080";
+        upstream = "tasktrove:3000";
         description = "TaskTrove task manager";
       };
 
