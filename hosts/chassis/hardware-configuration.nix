@@ -22,6 +22,9 @@
 
   swapDevices = [];
 
+  # allow remote deploy on aarch64 systems
+  boot.binfmt.emulatedSystems = ["aarch64-linux"];
+
   networking.firewall.enable = true;
   networking.nftables.enable = true;
   networking.useDHCP = lib.mkDefault false;
