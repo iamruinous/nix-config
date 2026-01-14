@@ -131,10 +131,10 @@
       };
       open-webui = {
         image = "ghcr.io/open-webui/open-webui:v0.6.43";
-        dependsOn = ["ollama"];
+        dependsOn = ["ollama" "vllm"];
         environment = {
           OLLAMA_BASE_URL = "http://ollama:11434";
-          # OPENAI_API_BASE_URL = "http://vllm:8080/v1";
+          OPENAI_API_BASE_URL = "http://vllm:8000/v1";
         };
         networks = ["servicenet"];
         volumes = [
@@ -313,6 +313,7 @@
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
           N8N_BLOCK_INTERNAL_NETWORKS = "false";
           OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS = "true";
+          N8N_ENVIRONMENT = "dev";
         };
         environmentFiles = [config.age.secrets.zenith_docker_env_n8n_dev.path];
         networks = ["servicenet" "datanet"];
@@ -361,32 +362,49 @@
         ];
       };
 
-      # vLLM disabled - ROCm gfx1151 (Strix Halo) support has open issues
-      # See: https://github.com/ROCm/ROCm/issues/4909
-      # Re-enable when ROCm properly supports Strix Halo
-      # vllm = {
-      #   image = "rocm/vllm-dev:rocm7.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
-      #   extraOptions = [
-      #     "--device=/dev/kfd"
-      #     "--device=/dev/dri"
-      #     "--group-add=video"
-      #     "--group-add=render"
-      #     "--shm-size=16g"
-      #     "--security-opt=seccomp=unconfined"
-      #     "--ipc=host"
-      #   ];
-      #   environment = {
-      #     HF_HOME = "/data/huggingface";
-      #     HSA_OVERRIDE_GFX_VERSION = "11.0.0";
-      #   };
-      #   networks = ["servicenet"];
-      #   volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
-      #   cmd = [
-      #     "vllm" "serve" "Qwen/Qwen2.5-32B-Instruct"
-      #     "--host" "0.0.0.0" "--port" "8000"
-      #     "--tensor-parallel-size" "1" "--max-model-len" "32768"
-      #   ];
-      # };
+      # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
+      # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
+      vllm = {
+        image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.11.2";
+        extraOptions = [
+          "--device=/dev/kfd"
+          "--device=/dev/dri"
+          "--group-add=video"
+          "--group-add=render"
+          "--shm-size=128g" # Full RAM for unified memory APU
+          "--security-opt=seccomp=unconfined"
+          "--ipc=host"
+          "--cap-add=SYS_PTRACE"
+        ];
+        environment = {
+          HF_HOME = "/data/huggingface";
+          # Strix Halo (gfx1151) compatibility
+          HSA_OVERRIDE_GFX_VERSION = "11.0.0";
+          # Prevents memory access faults on Strix Halo APUs
+          HSA_ENABLE_SDMA = "0";
+          # Enable optimized Triton kernels for ROCm
+          VLLM_USE_TRITON = "1";
+          VLLM_OP_TYPES = "triton";
+          # Target the integrated Radeon 8060S
+          HIP_VISIBLE_DEVICES = "0";
+          ROCM_PATH = "/opt/rocm";
+        };
+        networks = ["servicenet"];
+        volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
+        cmd = [
+          "vllm"
+          "serve"
+          "Qwen/Qwen2.5-32B-Instruct"
+          "--host"
+          "0.0.0.0"
+          "--port"
+          "8000"
+          "--tensor-parallel-size"
+          "1"
+          "--max-model-len"
+          "32768"
+        ];
+      };
     };
   };
 
