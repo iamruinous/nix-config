@@ -82,7 +82,7 @@
 
           # codey-agent-system - web service with Caddy
           codey = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/codey-system-agent";
+            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/codey-agent-system";
             port = 9503;
             caddy.fqdn = "codey.oc.ruinous.ai";
           };

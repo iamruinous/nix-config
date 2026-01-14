@@ -11,7 +11,8 @@ pkgs.mkShell {
       doggo # Modern DNS client for lookups
       gitleaks # Secret scanner (for pre-commit hook)
       go # Go compiler for building/testing Go packages
-      gum # Pretty TUI for Makefile commands
+      gum # Pretty TUI for justfile commands
+      just # Command runner (replaces Make)
       nixd # Nix language server for LSP diagnostics
       pnpm # For running Node.js-based MCP servers
       uv # Provides uvx for running Python-based MCP servers

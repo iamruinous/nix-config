@@ -10,11 +10,16 @@
 
 | Command | Description |
 |---------|-------------|
-| `nixos-rebuild switch --flake .#<hostname>` | Apply NixOS configuration |
-| `darwin-rebuild switch --flake .#<hostname>` | Apply macOS configuration |
-| `make dry-build` | Dry-build local host configuration |
-| `make remote-rebuild remotehost=<hostname>` | Deploy to remote host |
-| `make remote-dry-build remotehost=<hostname>` | Verify remote build without applying |
+| `just` | Show all available recipes |
+| `just linux-rebuild` | Apply NixOS configuration (current host) |
+| `just darwin-rebuild` | Apply macOS configuration (current host) |
+| `just dry-build` | Dry-build local host configuration |
+| `just remote-rebuild <hostname>` | Deploy to remote host |
+| `just remote-dry-build <hostname>` | Verify remote build without applying |
+| `just check` | Sanity check - dry-build representative hosts |
+| `just pi-sdimage <pihost>` | Build Raspberry Pi SD image |
+| `just pi-flash <pihost> <device>` | Flash Pi image to SD card |
+| `just user-password <user>` | Set user password (hashed + encrypted) |
 | `nix build .#<package-name>` | Build a package |
 | `agenix-helper unlock` | Unlock secrets for editing |
 | `agenix-helper lock` | Lock secrets after editing |
@@ -82,7 +87,7 @@ agenix-helper lock            # When done
 2. Create encrypted env file → delegate to `agenix`
 3. Create DNS record → delegate to `cfnix`
 4. Update Caddyfile → delegate to `agenix` (if encrypted)
-5. Verify: `make remote-dry-build remotehost=<hostname>`
+5. Verify: `just remote-dry-build <hostname>`
 
 ### Container Networks
 
@@ -196,7 +201,7 @@ Command definitions: `.claude/commands/`
 | Standard | Tool/Command |
 |----------|--------------|
 | **Nix Formatting** | `alejandra` |
-| **CI Validation** | `make check` |
+| **CI Validation** | `just check` |
 | **Modularity** | Prefer reusable modules in `modules/` over ad-hoc config |
 | **Container Images** | Pin tags (no `:latest`) |
 
@@ -206,6 +211,6 @@ Command definitions: `.claude/commands/`
 
 Before completing any task:
 
-- [ ] `make remote-dry-build remotehost=<target>` passes
+- [ ] `just remote-dry-build <target>` passes
 - [ ] No unencrypted secrets in commit
 - [ ] Images pinned (no `:latest` tags)
