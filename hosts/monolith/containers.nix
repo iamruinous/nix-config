@@ -58,7 +58,7 @@
     backend = "docker";
     containers = {
       mosquitto = {
-        image = "docker.io/eclipse-mosquitto:2";
+        image = "docker.io/eclipse-mosquitto:2.0.22";
         networks = [
           "proxynet"
           "servicenet"
@@ -80,7 +80,7 @@
         ];
       };
       mariadb = {
-        image = "docker.io/mariadb:11";
+        image = "docker.io/mariadb:11.8.5";
         ports = ["3306:3306"];
         environmentFiles = [config.age.secrets.monolith_docker_env_mariadb.path];
         networks = [
@@ -125,7 +125,7 @@
         ];
       };
       postgres = {
-        image = "docker.io/postgres:17";
+        image = "docker.io/postgres:17.7";
         ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/17/docker";
@@ -151,7 +151,7 @@
         ];
       };
       prometheus = {
-        image = "docker.io/prom/prometheus:v3.8.1";
+        image = "docker.io/prom/prometheus:v3.9.1";
         ports = ["9090:9090"];
         networks = [
           "datanet"
@@ -164,7 +164,7 @@
         ];
       };
       gatus = {
-        image = "docker.io/twinproduction/gatus:v5.17.0";
+        image = "docker.io/twinproduction/gatus:v5.22.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_gatus.path];
         networks = ["servicenet"];
         volumes = [
@@ -388,7 +388,7 @@
         dependsOn = ["gluetun"];
       };
       forgejo = {
-        image = "codeberg.org/forgejo/forgejo:13";
+        image = "codeberg.org/forgejo/forgejo:13.0.4";
         environment = {
           USER_UID = "2000";
           USER_GID = "2000";
@@ -470,7 +470,7 @@
         ];
       };
       jellyseerr = {
-        image = "docker.io/fallenbagel/jellyseerr:2";
+        image = "docker.io/fallenbagel/jellyseerr:2.7.3";
         environment = {
           PUID = "4000";
           PGID = "4000";
@@ -521,7 +521,7 @@
         ];
       };
       n8n = {
-        image = "docker.io/n8nio/n8n:2.2.1";
+        image = "docker.io/n8nio/n8n:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -557,7 +557,7 @@
         ];
       };
       n8n-runner-alpha = {
-        image = "docker.io/n8nio/runners:2.2.1";
+        image = "docker.io/n8nio/runners:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -574,7 +574,7 @@
         dependsOn = ["n8n"];
       };
       n8n-runner-bravo = {
-        image = "docker.io/n8nio/runners:2.2.1";
+        image = "docker.io/n8nio/runners:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -589,7 +589,7 @@
         dependsOn = ["n8n"];
       };
       n8n-runner-charlie = {
-        image = "docker.io/n8nio/runners:2.2.1";
+        image = "docker.io/n8nio/runners:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -695,7 +695,7 @@
         ];
       };
       gluetun = {
-        image = "docker.io/qmcgaw/gluetun:v3.40.3";
+        image = "docker.io/qmcgaw/gluetun:v3.41.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_gluetun.path];
         ports = [
           "8080:8080"
@@ -857,7 +857,7 @@
         ];
       };
       romm = {
-        image = "docker.io/rommapp/romm:3";
+        image = "docker.io/rommapp/romm:3.10.3";
         environmentFiles = [config.age.secrets.monolith_docker_env_romm.path];
         networks = [
           "servicenet"
@@ -947,7 +947,7 @@
       #   ];
       # };
       zigbee2mqtt = {
-        image = "ghcr.io/koenkk/zigbee2mqtt:2";
+        image = "ghcr.io/koenkk/zigbee2mqtt:2.7.2";
         environment = {
           TZ = "America/Phoenix";
         };
