@@ -27,10 +27,8 @@
       enable = true;
       sessions.hub = {
         windows = [
-          {
-            name = "shell";
-            focus = true;
-          }
+          {name = "shell"; focus = true;}
+          {name = "top"; command = "btop";}
         ];
       };
     };
