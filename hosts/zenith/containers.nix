@@ -158,7 +158,7 @@
         ];
       };
       redis = {
-        image = "docker.io/redis:7.2.12";
+        image = "docker.io/redis:8.4.0";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
