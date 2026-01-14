@@ -246,7 +246,19 @@ with lib; let
 
     # Use direnv exec to load the project's environment (.envrc + .envrc.local)
     # This provides all environment variables and utilities configured by direnv
-    execStartCmd = "${pkgs.direnv}/bin/direnv exec ${project.workdir} ${concatStringsSep " " opencodeArgs}";
+    # Note: We temporarily unset XDG_DATA_HOME so direnv can find its allow database
+    # in the default location (~/.local/share/direnv), then re-export the project-specific
+    # XDG_DATA_HOME after direnv loads the environment
+    execStartCmd = pkgs.writeShellScript "opencode-${name}-start" ''
+      # Save project-specific XDG_DATA_HOME
+      OPENCODE_DATA_HOME="$XDG_DATA_HOME"
+      # Reset to default so direnv can find its allow database
+      export XDG_DATA_HOME="${config.home.homeDirectory}/.local/share"
+      # Run direnv exec, which will load the project environment
+      # Then restore XDG_DATA_HOME and exec opencode
+      exec ${pkgs.direnv}/bin/direnv exec ${project.workdir} \
+        ${pkgs.bash}/bin/bash -c 'export XDG_DATA_HOME="'"$OPENCODE_DATA_HOME"'"; exec ${concatStringsSep " " opencodeArgs}'
+    '';
 
     allEnvFiles = cfg.environmentFiles ++ project.environmentFiles;
   in {
