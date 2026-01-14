@@ -14,6 +14,7 @@
     flake.sharedModules.developer
 
     ./hardware-configuration.nix
+    ./caddy.nix
     ./cloudflared.nix
     ./containers.nix
     ./disko.nix

@@ -9,12 +9,13 @@
     flake.sharedModules.developer
 
     ./hardware-configuration.nix
+    ./caddy.nix
     ./containers.nix
-    ./nfs.nix
     ./disko.nix
+    ./microvm.nix
+    ./nfs.nix
     ./printing.nix
     ./sshd.nix
-    ./microvm.nix
   ];
 
   networking.hostName = "obelisk";

@@ -9,6 +9,7 @@
     flake.nixosModules.server
 
     ./hardware-configuration.nix
+    ./caddy.nix
     ./containers.nix
     ./disko.nix
   ];
