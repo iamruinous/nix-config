@@ -369,8 +369,8 @@
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
-          "--group-add=video"
-          "--group-add=render"
+          "--group-add=26" # video group (GID on NixOS)
+          "--group-add=303" # render group (GID on NixOS)
           "--shm-size=128g" # Full RAM for unified memory APU
           "--security-opt=seccomp=unconfined"
           "--ipc=host"
