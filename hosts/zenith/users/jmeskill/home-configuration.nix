@@ -37,6 +37,7 @@ in {
       sessions.hub = {
         windows = [
           {name = "shell"; focus = true;}
+          {name = "top"; command = "btop";}
           {name = "docker"; command = "sudo lazydocker";}
         ];
       };
