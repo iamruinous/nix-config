@@ -413,6 +413,7 @@
           "0.90"
           "--quantization"
           "awq"
+          "--enforce-eager" # Disable torch.compile - required for ROCm Strix Halo
         ];
       };
     };
