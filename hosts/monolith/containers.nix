@@ -933,7 +933,8 @@
         image = "ghcr.io/dohsimpson/tasktrove:v0.12.4";
         networks = ["servicenet"];
         volumes = [
-          "/data/docker/tasktrove/config:/app/data"
+          "/data/docker/tasktrove/data:/app/data"
+          "/data/docker/tasktrove/backups:/app/backups"
         ];
       };
       # weatherflow = {
