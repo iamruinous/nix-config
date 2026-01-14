@@ -47,6 +47,12 @@
         description = "Model Context Protocol gateway";
       };
 
+      # vLLM OpenAI-compatible API
+      "zenith.vllm.ruinous.ai" = {
+        upstream = "vllm:8000";
+        description = "vLLM OpenAI-compatible API";
+      };
+
 
 
       # Dawarich timeline (internal)
