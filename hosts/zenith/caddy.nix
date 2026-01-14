@@ -19,7 +19,7 @@
     routes = {
       # Ollama API (zenith-specific)
       "zenith.ollama.meskill.farm" = {
-        upstream = "ollama:11434";
+        upstream = "llama-cpp:8000";
         description = "Ollama API (zenith-specific)";
         extraConfig = ''
           header_up Host localhost
@@ -28,7 +28,7 @@
 
       # Ollama API (generic)
       "ollama.x.meskill.farm" = {
-        upstream = "ollama:11434";
+        upstream = "llama-cpp:8000";
         description = "Ollama API (generic)";
         extraConfig = ''
           header_up Host localhost
@@ -43,7 +43,7 @@
 
       # vLLM OpenAI-compatible API
       "zenith.vllm.ruinous.ai" = {
-        upstream = "vllm:8000";
+        upstream = "llama-cpp:8000";
         description = "vLLM OpenAI-compatible API";
       };
 
