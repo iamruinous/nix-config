@@ -16,9 +16,9 @@
       enable = true;
       sessions.hub = {
         windows = [
-          {name = "shell"; focus = true;}
           {name = "top"; command = "btop";}
           {name = "docker"; command = "sudo lazydocker";}
+          {name = "shell"; focus = true;}
         ];
       };
     };
