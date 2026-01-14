@@ -48,7 +48,11 @@ with lib; let
   opcodeLib = import ../../../../lib/opencode/wrapper.nix {inherit lib pkgs;};
 
   # Project submodule - no references to cfg in defaults
-  projectType = types.submodule ({name, config, ...}: {
+  projectType = types.submodule ({
+    name,
+    config,
+    ...
+  }: {
     options = {
       workdir = mkOption {
         type = types.str;
@@ -135,7 +139,7 @@ with lib; let
 
         logLevel = mkOption {
           type = types.enum ["DEBUG" "INFO" "WARN" "ERROR"];
-          default = "WARN";
+          default = "ERROR";
           description = "Log level for the web service.";
         };
 
@@ -187,30 +191,34 @@ with lib; let
     startCommands = ["direnv exec . true"];
 
     windows =
-      (if hasWebService then [
-        # Tail the systemd service logs
-        {
-          name = "logs";
-          command = "journalctl --user -fu opencode-${name}.service";
-        }
-        # Web service is running via systemd, just attach to it
-        {
-          name = "opencode";
-          command = "opencode attach http://localhost:${toString project.port}";
-          focus = true;
-        }
-      ] else [
-        # No web service, run server in tmux
-        {
-          name = "server";
-          command = "opencode serve --print-logs --hostname ${project.hostname} --port ${toString project.port}";
-        }
-        {
-          name = "opencode";
-          command = "sleep 2 && opencode attach http://localhost:${toString project.port}";
-          focus = true;
-        }
-      ])
+      (
+        if hasWebService
+        then [
+          # Tail the systemd service logs
+          {
+            name = "logs";
+            command = "journalctl --user -fu opencode-${name}.service";
+          }
+          # Web service is running via systemd, just attach to it
+          {
+            name = "opencode";
+            command = "opencode attach http://localhost:${toString project.port}";
+            focus = true;
+          }
+        ]
+        else [
+          # No web service, run server in tmux
+          {
+            name = "server";
+            command = "opencode serve --print-logs --hostname ${project.hostname} --port ${toString project.port}";
+          }
+          {
+            name = "opencode";
+            command = "sleep 2 && opencode attach http://localhost:${toString project.port}";
+            focus = true;
+          }
+        ]
+      )
       ++ [
         {
           name = "editor";
@@ -230,19 +238,20 @@ with lib; let
       project.web.cors
       ++ optionals (project.caddy.fqdn != null) ["https://${project.caddy.fqdn}"];
 
-    opencodeArgs = [
-      "${wrappedOpencode}/bin/opencode"
-      "web"
-      "--hostname"
-      project.web.hostname
-      "--port"
-      (toString project.port)
-      "--log-level"
-      project.web.logLevel
-    ]
-    ++ optionals project.web.mdns ["--mdns"]
-    ++ optionals project.web.printLogs ["--print-logs"]
-    ++ concatMap (domain: ["--cors" domain]) allCorsDomains;
+    opencodeArgs =
+      [
+        "${wrappedOpencode}/bin/opencode"
+        "web"
+        "--hostname"
+        project.web.hostname
+        "--port"
+        (toString project.port)
+        "--log-level"
+        project.web.logLevel
+      ]
+      ++ optionals project.web.mdns ["--mdns"]
+      ++ optionals project.web.printLogs ["--print-logs"]
+      ++ concatMap (domain: ["--cors" domain]) allCorsDomains;
 
     # Use direnv exec to load the project's environment (.envrc + .envrc.local)
     # This provides all environment variables and utilities configured by direnv
@@ -267,26 +276,28 @@ with lib; let
       After = ["network.target"] ++ optionals (allEnvFiles != []) ["agenix.service"];
       Requires = optionals (allEnvFiles != []) ["agenix.service"];
     };
-    Service = {
-      Type = "exec";
-      WorkingDirectory = project.workdir;
-      ExecStart = execStartCmd;
-      Restart = "always";
-      RestartSec = "5s";
-      RestartSteps = 5;
-      RestartMaxDelaySec = "60s";
-      Environment = opcodeLib.mkSystemdEnvironment {
-        homeDirectory = config.home.homeDirectory;
-        extraPackages = cfg.packages;
-        configDir = paths.config;
-        cacheDir = paths.cache;
-        stateDir = paths.state;
-        dataDir = paths.data;
-        includeSystemPath = true;
+    Service =
+      {
+        Type = "exec";
+        WorkingDirectory = project.workdir;
+        ExecStart = execStartCmd;
+        Restart = "always";
+        RestartSec = "5s";
+        RestartSteps = 5;
+        RestartMaxDelaySec = "60s";
+        Environment = opcodeLib.mkSystemdEnvironment {
+          homeDirectory = config.home.homeDirectory;
+          extraPackages = cfg.packages;
+          configDir = paths.config;
+          cacheDir = paths.cache;
+          stateDir = paths.state;
+          dataDir = paths.data;
+          includeSystemPath = true;
+        };
+      }
+      // optionalAttrs (allEnvFiles != []) {
+        EnvironmentFile = allEnvFiles;
       };
-    } // optionalAttrs (allEnvFiles != []) {
-      EnvironmentFile = allEnvFiles;
-    };
     Install = {
       WantedBy = ["default.target"];
     };
@@ -315,34 +326,33 @@ with lib; let
       project = webProjects.${name};
       paths = mkProjectPaths name;
     in ''
-case "${project.workdir}"
-      # Project: ${name}
-      set -lx OPENCODE_CONFIG_DIR "${paths.config}"
-      set -lx XDG_CACHE_HOME "${paths.cache}"
-      set -lx XDG_STATE_HOME "${paths.state}"
-      set -lx XDG_DATA_HOME "${paths.data}"
-      command opencode attach "http://localhost:${toString project.port}" $argv
-      return'') (attrNames webProjects));
+      case "${project.workdir}"
+            # Project: ${name}
+            set -lx OPENCODE_CONFIG_DIR "${paths.config}"
+            set -lx XDG_CACHE_HOME "${paths.cache}"
+            set -lx XDG_STATE_HOME "${paths.state}"
+            set -lx XDG_DATA_HOME "${paths.data}"
+            command opencode attach "http://localhost:${toString project.port}" $argv
+            return'') (attrNames webProjects));
   in ''
-# Auto-attach wrapper for opencode
-# If in a known project directory with a running web service, attach to it
-# Otherwise, run opencode normally
+    # Auto-attach wrapper for opencode
+    # If in a known project directory with a running web service, attach to it
+    # Otherwise, run opencode normally
 
-# If arguments are passed (like 'run', 'serve', etc.), run normally
-if test (count $argv) -gt 0
-  command opencode $argv
-  return
-end
+    # If arguments are passed (like 'run', 'serve', etc.), run normally
+    if test (count $argv) -gt 0
+      command opencode $argv
+      return
+    end
 
-# Check if PWD matches a known project with web service
-switch "$PWD"
-    ${caseEntries}
-end
+    # Check if PWD matches a known project with web service
+    switch "$PWD"
+        ${caseEntries}
+    end
 
-# No match, run opencode normally
-command opencode $argv
-'';
-
+    # No match, run opencode normally
+    command opencode $argv
+  '';
 in {
   options.ruinous.ai-cli.opencode-projects = {
     enable = mkEnableOption "Unified OpenCode project configuration";
@@ -407,7 +417,6 @@ in {
         }
       '';
     };
-
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -433,44 +442,52 @@ in {
     # Generate web services (Linux only)
     # Creates systemd user services for projects with web.enable or caddy.fqdn
     (mkIf (pkgs.stdenv.isLinux && webProjects != {}) {
-      systemd.user.services = mapAttrs' (name: project:
-        nameValuePair "opencode-${name}" (mkWebService name project)
-      ) webProjects;
+      systemd.user.services =
+        mapAttrs' (
+          name: project:
+            nameValuePair "opencode-${name}" (mkWebService name project)
+        )
+        webProjects;
 
       # Path units to watch for config changes and restart services
       # Watches: AGENTS.md, oh-my-opencode.json, opencode.json in ~/.config/opencode/
-      systemd.user.paths = mapAttrs' (name: _:
-        nameValuePair "opencode-${name}-config" {
-          Unit = {
-            Description = "Watch OpenCode config files for ${name}";
-          };
-          Path = {
-            PathChanged = [
-              "${config.home.homeDirectory}/.config/opencode/AGENTS.md"
-              "${config.home.homeDirectory}/.config/opencode/oh-my-opencode.json"
-              "${config.home.homeDirectory}/.config/opencode/opencode.json"
-            ];
-            Unit = "opencode-${name}.service";
-          };
-          Install = {
-            WantedBy = ["default.target"];
-          };
-        }
-      ) webProjects;
+      systemd.user.paths =
+        mapAttrs' (
+          name: _:
+            nameValuePair "opencode-${name}-config" {
+              Unit = {
+                Description = "Watch OpenCode config files for ${name}";
+              };
+              Path = {
+                PathChanged = [
+                  "${config.home.homeDirectory}/.config/opencode/AGENTS.md"
+                  "${config.home.homeDirectory}/.config/opencode/oh-my-opencode.json"
+                  "${config.home.homeDirectory}/.config/opencode/opencode.json"
+                ];
+                Unit = "opencode-${name}.service";
+              };
+              Install = {
+                WantedBy = ["default.target"];
+              };
+            }
+        )
+        webProjects;
     })
 
     # Create auth symlinks for isolated data directories
     # OpenCode looks for auth.json in XDG_DATA_HOME/opencode/, not XDG_STATE_HOME
     (mkIf (webProjects != {}) {
-      home.file = mkMerge (mapAttrsToList (name: project: let
-        paths = mkProjectPaths name;
-      in
-        opcodeLib.mkAuthSymlinks {
-          dataDir = paths.data;
-          homeDirectory = config.home.homeDirectory;
-          mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
-        }
-      ) webProjects);
+      home.file = mkMerge (mapAttrsToList (
+          name: project: let
+            paths = mkProjectPaths name;
+          in
+            opcodeLib.mkAuthSymlinks {
+              dataDir = paths.data;
+              homeDirectory = config.home.homeDirectory;
+              mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
+            }
+        )
+        webProjects);
     })
 
     # Generate fish function for auto-attach (only if there are web projects)
