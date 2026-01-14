@@ -414,6 +414,27 @@ in {
       systemd.user.services = mapAttrs' (name: project:
         nameValuePair "opencode-${name}" (mkWebService name project)
       ) webProjects;
+
+      # Path units to watch for config changes and restart services
+      # Watches: AGENTS.md, oh-my-opencode.json, opencode.json in ~/.config/opencode/
+      systemd.user.paths = mapAttrs' (name: _:
+        nameValuePair "opencode-${name}-config" {
+          Unit = {
+            Description = "Watch OpenCode config files for ${name}";
+          };
+          Path = {
+            PathChanged = [
+              "${config.home.homeDirectory}/.config/opencode/AGENTS.md"
+              "${config.home.homeDirectory}/.config/opencode/oh-my-opencode.json"
+              "${config.home.homeDirectory}/.config/opencode/opencode.json"
+            ];
+            Unit = "opencode-${name}.service";
+          };
+          Install = {
+            WantedBy = ["default.target"];
+          };
+        }
+      ) webProjects;
     })
 
     # Create auth symlinks for isolated state directories
