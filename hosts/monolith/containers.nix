@@ -931,6 +931,7 @@
       };
       tasktrove = {
         image = "ghcr.io/dohsimpson/tasktrove:v0.12.4";
+        environmentFiles = [config.age.secrets.monolith_docker_env_tasktrove.path];
         networks = ["servicenet"];
         volumes = [
           "/data/docker/tasktrove/data:/app/data"
@@ -1089,6 +1090,10 @@
   };
   age.secrets.monolith_docker_env_nocodb = {
     rekeyFile = ./files/docker/env/nocodb.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_tasktrove = {
+    rekeyFile = ./files/docker/env/tasktrove.env.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {
