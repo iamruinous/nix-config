@@ -433,6 +433,10 @@
           "--enforce-eager"
           "--max-num-seqs"
           "4"
+          # Enable tool calling for OpenCode/agentic workflows
+          "--enable-auto-tool-choice"
+          "--tool-call-parser"
+          "hermes"
         ];
       };
     };
