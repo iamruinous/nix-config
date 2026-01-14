@@ -18,8 +18,7 @@ import (
 type actionType int
 
 const (
-	actionHubSession actionType = iota
-	actionTmuxpSession
+	actionTmuxpSession actionType = iota
 	actionPlainShell
 )
 
@@ -39,7 +38,7 @@ type model struct {
 	banner     string
 	width      int
 	height     int
-	execOnQuit func() // Function to execute after quitting bubbletea
+	execOnQuit func()
 }
 
 func (m model) Init() tea.Cmd {
@@ -83,7 +82,6 @@ func (m model) View() string {
 
 	instructions := "↑↓/jk: navigate • /: filter • enter: select • ctrl+c: quit"
 
-	// Don't apply styling to banner - it has its own colors from toilet
 	return fmt.Sprintf(
 		"%s\n%s\n%s",
 		m.banner,
@@ -100,65 +98,75 @@ func generateBanner() string {
 
 	toiletPath, err := exec.LookPath("toilet")
 	if err != nil {
-		// Fallback if toilet somehow isn't available
 		return fmt.Sprintf(`
 ╔═══════════════════════════════════╗
 ║  %s
 ╚═══════════════════════════════════╝`, hostname)
 	}
 
-	// Use toilet with smblock font and metal filter for gradient colors
 	cmd := exec.Command(toiletPath, "-f", "smblock", "-F", "metal", hostname)
 	output, err := cmd.Output()
 	if err == nil && len(output) > 0 {
 		return string(output)
 	}
 
-	// Fallback to toilet without filter if metal fails
 	cmd = exec.Command(toiletPath, "-f", "smblock", hostname)
 	output, err = cmd.Output()
 	if err == nil && len(output) > 0 {
 		return string(output)
 	}
 
-	// Final fallback
 	return fmt.Sprintf(`
 ╔═══════════════════════════════════╗
 ║  %s
 ╚═══════════════════════════════════╝`, hostname)
 }
 
-func discoverTmuxpSessions() []string {
+func formatSessionTitle(name string) string {
+	title := strings.ReplaceAll(name, "-", " ")
+	title = strings.ReplaceAll(title, "_", " ")
+	return strings.Title(title)
+}
+
+func discoverTmuxpSessions() []menuItem {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return []string{}
+		return []menuItem{}
 	}
 
 	tmuxpDir := filepath.Join(homeDir, ".config", "tmuxp")
 
 	if _, err := os.Stat(tmuxpDir); os.IsNotExist(err) {
-		return []string{}
+		return []menuItem{}
 	}
 
 	files, err := filepath.Glob(filepath.Join(tmuxpDir, "*.json"))
 	if err != nil {
-		return []string{}
+		return []menuItem{}
 	}
 
-	sessions := make([]string, 0, len(files))
+	sessions := make([]menuItem, 0, len(files))
 	for _, file := range files {
 		base := filepath.Base(file)
 		name := strings.TrimSuffix(base, ".json")
 
-		// Skip "hub" since we have a dedicated Hub Session option
-		if name == "hub" {
-			continue
-		}
-
-		sessions = append(sessions, name)
+		sessions = append(sessions, menuItem{
+			title:       formatSessionTitle(name),
+			description: fmt.Sprintf("tmuxp session: %s", name),
+			action:      actionTmuxpSession,
+			sessionName: name,
+		})
 	}
 
-	sort.Strings(sessions)
+	sort.Slice(sessions, func(i, j int) bool {
+		if sessions[i].sessionName == "hub" {
+			return true
+		}
+		if sessions[j].sessionName == "hub" {
+			return false
+		}
+		return sessions[i].title < sessions[j].title
+	})
 
 	return sessions
 }
@@ -166,20 +174,9 @@ func discoverTmuxpSessions() []string {
 func buildMenuItems() []list.Item {
 	items := []list.Item{}
 
-	items = append(items, menuItem{
-		title:       "Hub Session",
-		description: "Attach to or create the main hub tmux session",
-		action:      actionHubSession,
-	})
-
 	sessions := discoverTmuxpSessions()
 	for _, session := range sessions {
-		items = append(items, menuItem{
-			title:       fmt.Sprintf("tmuxp: %s", session),
-			description: fmt.Sprintf("Load tmuxp session: %s", session),
-			action:      actionTmuxpSession,
-			sessionName: session,
-		})
+		items = append(items, session)
 	}
 
 	items = append(items, menuItem{
@@ -198,8 +195,6 @@ type execMsg struct {
 func executeAction(item menuItem) tea.Cmd {
 	return func() tea.Msg {
 		switch item.action {
-		case actionHubSession:
-			return execMsg{execFunc: execTmuxHub}
 		case actionTmuxpSession:
 			sessionName := item.sessionName
 			return execMsg{execFunc: func() { execTmuxp(sessionName) }}
@@ -222,28 +217,11 @@ func execPlainShell() {
 	}
 
 	args := []string{filepath.Base(shell)}
-	env := os.Environ()
+	env := append(os.Environ(), "BYPASS_LOGIN_HUB=1")
 
 	err = syscall.Exec(shellPath, args, env)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error executing shell: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-func execTmuxHub() {
-	tmuxPath, err := exec.LookPath("tmux")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: tmux not found: %v\n", err)
-		os.Exit(1)
-	}
-
-	args := []string{"tmux", "new-session", "-A", "-s", "hub"}
-	env := os.Environ()
-
-	err = syscall.Exec(tmuxPath, args, env)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing tmux: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -282,7 +260,6 @@ func main() {
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
 
-	// Add j/k navigation alongside standard arrow keys
 	l.KeyMap.CursorUp = key.NewBinding(
 		key.WithKeys("up", "k"),
 		key.WithHelp("↑/k", "up"),
@@ -292,7 +269,6 @@ func main() {
 		key.WithHelp("↓/j", "down"),
 	)
 
-	// Disable vim-style navigation keys so they can be typed for filtering
 	l.KeyMap.NextPage = key.NewBinding(key.WithKeys())
 	l.KeyMap.PrevPage = key.NewBinding(key.WithKeys())
 	l.KeyMap.GoToStart = key.NewBinding(key.WithKeys())
