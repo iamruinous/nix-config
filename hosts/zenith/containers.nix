@@ -367,6 +367,7 @@
 
       # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
       # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
+      # Model: Qwen2.5-Coder-32B-Instruct AWQ 4-bit (~18GB) for code generation
       vllm = {
         image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
         extraOptions = [
@@ -399,7 +400,7 @@
         cmd = [
           "vllm"
           "serve"
-          "Qwen/Qwen2.5-32B-Instruct"
+          "Qwen/Qwen2.5-Coder-32B-Instruct-AWQ"
           "--host"
           "0.0.0.0"
           "--port"
@@ -407,10 +408,11 @@
           "--tensor-parallel-size"
           "1"
           "--max-model-len"
-          "8192" # Reduced from 32768 to fit in 62GB VRAM
+          "32768" # 4-bit AWQ allows full 32k context in 62GB VRAM
           "--gpu-memory-utilization"
-          "0.90" # Leave headroom for KV cache and overhead
-          "--enforce-eager" # Disable CUDA graphs to reduce memory during init
+          "0.90"
+          "--quantization"
+          "awq"
         ];
       };
     };
