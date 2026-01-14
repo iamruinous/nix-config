@@ -30,7 +30,7 @@
       {
         type = "macvtap";
         id = "mvtap1";
-        macvtap.link = "vlan2";
+        macvtap.link = "enp2s0";
         macvtap.mode = "vepa";
         mac = "02:02:00:00:00:01";
       }

@@ -20,8 +20,8 @@
   fileSystems."/persistent".neededForBoot = true;
 
   microvm = {
-    mem = 8191;
-    vcpu = 16;
+    mem = 2047;
+    vcpu = 2;
     hypervisor = "qemu";
     writableStoreOverlay = "/nix/.rw-store";
 
@@ -29,7 +29,7 @@
       {
         type = "macvtap";
         id = "mvtap2";
-        macvtap.link = "vlan2";
+        macvtap.link = "enp2s0";
         macvtap.mode = "vepa";
         mac = "02:02:00:00:00:02";
       }
