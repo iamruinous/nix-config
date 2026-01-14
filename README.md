@@ -31,7 +31,7 @@ This repository uses [Nix Flakes](https://nixos.org/) to manage system configura
 ├── files/                # Static configuration files
 ├── .claude/              # oh-my-opencode agents and commands
 ├── .opencode/            # oh-my-opencode project configuration
-└── Makefile              # Helper commands for common operations
+└── justfile              # Command runner recipes (run `just` to see all)
 ```
 
 ## AI Agent Workflow
@@ -173,10 +173,10 @@ To build and apply the nix-darwin configuration for a specific macOS host (e.g.,
 darwin-rebuild switch --flake .#jmacmini
 ```
 
-Or use the Makefile helper:
+Or use the justfile helper:
 
 ```sh
-make darwin-rebuild
+just darwin-rebuild
 ```
 
 This automatically uses the current hostname.
@@ -186,10 +186,10 @@ This automatically uses the current hostname.
 To deploy a configuration to a remote NixOS host:
 
 ```sh
-make remote-rebuild remotehost=<hostname>
+just remote-rebuild <hostname>
 ```
 
-This will connect to `<hostname>.manage.farmhouse.meskill.network` and apply the configuration.
+This will connect to `<hostname>.meskill.farm` and apply the configuration.
 
 ### Updating Flake Inputs
 
@@ -199,10 +199,10 @@ To update all Nix flake inputs (nixpkgs, home-manager, etc.):
 nix flake update
 ```
 
-Or use the Makefile:
+Or use the justfile:
 
 ```sh
-make update-flake
+just update-flake
 ```
 
 ### Development Shells
@@ -223,7 +223,7 @@ For detailed information about available shells, direnv integration, and creatin
 To bootstrap a fresh macOS system with Nix and nix-darwin:
 
 ```sh
-make bootstrap-mac
+just bootstrap-mac
 ```
 
 This will:
