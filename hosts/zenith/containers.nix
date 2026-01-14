@@ -367,7 +367,8 @@
 
       # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
       # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
-      # Model: Qwen2.5-Coder-32B-Instruct AWQ 4-bit (~18GB) for code generation
+      # Model: Qwen2.5-Coder-7B-Instruct BF16 (~14GB) - stable on ROCm
+      # Note: AWQ/torch.compile crash on Strix Halo, using BF16 smaller model
       vllm = {
         image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
         extraOptions = [
@@ -386,21 +387,21 @@
           HSA_OVERRIDE_GFX_VERSION = "11.0.0";
           # Prevents memory access faults on Strix Halo APUs
           HSA_ENABLE_SDMA = "0";
-          # Enable optimized Triton kernels for ROCm
-          VLLM_USE_TRITON = "1";
-          VLLM_OP_TYPES = "triton";
           # Target the integrated Radeon 8060S
           HIP_VISIBLE_DEVICES = "0";
           ROCM_PATH = "/opt/rocm";
-          # Memory optimization for APU with shared memory
-          PYTORCH_HIP_ALLOC_CONF = "expandable_segments:True";
+          # Disable torch.compile completely - crashes on Strix Halo
+          VLLM_TORCH_COMPILE_LEVEL = "0";
+          TORCH_COMPILE_DISABLE = "1";
+          # Use Triton flash attention for ROCm
+          VLLM_USE_TRITON_FLASH_ATTN = "1";
         };
         networks = ["servicenet"];
         volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
         cmd = [
           "vllm"
           "serve"
-          "Qwen/Qwen2.5-Coder-32B-Instruct-AWQ"
+          "Qwen/Qwen2.5-Coder-7B-Instruct"
           "--host"
           "0.0.0.0"
           "--port"
@@ -408,12 +409,14 @@
           "--tensor-parallel-size"
           "1"
           "--max-model-len"
-          "32768" # 4-bit AWQ allows full 32k context in 62GB VRAM
+          "16384"
           "--gpu-memory-utilization"
-          "0.90"
-          "--quantization"
-          "awq"
-          "--enforce-eager" # Disable torch.compile - required for ROCm Strix Halo
+          "0.85"
+          "--dtype"
+          "float16"
+          "--enforce-eager"
+          "--max-num-seqs"
+          "4"
         ];
       };
     };
