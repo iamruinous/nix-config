@@ -292,13 +292,19 @@ with lib; let
 
   # Generate fish function for auto-attaching to running services
   # This creates a wrapper that checks if PWD matches a known project with web service
+  # Sets XDG_* env vars to match the project's isolated directories
   mkOpencodeFishFunction = let
     # Build case statement entries for each web project
     caseEntries = concatStringsSep "\n    " (map (name: let
       project = webProjects.${name};
+      paths = mkProjectPaths name;
     in ''
 case "${project.workdir}"
       # Project: ${name}
+      set -lx OPENCODE_CONFIG_DIR "${paths.config}"
+      set -lx XDG_CACHE_HOME "${paths.cache}"
+      set -lx XDG_STATE_HOME "${paths.state}"
+      set -lx XDG_DATA_HOME "${paths.data}"
       command opencode attach "http://localhost:${toString project.port}" $argv
       return'') (attrNames webProjects));
   in ''
