@@ -154,15 +154,16 @@
 
   # Create home.file entries for auth symlinks when using isolated stateDir
   # This allows services to share authentication tokens with interactive opencode
+  # Note: OpenCode stores auth in XDG_DATA_HOME (~/.local/share/opencode/), not XDG_STATE_HOME
   mkAuthSymlinks = {
     stateDir,
     homeDirectory,
     mkOutOfStoreSymlink,
   }: {
     "${stateDir}/opencode/auth.json".source =
-      mkOutOfStoreSymlink "${homeDirectory}/.local/state/opencode/auth.json";
+      mkOutOfStoreSymlink "${homeDirectory}/.local/share/opencode/auth.json";
     "${stateDir}/opencode/mcp-auth.json".source =
-      mkOutOfStoreSymlink "${homeDirectory}/.local/state/opencode/mcp-auth.json";
+      mkOutOfStoreSymlink "${homeDirectory}/.local/share/opencode/mcp-auth.json";
   };
 in {
   inherit

@@ -148,8 +148,8 @@ in {
         keeping service state (logs, history) independent from interactive opencode usage.
 
         Authentication tokens are shared with interactive opencode via symlinks:
-        - <stateDir>/opencode/auth.json -> ~/.local/state/opencode/auth.json
-        - <stateDir>/opencode/mcp-auth.json -> ~/.local/state/opencode/mcp-auth.json
+        - <stateDir>/opencode/auth.json -> ~/.local/share/opencode/auth.json
+        - <stateDir>/opencode/mcp-auth.json -> ~/.local/share/opencode/mcp-auth.json
       '';
       example = "/home/user/.local/state/kimaki";
     };

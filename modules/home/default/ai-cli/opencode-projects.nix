@@ -188,6 +188,11 @@ with lib; let
 
     windows =
       (if hasWebService then [
+        # Tail the systemd service logs
+        {
+          name = "logs";
+          command = "journalctl --user -fu opencode-${name}.service";
+        }
         # Web service is running via systemd, just attach to it
         {
           name = "opencode";
