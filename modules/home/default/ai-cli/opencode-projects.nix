@@ -459,13 +459,14 @@ in {
       ) webProjects;
     })
 
-    # Create auth symlinks for isolated state directories
+    # Create auth symlinks for isolated data directories
+    # OpenCode looks for auth.json in XDG_DATA_HOME/opencode/, not XDG_STATE_HOME
     (mkIf (webProjects != {}) {
       home.file = mkMerge (mapAttrsToList (name: project: let
         paths = mkProjectPaths name;
       in
         opcodeLib.mkAuthSymlinks {
-          stateDir = paths.state;
+          dataDir = paths.data;
           homeDirectory = config.home.homeDirectory;
           mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
         }

@@ -5,7 +5,7 @@
 # - Builtin packages required for OpenCode functionality
 # - Wrapped OpenCode derivation with proper PATH and NIX_LD setup
 # - Systemd environment configuration helpers
-# - Auth symlink helpers for isolated state directories
+# - Auth symlink helpers for isolated data directories
 #
 # Usage:
 #   let
@@ -152,17 +152,17 @@
     ]
     ++ extraEnv;
 
-  # Create home.file entries for auth symlinks when using isolated stateDir
+  # Create home.file entries for auth symlinks when using isolated dataDir
   # This allows services to share authentication tokens with interactive opencode
   # Note: OpenCode stores auth in XDG_DATA_HOME (~/.local/share/opencode/), not XDG_STATE_HOME
   mkAuthSymlinks = {
-    stateDir,
+    dataDir,
     homeDirectory,
     mkOutOfStoreSymlink,
   }: {
-    "${stateDir}/opencode/auth.json".source =
+    "${dataDir}/opencode/auth.json".source =
       mkOutOfStoreSymlink "${homeDirectory}/.local/share/opencode/auth.json";
-    "${stateDir}/opencode/mcp-auth.json".source =
+    "${dataDir}/opencode/mcp-auth.json".source =
       mkOutOfStoreSymlink "${homeDirectory}/.local/share/opencode/mcp-auth.json";
   };
 in {
