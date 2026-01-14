@@ -543,6 +543,7 @@
           NODE_FUNCTION_ALLOW_BUILTIN = "*";
           N8N_BLOCK_INTERNAL_NETWORKS = "false";
           OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS = "true";
+          N8N_ENVIRONMENT = "prod";
         };
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n.path];
         networks = [
