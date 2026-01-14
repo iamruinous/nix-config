@@ -184,6 +184,80 @@ with lib; let
         agents;
     };
 
+  # Provider model submodule type
+  providerModelType = types.submodule {
+    options = {
+      name = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Display name for the model.";
+        example = "Qwen 2.5 Coder 7B";
+      };
+      maxTokens = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "Maximum token limit for the model.";
+        example = 16384;
+      };
+    };
+  };
+
+  # Provider submodule type for custom LLM providers (vLLM, Ollama, etc.)
+  providerType = types.submodule ({name, ...}: {
+    options = {
+      api = mkOption {
+        type = types.enum ["openai" "anthropic" "google" "ollama"];
+        default = "openai";
+        description = lib.mdDoc ''
+          API type for the provider. Most self-hosted LLM servers (vLLM, llama.cpp)
+          use "openai" since they expose an OpenAI-compatible API.
+        '';
+        example = "openai";
+      };
+      name = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Display name for the provider.";
+        example = "Zenith vLLM";
+      };
+      baseURL = mkOption {
+        type = types.str;
+        description = lib.mdDoc ''
+          Base URL for the provider API.
+          Use `{env:VAR_NAME}` syntax for environment variable references.
+        '';
+        example = "https://zenith.vllm.ruinous.ai/v1";
+      };
+      apiKey = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = lib.mdDoc ''
+          API key for authentication. For self-hosted servers without auth,
+          use a dummy value like "not-needed".
+          Use `{env:VAR_NAME}` syntax for environment variable references.
+        '';
+        example = "not-needed";
+      };
+      models = mkOption {
+        type = types.attrsOf providerModelType;
+        default = {};
+        description = lib.mdDoc ''
+          Models available from this provider.
+          Keys are model identifiers (e.g., "Qwen/Qwen2.5-Coder-7B-Instruct"),
+          values contain display name and optional maxTokens.
+        '';
+        example = literalExpression ''
+          {
+            "Qwen/Qwen2.5-Coder-7B-Instruct" = {
+              name = "Qwen 2.5 Coder 7B";
+              maxTokens = 16384;
+            };
+          }
+        '';
+      };
+    };
+  });
+
   # MCP server submodule type (shared between main config and per-directory configs)
   mcpServerType = types.submodule ({name, ...}: {
     options = {
@@ -270,6 +344,15 @@ with lib; let
         '';
       };
 
+      providers = mkOption {
+        type = types.nullOr (types.attrsOf providerType);
+        default = null;
+        description = ''
+          Override providers for this config directory.
+          If null, inherits from the main providers setting.
+        '';
+      };
+
       omoGoogleAuth = mkOption {
         type = types.nullOr types.bool;
         default = null;
@@ -326,6 +409,10 @@ with lib; let
       if dirCfg.mcpServers != null
       then dirCfg.mcpServers
       else cfg.mcpServers;
+    providers =
+      if dirCfg.providers != null
+      then dirCfg.providers
+      else cfg.providers;
     omoAgents =
       if dirCfg.omoAgents != null
       then dirCfg.omoAgents
@@ -365,17 +452,19 @@ with lib; let
         $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
       fi
 
-      # Inject plugins into opencode.json if they are missing or need update
+      # Inject plugins, MCP servers, and providers into opencode.json
       if [ -f "$CONFIG_FILE" ]; then
         # Create a temporary file with the updated config
         TMP_FILE=$(mktemp)
         ${pkgs.jq}/bin/jq \
           --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
           --argjson new_servers '${builtins.toJSON resolved.mcpServers}' \
+          --argjson new_providers '${builtins.toJSON resolved.providers}' \
           '
             # Ensure top-level keys exist
             .plugin //= []
             | .mcp = (.mcp // {}) + $new_servers
+            | .provider = (.provider // {}) + $new_providers
             # Reduce over new plugins to update or add them
             | reduce ($new_plugins[]) as $p (.;
                 ( $p | split("@")[0] ) as $pname
@@ -494,28 +583,49 @@ in {
           multimodal-looker.model = "google/gemini-2.5-flash-image";
         }
       '';
-      # "Sisyphus": { "model": "openai/gpt-5.2" },
-      # "oracle": { "model": "openai/gpt-5.1-codex-max" },
-      # "librarian": { "model": "google/gemini-2.5-pro" },
-      # "explore": { "model": "opencode/grok-code" },
-      # "frontend-ui-ux-engineer": { "model": "google/gemini-2.5-pro" },
-      # "document-writer": { "model": "google/gemini-2.5-flash" },
-      # "multimodal-looker": { "model": "google/gemini-2.5-flash-image" }
-      #   {
-      #     Sisyphus.model = "anthropic/claude-opus-4-5";
-      #     oracle.model = "openai/gpt-5.2";
-      #     librarian.model = "anthropic/claude-sonnet-4-5";
-      #     explore.model = "xai/grok-code-fast-1";
-      #     frontend-ui-ux-engineer = {
-      #       model = "google/gemini-2.5-pro";
-      #       temperature = 0.7;
-      #     };
-      #   }
-      # '';
       description = lib.mdDoc ''
         Configuration for oh-my-opencode agents.
         Each agent can have model, temperature, skills, and other settings.
         This attrset is merged with defaults. Use `lib.mkForce` to override all defaults.
+      '';
+    };
+
+    providers = mkOption {
+      type = types.attrsOf providerType;
+      default = {};
+      example = literalExpression ''
+        {
+          zenith-vllm = {
+            api = "openai";
+            name = "Zenith vLLM";
+            baseURL = "https://zenith.vllm.ruinous.ai/v1";
+            apiKey = "not-needed";
+            models = {
+              "Qwen/Qwen2.5-Coder-7B-Instruct" = {
+                name = "Qwen 2.5 Coder 7B";
+                maxTokens = 16384;
+              };
+            };
+          };
+          zenith-ollama = {
+            api = "ollama";
+            name = "Zenith Ollama";
+            baseURL = "https://ollama.x.meskill.farm";
+          };
+          obelisk-ollama = {
+            api = "ollama";
+            name = "Obelisk Ollama";
+            baseURL = "https://ollama.meskill.farm";
+          };
+        }
+      '';
+      description = lib.mdDoc ''
+        Custom LLM providers for self-hosted models (vLLM, Ollama, llama.cpp, etc.).
+        Each provider is added to the opencode.json "provider" section.
+        Use this to integrate local inference servers with OpenCode.
+
+        For OpenAI-compatible servers (vLLM, llama.cpp), use `api = "openai"`.
+        For Ollama servers, use `api = "ollama"`.
       '';
     };
 
@@ -627,6 +737,41 @@ in {
         forgejo = {
           type = "local";
           command = ["${pkgs.forgejo-mcp}/bin/forgejo-mcp" "--transport" "stdio" "--url" "https://forge.meskill.farm" "--token" "{env:FORGEJO_ACCESS_TOKEN}"];
+        };
+      };
+
+      # Self-hosted LLM providers
+      # These integrate local inference servers (vLLM, Ollama) with OpenCode
+      ruinous.ai-cli.opencode.providers = {
+        # Zenith vLLM - OpenAI-compatible API for Qwen models
+        # Hardware: AMD Ryzen AI Max+ 395 with Radeon 8060S
+        zenith-vllm = {
+          api = "openai";
+          name = "Zenith vLLM";
+          baseURL = "https://zenith.vllm.ruinous.ai/v1";
+          apiKey = "not-needed";
+          models = {
+            "Qwen/Qwen2.5-Coder-7B-Instruct" = {
+              name = "Qwen 2.5 Coder 7B";
+              maxTokens = 16384;
+            };
+          };
+        };
+
+        # Zenith Ollama - ROCm GPU accelerated
+        # Hardware: AMD Ryzen AI Max+ 395 with Radeon 8060S
+        zenith-ollama = {
+          api = "ollama";
+          name = "Zenith Ollama";
+          baseURL = "https://ollama.x.meskill.farm";
+        };
+
+        # Obelisk Ollama - NVIDIA GPU accelerated
+        # Hardware: RTX 4090
+        obelisk-ollama = {
+          api = "ollama";
+          name = "Obelisk Ollama";
+          baseURL = "https://ollama.meskill.farm";
         };
       };
     }
