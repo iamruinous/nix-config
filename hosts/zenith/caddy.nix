@@ -17,12 +17,6 @@
 
     # Simple reverse proxy routes
     routes = {
-      # Open WebUI chat interface
-      "ai.x.meskill.farm" = {
-        upstream = "open-webui:8080";
-        description = "Open WebUI chat interface";
-      };
-
       # Ollama API (zenith-specific)
       "zenith.ollama.meskill.farm" = {
         upstream = "ollama:11434";
@@ -51,6 +45,12 @@
       "zenith.vllm.ruinous.ai" = {
         upstream = "vllm:8000";
         description = "vLLM OpenAI-compatible API";
+      };
+
+      # Open WebUI chat interface (ruinous.ai)
+      "zenith.ui.ruinous.ai" = {
+        upstream = "open-webui:8080";
+        description = "Open WebUI chat interface (ruinous.ai)";
       };
 
 

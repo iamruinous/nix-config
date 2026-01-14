@@ -629,7 +629,17 @@ endpoints:
 
   - name: "Open WebUI (zenith)"
     group: "AI"
-    url: "https://ai.x.meskill.farm"
+    url: "https://zenith.ui.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "vLLM (zenith)"
+    group: "AI"
+    url: "https://zenith.vllm.ruinous.ai/health"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
