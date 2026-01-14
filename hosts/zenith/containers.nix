@@ -365,6 +365,22 @@
         ];
       };
 
+      # Messy Discord Bot (Development)
+      # Discord bot forwarding messages to n8n-dev for Messy assistant
+      messy-discord-bot-dev = {
+        image = "forge.meskill.farm/iamruinous/n8n-messy-discord-bot:1.0.0";
+        environmentFiles = [config.age.secrets.zenith_docker_env_messy_discord_bot_dev.path];
+        networks = ["servicenet"];
+      };
+
+      # Newsy Discord Bot (Development)
+      # Discord bot forwarding messages to n8n-dev for Newsy assistant
+      newsy-discord-bot-dev = {
+        image = "forge.meskill.farm/iamruinous/n8n-messy-discord-bot:1.0.0";
+        environmentFiles = [config.age.secrets.zenith_docker_env_newsy_discord_bot_dev.path];
+        networks = ["servicenet"];
+      };
+
       # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
       # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
       # Model: Qwen2.5-Coder-7B-Instruct BF16 (~14GB) - stable on ROCm
@@ -461,6 +477,16 @@
 
   age.secrets.zenith_docker_env_weaviate_dev = {
     rekeyFile = ./files/docker/env/weaviate-dev.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_messy_discord_bot_dev = {
+    rekeyFile = ./files/docker/env/messy-discord-bot-dev.env.age;
+    mode = "600";
+  };
+
+  age.secrets.zenith_docker_env_newsy_discord_bot_dev = {
+    rekeyFile = ./files/docker/env/newsy-discord-bot-dev.env.age;
     mode = "600";
   };
 
