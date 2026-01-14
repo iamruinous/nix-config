@@ -202,6 +202,31 @@ with lib; let
     };
   };
 
+  # Provider options submodule type (nested under provider.options)
+  providerOptionsType = types.submodule {
+    options = {
+      baseURL = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = lib.mdDoc ''
+          Base URL for the provider API.
+          Use `{env:VAR_NAME}` syntax for environment variable references.
+        '';
+        example = "https://zenith.vllm.ruinous.ai/v1";
+      };
+      apiKey = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = lib.mdDoc ''
+          API key for authentication. For self-hosted servers without auth,
+          use a dummy value like "not-needed".
+          Use `{env:VAR_NAME}` syntax for environment variable references.
+        '';
+        example = "not-needed";
+      };
+    };
+  };
+
   # Provider submodule type for custom LLM providers (vLLM, Ollama, etc.)
   providerType = types.submodule ({name, ...}: {
     options = {
@@ -220,23 +245,19 @@ with lib; let
         description = "Display name for the provider.";
         example = "Zenith vLLM";
       };
-      baseURL = mkOption {
-        type = types.str;
-        description = lib.mdDoc ''
-          Base URL for the provider API.
-          Use `{env:VAR_NAME}` syntax for environment variable references.
-        '';
-        example = "https://zenith.vllm.ruinous.ai/v1";
-      };
-      apiKey = mkOption {
-        type = types.nullOr types.str;
+      options = mkOption {
+        type = types.nullOr providerOptionsType;
         default = null;
         description = lib.mdDoc ''
-          API key for authentication. For self-hosted servers without auth,
-          use a dummy value like "not-needed".
+          Provider options including baseURL and apiKey.
           Use `{env:VAR_NAME}` syntax for environment variable references.
         '';
-        example = "not-needed";
+        example = literalExpression ''
+          {
+            baseURL = "https://zenith.vllm.ruinous.ai/v1";
+            apiKey = "not-needed";
+          }
+        '';
       };
       models = mkOption {
         type = types.attrsOf providerModelType;
@@ -453,6 +474,7 @@ with lib; let
       fi
 
       # Inject plugins, MCP servers, and providers into opencode.json
+      # Provider replacement: completely replaces managed entries to apply schema changes
       if [ -f "$CONFIG_FILE" ]; then
         # Create a temporary file with the updated config
         TMP_FILE=$(mktemp)
@@ -460,20 +482,13 @@ with lib; let
           --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
           --argjson new_servers '${builtins.toJSON resolved.mcpServers}' \
           --argjson new_providers '${builtins.toJSON resolved.providers}' \
-          '
-            # Ensure top-level keys exist
-            .plugin //= []
+          '.plugin //= []
             | .mcp = (.mcp // {}) + $new_servers
-            | .provider = (.provider // {}) + $new_providers
-            # Reduce over new plugins to update or add them
+            | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
             | reduce ($new_plugins[]) as $p (.;
-                ( $p | split("@")[0] ) as $pname
-                # Find index of existing plugin by name
-                | (.plugin | map((. | split("@")[0]) == $pname) | index(true)) as $idx
-                # If found, update it; otherwise, append it
-                | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end
-              )
-            # Remove all null values from the final JSON
+                ($p | split("@")[0]) as $pname
+                | ((.plugin | map((. | split("@")[0]) == $pname) | index(true))) as $idx
+                | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end)
             | walk(if type == "object" then with_entries(select(.value != null)) else . end)
           ' "$CONFIG_FILE" > "$TMP_FILE"
 
@@ -598,8 +613,10 @@ in {
           zenith-vllm = {
             api = "openai";
             name = "Zenith vLLM";
-            baseURL = "https://zenith.vllm.ruinous.ai/v1";
-            apiKey = "not-needed";
+            options = {
+              baseURL = "https://zenith.vllm.ruinous.ai/v1";
+              apiKey = "not-needed";
+            };
             models = {
               "Qwen/Qwen2.5-Coder-7B-Instruct" = {
                 name = "Qwen 2.5 Coder 7B";
@@ -610,12 +627,12 @@ in {
           zenith-ollama = {
             api = "ollama";
             name = "Zenith Ollama";
-            baseURL = "https://ollama.x.meskill.farm";
+            options.baseURL = "https://ollama.x.meskill.farm";
           };
           obelisk-ollama = {
             api = "ollama";
             name = "Obelisk Ollama";
-            baseURL = "https://ollama.meskill.farm";
+            options.baseURL = "https://ollama.meskill.farm";
           };
         }
       '';
@@ -748,8 +765,10 @@ in {
         zenith-vllm = {
           api = "openai";
           name = "Zenith vLLM";
-          baseURL = "https://zenith.vllm.ruinous.ai/v1";
-          apiKey = "not-needed";
+          options = {
+            baseURL = "https://zenith.vllm.ruinous.ai/v1";
+            apiKey = "not-needed";
+          };
           models = {
             "Qwen/Qwen2.5-Coder-7B-Instruct" = {
               name = "Qwen 2.5 Coder 7B";
@@ -763,7 +782,7 @@ in {
         zenith-ollama = {
           api = "ollama";
           name = "Zenith Ollama";
-          baseURL = "https://ollama.x.meskill.farm";
+          options.baseURL = "https://ollama.x.meskill.farm";
         };
 
         # Obelisk Ollama - NVIDIA GPU accelerated
@@ -771,7 +790,7 @@ in {
         obelisk-ollama = {
           api = "ollama";
           name = "Obelisk Ollama";
-          baseURL = "https://ollama.meskill.farm";
+          options.baseURL = "https://ollama.meskill.farm";
         };
       };
     }
