@@ -1,6 +1,6 @@
 {
   uid = 4001;
   description = "Builder Bot - Automation Agent";
-  openssh.authorizedKeys.keyFiles = [./id_ed25519.pub];
+  openssh.authorizedKeys.keyFiles = [./id_ed25519.pub ../jmeskill/id_ed25519.pub ../jmeskill/id_codey_ed25519.pub];
   extraGroups = ["wheel"]; # sudo for nix operations
 }
