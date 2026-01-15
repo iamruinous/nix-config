@@ -758,31 +758,24 @@ in {
       };
 
       # Self-hosted LLM providers
-      # These integrate local inference servers (vLLM, Ollama) with OpenCode
+      # These integrate local inference servers (llama.cpp, Ollama) with OpenCode
       ruinous.ai-cli.opencode.providers = {
-        # Zenith vLLM - OpenAI-compatible API for Qwen models
-        # Hardware: AMD Ryzen AI Max+ 395 with Radeon 8060S
-        zenith-vllm = {
+        # Zenith llama.cpp - OpenAI-compatible API with ROCm 7.1.1 GPU acceleration
+        # Hardware: AMD Ryzen AI Max+ 395 with Radeon 8060S (gfx1151)
+        # Model: Qwen2.5-Coder-32B-Instruct Q4_K_M
+        zenith-llama-cpp = {
           api = "openai";
-          name = "Zenith vLLM";
+          name = "Zenith llama.cpp";
           options = {
-            baseURL = "https://zenith.vllm.ruinous.ai/v1";
+            baseURL = "https://ai.x.meskill.farm/v1";
             apiKey = "not-needed";
           };
           models = {
-            "Qwen/Qwen2.5-Coder-7B-Instruct" = {
-              name = "Qwen 2.5 Coder 7B";
-              maxTokens = 16384;
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf" = {
+              name = "Qwen 2.5 Coder 32B Q4_K_M";
+              maxTokens = 32768;
             };
           };
-        };
-
-        # Zenith Ollama - ROCm GPU accelerated
-        # Hardware: AMD Ryzen AI Max+ 395 with Radeon 8060S
-        zenith-ollama = {
-          api = "ollama";
-          name = "Zenith Ollama";
-          options.baseURL = "https://ollama.x.meskill.farm";
         };
 
         # Obelisk Ollama - NVIDIA GPU accelerated
