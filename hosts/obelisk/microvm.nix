@@ -13,15 +13,15 @@
   microvm.vms = {
     messy-tty = {
       inherit flake;
-      updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config";
+      updateFlake = "github:iamruinous/nix-config/main";
     };
     ruinous-tty = {
       inherit flake;
-      updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config";
+      updateFlake = "github:iamruinous/nix-config/main";
     };
     builder-tty = {
       inherit flake;
-      updateFlake = "git+file:///home/jmeskill/Projects/github/iamruinous/nix-config";
+      updateFlake = "github:iamruinous/nix-config/main";
     };
   };
 
