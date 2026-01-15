@@ -23,7 +23,9 @@
   ruinous.kernel.useLatest = true;
 
   # Network configuration - use DHCP
-  networking.useDHCP = true;
+  # Disable NetworkManager (enabled by common/system.nix) to avoid conflict
+  networking.networkmanager.enable = lib.mkForce false;
+  networking.useDHCP = lib.mkForce true;
 
   # Disable services that don't work in microVM sandbox
   systemd.oomd.enable = false;
