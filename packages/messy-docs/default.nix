@@ -1,12 +1,13 @@
 {pkgs, ...}:
 pkgs.stdenv.mkDerivation rec {
-  pname = "codey-docs";
-  version = "0.1.1";
+  pname = "messy-docs";
+  version = "0.1.0";
 
+  # NOTE: Repository must be public for fetchgit to work
   src = pkgs.fetchgit {
-    url = "https://forge.meskill.farm/iamruinous/codey-docs.git";
+    url = "https://forge.meskill.farm/iamruinous/messy-docs.git";
     rev = "v${version}";
-    hash = "sha256-P8J0xKJd6/VkUrEqydpZ8GOri2nPUkxbd9o8qsOt5yU=";
+    hash = "sha256-5kQa6QmEU45Ej+xbVKw6vRiW04KCIESX6sKOB8W4y6E=";
   };
 
   nativeBuildInputs = with pkgs; [
@@ -34,8 +35,8 @@ pkgs.stdenv.mkDerivation rec {
   '';
 
   meta = with pkgs.lib; {
-    description = "Official documentation site for the Codey meta-persona";
-    homepage = "https://codey.ruinous.ai";
+    description = "Documentation site for MESSY - The Meskill Family Personal Assistant";
+    homepage = "https://messy.ruinous.ai";
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = [];
