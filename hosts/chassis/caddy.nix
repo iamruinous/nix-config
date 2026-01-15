@@ -27,6 +27,25 @@
     )
     opencodeProjects
   );
+  
+  # Add codey-docs static site
+  codeyDocsHost = {
+    "codey.ruinous.ai" = {
+      extraConfig = ''
+        root * ${pkgs.codey-docs}
+        file_server
+        encode gzip
+        try_files {path} {path}/ /index.html
+        
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+          X-Content-Type-Options "nosniff"
+          X-Frame-Options "DENY"
+          Referrer-Policy "strict-origin-when-cross-origin"
+        }
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
@@ -42,7 +61,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    virtualHosts = caddyVirtualHosts;
+    # Merge OpenCode projects and codey-docs
+    virtualHosts = caddyVirtualHosts // codeyDocsHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)
