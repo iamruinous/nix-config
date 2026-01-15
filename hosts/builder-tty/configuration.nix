@@ -109,6 +109,11 @@
         ".gitconfig"
       ];
     };
+    users.root = {
+      directories = [
+        ".ssh"  # Allow SSH access for debugging when home-manager fails
+      ];
+    };
 
     files = [
       "/etc/machine-id"
