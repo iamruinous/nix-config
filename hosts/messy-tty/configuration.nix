@@ -18,9 +18,9 @@
 
   # Network configuration - static IP required for QEMU MicroVMs
   # systemd-networkd DHCP fails due to QEMU seccomp sandbox restrictions
+  networking.useDHCP = false;
+  networking.useNetworkd = false;
   networking.networkmanager.enable = lib.mkForce false;
-  networking.useDHCP = lib.mkForce false;
-  networking.useNetworkd = lib.mkForce false;
 
   # Static IP configuration (DNS: messy.tty.meskill.farm)
   networking.interfaces.eth0 = {
@@ -36,8 +36,6 @@
   systemd.oomd.enable = false;
   services.resolved.enable = false;
   services.timesyncd.enable = false;
-  # systemd-networkd crashes due to seccomp - disable it
-  systemd.services.systemd-networkd.enable = lib.mkForce false;
 
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
