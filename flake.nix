@@ -114,6 +114,11 @@
     # that's compatible with its boot.loader.raspberryPi options
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
 
+    # builder-bot-mcp - FastMCP server for builder-tty automation
+    # <https://forge.meskill.farm/iamruinous/builder-bot-mcp>
+    builder-bot-mcp.url = "git+ssh://git@forge.meskill.farm/iamruinous/builder-bot-mcp.git";
+    builder-bot-mcp.inputs.nixpkgs.follows = "nixpkgs";
+
     # Nix User Repository
     # <https://nur.nix-community.org>
     # nur.url = "github:nix-community/NUR";
