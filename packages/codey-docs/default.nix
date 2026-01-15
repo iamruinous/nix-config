@@ -1,12 +1,12 @@
 {pkgs, ...}:
 pkgs.stdenv.mkDerivation rec {
   pname = "codey-docs";
-  version = "0.1.0";
+  version = "0.1.1";
 
   src = pkgs.fetchgit {
     url = "https://forge.meskill.farm/iamruinous/codey-docs.git";
     rev = "v${version}";
-    hash = "sha256-CgrtGCcY3f9o8w6a7FXEFALEmzM91e0+d7lmmiXAwos=";
+    hash = "sha256-P8J0xKJd6/VkUrEqydpZ8GOri2nPUkxbd9o8qsOt5yU=";
   };
 
   nativeBuildInputs = with pkgs; [
