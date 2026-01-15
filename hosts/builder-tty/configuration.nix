@@ -10,6 +10,7 @@
   flake,
   config,
   pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -20,35 +21,17 @@
   networking.hostName = "builder-tty";
   ruinous.kernel.useLatest = true;
 
-  # Network configuration for microVM
-  networking.useDHCP = false;
-  systemd.network.enable = true;
-  systemd.network.networks."10-lan" = {
-    matchConfig.Type = "ether";
-    networkConfig = {
-      DHCP = "ipv4";
-      IPv6AcceptRA = true;
-    };
-  };
+  # Network configuration for microVM - use scripted networking instead of systemd-networkd
+  # systemd-networkd has sandboxing issues in QEMU microvm environment
+  networking.useDHCP = lib.mkForce true;
+  networking.useNetworkd = false;
+  networking.networkmanager.enable = false;
+  networking.nameservers = ["1.1.1.1" "8.8.8.8"];
 
   # Disable services that don't work in microVM sandbox
   systemd.oomd.enable = false;
   services.resolved.enable = false;
-
-  # Use simple DNS resolution instead of systemd-resolved
-  networking.nameservers = ["1.1.1.1" "8.8.8.8"];
-
-  # Disable systemd service sandboxing for microVM compatibility
-  systemd.services.systemd-networkd.serviceConfig = {
-    MemoryDenyWriteExecute = false;
-    RestrictAddressFamilies = "";
-    SystemCallFilter = "";
-  };
-  systemd.services.systemd-timesyncd.serviceConfig = {
-    MemoryDenyWriteExecute = false;
-    RestrictAddressFamilies = "";
-    SystemCallFilter = "";
-  };
+  services.timesyncd.enable = false;
 
   # Disable store optimization (shared store with host)
   nix.optimise.automatic = false;
