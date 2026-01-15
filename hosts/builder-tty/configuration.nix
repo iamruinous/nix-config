@@ -60,7 +60,7 @@
         type = "macvtap";
         id = "mvtap-builder";
         macvtap.link = "enp2s0";
-        macvtap.mode = "vepa";
+        macvtap.mode = "bridge";
         mac = "02:02:00:00:00:10"; # Unique MAC for builder-tty
       }
     ];
