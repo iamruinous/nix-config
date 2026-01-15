@@ -1,23 +1,15 @@
-{
-  lib,
-  stdenv,
-  fetchFromGitea,
-  python3,
-  python3Packages,
-}:
-stdenv.mkDerivation rec {
+{pkgs, ...}:
+pkgs.stdenv.mkDerivation rec {
   pname = "codey-docs";
   version = "0.1.0";
 
-  src = fetchFromGitea {
-    domain = "forge.meskill.farm";
-    owner = "iamruinous";
-    repo = "codey-docs";
+  src = pkgs.fetchgit {
+    url = "https://forge.meskill.farm/iamruinous/codey-docs.git";
     rev = "v${version}";
     hash = ""; # Will be filled after first build attempt
   };
 
-  nativeBuildInputs = [
+  nativeBuildInputs = with pkgs; [
     python3
     python3Packages.mkdocs-material
   ];
@@ -41,7 +33,7 @@ stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
-  meta = with lib; {
+  meta = with pkgs.lib; {
     description = "Official documentation site for the Codey meta-persona";
     homepage = "https://codey.ruinous.ai";
     license = licenses.mit;
