@@ -20,6 +20,17 @@
   networking.hostName = "builder-tty";
   ruinous.kernel.useLatest = true;
 
+  # Network configuration for microVM
+  networking.useDHCP = false;
+  systemd.network.enable = true;
+  systemd.network.networks."10-lan" = {
+    matchConfig.Type = "ether";
+    networkConfig = {
+      DHCP = "ipv4";
+      IPv6AcceptRA = true;
+    };
+  };
+
   # Disable store optimization (shared store with host)
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
