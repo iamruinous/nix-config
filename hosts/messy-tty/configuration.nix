@@ -16,15 +16,28 @@
   networking.hostName = "messy-tty";
   ruinous.kernel.useLatest = true;
 
-  # Network configuration - use DHCP
-  # Disable NetworkManager (enabled by common/system.nix) to avoid conflict
+  # Network configuration - static IP required for QEMU MicroVMs
+  # systemd-networkd DHCP fails due to QEMU seccomp sandbox restrictions
   networking.networkmanager.enable = lib.mkForce false;
-  networking.useDHCP = lib.mkForce true;
+  networking.useDHCP = lib.mkForce false;
+  networking.useNetworkd = lib.mkForce false;
+
+  # Static IP configuration (DNS: messy.tty.meskill.farm)
+  networking.interfaces.eth0 = {
+    ipv4.addresses = [{
+      address = "10.55.20.80";
+      prefixLength = 24;
+    }];
+  };
+  networking.defaultGateway = "10.55.20.1";
+  networking.nameservers = ["1.1.1.1" "8.8.8.8"];
 
   # Disable services that don't work in microVM sandbox
   systemd.oomd.enable = false;
   services.resolved.enable = false;
   services.timesyncd.enable = false;
+  # systemd-networkd crashes due to seccomp - disable it
+  systemd.services.systemd-networkd.enable = lib.mkForce false;
 
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
