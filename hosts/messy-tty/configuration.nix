@@ -33,9 +33,14 @@
   networking.nameservers = ["1.1.1.1" "8.8.8.8"];
 
   # Disable services that don't work in microVM sandbox
+  # QEMU's seccomp sandbox blocks syscalls these services need
   systemd.oomd.enable = false;
   services.resolved.enable = false;
   services.timesyncd.enable = false;
+  # NSNCD fails under seccomp sandbox, breaking user lookups for SSH auth
+  # Must also disable nssModules since they require nscd
+  services.nscd.enable = false;
+  system.nssModules = lib.mkForce [];
 
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
