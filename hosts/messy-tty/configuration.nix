@@ -53,7 +53,7 @@
         type = "macvtap";
         id = "mvtap1";
         macvtap.link = "enp2s0";
-        macvtap.mode = "vepa";
+        macvtap.mode = "bridge";
         mac = "02:02:00:00:00:01";
       }
     ];

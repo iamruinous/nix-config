@@ -4,7 +4,7 @@
 # Forgejo webhooks via n8n. It has git signing keys, SSH access to
 # Forgejo, and gh CLI authentication for creating PRs.
 #
-# Triggered by: n8n workflow "Shared 2.0 - Update Docs Package"
+# Triggered by: n8n workflow via builder-bot-mcp FastMCP server
 # Purpose: Receive tag notifications, compute hashes, create PRs
 {
   flake,
@@ -16,6 +16,7 @@
   imports = [
     flake.nixosModules.microvm
     flake.sharedModules.developer
+    flake.inputs.builder-bot-mcp.nixosModules.default
   ];
 
   networking.hostName = "builder-tty";
@@ -59,7 +60,7 @@
         type = "macvtap";
         id = "mvtap-builder";
         macvtap.link = "enp2s0";
-        macvtap.mode = "vepa";
+        macvtap.mode = "bridge";
         mac = "02:02:00:00:00:10"; # Unique MAC for builder-tty
       }
     ];
@@ -133,6 +134,25 @@
     gnused
     coreutils
   ];
+
+  # builder-bot-mcp FastMCP server for n8n automation
+  services.builder-bot-mcp = {
+    enable = true;
+    port = 8000;
+    host = "0.0.0.0";
+    configFile = config.age.secrets.builder_bot_config.path;
+    user = "builder";
+    group = "users";
+    workingDirectory = "/home/builder/Projects/nix-config";
+  };
+
+  # Agenix secret for builder-bot-mcp configuration
+  age.secrets.builder_bot_config = {
+    rekeyFile = ./files/builder-bot-mcp/repos.json.age;
+    owner = "builder";
+    group = "users";
+    mode = "0400";
+  };
 
   system.stateVersion = "25.05";
 }
