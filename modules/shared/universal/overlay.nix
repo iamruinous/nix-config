@@ -6,6 +6,7 @@
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
       codey-agent-system = perSystem.self.codey-agent-system;
+      codey-docs = perSystem.self.codey-docs;
       docker-image-updater = perSystem.self.docker-image-updater;
       docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
       eztunnel = perSystem.self.eztunnel;

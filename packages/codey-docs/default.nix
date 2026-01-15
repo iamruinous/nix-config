@@ -6,7 +6,7 @@ pkgs.stdenv.mkDerivation rec {
   src = pkgs.fetchgit {
     url = "https://forge.meskill.farm/iamruinous/codey-docs.git";
     rev = "v${version}";
-    hash = ""; # Will be filled after first build attempt
+    hash = "sha256-CgrtGCcY3f9o8w6a7FXEFALEmzM91e0+d7lmmiXAwos=";
   };
 
   nativeBuildInputs = with pkgs; [
