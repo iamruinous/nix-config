@@ -9,6 +9,7 @@
     flake.sharedModules.developer
 
     ./hardware-configuration.nix
+    ./network.nix
     ./caddy.nix
     ./containers.nix
     ./disko.nix

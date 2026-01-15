@@ -28,20 +28,7 @@
   # allow remote deploy on aarch64 systems
   boot.binfmt.emulatedSystems = ["aarch64-linux"];
 
-  networking.firewall.enable = true;
-  networking.nftables.enable = true;
-  networking.useDHCP = lib.mkDefault false;
-  networking.wireless.enable = lib.mkDefault false;
-  networking.networkmanager.enable = false;
-  systemd.network.enable = true;
-  systemd.network.networks."10-ethernet-dhcp" = {
-    enable = true;
-    matchConfig.Name = "enp2s0";
-    networkConfig = {
-      DHCP = "ipv4";
-      IPv6AcceptRA = true; # Optional: for IPv6 SLAAC
-    };
-  };
+  # Network configuration moved to ./network.nix for macvlan setup
 
   services.xserver.videoDrivers = ["nvidia"];
 
