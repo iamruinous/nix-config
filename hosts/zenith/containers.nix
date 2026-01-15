@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: {
@@ -410,11 +411,12 @@
         ];
       };
 
-      # llama.cpp server with ROCm GPU acceleration
-      # NOTE: Using CPU-only mode temporarily. ROCm 5.6.0 in the server-rocm image
-      # does not support Strix Halo (gfx1151). Need ROCm 6.x+ image or custom build.
+      # llama.cpp server with ROCm GPU acceleration for Strix Halo
+      # Using kyuz0 AMD Strix Halo Toolboxes ROCm 7.1.1 image
+      # ROCm 7.1.1 works with gfx1151! Previous crashes were caused by init container restart loop
+      # Reference: https://strixhalo.wiki/AI/llamacpp-with-ROCm
       llama-cpp = {
-        image = "ghcr.io/ggerganov/llama.cpp:server";
+        image = "docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.1.1";
         dependsOn = ["llama-cpp-init"];
         extraOptions = [
           "--device=/dev/kfd"
@@ -425,19 +427,12 @@
           "--security-opt=seccomp=unconfined"
           "--ipc=host"
         ];
-        environment = {
-          # Strix Halo (gfx1151) compatibility
-          HSA_OVERRIDE_GFX_VERSION = "11.0.0";
-          # Prevents memory access faults on Strix Halo APUs
-          HSA_ENABLE_SDMA = "0";
-          # Target the integrated Radeon 8060S
-          HIP_VISIBLE_DEVICES = "0";
-        };
         networks = ["servicenet"];
         volumes = [
           "/data/docker/llama-cpp/models:/models"
         ];
         cmd = [
+          "llama-server"
           "--model"
           "/models/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf"
           "--ctx-size"
@@ -447,8 +442,9 @@
           "--port"
           "8000"
           "--n-gpu-layers"
-          "0"
-          "--flash-attn"
+          "999"
+          "--no-mmap"
+          "--no-warmup"
         ];
       };
 
@@ -515,6 +511,17 @@
       #     "hermes"
       #   ];
       # };
+    };
+  };
+
+  # Fix llama-cpp-init restart loop: init containers should stay "active" after
+  # completion so dependent services dont cascade-restart. Without this,
+  # systemds default Restart=always causes the init container to restart
+  # every ~10 seconds, which cascades to llama-cpp and open-webui via Requires=.
+  systemd.services.docker-llama-cpp-init = {
+    serviceConfig = {
+      Restart = lib.mkForce "no";
+      RemainAfterExit = true;
     };
   };
 
