@@ -41,8 +41,8 @@
         description = "Model Context Protocol gateway";
       };
 
-      # llama.cpp OpenAI-compatible API (legacy vLLM domain)
-      "zenith.vllm.ruinous.ai" = {
+      # llama.cpp OpenAI-compatible API
+      "zenith.cpp.ruinous.ai" = {
         upstream = "llama-cpp:8000";
         description = "llama.cpp OpenAI-compatible API";
       };
