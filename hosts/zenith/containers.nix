@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: {
@@ -112,32 +113,33 @@
         ];
         cmd = ["forgejo-runner" "daemon" "--config" "/data/config.yaml"];
       };
-      ollama = {
-        image = "docker.io/ollama/ollama:0.13.4-rocm";
-        extraOptions = [
-          "--device=/dev/kfd"
-          "--device=/dev/dri"
-          # "--group-add=video"
-          # "--group-add=render"
-          "--security-opt=seccomp=unconfined"
-        ];
-        environment = {
-          OLLAMA_DEFAULT_MODEL = "qwen2.5-coder-32b";
-          # Strix Halo (gfx1151) workarounds
-          # OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
-          # HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
-        };
-        networks = ["servicenet"];
-        volumes = [
-          "/data/docker/ollama/config:/root/.ollama"
-        ];
-      };
+      # DISABLED: Using llama.cpp instead (kept for rollback)
+      # # ollama = {
+      #   image = "docker.io/ollama/ollama:0.13.4-rocm";
+      #   extraOptions = [
+      #     "--device=/dev/kfd"
+      #     "--device=/dev/dri"
+      #     # "--group-add=video"
+      #     # "--group-add=render"
+      #     "--security-opt=seccomp=unconfined"
+      #   ];
+      #   environment = {
+      #     OLLAMA_DEFAULT_MODEL = "qwen2.5-coder-32b";
+      #     # Strix Halo (gfx1151) workarounds
+      #     # OLLAMA_GPU_MEMORY = "96GB"; # Force full memory visibility
+      #     # HSA_OVERRIDE_GFX_VERSION = "11.0.0"; # Try gfx1100 kernels (2-6x faster)
+      #   };
+      #   networks = ["servicenet"];
+      #   volumes = [
+      #     "/data/docker/ollama/config:/root/.ollama"
+      #   ];
+      # };
       open-webui = {
         image = "ghcr.io/open-webui/open-webui:v0.7.2";
-        dependsOn = ["ollama" "vllm"];
+        dependsOn = ["llama-cpp"];
         environment = {
-          OLLAMA_BASE_URL = "http://ollama:11434";
-          OPENAI_API_BASE_URL = "http://vllm:8000/v1";
+          
+          OPENAI_API_BASE_URL = "http://llama-cpp:8000/v1";
         };
         networks = ["servicenet"];
         volumes = [
@@ -381,14 +383,41 @@
         networks = ["servicenet"];
       };
 
-      # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
-      # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
-      # Model: Qwen2.5-Coder-7B-Instruct FP16 (~14GB weights + KV cache)
-      # Note: AWQ/torch.compile crash on Strix Halo, using FP16 smaller model
-      # Context: 32K tokens (model's max_position_embeddings limit)
-      # For 60K+ tokens, need larger model (e.g., Qwen2.5-Coder-32B with 128K context)
-      vllm = {
-        image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
+      # llama.cpp - OpenAI-compatible API server with ROCm GPU acceleration
+      # Replaces vLLM for better unified memory handling on Strix Halo
+      # Model: Qwen2.5-Coder-32B-Instruct Q4_K_M (~24GB weights)
+      # Context: 100K tokens for OpenCode coding workflows
+      # Tool calling enabled via --jinja flag
+
+      # Init container to download model if not present
+      llama-cpp-init = {
+        image = "docker.io/curlimages/curl:8.11.1";
+        volumes = [
+          "/data/docker/llama-cpp/models:/models"
+        ];
+        cmd = [
+          "sh"
+          "-c"
+          ''
+            if [ ! -f /models/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf ]; then
+              echo "Model not found, downloading Qwen2.5-Coder-32B-Instruct Q4_K_M (~24GB)..."
+              curl -L --progress-bar -o /models/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf \
+                "https://huggingface.co/bartowski/Qwen2.5-Coder-32B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf"
+              echo "Download complete!"
+            else
+              echo "Model already exists at /models/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf, skipping download"
+            fi
+          ''
+        ];
+      };
+
+      # llama.cpp server with ROCm GPU acceleration for Strix Halo
+      # Using kyuz0 AMD Strix Halo Toolboxes ROCm 7.1.1 image
+      # ROCm 7.1.1 works with gfx1151! Previous crashes were caused by init container restart loop
+      # Reference: https://strixhalo.wiki/AI/llamacpp-with-ROCm
+      llama-cpp = {
+        image = "docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.1.1";
+        dependsOn = ["llama-cpp-init"];
         extraOptions = [
           "--device=/dev/kfd"
           "--device=/dev/dri"
@@ -397,50 +426,102 @@
           "--shm-size=128g" # Full RAM for unified memory APU
           "--security-opt=seccomp=unconfined"
           "--ipc=host"
-          "--cap-add=SYS_PTRACE"
         ];
-        environment = {
-          HF_HOME = "/data/huggingface";
-          # Strix Halo (gfx1151) compatibility
-          HSA_OVERRIDE_GFX_VERSION = "11.0.0";
-          # Prevents memory access faults on Strix Halo APUs
-          HSA_ENABLE_SDMA = "0";
-          # Target the integrated Radeon 8060S
-          HIP_VISIBLE_DEVICES = "0";
-          ROCM_PATH = "/opt/rocm";
-          # Disable torch.compile completely - crashes on Strix Halo
-          VLLM_TORCH_COMPILE_LEVEL = "0";
-          TORCH_COMPILE_DISABLE = "1";
-          # Use Triton flash attention for ROCm
-          VLLM_USE_TRITON_FLASH_ATTN = "1";
-        };
         networks = ["servicenet"];
-        volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
+        volumes = [
+          "/data/docker/llama-cpp/models:/models"
+        ];
         cmd = [
-          "vllm"
-          "serve"
-          "Qwen/Qwen2.5-Coder-7B-Instruct"
+          "llama-server"
+          "--model"
+          "/models/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf"
+          "--ctx-size"
+          "32768"
           "--host"
           "0.0.0.0"
           "--port"
           "8000"
-          "--tensor-parallel-size"
-          "1"
-          "--max-model-len"
-          "32768"
-          "--gpu-memory-utilization"
-          "0.85"
-          "--dtype"
-          "float16"
-          "--enforce-eager"
-          "--max-num-seqs"
-          "4"
-          # Enable tool calling for OpenCode/agentic workflows
-          "--enable-auto-tool-choice"
-          "--tool-call-parser"
-          "hermes"
+          "--n-gpu-layers"
+          "999"
+          "--no-mmap"
+          "--no-warmup"
         ];
       };
+
+
+
+      # DISABLED: Using llama.cpp instead (kept for rollback)
+      # # vLLM - OpenAI-compatible API server with ROCm GPU acceleration
+      # # Uses ROCm 7.1.1 with Navi (RDNA 3.5) support for Strix Halo (gfx1151)
+      # # Model: Qwen2.5-Coder-7B-Instruct FP16 (~14GB weights + KV cache)
+      # # Note: AWQ/torch.compile crash on Strix Halo, using FP16 smaller model
+      # # Context: 32K tokens (model's max_position_embeddings limit)
+      # # For 60K+ tokens, need larger model (e.g., Qwen2.5-Coder-32B with 128K context)
+      # vllm = {
+      #   image = "rocm/vllm-dev:rocm7.1.1_navi_ubuntu24.04_py3.12_pytorch_2.8_vllm_0.10.2rc1";
+      #   extraOptions = [
+      #     "--device=/dev/kfd"
+      #     "--device=/dev/dri"
+      #     "--group-add=26" # video group (GID on NixOS)
+      #     "--group-add=303" # render group (GID on NixOS)
+      #     "--shm-size=128g" # Full RAM for unified memory APU
+      #     "--security-opt=seccomp=unconfined"
+      #     "--ipc=host"
+      #     "--cap-add=SYS_PTRACE"
+      #   ];
+      #   environment = {
+      #     HF_HOME = "/data/huggingface";
+      #     # Strix Halo (gfx1151) compatibility
+      #     HSA_OVERRIDE_GFX_VERSION = "11.0.0";
+      #     # Prevents memory access faults on Strix Halo APUs
+      #     HSA_ENABLE_SDMA = "0";
+      #     # Target the integrated Radeon 8060S
+      #     HIP_VISIBLE_DEVICES = "0";
+      #     ROCM_PATH = "/opt/rocm";
+      #     # Disable torch.compile completely - crashes on Strix Halo
+      #     VLLM_TORCH_COMPILE_LEVEL = "0";
+      #     TORCH_COMPILE_DISABLE = "1";
+      #     # Use Triton flash attention for ROCm
+      #     VLLM_USE_TRITON_FLASH_ATTN = "1";
+      #   };
+      #   networks = ["servicenet"];
+      #   volumes = ["/data/docker/vllm/huggingface:/data/huggingface"];
+      #   cmd = [
+      #     "vllm"
+      #     "serve"
+      #     "Qwen/Qwen2.5-Coder-7B-Instruct"
+      #     "--host"
+      #     "0.0.0.0"
+      #     "--port"
+      #     "8000"
+      #     "--tensor-parallel-size"
+      #     "1"
+      #     "--max-model-len"
+      #     "32768"
+      #     "--gpu-memory-utilization"
+      #     "0.85"
+      #     "--dtype"
+      #     "float16"
+      #     "--enforce-eager"
+      #     "--max-num-seqs"
+      #     "4"
+      #     # Enable tool calling for OpenCode/agentic workflows
+      #     "--enable-auto-tool-choice"
+      #     "--tool-call-parser"
+      #     "hermes"
+      #   ];
+      # };
+    };
+  };
+
+  # Fix llama-cpp-init restart loop: init containers should stay "active" after
+  # completion so dependent services dont cascade-restart. Without this,
+  # systemds default Restart=always causes the init container to restart
+  # every ~10 seconds, which cascades to llama-cpp and open-webui via Requires=.
+  systemd.services.docker-llama-cpp-init = {
+    serviceConfig = {
+      Restart = lib.mkForce "no";
+      RemainAfterExit = true;
     };
   };
 
@@ -508,34 +589,34 @@
     restartTriggers = [config.age.secrets.zenith_docker_env_n8n_dev.rekeyFile];
   };
 
-  # Pull optimized models for zenith's 96GB VRAM after ollama starts
-  systemd.services.ollama-pull-models = {
-    description = "Pull Ollama models optimized for zenith";
-    wantedBy = ["multi-user.target"];
-    after = ["docker-ollama.service"];
-    requires = ["docker-ollama.service"];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = pkgs.writeShellScript "ollama-pull-models" ''
-        # Wait for ollama to be ready
-        echo "Waiting for ollama to be ready..."
-        for i in $(seq 1 30); do
-          if ${pkgs.docker}/bin/docker exec ollama ollama list >/dev/null 2>&1; then
-            break
-          fi
-          sleep 2
-        done
+  # DISABLED: Using llama.cpp instead (kept for rollback)
+  # # Pull optimized models for zenith's 96GB VRAM after ollama starts
+  # systemd.services.ollama-pull-models = {
+  #   description = "Pull Ollama models optimized for zenith";
+  #   wantedBy = ["multi-user.target"];
+  #   after = ["docker-ollama.service"];
+  #   requires = ["docker-ollama.service"];
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     RemainAfterExit = true;
+  #     ExecStart = pkgs.writeShellScript "ollama-pull-models" ''
+  #       # Wait for ollama to be ready
+  #       echo "Waiting for ollama to be ready..."
+  #       for i in $(seq 1 30); do
+  #         if ${pkgs.docker}/bin/docker exec ollama ollama list >/dev/null 2>&1; then
+  #           break
+  #         fi
+  #         sleep 2
+  #       done
 
-        echo "Pulling gemma3:27b (largest Gemma 3, 128K context, multimodal)..."
-        ${pkgs.docker}/bin/docker exec ollama ollama pull gemma3:27b
+  #       echo "Pulling gemma3:27b (largest Gemma 3, 128K context, multimodal)..."
+  #       ${pkgs.docker}/bin/docker exec ollama ollama pull gemma3:27b
 
-        echo "Pulling glm4:latest (GLM-4 9B, 128K context, multilingual)..."
-        ${pkgs.docker}/bin/docker exec ollama ollama pull glm4:latest
+  #       echo "Pulling glm4:latest (GLM-4 9B, 128K context, multilingual)..."
+  #       ${pkgs.docker}/bin/docker exec ollama ollama pull glm4:latest
 
-        echo "Models pulled successfully!"
-        ${pkgs.docker}/bin/docker exec ollama ollama list
-      '';
-    };
-  };
+  #       echo "Models pulled successfully!"
+  #       ${pkgs.docker}/bin/docker exec ollama ollama list
+  #     '';
+  #   };
 }
