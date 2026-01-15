@@ -212,7 +212,7 @@ with lib; let
           Base URL for the provider API.
           Use `{env:VAR_NAME}` syntax for environment variable references.
         '';
-        example = "https://zenith.vllm.ruinous.ai/v1";
+        example = "https://zenith.cpp.ruinous.ai/v1";
       };
       apiKey = mkOption {
         type = types.nullOr types.str;
@@ -254,7 +254,7 @@ with lib; let
         '';
         example = literalExpression ''
           {
-            baseURL = "https://zenith.vllm.ruinous.ai/v1";
+            baseURL = "https://zenith.cpp.ruinous.ai/v1";
             apiKey = "not-needed";
           }
         '';
@@ -614,7 +614,7 @@ in {
             api = "openai";
             name = "Zenith vLLM";
             options = {
-              baseURL = "https://zenith.vllm.ruinous.ai/v1";
+              baseURL = "https://zenith.cpp.ruinous.ai/v1";
               apiKey = "not-needed";
             };
             models = {
