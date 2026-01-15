@@ -25,6 +25,25 @@
     };
   };
 
+  # Disable services that don't work in microVM sandbox
+  systemd.oomd.enable = false;
+  services.resolved.enable = false;
+
+  # Use simple DNS resolution instead of systemd-resolved
+  networking.nameservers = ["1.1.1.1" "8.8.8.8"];
+
+  # Disable systemd service sandboxing for microVM compatibility
+  systemd.services.systemd-networkd.serviceConfig = {
+    MemoryDenyWriteExecute = false;
+    RestrictAddressFamilies = "";
+    SystemCallFilter = "";
+  };
+  systemd.services.systemd-timesyncd.serviceConfig = {
+    MemoryDenyWriteExecute = false;
+    RestrictAddressFamilies = "";
+    SystemCallFilter = "";
+  };
+
   nix.optimise.automatic = false;
   nix.settings.auto-optimise-store = false;
 
