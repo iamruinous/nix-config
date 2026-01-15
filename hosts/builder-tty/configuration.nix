@@ -21,11 +21,20 @@
   networking.hostName = "builder-tty";
   ruinous.kernel.useLatest = true;
 
-  # Network configuration for microVM - use scripted networking instead of systemd-networkd
-  # systemd-networkd has sandboxing issues in QEMU microvm environment
-  networking.useDHCP = lib.mkForce true;
+  # Network configuration for microVM - use static IP
+  # Both systemd-networkd and dhcpcd fail due to QEMU seccomp sandbox
+  networking.useDHCP = false;
   networking.useNetworkd = false;
   networking.networkmanager.enable = false;
+
+  # Static IP configuration (matches DNS: builder.tty.meskill.farm)
+  networking.interfaces.eth0 = {
+    ipv4.addresses = [{
+      address = "10.55.20.82";
+      prefixLength = 24;
+    }];
+  };
+  networking.defaultGateway = "10.55.20.1";
   networking.nameservers = ["1.1.1.1" "8.8.8.8"];
 
   # Disable services that don't work in microVM sandbox
