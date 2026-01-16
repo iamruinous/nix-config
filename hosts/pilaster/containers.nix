@@ -626,27 +626,26 @@
       };
       # Builder Bot MCP - automation for docs package updates
       # Provides MCP tools for n8n to update nix-config packages when docs repos are tagged
-      # DISABLED: Image not yet built/pushed to Forgejo registry
-      # builder-bot-mcp = {
-      #   image = "forge.meskill.farm/iamruinous/builder-bot-mcp:latest";
-      #   environment = {
-      #     MCP_TRANSPORT = "sse";
-      #     MCP_HOST = "0.0.0.0";
-      #     MCP_PORT = "8000";
-      #     BUILDER_BOT_CONFIG = "/data/config/repos.json";
-      #     NIX_CONFIG_DIR = "/data/repos/nix-config";
-      #     # GitHub token for PR creation (set via env file)
-      #     # GH_TOKEN = "..."
-      #   };
-      #   environmentFiles = [config.age.secrets.pilaster_docker_env_builder_bot.path];
-      #   networks = ["servicenet"];
-      #   volumes = [
-      #     # Persistent storage for cloned repos
-      #     "/data/docker/builder-bot-mcp/repos:/data/repos"
-      #     # Config files (repos.json, SSH keys, allowed_signers)
-      #     "/data/docker/builder-bot-mcp/config:/data/config:ro"
-      #   ];
-      # };
+      builder-bot-mcp = {
+        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:latest";
+        environment = {
+          MCP_TRANSPORT = "sse";
+          MCP_HOST = "0.0.0.0";
+          MCP_PORT = "8000";
+          BUILDER_BOT_CONFIG = "/data/config/repos.json";
+          NIX_CONFIG_DIR = "/data/repos/nix-config";
+          GITEA_URL = "https://forge.meskill.farm";
+          GITEA_USER = "codey-bot";
+        };
+        environmentFiles = [config.age.secrets.pilaster_docker_env_builder_bot.path];
+        networks = ["servicenet"];
+        volumes = [
+          # Persistent storage for cloned repos
+          "/data/docker/builder-bot-mcp/repos:/data/repos"
+          # Config files (repos.json, SSH keys, allowed_signers)
+          "/data/docker/builder-bot-mcp/config:/data/config:ro"
+        ];
+      };
     };
   };
 
