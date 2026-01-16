@@ -6,7 +6,7 @@ pkgs.stdenv.mkDerivation rec {
   src = pkgs.fetchgit {
     url = "https://forge.meskill.farm/iamruinous/nate-docs.git";
     rev = "v${version}";
-    hash = "";
+    hash = "sha256-XqbirncGm5ONzqHIPjyFMQmkYFjNUPeaoU1rS6w/ZMM=";
   };
 
   nativeBuildInputs = with pkgs; [
