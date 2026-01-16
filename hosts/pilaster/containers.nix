@@ -627,7 +627,7 @@
       # Builder Bot MCP - automation for docs package updates
       # Provides MCP tools for n8n to update nix-config packages when docs repos are tagged
       builder-bot-mcp = {
-        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:v0.2.0";
+        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:0.2.0";
         environment = {
           MCP_TRANSPORT = "sse";
           MCP_HOST = "0.0.0.0";
