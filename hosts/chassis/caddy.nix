@@ -30,7 +30,7 @@
   
   # Add codey-docs static site
   codeyDocsHost = {
-    "codey.ruinous.ai" = {
+    "codey.bot.ruinous.ai" = {
       extraConfig = ''
         root * ${pkgs.codey-docs}
         file_server
@@ -49,7 +49,7 @@
   
   # Add messy-docs static site
   messyDocsHost = {
-    "messy.ruinous.ai" = {
+    "messy.bot.ruinous.ai" = {
       extraConfig = ''
         root * ${pkgs.messy-docs}
         file_server
@@ -68,7 +68,7 @@
   
   # Add newsy-docs static site
   newsyDocsHost = {
-    "newsy.ruinous.ai" = {
+    "newsy.bot.ruinous.ai" = {
       extraConfig = ''
         root * ${pkgs.newsy-docs}
         file_server
