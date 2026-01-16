@@ -745,6 +745,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "NATE Docs (chassis)"
+    group: "Documentation"
+    url: "https://nate.bot.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # TERRANAS SERVICES
   # ===========================
