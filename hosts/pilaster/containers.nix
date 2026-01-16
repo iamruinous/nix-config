@@ -294,7 +294,7 @@
         ];
       };
       redis = {
-        image = "docker.io/redis:7.2.12";
+        image = "docker.io/redis:7.4.7";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
@@ -420,7 +420,8 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.32";
+        # Pinned to v1.31 - database created with this version, v1.32 is incompatible
+        image = "docker.io/getmeili/meilisearch:v1.31.0";
         environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
@@ -625,26 +626,27 @@
       };
       # Builder Bot MCP - automation for docs package updates
       # Provides MCP tools for n8n to update nix-config packages when docs repos are tagged
-      builder-bot-mcp = {
-        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:latest";
-        environment = {
-          MCP_TRANSPORT = "sse";
-          MCP_HOST = "0.0.0.0";
-          MCP_PORT = "8000";
-          BUILDER_BOT_CONFIG = "/data/config/repos.json";
-          NIX_CONFIG_DIR = "/data/repos/nix-config";
-          # GitHub token for PR creation (set via env file)
-          # GH_TOKEN = "..."
-        };
-        environmentFiles = [config.age.secrets.pilaster_docker_env_builder_bot.path];
-        networks = ["servicenet"];
-        volumes = [
-          # Persistent storage for cloned repos
-          "/data/docker/builder-bot-mcp/repos:/data/repos"
-          # Config files (repos.json, SSH keys, allowed_signers)
-          "/data/docker/builder-bot-mcp/config:/data/config:ro"
-        ];
-      };
+      # DISABLED: Image not yet built/pushed to Forgejo registry
+      # builder-bot-mcp = {
+      #   image = "forge.meskill.farm/iamruinous/builder-bot-mcp:latest";
+      #   environment = {
+      #     MCP_TRANSPORT = "sse";
+      #     MCP_HOST = "0.0.0.0";
+      #     MCP_PORT = "8000";
+      #     BUILDER_BOT_CONFIG = "/data/config/repos.json";
+      #     NIX_CONFIG_DIR = "/data/repos/nix-config";
+      #     # GitHub token for PR creation (set via env file)
+      #     # GH_TOKEN = "..."
+      #   };
+      #   environmentFiles = [config.age.secrets.pilaster_docker_env_builder_bot.path];
+      #   networks = ["servicenet"];
+      #   volumes = [
+      #     # Persistent storage for cloned repos
+      #     "/data/docker/builder-bot-mcp/repos:/data/repos"
+      #     # Config files (repos.json, SSH keys, allowed_signers)
+      #     "/data/docker/builder-bot-mcp/config:/data/config:ro"
+      #   ];
+      # };
     };
   };
 
