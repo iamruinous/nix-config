@@ -88,6 +88,12 @@
         description = "Model Context Protocol gateway";
       };
 
+      # Builder Bot MCP (docs automation)
+      "builder-bot.meskill.farm" = {
+        upstream = "builder-bot-mcp:8000";
+        description = "Builder Bot MCP for docs package automation";
+      };
+
       # Nutify UPS monitor (Netrack)
       "nutify-netrack.meskill.farm" = {
         upstream = "nutify-netrack:5000";
