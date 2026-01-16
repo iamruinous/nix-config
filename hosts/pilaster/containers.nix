@@ -634,8 +634,8 @@
           MCP_PORT = "8000";
           BUILDER_BOT_CONFIG = "/data/config/repos.json";
           NIX_CONFIG_DIR = "/data/repos/nix-config";
-          GITEA_URL = "https://forge.meskill.farm";
-          GITEA_USER = "codey-bot";
+          FORGEJO_URL = "https://forge.meskill.farm";
+          FORGEJO_OWNER = "codey-bot";
         };
         environmentFiles = [config.age.secrets.pilaster_docker_env_builder_bot.path];
         networks = ["servicenet"];
