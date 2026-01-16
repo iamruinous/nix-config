@@ -106,6 +106,16 @@
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/builder-bot-mcp";
             port = 9506;
             caddy.fqdn = "builder-bot.oc.ruinous.ai";
+            tmuxp.extraWindows = [
+              {
+                name = "serve";
+                command = "just serve";
+              }
+              {
+                name = "tests";
+                command = "just test-watch";
+              }
+            ];
           };
         };
       };
