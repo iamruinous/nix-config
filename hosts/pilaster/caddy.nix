@@ -194,13 +194,13 @@
 
       # WriteFreely blog (internal)
       "blog-int.ruinous.social" = {
-        upstream = "writefreely:8080";
+        upstream = "writefreely:80";
         description = "WriteFreely blog (internal)";
       };
 
       # WriteFreely blog (external)
       "blog.ruinous.social" = {
-        upstream = "writefreely:8080";
+        upstream = "writefreely:80";
         description = "WriteFreely blog (external)";
       };
 
