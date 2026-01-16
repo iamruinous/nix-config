@@ -84,6 +84,25 @@
       '';
     };
   };
+  
+  # Add nate-docs static site
+  nateDocsHost = {
+    "nate.bot.ruinous.ai" = {
+      extraConfig = ''
+        root * ${pkgs.nate-docs}
+        file_server
+        encode gzip
+        try_files {path} {path}/ /index.html
+        
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+          X-Content-Type-Options "nosniff"
+          X-Frame-Options "DENY"
+          Referrer-Policy "strict-origin-when-cross-origin"
+        }
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
@@ -100,7 +119,7 @@ in {
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
     # Merge OpenCode projects and docs sites
-    virtualHosts = caddyVirtualHosts // codeyDocsHost // messyDocsHost // newsyDocsHost;
+    virtualHosts = caddyVirtualHosts // codeyDocsHost // messyDocsHost // newsyDocsHost // nateDocsHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)
