@@ -1,4 +1,4 @@
-{flake, ...}: {
+{flake, pkgs, ...}: {
   # microvm defaults
   imports = [
     flake.inputs.microvm.nixosModules.microvm
@@ -13,5 +13,16 @@
   # - D-Bus (needs to switch users)
   # - sudo/su commands (user privilege transitions)
   # Without this, any process trying to run as a non-root user fails with "Permission denied"
-  microvm.qemu.extraArgs = ["-sandbox" "off"];
+  #
+  # The microvm.nix module checks for "--enable-seccomp" in QEMU's configureFlags
+  # to decide whether to add "-sandbox on". By providing a QEMU package without
+  # seccomp, the sandbox is not enabled in the first place.
+  microvm.vmHostPackages = pkgs // {
+    qemu_kvm = pkgs.qemu_kvm.override {
+      seccompSupport = false;
+    };
+    qemu-utils = pkgs.qemu-utils.override {
+      seccompSupport = false;
+    };
+  };
 }
