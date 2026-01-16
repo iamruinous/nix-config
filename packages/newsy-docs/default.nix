@@ -36,7 +36,7 @@ pkgs.stdenv.mkDerivation rec {
 
   meta = with pkgs.lib; {
     description = "Documentation site for NEWSY - The Meskill Family News Desk";
-    homepage = "https://newsy.ruinous.ai";
+    homepage = "https://newsy.bot.ruinous.ai";
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = [];
