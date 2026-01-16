@@ -100,6 +100,13 @@
             port = 9505;
             caddy.fqdn = "messy-bot.oc.ruinous.ai";
           };
+
+          # builder-bot-mcp - web service with Caddy
+          builder-bot = {
+            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/builder-bot-mcp";
+            port = 9506;
+            caddy.fqdn = "builder-bot.oc.ruinous.ai";
+          };
         };
       };
     };

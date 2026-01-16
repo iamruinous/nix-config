@@ -745,6 +745,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "OpenCode - builder-bot (chassis)"
+    group: "Development"
+    url: "https://builder-bot.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   - name: "NATE Docs (chassis)"
     group: "Documentation"
     url: "https://nate.bot.ruinous.ai"
