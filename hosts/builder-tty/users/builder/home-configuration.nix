@@ -1,4 +1,4 @@
-{flake, lib, pkgs, ...}: {
+{flake, ...}: {
   imports = [
     flake.homeModules.default
   ];
@@ -6,22 +6,23 @@
   ruinous.rust-motd.enable = true;
 
   # Git configuration for automation via ruinous.git module
+  # Using codey-bot identity for Forgejo commits
   ruinous.git = {
     default = {
-      userName = "Builder Bot";
-      userEmail = "builder@ruinous.ai";
-      # Signing key will be configured manually after deployment
-      # For GPG: set signingKey to key ID after importing
+      userName = "Codey Bot";
+      userEmail = "codey-bot@ruinous.ai";
+      # SSH key at ~/.ssh/id_ed25519 (persisted via impermanence)
+      signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3NzNxYBcnQuIfFau3nAS+2D3ea1kMD1h+cVw0icuEZ builder@builder-tty";
     };
-    # Don't use 1Password on this VM
+    # Don't use 1Password on this VM - use local SSH key
     signing.use1Password = false;
-  };
-
-  # Override signing to use GPG instead of SSH
-  # (builder will have a GPG key for signed commits)
-  programs.git.signing = {
-    format = lib.mkForce "openpgp";
-    signer = lib.mkForce "${pkgs.gnupg}/bin/gpg";
+    # Add codey-bot to allowed signers
+    allowedSigners = [
+      {
+        email = "codey-bot@ruinous.ai";
+        key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3NzNxYBcnQuIfFau3nAS+2D3ea1kMD1h+cVw0icuEZ builder@builder-tty";
+      }
+    ];
   };
 
   programs.git.extraConfig = {
