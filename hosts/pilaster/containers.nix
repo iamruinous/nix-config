@@ -623,6 +623,28 @@
         ];
         dependsOn = ["archivebox" "archivebox-sonic"];
       };
+      # Builder Bot MCP - automation for docs package updates
+      # Provides MCP tools for n8n to update nix-config packages when docs repos are tagged
+      builder-bot-mcp = {
+        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:latest";
+        environment = {
+          MCP_TRANSPORT = "sse";
+          MCP_HOST = "0.0.0.0";
+          MCP_PORT = "8000";
+          BUILDER_BOT_CONFIG = "/data/config/repos.json";
+          NIX_CONFIG_DIR = "/data/repos/nix-config";
+          # GitHub token for PR creation (set via env file)
+          # GH_TOKEN = "..."
+        };
+        environmentFiles = [config.age.secrets.pilaster_docker_env_builder_bot.path];
+        networks = ["servicenet"];
+        volumes = [
+          # Persistent storage for cloned repos
+          "/data/docker/builder-bot-mcp/repos:/data/repos"
+          # Config files (repos.json, SSH keys, allowed_signers)
+          "/data/docker/builder-bot-mcp/config:/data/config:ro"
+        ];
+      };
     };
   };
 
@@ -709,6 +731,10 @@
   };
   age.secrets.pilaster_docker_env_rallly = {
     rekeyFile = ./files/docker/env/rallly.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_builder_bot = {
+    rekeyFile = ./files/docker/env/builder-bot.env.age;
     mode = "600";
   };
 }
