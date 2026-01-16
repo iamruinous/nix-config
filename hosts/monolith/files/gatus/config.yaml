@@ -531,6 +531,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Builder Bot (pilaster)"
+    group: "Development"
+    url: "https://builder-bot.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # === Social (pilaster via Cloudflare tunnel) ===
   - name: "Mastodon (pilaster)"
     group: "Social"
