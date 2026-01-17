@@ -1,12 +1,12 @@
 {pkgs, ...}:
 pkgs.stdenv.mkDerivation rec {
   pname = "libby-docs";
-  version = "0.1.0";
+  version = "0.2.0";
 
   src = pkgs.fetchgit {
     url = "https://forge.meskill.farm/iamruinous/libby-docs.git";
     rev = "v${version}";
-    hash = "sha256-AGtWT+B/3R0cRLuINQQh1dmPL72cKR3zZ0wY/gbIiu0=";
+    hash = "sha256-3aNXnTnRgMbmjnTELZ/TycP1fXUVeeeMc6iEQEtFZF0=";
   };
 
   nativeBuildInputs = with pkgs; [
