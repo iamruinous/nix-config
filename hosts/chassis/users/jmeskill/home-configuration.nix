@@ -117,6 +117,13 @@
               }
             ];
           };
+
+          # ruinagents - web service with Caddy
+          ruinagents = {
+            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/ruinagents";
+            port = 9507;
+            caddy.fqdn = "ruinagents.oc.ruinous.ai";
+          };
         };
       };
     };
