@@ -305,6 +305,7 @@
           CWA_DB_PATH = "/auth/app.db";
         };
         extraOptions = [
+          "--pull=always"
           "--net=container:gluetun"
         ];
         dependsOn = ["gluetun"];
@@ -804,6 +805,7 @@
       "plex-exporter" = {
         # IMAGECHECK: disabled - no semver tags available
         image = "ghcr.io/timothystewart6/prometheus-plex-exporter:latest";
+        extraOptions = ["--pull=always"];
         networks = [
           "datanet"
           "servicenet"
