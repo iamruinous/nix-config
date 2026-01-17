@@ -5,12 +5,14 @@
       agenix-helper = perSystem.self.agenix-helper;
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
+      gocmitra = perSystem.self.gocmitra;
       codey-agent-system = perSystem.self.codey-agent-system;
       codey-docs = perSystem.self.codey-docs;
       messy-docs = perSystem.self.messy-docs;
       newsy-docs = perSystem.self.newsy-docs;
       nate-docs = perSystem.self.nate-docs;
       libby-docs = perSystem.self.libby-docs;
+      ruinagents-docs = perSystem.self.ruinagents-docs;
       docker-image-updater = perSystem.self.docker-image-updater;
       docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
       eztunnel = perSystem.self.eztunnel;
