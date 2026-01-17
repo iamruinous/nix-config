@@ -27,9 +27,9 @@ Handles automated nix package updates when docs repositories are tagged:
 
 | Repository | Package | Site |
 |------------|---------|------|
-| messy-docs | `packages/messy-docs` | https://messy.bot.ruinous.ai |
-| newsy-docs | `packages/newsy-docs` | https://newsy.bot.ruinous.ai |
-| codey-docs | `packages/codey-docs` | https://codey.bot.ruinous.ai |
+| messy-docs | `packages/messy-docs` | https://messy.agent.ruinous.ai |
+| newsy-docs | `packages/newsy-docs` | https://newsy.agent.ruinous.ai |
+| codey-docs | `packages/codey-docs` | https://codey.agent.ruinous.ai |
 
 ## Key Features
 

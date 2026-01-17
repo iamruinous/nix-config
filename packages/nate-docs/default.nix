@@ -35,7 +35,7 @@ pkgs.stdenv.mkDerivation rec {
 
   meta = with pkgs.lib; {
     description = "Official documentation site for the NATE persona";
-    homepage = "https://nate.bot.ruinous.ai";
+    homepage = "https://nate.agent.ruinous.ai";
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = [];
