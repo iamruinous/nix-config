@@ -185,6 +185,57 @@ Command definitions: `.claude/commands/`
 
 ---
 
+## Catchphrases
+
+### "refresh docs"
+
+**Intent:** Update all `*-docs` packages to their latest tagged versions and deploy to chassis.
+
+**Trigger Variations:**
+- "refresh docs"
+- "update docs"
+- "sync docs"
+- "pull latest docs"
+
+**Behavior:**
+
+For each docs package (`codey-docs`, `messy-docs`, `newsy-docs`, `nate-docs`, `libby-docs`):
+
+1. **Check for latest tag** on Forgejo:
+   ```bash
+   curl -s "https://forge.meskill.farm/api/v1/repos/iamruinous/<pkg>/tags" | jq -r '.[0].name'
+   ```
+
+2. **Compare with current version** in `packages/<pkg>/default.nix`
+
+3. **If newer version exists:**
+   - Update `version` in default.nix
+   - Clear hash to `""`
+   - Run `nix build .#<pkg>` to get new hash from error
+   - Update hash in default.nix
+   - Verify build succeeds
+
+4. **After all packages updated:**
+   - Run `just check` to verify builds
+   - Deploy: `just remote-rebuild chassis`
+   - Create PR with all changes
+
+**Skip conditions:**
+- Package already at latest version
+- No tags exist in repository (e.g., libby-docs not yet tagged)
+
+**Docs Packages:**
+
+| Package | Repository | Site |
+|---------|------------|------|
+| `codey-docs` | `forge.meskill.farm/iamruinous/codey-docs` | https://codey.agent.ruinous.ai |
+| `messy-docs` | `forge.meskill.farm/iamruinous/messy-docs` | https://messy.agent.ruinous.ai |
+| `newsy-docs` | `forge.meskill.farm/iamruinous/newsy-docs` | https://newsy.agent.ruinous.ai |
+| `nate-docs` | `forge.meskill.farm/iamruinous/nate-docs` | https://nate.agent.ruinous.ai |
+| `libby-docs` | `forge.meskill.farm/iamruinous/libby-docs` | https://libby.agent.ruinous.ai |
+
+---
+
 ## MCP Servers
 
 | MCP | Purpose |
