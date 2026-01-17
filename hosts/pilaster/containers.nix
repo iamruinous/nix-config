@@ -190,6 +190,7 @@
         # IMAGECHECK: disabled - only beta/dev versions available, no stable releases
         image = "ghcr.io/music-assistant/server:latest";
         extraOptions = [
+          "--pull=always"
           "--network=host"
           "--security-opt=apparmor:unconfined"
         ];
@@ -204,6 +205,7 @@
       music-assistant-alexa = {
         # IMAGECHECK: disabled - no semver tags available
         image = "ghcr.io/alams154/music-assistant-alexa-api:latest";
+        extraOptions = ["--pull=always"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_music_assistant_alexa.path];
         networks = [
           "servicenet"
@@ -431,6 +433,7 @@
       linkstack = {
         # IMAGECHECK: disabled - no semver tags available
         image = "docker.io/linkstackorg/linkstack:latest";
+        extraOptions = ["--pull=always"];
         environment = {
           TZ = "America/Phoenix";
           SERVER_ADMIN = "admin@ruinous.social";
@@ -469,6 +472,7 @@
       filestash = {
         # IMAGECHECK: disabled - no semver tags available
         image = "docker.io/machines/filestash:latest";
+        extraOptions = ["--pull=always"];
         environment = {
           TZ = "America/Phoenix";
         };
@@ -480,6 +484,7 @@
       homarr = {
         # IMAGECHECK: disabled - no semver tags available
         image = "ghcr.io/homarr-labs/homarr:latest";
+        extraOptions = ["--pull=always"];
         environment = {
           TZ = "America/Phoenix";
           SECRET_ENCRYPTION_KEY = "d1ae027ac0960fdfb7f0bed426c39cb6279f99975322c650f45232b90d517f7d";
@@ -627,7 +632,8 @@
       # Builder Bot MCP - automation for docs package updates
       # Provides MCP tools for n8n to update nix-config packages when docs repos are tagged
       builder-bot-mcp = {
-        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:0.2.0";
+        image = "forge.meskill.farm/iamruinous/builder-bot-mcp:latest";
+        extraOptions = ["--pull=always"];
         environment = {
           MCP_TRANSPORT = "sse";
           MCP_HOST = "0.0.0.0";
