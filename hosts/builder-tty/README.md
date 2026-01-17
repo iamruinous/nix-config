@@ -30,6 +30,8 @@ Handles automated nix package updates when docs repositories are tagged:
 | messy-docs | `packages/messy-docs` | https://messy.agent.ruinous.ai |
 | newsy-docs | `packages/newsy-docs` | https://newsy.agent.ruinous.ai |
 | codey-docs | `packages/codey-docs` | https://codey.agent.ruinous.ai |
+| nate-docs | `packages/nate-docs` | https://nate.agent.ruinous.ai |
+| libby-docs | `packages/libby-docs` | https://libby.agent.ruinous.ai |
 
 ## Key Features
 
