@@ -36,7 +36,7 @@ pkgs.stdenv.mkDerivation rec {
 
   meta = with pkgs.lib; {
     description = "Documentation site for MESSY - The Meskill Family Personal Assistant";
-    homepage = "https://messy.bot.ruinous.ai";
+    homepage = "https://messy.agent.ruinous.ai";
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = [];

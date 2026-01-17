@@ -35,7 +35,7 @@ pkgs.stdenv.mkDerivation rec {
 
   meta = with pkgs.lib; {
     description = "Official documentation site for the Codey meta-persona";
-    homepage = "https://codey.bot.ruinous.ai";
+    homepage = "https://codey.agent.ruinous.ai";
     license = licenses.mit;
     platforms = platforms.linux;
     maintainers = [];

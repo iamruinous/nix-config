@@ -757,7 +757,37 @@ endpoints:
 
   - name: "NATE Docs (chassis)"
     group: "Documentation"
-    url: "https://nate.bot.ruinous.ai"
+    url: "https://nate.agent.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Codey Docs (chassis)"
+    group: "Documentation"
+    url: "https://codey.agent.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Messy Docs (chassis)"
+    group: "Documentation"
+    url: "https://messy.agent.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Newsy Docs (chassis)"
+    group: "Documentation"
+    url: "https://newsy.agent.ruinous.ai"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
