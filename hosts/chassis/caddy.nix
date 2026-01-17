@@ -105,25 +105,23 @@
   };
   
   # Add libby-docs static site
-  # TODO: Enable after libby-docs repo has v0.1.0 tag
-  # libbyDocsHost = {
-  #   "libby.agent.ruinous.ai" = {
-  #     extraConfig = ''
-  #       root * ${pkgs.libby-docs}
-  #       file_server
-  #       encode gzip
-  #       try_files {path} {path}/ /index.html
-  #       
-  #       header {
-  #         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-  #         X-Content-Type-Options "nosniff"
-  #         X-Frame-Options "DENY"
-  #         Referrer-Policy "strict-origin-when-cross-origin"
-  #       }
-  #     '';
-  #   };
-  # };
-  libbyDocsHost = {};
+  libbyDocsHost = {
+    "libby.agent.ruinous.ai" = {
+      extraConfig = ''
+        root * ${pkgs.libby-docs}
+        file_server
+        encode gzip
+        try_files {path} {path}/ /index.html
+
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+          X-Content-Type-Options "nosniff"
+          X-Frame-Options "DENY"
+          Referrer-Policy "strict-origin-when-cross-origin"
+        }
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
