@@ -6,8 +6,7 @@ pkgs.stdenv.mkDerivation rec {
   src = pkgs.fetchgit {
     url = "https://forge.meskill.farm/iamruinous/libby-docs.git";
     rev = "v${version}";
-    # TODO: Update hash after v0.1.0 is tagged in libby-docs repo
-    hash = "";
+    hash = "sha256-AGtWT+B/3R0cRLuINQQh1dmPL72cKR3zZ0wY/gbIiu0=";
   };
 
   nativeBuildInputs = with pkgs; [
