@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-  version = "0.11.0";
+  version = "0.12.1";
 in
   pkgs.stdenv.mkDerivation {
     pname = "codey-agent-system";
@@ -7,7 +7,7 @@ in
 
     src = pkgs.fetchzip {
       url = "https://forge.meskill.farm/iamruinous/codey-agent-system/releases/download/v${version}/codey-agent-system-${version}.zip";
-      sha256 = "sha256-Rf+Hlf8+qJ8DZmcP1g7JTJp7niX9S8Ht9fUyH4nk0Uc=";
+      sha256 = "sha256-WYWYbnyPGilBmhJngjOD++KoKvZ6ScIek7EuT0Bj844=";
     };
 
     dontBuild = true;
