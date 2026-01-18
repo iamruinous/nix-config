@@ -120,6 +120,11 @@ in {
         {
           Type = "oneshot";
           ExecStart = let
+            # Determine the DSN source - either direct config or from env var
+            dsnArg =
+              if cfg.databaseUrl != null
+              then "--dsn '${cfg.databaseUrl}'"
+              else "--dsn \"$DATABASE_URL\"";
             script = pkgs.writeShellScript "budgey-extractor-run" ''
               set -euo pipefail
 
@@ -132,13 +137,14 @@ in {
               echo "Running budgey-extractor ingest-postgres..."
               ${cfg.package}/bin/budgey-extractor \
                 --registry "${cfg.registryPath}" \
-                ingest-postgres
+                ingest-postgres ${dsnArg}
 
               echo "Budgey extraction complete."
             '';
           in "${script}";
         }
         // optionalAttrs (cfg.databaseUrl != null) {
+          # Still set DATABASE_URL for dbmate which uses it
           Environment = ["DATABASE_URL=${cfg.databaseUrl}"];
         }
         // optionalAttrs (cfg.environmentFile != null && cfg.databaseUrl == null) {

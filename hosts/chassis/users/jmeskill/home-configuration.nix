@@ -111,16 +111,23 @@
           budgey-extractor = {
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor";
             port = 9508;
-            caddy.fqdn = "budgey-extractor.oc.ruinous.social";
+            caddy.fqdn = "budgey-extractor.oc.ruinous.ai";
+          };
+
+          # budgey-dashboard - web service with Caddy
+          budgey-dashboard = {
+            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-dashboard";
+            port = 9509;
+            caddy.fqdn = "budgey-dashboard.oc.ruinous.ai";
           };
         };
       };
 
       # Scheduled ingestion of OpenCode session data into PostgreSQL
-      # Uses local postgres via Unix socket (peer auth, no password needed)
+      # Uses TCP with password auth via environment file
       budgey-extractor = {
         enable = true;
-        databaseUrl = "postgresql:///budgey?host=/run/postgresql";
+        environmentFile = config.age.secrets.chassis_budgey_env.path;
         migrationsDir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor/db/migrations";
       };
     };
@@ -128,6 +135,12 @@
 
   age.secrets.chassis_opencode_env = {
     rekeyFile = ./files/opencode/env.age;
+    mode = "400";
+  };
+
+  # Budgey database credentials (TCP with password auth)
+  age.secrets.chassis_budgey_env = {
+    rekeyFile = ./files/budgey/env.age;
     mode = "400";
   };
 

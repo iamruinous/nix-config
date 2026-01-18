@@ -755,6 +755,26 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "OpenCode - budgey-dashboard (chassis)"
+    group: "Development"
+    url: "https://budgey-dashboard.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
+  - name: "Budgey Dashboard (chassis)"
+    group: "Analytics"
+    url: "https://budgey.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   - name: "NATE Docs (chassis)"
     group: "Documentation"
     url: "https://nate.agent.ruinous.ai"

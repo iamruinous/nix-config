@@ -1,11 +1,11 @@
 {pkgs, ...}:
 pkgs.stdenv.mkDerivation rec {
   pname = "ruinagents-docs";
-  version = "0.6.2";
+  version = "0.7.0";
 
   src = pkgs.fetchzip {
     url = "https://forge.meskill.farm/iamruinous/ruinagents/releases/download/v${version}/ruinagents-docs-${version}.zip";
-    sha256 = "sha256-AB9rew1LAxdtO/TVBRsZOc+06CiB7VsgN3aAqvovXJY=";
+    sha256 = "sha256-WIVEuEf06gbdiR3qDlaACpTILbKXyvNqz6lfRWrOdwM=";
   };
 
   dontBuild = true;

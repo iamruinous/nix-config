@@ -141,6 +141,15 @@
       '';
     };
   };
+
+  # Budgey Dashboard - public token analytics dashboard
+  budgeyDashboardHost = {
+    "budgey.ruinous.ai" = {
+      extraConfig = ''
+        reverse_proxy http://localhost:8888
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
@@ -156,8 +165,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects and docs sites
-    virtualHosts = caddyVirtualHosts // codeyDocsHost // messyDocsHost // newsyDocsHost // nateDocsHost // libbyDocsHost // ruinagentsDocsHost;
+    # Merge OpenCode projects, docs sites, and budgey dashboard
+    virtualHosts = caddyVirtualHosts // codeyDocsHost // messyDocsHost // newsyDocsHost // nateDocsHost // libbyDocsHost // ruinagentsDocsHost // budgeyDashboardHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)

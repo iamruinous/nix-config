@@ -89,7 +89,8 @@ Skills are invoked with `/skill-name <arguments>`. If required arguments are mis
 
 | Skill | Trigger Phrase | What It Does |
 |-------|----------------|--------------|
-| `/create-nix-package` | "package this", "create nix package", "add to packages/" | Create new Nix package from source code or binary |
+| `/add-package` | "add package from URL", "package from GitHub", "create package from repo" | Analyze project from URL/path and auto-detect build system to create Nix package |
+| `/create-nix-package` | "package this", "create nix package", "add to packages/" | Create new Nix package from source code or binary (manual type selection) |
 | `/wrap-shell-script` | "wrap script", "nixify bash script" | Convert shell script into reproducible Nix package |
 | `/update-package` | "update package to", "bump version", "new release" | Update package version with automatic hash resolution |
 
