@@ -4,18 +4,81 @@ description: Add or update a DNS record in Cloudflare using cfcli
 compatibility: Requires cfcli (Cloudflare CLI)
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: dns
+parameters:
+  record_name:
+    type: string
+    description: DNS record name (subdomain)
+    required: true
+    placeholder: "myservice"
+  target:
+    type: select
+    description: Target host or address
+    required: true
+    options:
+      - label: "pilaster.meskill.farm"
+        description: "Main web services host"
+      - label: "monolith.meskill.farm"
+        description: "Infrastructure services host"
+      - label: "zenith.meskill.farm"
+        description: "AI/GPU workloads host"
+      - label: "obelisk.meskill.farm"
+        description: "GPU compute host"
+      - label: "chassis.meskill.farm"
+        description: "AI development workstation"
+      - label: "Enter custom target..."
+        description: "Specify a custom target"
+  record_type:
+    type: select
+    description: DNS record type
+    required: false
+    default: CNAME
+    options:
+      - label: "CNAME (Recommended)"
+        description: "Alias to another hostname"
+      - label: "A"
+        description: "Direct IP address"
+      - label: "TXT"
+        description: "Text record (verification, SPF)"
 ---
 
 # Add DNS Record
 
 Add or update a DNS record in Cloudflare for the meskill.farm domain.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Record name (e.g., `myservice`)
-- Target (e.g., `pilaster.meskill.farm`)
-- Optionally: record type (CNAME, A, TXT)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "What is the DNS record name (subdomain)?",
+      header: "Record Name",
+      options: [
+        { label: "Enter name...", description: "e.g., myservice, myservice.x (for testing)" }
+      ]
+    },
+    {
+      question: "What should this record point to?",
+      header: "Target",
+      options: [
+        { label: "pilaster.meskill.farm", description: "Main web services host" },
+        { label: "monolith.meskill.farm", description: "Infrastructure services" },
+        { label: "zenith.meskill.farm", description: "AI/GPU workloads" },
+        { label: "chassis.meskill.farm", description: "AI development workstation" },
+        { label: "Enter custom target...", description: "Specify IP or hostname" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<record_name> <target> [record_type]`
+- Example: `myservice pilaster.meskill.farm`
+- Example with type: `myservice pilaster.meskill.farm CNAME`
 
 ## Commands
 

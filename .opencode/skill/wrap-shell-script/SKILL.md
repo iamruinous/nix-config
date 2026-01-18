@@ -4,17 +4,54 @@ description: Convert a shell script into a reproducible Nix package
 compatibility: Requires nix
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: packaging
+parameters:
+  script_name:
+    type: string
+    description: Name for the wrapped script package
+    required: true
+    placeholder: "my-script"
+  script_path:
+    type: string
+    description: Path to existing script file (or "inline" to create new)
+    required: true
+    placeholder: "./scripts/backup.sh"
 ---
 
 # Wrap Shell Script
 
 Convert a shell script into a reproducible Nix package with proper dependency management.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Script name (e.g., `my-script`)
-- Script path or content
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "What should the packaged script be named?",
+      header: "Name",
+      options: [
+        { label: "Enter name...", description: "e.g., my-script (will be the command name)" }
+      ]
+    },
+    {
+      question: "Where is the script located?",
+      header: "Script Path",
+      options: [
+        { label: "Enter path...", description: "e.g., ./scripts/backup.sh" },
+        { label: "Create inline", description: "I'll provide the script content" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<script_name> <script_path>`
+- Example: `backup-script ./scripts/backup.sh`
+- Example: `my-tool inline` (then provide content)
 
 ## Steps
 

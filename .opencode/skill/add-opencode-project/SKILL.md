@@ -4,18 +4,74 @@ description: Add a new project to opencode-projects with DNS, Caddy, Gatus, and 
 compatibility: Requires cfcli, nix, ssh access to hosts
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: opencode
+parameters:
+  hostname:
+    type: select
+    description: Target host for the OpenCode project
+    required: true
+    options:
+      - label: "chassis (Recommended)"
+        description: "Primary AI development hub, ports 9500-9599"
+      - label: "obelisk"
+        description: "GPU compute server, ports 9600-9699"
+      - label: "zenith"
+        description: "AI container server, ports 9700-9799"
+    default: chassis
+  project_dir:
+    type: string
+    description: Full path to the project directory on the target host
+    required: true
+    placeholder: "~/Projects/farmforge/iamruinous/my-project"
+  domain:
+    type: string
+    description: Domain for the web interface (must end with .oc.ruinous.ai)
+    required: true
+    placeholder: "my-project.oc.ruinous.ai"
+    pattern: "*.oc.ruinous.ai"
 ---
 
 # Add OpenCode Project
 
 Add a new project to opencode-projects with full deployment: DNS, Caddy reverse proxy, Gatus monitoring, and host deployment.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Hostname (e.g., `chassis`)
-- Project directory (e.g., `~/Projects/farmforge/iamruinous/budgey-extractor`)
-- Domain for web interface (e.g., `budgey-extractor.oc.ruinous.ai`)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "Which host should run this OpenCode project?",
+      header: "Host",
+      options: [
+        { label: "chassis (Recommended)", description: "Primary AI development hub" },
+        { label: "obelisk", description: "GPU compute server" },
+        { label: "zenith", description: "AI container server" }
+      ]
+    },
+    {
+      question: "What is the full path to the project directory?",
+      header: "Project Dir",
+      options: [
+        { label: "Enter path...", description: "e.g., ~/Projects/farmforge/iamruinous/my-project" }
+      ]
+    },
+    {
+      question: "What domain should be used for the web interface?",
+      header: "Domain",
+      options: [
+        { label: "Enter domain...", description: "e.g., my-project.oc.ruinous.ai" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<hostname> <project_dir> <domain>`
+- Example: `chassis ~/Projects/farmforge/iamruinous/budgey-extractor budgey-extractor.oc.ruinous.ai`
 
 ## Prerequisites
 

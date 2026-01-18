@@ -4,18 +4,90 @@ description: Create a new Nix package from source code or binary
 compatibility: Requires nix
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: packaging
+parameters:
+  package_name:
+    type: string
+    description: Name for the package (lowercase, hyphens allowed)
+    required: true
+    placeholder: "myapp"
+  source_type:
+    type: select
+    description: Where the source code comes from
+    required: true
+    options:
+      - label: "GitHub (Recommended)"
+        description: "fetchFromGitHub - public GitHub repository"
+      - label: "Git repository"
+        description: "fetchgit - any git repo (including private)"
+      - label: "URL/archive"
+        description: "fetchurl - direct download URL"
+      - label: "Local"
+        description: "src = ./. - files in package directory"
+  build_system:
+    type: select
+    description: Language/build system for the package
+    required: true
+    options:
+      - label: "Go module"
+        description: "buildGoModule - Go with go.mod"
+      - label: "Rust/Cargo"
+        description: "buildRustPackage - Rust with Cargo.toml"
+      - label: "Python"
+        description: "buildPythonPackage - Python package"
+      - label: "Shell script"
+        description: "stdenv.mkDerivation - wrap shell script"
+      - label: "Binary"
+        description: "stdenv.mkDerivation - prebuilt binary"
 ---
 
 # Create Nix Package
 
 Create a new Nix package from source code, a binary, or a script.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Package name (e.g., `myapp`)
-- Source type (git, url, local)
-- Language/build system (rust, python, go, shell, binary)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "What should the package be named?",
+      header: "Name",
+      options: [
+        { label: "Enter name...", description: "e.g., myapp (lowercase, hyphens OK)" }
+      ]
+    },
+    {
+      question: "Where does the source code come from?",
+      header: "Source",
+      options: [
+        { label: "GitHub (Recommended)", description: "Public GitHub repository" },
+        { label: "Git repository", description: "Any git repo (including private)" },
+        { label: "URL/archive", description: "Direct download URL" },
+        { label: "Local", description: "Files in package directory" }
+      ]
+    },
+    {
+      question: "What language/build system does it use?",
+      header: "Build",
+      options: [
+        { label: "Go module", description: "Go with go.mod" },
+        { label: "Rust/Cargo", description: "Rust with Cargo.toml" },
+        { label: "Python", description: "Python package" },
+        { label: "Shell script", description: "Wrap shell script" },
+        { label: "Binary", description: "Prebuilt binary" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<package_name> <source_type> <build_system>`
+- Example: `myapp github go`
+- Example: `mytool local shell`
 
 ## Package Directory Structure
 

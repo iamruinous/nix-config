@@ -4,17 +4,53 @@ description: Update a local Nix package to a new version with automatic hash res
 compatibility: Requires nix
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: packaging
+parameters:
+  package_name:
+    type: string
+    description: Name of existing package in packages/ directory
+    required: true
+    placeholder: "forgejo-mcp"
+  new_version:
+    type: string
+    description: New version or tag to update to
+    required: true
+    placeholder: "2.6.0"
 ---
 
 # Update Package
 
 Update a local Nix package in `packages/` to a new version, automatically resolving the new hash.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Package name (e.g., `forgejo-mcp`, `weaviate-cli`)
-- New version/tag (e.g., `2.6.0`, `v3.3.0`)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "Which package do you want to update?",
+      header: "Package",
+      options: [
+        { label: "Enter package name...", description: "e.g., forgejo-mcp, weaviate-cli" }
+      ]
+    },
+    {
+      question: "What version should it be updated to?",
+      header: "Version",
+      options: [
+        { label: "Enter version...", description: "e.g., 2.6.0, v3.3.0" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<package_name> <new_version>`
+- Example: `forgejo-mcp 2.6.0`
+- Example: `weaviate-cli v3.3.0`
 
 ## Steps
 

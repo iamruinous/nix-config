@@ -4,18 +4,67 @@ description: Extract KDE settings and convert to plasma-manager Nix configuratio
 compatibility: Requires KDE/Plasma desktop environment
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
+parameters:
+  config_file:
+    type: select
+    description: KDE config file to extract settings from
+    required: true
+    options:
+      - label: "kwinrc (Recommended)"
+        description: "Window manager - tiling, effects, desktops"
+      - label: "kdeglobals"
+        description: "Global KDE settings - theme, fonts, colors"
+      - label: "kglobalshortcutsrc"
+        description: "Keyboard shortcuts"
+      - label: "plasmarc"
+        description: "Plasma shell settings"
+      - label: "kscreenlockerrc"
+        description: "Lock screen settings"
+      - label: "kcminputrc"
+        description: "Input device settings"
+      - label: "all"
+        description: "List all available config files"
+      - label: "Enter other..."
+        description: "Specify a custom config file"
+  section_filter:
+    type: string
+    description: Optional section to filter (e.g., "TabBox", "Desktops")
+    required: false
+    placeholder: "TabBox"
 ---
 
 # KDE Extract
 
 Extract current KDE/Plasma settings from config files and convert them to declarative plasma-manager Nix configuration.
 
-**Arguments:** `$ARGUMENTS` should contain one of:
-- A config file name (e.g., "kwinrc", "kdeglobals", "kglobalshortcutsrc")
-- A section name to filter (e.g., "TabBox", "Desktops", "Windows")
-- "all" to show all available config files
-- Empty to interactively choose
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "Which KDE config file do you want to extract?",
+      header: "Config File",
+      options: [
+        { label: "kwinrc (Recommended)", description: "Window manager settings" },
+        { label: "kdeglobals", description: "Global theme, fonts, colors" },
+        { label: "kglobalshortcutsrc", description: "Keyboard shortcuts" },
+        { label: "plasmarc", description: "Plasma shell settings" },
+        { label: "all", description: "List all available config files" },
+        { label: "Enter other...", description: "Specify custom config file" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<config_file> [section_filter]`
+- Example: `kwinrc` (all sections)
+- Example: `kwinrc TabBox` (only TabBox section)
+- Example: `all` (list all config files)
 
 ## Steps
 
