@@ -187,6 +187,15 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 - **Docker** on: monolith, obelisk, pilaster, zenith, tty-ruinous-social
 - **MicroVM** on: obelisk (hosts 2 VMs)
 
+### Container Networks
+
+| Network | Purpose | Hosts |
+|---------|---------|-------|
+| `servicenet` | Inter-container + Caddy access | All container hosts |
+| `datanet` | Internal databases (`--internal`) | All container hosts |
+| `proxynet` | Host port binding | All container hosts |
+| `forgejo-actions` | CI/CD runners | monolith |
+
 ### Network Services
 - **NFS**: monolith, obelisk, pilaster
 - **Printing (CUPS)**: monolith, obelisk, framework

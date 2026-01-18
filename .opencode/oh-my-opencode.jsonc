@@ -2,42 +2,45 @@
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
 
   // Project: iamruinous/nix-config
-  // NixOS configuration repository with custom agents for secrets, containers, and Cloudflare
+  // NixOS/Darwin declarative infrastructure for 24 hosts
+  // SME: NIXEY (https://agents.ruinous.ai/smes/nixey/)
 
-  // Agent overrides - customize for NixOS workflow
+  // Context files for LLM-friendly loading
+  // - llms.txt: Primary LLM index (llmstxt.org format)
+  // - AGENTS.md: Minimal entry point with tiered loading
+  // - hosts/README.md: Host inventory and specs
+  // - secrets/README.md: Agenix patterns
+
+  // Agent overrides - NIXEY-aware prompts
   "agents": {
-    // Oracle for architecture decisions and debugging
     "oracle": {
-      "prompt_append": "This is a NixOS configuration repository. When reviewing code, consider Nix-specific patterns like modules, overlays, and flake structure."
+      "prompt_append": "This is NIXEY's domain - a NixOS infrastructure repository for 24 hosts. Consider Nix-specific patterns (modules, overlays, flakes), container networks (servicenet/datanet/proxynet), and agenix secrets. Reference https://agents.ruinous.ai/smes/nixey/ for full context."
     },
 
-    // Librarian should know about NixOS documentation sources
     "librarian": {
-      "prompt_append": "For NixOS questions, search the NixOS Wiki, Home Manager options, and the nixpkgs manual. Use the nixos MCP tools for option lookups."
+      "prompt_append": "For NixOS questions, use the nixos MCP server for option lookups. Also search: NixOS Wiki, Home Manager manual, nixpkgs manual, and Nix Flakes documentation. This repo uses Blueprint for flake structure."
     },
 
-    // Explore for codebase navigation
     "explore": {
-      "prompt_append": "This is a NixOS configuration with hosts/, modules/, packages/, and secrets/ directories. Look for patterns in existing configurations."
+      "prompt_append": "NIXEY infrastructure repo. Key directories: hosts/ (24 configs), modules/ (nixos/darwin/home), packages/, secrets/. Container hosts: monolith, pilaster, zenith, obelisk. Look for patterns in existing host configurations."
     }
   },
 
-  // Hooks configuration
-  // All hooks enabled by default - disable specific ones if needed
+  // Hooks - all enabled
   "disabled_hooks": [],
 
   // MCPs - all defaults enabled
-  // context7, websearch_exa, grep_app enabled by default
-  "disabled_mcps": [],
+  // context7, websearch_exa, grep_app, nixos, postgres-* servers
+  "disabled_mcps": ["forgejo"],
 
-  // Ralph Loop - enables autonomous self-correction for all agents
-  // Agents will Plan -> Execute -> Verify -> Self-correct up to max_iterations
+  // Ralph Loop - autonomous self-correction
   "ralph_loop": {
     "enabled": true,
     "default_max_iterations": 10
   },
 
-  // Claude Code compatibility - all enabled
+  // Claude Code compatibility - read from .claude/ for backward compat
+  // Primary location is now .opencode/
   "claude_code": {
     "mcp": true,
     "commands": true,
