@@ -261,6 +261,25 @@ Command line interface to interact with Weaviate vector database.
 
 ---
 
+
+### [budgey-extractor](budgey-extractor/README.md)
+
+Offline OpenCode session extractor for Postgres + Weaviate.
+
+**Purpose**: Parses OpenCode session JSON to produce budget analytics in Postgres and semantic search in Weaviate.
+
+**Key Features**:
+- Offline ingestion (cron-friendly)
+- Token usage aggregation per message/session
+- Weaviate session transcript indexing
+- dbmate-managed Postgres migrations
+
+**Used By**: BUDGEY reporting and training data workflows
+
+**Version**: 0.1.0
+
+---
+
 ## Usage
 
 These packages are automatically available to all hosts in this flake. To use them in a host configuration:
