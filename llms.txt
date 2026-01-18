@@ -1,0 +1,204 @@
+# nix-config
+
+> NixOS/Darwin declarative infrastructure for 24 hosts. NIXEY is the infrastructure SME.
+
+This repository manages system configurations across NixOS and macOS using Nix Flakes and Blueprint. All infrastructure decisions flow through NIXEY, the subject matter expert defined at agents.ruinous.ai.
+
+## Primary Context
+
+- [NIXEY SME](https://agents.ruinous.ai/smes/nixey/): Infrastructure specialist - NixOS, containers, secrets, DNS
+- [AGENTS.md](AGENTS.md): Local project context and tiered loading
+- [Ruinous Agents](https://agents.ruinous.ai/llms.txt): Global agent ecosystem
+
+## Repository Structure
+
+```
+nix-config/
+├── hosts/           # 24 host configurations
+├── modules/         # Reusable NixOS/Darwin/Home Manager modules
+│   ├── nixos/       # NixOS-specific (default/, desktop/, server/)
+│   ├── darwin/      # macOS-specific
+│   └── home/        # Home Manager modules
+├── packages/        # Custom Nix packages
+├── secrets/         # Encrypted secrets (agenix)
+├── users/           # User configurations
+├── devshells/       # Development environments
+└── .opencode/       # oh-my-opencode configuration
+```
+
+## Infrastructure
+
+- [Hosts](hosts/README.md): All 24 host configurations with specs and roles
+- [Networks](docs/NETWORKS.md): VLANs, DNS domains, container networks
+- [Modules](modules/): Reusable configuration modules
+- [Packages](packages/README.md): Custom Nix packages (agenix-helper, backup tools, etc.)
+- [Secrets](secrets/README.md): Agenix encryption patterns and workflows
+
+## Host Inventory
+
+### Container Hosts (Primary Workloads)
+
+| Host | Hardware | CPU | RAM | Role | GPU |
+|------|----------|-----|-----|------|-----|
+| monolith | MS-01 | i9-13900H | 96GB | Infrastructure hub, Cloudflared | - |
+| pilaster | MS-01 | i9-13900H | 96GB | Container server | - |
+| zenith | MS-S1 MAX | Ryzen AI Max+ 395 | 128GB | AI containers | Radeon 8060S |
+| obelisk | Aurora R16 | i9-14900KF | 64GB | GPU compute, MicroVMs | RTX 4090 |
+
+### Workstations
+
+| Host | Type | CPU | RAM | Role |
+|------|------|-----|-----|------|
+| chassis | Desktop | Ryzen AI Max+ 395 | 128GB | Primary dev, OpenCode services |
+| framework | Laptop | Ultra 5 125H | 32GB | Mobile dev |
+| jbookpro | MacBook Pro | M4 | 32GB | macOS dev |
+| jmacmini | Mac mini | M2 Pro | 16GB | macOS dev |
+| studio | iMac Pro | Xeon W | 32GB | macOS dev |
+
+### Raspberry Pi Cluster (RPC)
+
+| Host | Model | RAM |
+|------|-------|-----|
+| rpc-5-alpha, rpc-5-bravo, rpc-5-charlie, rpc-5-delta | Pi 5 | 8GB |
+| rpc-4-echo, rpc-4-foxtrot, rpc-4-golf, rpc-4-hotel | Pi 4 | 4GB |
+
+### Other
+
+| Host | Type | Role |
+|------|------|------|
+| armistice | ARM Server | ARM workstation |
+| void, gap | Thin Client | HA pair (VRRP) |
+| tty-ruinous-social | VPS | Cloud services |
+| ruinous-tty, messy-tty | MicroVM | Dev environments |
+
+## Network Architecture
+
+### VLANs
+
+| Network | CIDR | Hosts |
+|---------|------|-------|
+| Management | 10.55.10.0/24 | void, gap |
+| Services | 10.55.20.0/24 | monolith, obelisk, pilaster, zenith |
+| Home | 10.55.30.0/24 | Workstations, IoT, home devices |
+
+### Container Networks
+
+| Network | Purpose | Flags |
+|---------|---------|-------|
+| servicenet | Inter-container + Caddy access | - |
+| datanet | Internal databases | --internal |
+| proxynet | Host port binding | - |
+
+### DNS Domains
+
+| Domain | Purpose |
+|--------|---------|
+| `meskill.farm` | Internal production services |
+| `ruinous.ai` | Agent ecosystem |
+| `ruinous.social` | Public-facing (blog, social, bookmarks) |
+
+**Patterns:**
+- `<service>.meskill.farm` → Internal services
+- `<service>.x.meskill.farm` → Testing/staging (zenith)
+- `<service>-int.meskill.farm` → Pre-tunnel internal endpoints
+- `<persona>.agent.ruinous.ai` → Agent documentation
+- `<project>.oc.ruinous.ai` → OpenCode web services
+- `<service>.ruinous.social` → Public-facing services
+- `<host>.greyhound-triceratops.ts.net` → Tailscale MagicDNS
+
+## Skills (Workflows)
+
+| Skill | Purpose |
+|-------|---------|
+| `/deploy-container` | Full container deployment workflow |
+| `/create-db-<host>` | PostgreSQL database creation (pilaster, monolith, zenith) |
+| `/setup-tunnel` | Cloudflare tunnel configuration |
+| `/pr` | Branch, commit, create PR |
+| `/automerge` | Branch, commit, create PR, merge |
+| `/create-pi-host` | Bootstrap new Raspberry Pi |
+
+## Commands
+
+```bash
+# Deployment
+just remote-rebuild <host>     # Deploy to remote host
+just remote-dry-build <host>   # Verify without deploying
+just check                     # Dry-build representative hosts
+
+# Secrets
+agenix-helper unlock           # Unlock for editing
+agenix-helper lock             # Lock when done
+agenix rekey -a                # Rekey after changes
+
+# Development
+nix develop                    # Enter dev shell
+nix build .#<package>          # Build package
+```
+
+## Secrets Management (agenix)
+
+### File Locations
+
+| Purpose | Path |
+|---------|------|
+| Caddyfiles | `hosts/<host>/files/caddy/Caddyfile.age` |
+| Docker env | `hosts/<host>/files/docker/env/<service>.env.age` |
+| Cloudflared | `hosts/<host>/files/cloudflared/*.age` |
+
+### Workflow
+
+```bash
+agenix-helper unlock
+agenix view file.age > /tmp/edit.txt
+# ... edit ...
+rm file.age && agenix edit -i /tmp/edit.txt file.age
+rm /tmp/edit.txt && agenix rekey -a
+agenix-helper lock
+```
+
+## Container Deployment Pattern
+
+1. Define container in `hosts/<host>/containers.nix`
+2. Create encrypted env file → agenix
+3. Create DNS record → cfcli
+4. Update Caddy routes → docker-caddy module or Caddyfile.age
+5. Verify: `just remote-dry-build <host>`
+6. Deploy: `just remote-rebuild <host>`
+
+## Docker Caddy Module
+
+Declarative Caddy routes in Nix:
+
+```nix
+services.docker-caddy = {
+  enable = true;
+  secretsFile = config.age.secrets.caddy_secrets.path;
+  routes = {
+    "app.meskill.farm" = {
+      upstream = "app:8080";
+      description = "Application";
+    };
+  };
+};
+```
+
+## MCP Servers
+
+| MCP | Purpose |
+|-----|---------|
+| nixos | NixOS/Home Manager/Darwin options search |
+| postgres-pilaster | Pilaster database queries |
+| postgres-monolith | Monolith database queries |
+| postgres-zenith | Zenith database queries |
+
+## Documentation
+
+- Format: Material for MkDocs
+- Nix formatting: alejandra
+- CI: `just check` for validation
+
+## Related
+
+- [Ruinous Agents](https://agents.ruinous.ai/): Agent ecosystem
+- [NIXEY SME](https://agents.ruinous.ai/smes/nixey/): Full infrastructure expertise
+- [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode): Agent framework
