@@ -108,14 +108,46 @@ nix-config/
 
 ## Skills (Workflows)
 
+### Secrets Management
+
+| Skill | Purpose |
+|-------|---------|
+| `/encrypt-secret` | Create or update an encrypted .age file |
+| `/view-secret` | Decrypt and view a secret |
+| `/rekey-secrets` | Re-encrypt all secrets after changes |
+
+### DNS & Networking
+
+| Skill | Purpose |
+|-------|---------|
+| `/add-dns-record` | Add CNAME/A record to Cloudflare |
+| `/setup-cloudflare-tunnel` | Create and configure a Cloudflare tunnel |
+| `/add-caddy-route` | Add reverse proxy route to Caddyfile |
+
+### Container Deployment
+
 | Skill | Purpose |
 |-------|---------|
 | `/deploy-container` | Full container deployment workflow |
-| `/create-db-<host>` | PostgreSQL database creation (pilaster, monolith, zenith) |
-| `/setup-tunnel` | Cloudflare tunnel configuration |
-| `/pr` | Branch, commit, create PR |
-| `/automerge` | Branch, commit, create PR, merge |
-| `/create-pi-host` | Bootstrap new Raspberry Pi |
+| `/create-db` | PostgreSQL database (asks which host) |
+| `/create-db-pilaster` | Create database on pilaster |
+| `/create-db-monolith` | Create database on monolith |
+| `/create-db-zenith` | Create database on zenith |
+
+### Nix Packaging
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-nix-package` | Create new Nix package from source |
+| `/wrap-shell-script` | Convert shell script to Nix package |
+| `/update-package` | Update package version with automatic hash resolution |
+
+### Infrastructure
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-pi-host` | Bootstrap new Raspberry Pi cluster node |
+| `/kde-extract` | Extract KDE settings to plasma-manager config |
 
 ## Commands
 
