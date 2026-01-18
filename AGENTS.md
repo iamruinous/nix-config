@@ -11,16 +11,7 @@
 This repository is the domain of **[NIXEY](https://agents.ruinous.ai/smes/nixey/)**, the infrastructure subject matter expert for ruinous.ai.
 
 **NIXEY provides:** Infrastructure context, deployment patterns, architecture decisions  
-**Sisyphus executes:** Via oh-my-opencode orchestration and specialized agents
-
-### Specialized Agents
-
-| Agent | Domain | Triggers |
-|-------|--------|----------|
-| **agenix** | Secrets (.age files), encryption, rekeying | encrypt, secret, .age |
-| **cfnix** | Cloudflare DNS, tunnels, SSL | DNS, tunnel, cloudflare |
-| **containnix** | Docker containers, networks, Caddy | container, deploy, service |
-| **nix-packager** | Nix package creation | package, derivation |
+**Sisyphus executes:** Via oh-my-opencode orchestration and skills
 
 ---
 
@@ -69,23 +60,55 @@ agenix-helper unlock           # Unlock secrets for editing
 
 ## Skills
 
+### Secrets Management
+
+| Skill | Purpose |
+|-------|---------|
+| `/encrypt-secret` | Create or update an encrypted .age file |
+| `/view-secret` | Decrypt and view a secret |
+| `/rekey-secrets` | Re-encrypt all secrets after changes |
+
+### DNS & Networking
+
+| Skill | Purpose |
+|-------|---------|
+| `/add-dns-record` | Add CNAME/A record to Cloudflare |
+| `/setup-cloudflare-tunnel` | Create and configure a Cloudflare tunnel |
+| `/add-caddy-route` | Add reverse proxy route to Caddyfile |
+
+### Container Deployment
+
 | Skill | Purpose |
 |-------|---------|
 | `/deploy-container` | Full container deployment workflow |
-| `/create-db-<host>` | PostgreSQL database (pilaster, monolith, zenith) |
-| `/setup-tunnel` | Cloudflare tunnel configuration |
-| `/pr` | Branch, commit, create PR |
-| `/automerge` | Branch, commit, create PR, merge |
+| `/create-db` | Create PostgreSQL database (asks which host) |
+| `/create-db-pilaster` | Create database on pilaster |
+| `/create-db-monolith` | Create database on monolith |
+| `/create-db-zenith` | Create database on zenith |
+
+### Nix Packaging
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-nix-package` | Create new Nix package from source |
+| `/wrap-shell-script` | Convert shell script to Nix package |
+| `/update-package` | Update package version with automatic hash resolution |
+
+### Infrastructure
+
+| Skill | Purpose |
+|-------|---------|
 | `/create-pi-host` | Bootstrap new Raspberry Pi cluster node |
+| `/kde-extract` | Extract KDE settings to plasma-manager config |
 
 ---
 
 ## Container Deployment Pattern
 
 1. Define container in `hosts/<host>/containers.nix`
-2. Create encrypted env → delegate to **agenix**
-3. Create DNS record → delegate to **cfnix**
-4. Configure Caddy routes → `services.docker-caddy` or Caddyfile.age
+2. Create encrypted env → `/encrypt-secret`
+3. Create DNS record → `/add-dns-record`
+4. Configure Caddy routes → `/add-caddy-route`
 5. Verify: `just remote-dry-build <host>`
 6. Deploy: `just remote-rebuild <host>`
 
