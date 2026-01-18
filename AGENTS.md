@@ -58,48 +58,69 @@ agenix-helper unlock           # Unlock secrets for editing
 
 ---
 
-## Skills
+## Skills Catalog
+
+Skills are invoked with `/skill-name <arguments>`. Use these when the trigger phrase matches your task.
 
 ### Secrets Management
 
-| Skill | Purpose |
-|-------|---------|
-| `/encrypt-secret` | Create or update an encrypted .age file |
-| `/view-secret` | Decrypt and view a secret |
-| `/rekey-secrets` | Re-encrypt all secrets after changes |
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/encrypt-secret` | "create secret", "encrypt env file", "add credentials" | Create or update an encrypted `.age` file using agenix |
+| `/view-secret` | "show secret", "decrypt", "view credentials" | Decrypt and display contents of an `.age` file |
+| `/rekey-secrets` | "rekey", "rotate keys", "new host added" | Re-encrypt all secrets after modifying `secrets.nix` or host keys |
 
 ### DNS & Networking
 
-| Skill | Purpose |
-|-------|---------|
-| `/add-dns-record` | Add CNAME/A record to Cloudflare |
-| `/setup-cloudflare-tunnel` | Create and configure a Cloudflare tunnel |
-| `/add-caddy-route` | Add reverse proxy route to Caddyfile |
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/add-dns-record` | "add DNS", "create CNAME", "point domain" | Add CNAME/A record to Cloudflare via cfcli |
+| `/setup-cloudflare-tunnel` | "external access", "expose service", "create tunnel" | Create and configure a Cloudflare Tunnel for public access |
+| `/add-caddy-route` | "reverse proxy", "add route", "proxy to container" | Add reverse proxy route to encrypted Caddyfile |
 
 ### Container Deployment
 
-| Skill | Purpose |
-|-------|---------|
-| `/deploy-container` | Full container deployment workflow |
-| `/create-db` | Create PostgreSQL database (asks which host) |
-| `/create-db-pilaster` | Create database on pilaster |
-| `/create-db-monolith` | Create database on monolith |
-| `/create-db-zenith` | Create database on zenith |
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/deploy-container` | "deploy new service", "add container", "full deployment" | Complete workflow: secrets + Caddy + DNS + container definition |
+| `/create-db` | "create database", "new postgres db" | Create PostgreSQL database (prompts for host selection) |
+| `/create-db-pilaster` | "database on pilaster" | Create database on pilaster specifically |
+| `/create-db-monolith` | "database on monolith" | Create database on monolith specifically |
+| `/create-db-zenith` | "database on zenith" | Create database on zenith specifically |
 
 ### Nix Packaging
 
-| Skill | Purpose |
-|-------|---------|
-| `/create-nix-package` | Create new Nix package from source |
-| `/wrap-shell-script` | Convert shell script to Nix package |
-| `/update-package` | Update package version with automatic hash resolution |
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/create-nix-package` | "package this", "create nix package", "add to packages/" | Create new Nix package from source code or binary |
+| `/wrap-shell-script` | "wrap script", "nixify bash script" | Convert shell script into reproducible Nix package |
+| `/update-package` | "update package to", "bump version", "new release" | Update package version with automatic hash resolution |
 
 ### Infrastructure
 
-| Skill | Purpose |
-|-------|---------|
-| `/create-pi-host` | Bootstrap new Raspberry Pi cluster node |
-| `/kde-extract` | Extract KDE settings to plasma-manager config |
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/create-pi-host` | "new raspberry pi", "add pi to cluster" | Bootstrap new Raspberry Pi cluster node configuration |
+| `/kde-extract` | "extract KDE settings", "plasma config" | Extract KDE/Plasma settings to plasma-manager Nix config |
+
+### Skill Selection Guide
+
+**Starting a new service?**
+1. `/deploy-container` - Full workflow (recommended for new services)
+2. Or manually: `/create-db-<host>` → `/encrypt-secret` → `/add-caddy-route` → `/add-dns-record`
+
+**Updating existing code?**
+- `/update-package <name> <version>` - For packages in `packages/`
+
+**Working with secrets?**
+- Always run `agenix-helper unlock` first
+- `/encrypt-secret` for new secrets
+- `/view-secret` to inspect existing
+- `/rekey-secrets` after changing `secrets.nix`
+
+**Need external access?**
+- Internal only: `/add-caddy-route`
+- Public access: `/setup-cloudflare-tunnel` + `/add-dns-record`
 
 ---
 
