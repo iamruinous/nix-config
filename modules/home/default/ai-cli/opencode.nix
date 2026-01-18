@@ -737,15 +737,15 @@ in {
       ];
 
       ruinous.ai-cli.opencode.plugins = [
-        "oh-my-opencode@v3.0.0-beta.7"
+        "oh-my-opencode@v3.0.0-beta.9"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
-        "opencode-anthropic-auth@0.0.8"
+        "opencode-anthropic-auth@latest"
       ];
 
       # Default oh-my-opencode agent model configurations
       ruinous.ai-cli.opencode.omoAgents = {
-        oracle.model = "openai/gpt-5.1-codex-max";
+        # oracle.model = "openai/gpt-5.1-codex-max";
         librarian.model = "google/gemini-3-flash-preview";
         explore.model = "xai/grok-code-fast-1";
         frontend-ui-ux-engineer = {
