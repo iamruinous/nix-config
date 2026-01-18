@@ -1,35 +1,22 @@
 {pkgs, ...}:
 pkgs.stdenv.mkDerivation rec {
   pname = "ruinagents-docs";
-  version = "0.1.0";
+  version = "0.5.2";
 
-  src = pkgs.fetchgit {
-    url = "https://forge.meskill.farm/iamruinous/ruinagents.git";
-    rev = "v${version}";
-    hash = "sha256-ZDFakt+V/7xImUN7t6mmRJ85SjAFDFVlWUbPwSEdY4s=";
+  src = pkgs.fetchzip {
+    url = "https://forge.meskill.farm/iamruinous/ruinagents/releases/download/v${version}/ruinagents-docs-${version}.zip";
+    sha256 = "sha256-go3dbEOiLtvYQ2Yfy7P3Xs2aKoJKGKR7hI2J9lD6yTQ=";
   };
 
-  nativeBuildInputs = with pkgs; [
-    python3
-    python3Packages.mkdocs-material
-  ];
-
-  buildPhase = ''
-    runHook preBuild
-    
-    # Build MkDocs site (strict mode disabled due to WIP docs)
-    mkdocs build
-    
-    runHook postBuild
-  '';
+  dontBuild = true;
 
   installPhase = ''
     runHook preInstall
-    
+
     # Copy built site to output
     mkdir -p $out
-    cp -r site/* $out/
-    
+    cp -r * $out/
+
     runHook postInstall
   '';
 

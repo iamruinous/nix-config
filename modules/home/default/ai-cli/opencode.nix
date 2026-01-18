@@ -383,12 +383,12 @@ with lib; let
         '';
       };
 
-      codeyAgentSystemEnable = mkOption {
+      ruinagentsGlobalEnable = mkOption {
         type = types.nullOr types.bool;
         default = null;
         description = ''
-          Override codey-agent-system AGENTS.md for this config directory.
-          If null, inherits from the main codeyAgentSystem.enable setting.
+          Override ruinagents-global AGENTS.md for this config directory.
+          If null, inherits from the main ruinagentsGlobal.enable setting.
         '';
       };
 
@@ -442,10 +442,10 @@ with lib; let
       if dirCfg.omoGoogleAuth != null
       then dirCfg.omoGoogleAuth
       else cfg.omoGoogleAuth;
-    codeyAgentSystemEnable =
-      if dirCfg.codeyAgentSystemEnable != null
-      then dirCfg.codeyAgentSystemEnable
-      else cfg.codeyAgentSystem.enable;
+    ruinagentsGlobalEnable =
+      if dirCfg.ruinagentsGlobalEnable != null
+      then dirCfg.ruinagentsGlobalEnable
+      else cfg.ruinagentsGlobal.enable;
     notifierEnable =
       if dirCfg.notifier.enable != null
       then dirCfg.notifier.enable
@@ -524,6 +524,33 @@ with lib; let
 
   # Check if any config has notifier enabled
   anyNotifierEnabled = any (c: c.resolved.notifierEnable) (attrValues processedConfigs);
+
+  ruinagentsGlobalPackage = pkgs.callPackage ./../../../../packages/ruinagents-global {};
+  ruinagentsGlobalShare = "${ruinagentsGlobalPackage}/share/ruinagents-global";
+  firstExisting = paths: let
+    existing = builtins.filter (path: builtins.pathExists path) paths;
+  in
+    if existing == []
+    then null
+    else builtins.head existing;
+  skillSourcePath = firstExisting [
+    "${ruinagentsGlobalShare}/skill"
+    "${ruinagentsGlobalShare}/.skills"
+  ];
+  commandSourcePath = firstExisting [
+    "${ruinagentsGlobalShare}/command"
+    "${ruinagentsGlobalShare}/commands"
+    "${ruinagentsGlobalShare}/.command"
+    "${ruinagentsGlobalShare}/.commands"
+  ];
+  skillNames =
+    if skillSourcePath == null
+    then []
+    else builtins.filter (name: builtins.pathExists "${skillSourcePath}/${name}/SKILL.md") (builtins.attrNames (builtins.readDir skillSourcePath));
+  commandNames =
+    if commandSourcePath == null
+    then []
+    else builtins.filter (name: builtins.pathExists "${commandSourcePath}/${name}") (builtins.attrNames (builtins.readDir commandSourcePath));
 in {
   options.ruinous.ai-cli.opencode = {
     enable = mkEnableOption "OpenCode CLI configuration management";
@@ -652,11 +679,11 @@ in {
       description = "Whether to enable Google authentication in oh-my-opencode.";
     };
 
-    codeyAgentSystem = {
+    ruinagentsGlobal = {
       enable = mkOption {
         type = types.bool;
         default = true;
-        description = "Whether to enable codey-agent-system (AGENTS.md, protocols, skills).";
+        description = "Whether to enable ruinagents-global (AGENTS.md, protocols, skills).";
       };
     };
 
@@ -790,36 +817,58 @@ in {
 
     # Generate home.file entries for all config directories
     {
-      home.file = mkMerge (map (name: let
-        pc = processedConfigs.${name};
-        resolved = pc.resolved;
-      in
-        {
-          "${resolved.configDir}/oh-my-opencode.json".source =
-            jsonFormat.generate "oh-my-opencode.json" (generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth);
-          "${resolved.configDir}/package.json".text = builtins.toJSON {
-            name = "opencode-plugins";
-            dependencies = builtins.listToAttrs (
-              map (plugin: let
-                parts = lib.splitString "@" plugin;
-                pname = builtins.head parts;
-                version =
-                  if builtins.length parts > 1
-                  then builtins.elemAt parts 1
-                  else "latest";
-              in {
-                name = pname;
-                value = version;
-              })
-              resolved.plugins
-            );
-          };
-        }
-        // optionalAttrs resolved.codeyAgentSystemEnable {
-          "${resolved.configDir}/AGENTS.md".source = "${pkgs.codey-agent-system}/share/codey-agent-system/AGENTS.md";
-          "${resolved.configDir}/protocols".source = "${pkgs.codey-agent-system}/share/codey-agent-system/protocols";
-          "${resolved.configDir}/skill".source = "${pkgs.codey-agent-system}/share/codey-agent-system/skill";
-        }) (attrNames cfg.configs));
+      home.file = mkMerge (map (
+        name: let
+          pc = processedConfigs.${name};
+          resolved = pc.resolved;
+          skillLinks =
+            if skillSourcePath == null
+            then {}
+            else
+              builtins.listToAttrs (map (skill: {
+                  name = "${resolved.configDir}/skill/${skill}/SKILL.md";
+                  value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
+                })
+                skillNames);
+          commandLinks =
+            if commandSourcePath == null
+            then {}
+            else
+              builtins.listToAttrs (map (cmd: {
+                  name = "${resolved.configDir}/command/${cmd}";
+                  value = {source = "${commandSourcePath}/${cmd}";};
+                })
+                commandNames);
+          ruinagentsEntries =
+            {
+              "${resolved.configDir}/AGENTS.md".source = "${ruinagentsGlobalShare}/AGENTS.md";
+            }
+            // skillLinks
+            // commandLinks;
+        in
+          {
+            "${resolved.configDir}/oh-my-opencode.json".source =
+              jsonFormat.generate "oh-my-opencode.json" (generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth);
+            "${resolved.configDir}/package.json".text = builtins.toJSON {
+              name = "opencode-plugins";
+              dependencies = builtins.listToAttrs (
+                map (plugin: let
+                  parts = lib.splitString "@" plugin;
+                  pname = builtins.head parts;
+                  version =
+                    if builtins.length parts > 1
+                    then builtins.elemAt parts 1
+                    else "latest";
+                in {
+                  name = pname;
+                  value = version;
+                })
+                resolved.plugins
+              );
+            };
+          }
+          // optionalAttrs resolved.ruinagentsGlobalEnable ruinagentsEntries
+      ) (attrNames cfg.configs));
     }
 
     # Generate activation scripts for all config directories

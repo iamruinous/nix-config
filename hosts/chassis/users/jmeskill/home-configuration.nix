@@ -27,8 +27,14 @@
       enable = true;
       sessions.hub = {
         windows = [
-          {name = "top"; command = "btop";}
-          {name = "shell"; focus = true;}
+          {
+            name = "top";
+            command = "btop";
+          }
+          {
+            name = "shell";
+            focus = true;
+          }
         ];
       };
     };
@@ -80,13 +86,6 @@
             ];
           };
 
-          # codey-agent-system - web service with Caddy
-          codey = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/codey-agent-system";
-            port = 9503;
-            caddy.fqdn = "codey.oc.ruinous.ai";
-          };
-
           # kimaki-discord-voice-bot - web service with Caddy
           kimaki-discord = {
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/kimaki-discord-voice-bot";
@@ -99,23 +98,6 @@
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/n8n-messy-discord-bot/";
             port = 9505;
             caddy.fqdn = "messy-bot.oc.ruinous.ai";
-          };
-
-          # builder-bot-mcp - web service with Caddy
-          builder-bot = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/builder-bot-mcp";
-            port = 9506;
-            caddy.fqdn = "builder-bot.oc.ruinous.ai";
-            tmuxp.extraWindows = [
-              {
-                name = "serve";
-                command = "just serve";
-              }
-              {
-                name = "tests";
-                command = "just test-watch";
-              }
-            ];
           };
 
           # ruinagents - web service with Caddy
