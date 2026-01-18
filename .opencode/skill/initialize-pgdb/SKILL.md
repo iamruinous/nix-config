@@ -18,6 +18,8 @@ parameters:
         description: "Infrastructure services - MONOLITH_POSTGRES_DATABASE_URI"
       - label: "zenith"
         description: "AI/GPU workloads - ZENITH_POSTGRES_DATABASE_URI"
+      - label: "chassis"
+        description: "AI development workstation - CHASSIS_POSTGRES_DATABASE_URI"
       - label: "tty-ruinous-social"
         description: "Cloud VPS - TTY_RUINOUS_SOCIAL_POSTGRES_DATABASE_URI"
   db_name:
@@ -45,6 +47,7 @@ mcp_question({
         { label: "pilaster (Recommended)", description: "Main web services host" },
         { label: "monolith", description: "Infrastructure services" },
         { label: "zenith", description: "AI/GPU workloads" },
+        { label: "chassis", description: "AI development workstation" },
         { label: "tty-ruinous-social", description: "Cloud VPS" }
       ]
     },
@@ -72,6 +75,7 @@ The skill uses these environment variables from `.envrc.local` to connect:
 | pilaster | `PILASTER_POSTGRES_DATABASE_URI` |
 | monolith | `MONOLITH_POSTGRES_DATABASE_URI` |
 | zenith | `ZENITH_POSTGRES_DATABASE_URI` |
+| chassis | `CHASSIS_POSTGRES_DATABASE_URI` |
 | tty-ruinous-social | `TTY_RUINOUS_SOCIAL_POSTGRES_DATABASE_URI` |
 
 ## Steps
