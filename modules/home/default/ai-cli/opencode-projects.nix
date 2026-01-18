@@ -161,6 +161,37 @@ with lib; let
           description = "Print logs to stderr.";
         };
       };
+
+      budgey = {
+        enable = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Include this project in the budgey-extractor registry.";
+        };
+
+        budgets = {
+          weeklyUsd = mkOption {
+            type = types.nullOr types.float;
+            default = null;
+            description = "Weekly budget limit in USD.";
+            example = 50.0;
+          };
+
+          monthlyUsd = mkOption {
+            type = types.nullOr types.float;
+            default = null;
+            description = "Monthly budget limit in USD.";
+            example = 200.0;
+          };
+        };
+
+        tags = mkOption {
+          type = types.listOf types.str;
+          default = [];
+          description = "Tags for categorizing this project.";
+          example = ["core" "agents"];
+        };
+      };
     };
   });
 
@@ -543,5 +574,39 @@ in {
         '') (attrNames cfg.projects)}
       '';
     }
+
+    # Generate budgey-extractor registry file
+    # This creates ~/.config/ruinagents/budgey/projects.json with all projects that have budgey.enable = true
+    (let
+      budgeyProjects = filterAttrs (_: p: p.budgey.enable) cfg.projects;
+      budgeyRegistry = {
+        version = "1.0";
+        projects = mapAttrsToList (name: project: let
+          paths = mkProjectPaths name;
+          id = builtins.hashString "sha1" project.workdir;
+          budgets =
+            {}
+            // optionalAttrs (project.budgey.budgets.weeklyUsd != null) {
+              weekly_usd = project.budgey.budgets.weeklyUsd;
+            }
+            // optionalAttrs (project.budgey.budgets.monthlyUsd != null) {
+              monthly_usd = project.budgey.budgets.monthlyUsd;
+            };
+        in
+          {
+            inherit id name;
+            root = project.workdir;
+            opencode_config_dir = paths.config;
+            xdg_state_home = paths.state;
+            xdg_data_home = paths.data;
+          }
+          // optionalAttrs (budgets != {}) {inherit budgets;}
+          // optionalAttrs (project.budgey.tags != []) {tags = project.budgey.tags;})
+        budgeyProjects;
+      };
+    in
+      mkIf (budgeyProjects != {}) {
+        xdg.configFile."ruinagents/budgey/projects.json".text = builtins.toJSON budgeyRegistry;
+      })
   ]);
 }
