@@ -5,6 +5,7 @@
       agenix-helper = perSystem.self.agenix-helper;
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
+      budgey-extractor = perSystem.self.budgey-extractor;
       gocmitra = perSystem.self.gocmitra;
       ruinagents-global = perSystem.self.ruinagents-global;
       ruinagents-docs = perSystem.self.ruinagents-docs;

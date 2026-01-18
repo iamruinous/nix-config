@@ -106,7 +106,22 @@
             port = 9507;
             caddy.fqdn = "ruinagents.oc.ruinous.ai";
           };
+
+          # budgey-extractor - web service with Caddy
+          budgey-extractor = {
+            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor";
+            port = 9508;
+            caddy.fqdn = "budgey-extractor.oc.ruinous.social";
+          };
         };
+      };
+
+      # Scheduled ingestion of OpenCode session data into PostgreSQL
+      # Uses local postgres via Unix socket (peer auth, no password needed)
+      budgey-extractor = {
+        enable = true;
+        databaseUrl = "postgresql:///budgey?host=/run/postgresql";
+        migrationsDir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor/db/migrations";
       };
     };
   };
