@@ -96,6 +96,12 @@ Skills are invoked with `/skill-name <arguments>`. Use these when the trigger ph
 | `/wrap-shell-script` | "wrap script", "nixify bash script" | Convert shell script into reproducible Nix package |
 | `/update-package` | "update package to", "bump version", "new release" | Update package version with automatic hash resolution |
 
+### OpenCode Projects
+
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/add-opencode-project` | "add project to opencode", "new opencode project", "opencode web service" | Add project with DNS, Caddy, Gatus monitoring, and deployment |
+
 ### Infrastructure
 
 | Skill | Trigger Phrase | What It Does |
