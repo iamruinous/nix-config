@@ -128,7 +128,6 @@
       budgey-extractor = {
         enable = true;
         environmentFile = config.age.secrets.chassis_budgey_env.path;
-        migrationsDir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor/db/migrations";
       };
     };
   };

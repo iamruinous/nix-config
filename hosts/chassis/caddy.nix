@@ -128,9 +128,19 @@
     "agents.ruinous.ai" = {
       extraConfig = ''
         root * ${pkgs.ruinagents-docs}
-        file_server
+        file_server {
+          precompressed gzip
+        }
         encode gzip
         try_files {path} {path}/ /index.html
+
+        # Cache busting: HTML files get short cache, assets get long cache with ETag
+        @html {
+          path *.html /
+        }
+        @assets {
+          path *.css *.js *.woff *.woff2 *.ttf *.png *.jpg *.svg *.ico
+        }
 
         header {
           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
@@ -138,6 +148,12 @@
           X-Frame-Options "DENY"
           Referrer-Policy "strict-origin-when-cross-origin"
         }
+
+        # HTML: no-cache (always revalidate, use ETag)
+        header @html Cache-Control "no-cache, must-revalidate"
+
+        # Assets: cache for 1 hour, but revalidate with ETag
+        header @assets Cache-Control "public, max-age=3600, must-revalidate"
       '';
     };
   };
