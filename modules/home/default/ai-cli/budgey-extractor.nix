@@ -11,14 +11,12 @@
 #   ruinous.ai-cli.budgey-extractor = {
 #     enable = true;
 #     databaseUrl = "postgresql:///budgey?host=/run/postgresql";
-#     migrationsDir = "/path/to/budgey-extractor/db/migrations";
 #   };
 #
 # Example (remote postgres with password):
 #   ruinous.ai-cli.budgey-extractor = {
 #     enable = true;
 #     environmentFile = config.age.secrets.budgey_env.path;
-#     migrationsDir = "/path/to/budgey-extractor/db/migrations";
 #   };
 #
 {
@@ -81,8 +79,8 @@ in {
 
     migrationsDir = mkOption {
       type = types.str;
+      default = "${cfg.package}/share/budgey-extractor/migrations";
       description = "Path to the dbmate migrations directory.";
-      example = "/home/user/Projects/budgey-extractor/db/migrations";
     };
 
     schedule = mkOption {

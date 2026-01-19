@@ -1,15 +1,20 @@
 {pkgs, ...}:
 pkgs.buildGoModule {
   pname = "budgey-extractor";
-  version = "0.3.0";
+  version = "0.6.0";
 
   src = pkgs.fetchgit {
     url = "https://forge.meskill.farm/iamruinous/budgey-extractor.git";
-    rev = "v0.3.0";
-    hash = "sha256-lVBJRd0YiE3lNuCX9zpQbDu/ZV2KLUSbAt9jDpk2tTc=";
+    rev = "v0.6.0";
+    hash = "sha256-kr+g1TQM7EEFo3mjddwDpWG7zJUiES93xjmjkYumm5I=";
   };
 
   vendorHash = "sha256-Ua7FWJS4WRwRxy9qVNZW3Ie9Gp45HSItFmj/uGd6F8g=";
+
+  postInstall = ''
+    mkdir -p $out/share/budgey-extractor
+    cp -r db/migrations $out/share/budgey-extractor/
+  '';
 
   meta = with pkgs.lib; {
     description = "Offline OpenCode session extractor for Postgres + Weaviate";

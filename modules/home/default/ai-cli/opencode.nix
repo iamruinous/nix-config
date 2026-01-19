@@ -737,7 +737,7 @@ in {
       ];
 
       ruinous.ai-cli.opencode.plugins = [
-        "oh-my-opencode@v3.0.0-beta.9"
+        "oh-my-opencode@v3.0.0-beta.11"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
         "opencode-anthropic-auth@latest"
