@@ -276,7 +276,7 @@ Offline OpenCode session extractor for Postgres + Weaviate.
 
 **Used By**: BUDGEY reporting and training data workflows
 
-**Version**: 0.1.0
+**Version**: 0.3.0
 
 ---
 

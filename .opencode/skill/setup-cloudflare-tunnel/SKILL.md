@@ -4,18 +4,72 @@ description: Create and configure a Cloudflare Tunnel for external service acces
 compatibility: Requires cloudflared, agenix, cfcli
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: networking
+parameters:
+  tunnel_name:
+    type: string
+    description: Name for the Cloudflare tunnel
+    required: true
+    placeholder: "myservice"
+  hostname:
+    type: select
+    description: Target host where cloudflared will run
+    required: true
+    options:
+      - label: "pilaster (Recommended)"
+        description: "Main web services host"
+      - label: "monolith"
+        description: "Infrastructure services host"
+      - label: "zenith"
+        description: "AI/GPU workloads host"
+  domain:
+    type: string
+    description: Public domain for the service
+    required: true
+    placeholder: "myservice.meskill.farm"
 ---
 
 # Setup Cloudflare Tunnel
 
 Create and configure a Cloudflare Tunnel to expose internal services to the internet without opening firewall ports.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Tunnel name (e.g., `myservice`)
-- Target hostname (e.g., `pilaster`)
-- Service domain (e.g., `myservice.meskill.farm`)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "What should the tunnel be named?",
+      header: "Tunnel Name",
+      options: [
+        { label: "Enter name...", description: "e.g., myservice (used for config references)" }
+      ]
+    },
+    {
+      question: "Which host will run cloudflared?",
+      header: "Host",
+      options: [
+        { label: "pilaster (Recommended)", description: "Main web services host" },
+        { label: "monolith", description: "Infrastructure services" },
+        { label: "zenith", description: "AI/GPU workloads" }
+      ]
+    },
+    {
+      question: "What public domain should expose the service?",
+      header: "Domain",
+      options: [
+        { label: "Enter domain...", description: "e.g., myservice.meskill.farm" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<tunnel_name> <hostname> <domain>`
+- Example: `myservice pilaster myservice.meskill.farm`
 
 ## Architecture
 

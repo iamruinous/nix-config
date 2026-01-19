@@ -4,14 +4,90 @@ description: Create a new Raspberry Pi cluster host configuration
 compatibility: Requires nix, git
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
+parameters:
+  pi_model:
+    type: select
+    description: Raspberry Pi model
+    required: true
+    options:
+      - label: "Pi 5 (Recommended)"
+        description: "Raspberry Pi 5 - newer, faster"
+      - label: "Pi 4"
+        description: "Raspberry Pi 4 - older model"
+  member_name:
+    type: select
+    description: NATO phonetic alphabet name for the cluster member
+    required: true
+    options:
+      - label: "alpha"
+        description: "First letter"
+      - label: "bravo"
+        description: "Second letter"
+      - label: "charlie"
+        description: "Third letter"
+      - label: "delta"
+        description: "Fourth letter"
+      - label: "echo"
+        description: "Fifth letter"
+      - label: "foxtrot"
+        description: "Sixth letter"
+      - label: "golf"
+        description: "Seventh letter"
+      - label: "hotel"
+        description: "Eighth letter"
+      - label: "india"
+        description: "Ninth letter"
+      - label: "juliet"
+        description: "Tenth letter"
+      - label: "Enter other..."
+        description: "kilo, lima, mike, november, oscar, papa, quebec, romeo, sierra, tango, uniform, victor, whiskey, xray, yankee, zulu"
 ---
 
 # Create Raspberry Pi Host
 
 Create a new Raspberry Pi host for the RPC (Raspberry Pi Cluster).
 
-**Required arguments:** `$ARGUMENTS` should contain the hostname in format `rpc-<model>-<name>` (e.g., "rpc-5-alpha", "rpc-4-bravo")
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "Which Raspberry Pi model is this?",
+      header: "Model",
+      options: [
+        { label: "Pi 5 (Recommended)", description: "Raspberry Pi 5" },
+        { label: "Pi 4", description: "Raspberry Pi 4" }
+      ]
+    },
+    {
+      question: "What NATO phonetic name for this cluster member?",
+      header: "Name",
+      options: [
+        { label: "alpha", description: "First letter" },
+        { label: "bravo", description: "Second letter" },
+        { label: "charlie", description: "Third letter" },
+        { label: "delta", description: "Fourth letter" },
+        { label: "echo", description: "Fifth letter" },
+        { label: "foxtrot", description: "Sixth letter" },
+        { label: "golf", description: "Seventh letter" },
+        { label: "hotel", description: "Eighth letter" },
+        { label: "Enter other...", description: "india, juliet, kilo, lima, etc." }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `rpc-<model>-<name>`
+- Example: `rpc-5-alpha` (Pi 5, first member)
+- Example: `rpc-4-echo` (Pi 4, fifth member)
+
+**Alternative format:** `<model> <name>` which will be combined to `rpc-<model>-<name>`
+- Example: `5 india` → `rpc-5-india`
 
 ## Naming Convention
 

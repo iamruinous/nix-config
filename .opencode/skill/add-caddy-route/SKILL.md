@@ -4,18 +4,75 @@ description: Add a reverse proxy route to an encrypted Caddyfile
 compatibility: Requires agenix, agenix-helper
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: networking
+parameters:
+  hostname:
+    type: select
+    description: Host where Caddy runs
+    required: true
+    options:
+      - label: "pilaster (Recommended)"
+        description: "Main web services host"
+      - label: "monolith"
+        description: "Infrastructure services host"
+      - label: "zenith"
+        description: "AI/GPU workloads host"
+      - label: "obelisk"
+        description: "GPU compute host"
+  domain:
+    type: string
+    description: Domain for the route (e.g., myservice.meskill.farm)
+    required: true
+    placeholder: "myservice.meskill.farm"
+  backend:
+    type: string
+    description: Backend service address (container:port)
+    required: true
+    placeholder: "myservice:8080"
 ---
 
 # Add Caddy Route
 
 Add a reverse proxy route to an encrypted Caddyfile.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Hostname (e.g., `pilaster`)
-- Domain (e.g., `myservice.meskill.farm`)
-- Backend (e.g., `myservice:8080`)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "Which host's Caddyfile should be updated?",
+      header: "Host",
+      options: [
+        { label: "pilaster (Recommended)", description: "Main web services host" },
+        { label: "monolith", description: "Infrastructure services" },
+        { label: "zenith", description: "AI/GPU workloads" },
+        { label: "obelisk", description: "GPU compute host" }
+      ]
+    },
+    {
+      question: "What domain should this route serve?",
+      header: "Domain",
+      options: [
+        { label: "Enter domain...", description: "e.g., myservice.meskill.farm" }
+      ]
+    },
+    {
+      question: "What is the backend service address?",
+      header: "Backend",
+      options: [
+        { label: "Enter backend...", description: "e.g., myservice:8080 (container:port)" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<hostname> <domain> <backend>`
+- Example: `pilaster myservice.meskill.farm myservice:8080`
 
 ## Steps
 

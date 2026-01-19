@@ -4,18 +4,103 @@ description: Full workflow to deploy a Docker container with secrets, Caddy, and
 compatibility: Requires agenix, cfcli, nix
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: containers
+parameters:
+  service_name:
+    type: string
+    description: Name for the service (used for container, database, DNS)
+    required: true
+    placeholder: "myapp"
+  hostname:
+    type: select
+    description: Target host for deployment
+    required: true
+    options:
+      - label: "pilaster (Recommended)"
+        description: "Main web services host"
+      - label: "monolith"
+        description: "Infrastructure services host"
+      - label: "zenith"
+        description: "AI/GPU workloads (AMD ROCm)"
+      - label: "obelisk"
+        description: "GPU compute (NVIDIA)"
+  container_image:
+    type: string
+    description: Docker image with tag (avoid :latest)
+    required: true
+    placeholder: "ghcr.io/org/image:v1.0.0"
+  needs_database:
+    type: select
+    description: Does this service need a PostgreSQL database?
+    required: false
+    default: "No"
+    options:
+      - label: "No"
+        description: "No database needed"
+      - label: "Yes"
+        description: "Create database with same name as service"
+  needs_reverse_proxy:
+    type: select
+    description: Should Caddy proxy requests to this service?
+    required: false
+    default: "Yes"
+    options:
+      - label: "Yes (Recommended)"
+        description: "Add Caddy route for HTTPS access"
+      - label: "No"
+        description: "Internal only, no web access"
 ---
 
 # Deploy Container
 
 Complete workflow to deploy a new Docker container service with secrets, Caddy reverse proxy, and DNS.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Service name (e.g., `myapp`)
-- Target host (e.g., `pilaster`, `monolith`, `zenith`)
-- Container image (e.g., `registry/image:tag`)
+## Parameter Handling
+
+**If parameters are missing from `$ARGUMENTS`, use `mcp_question` to gather them:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "What should the service be named?",
+      header: "Service",
+      options: [
+        { label: "Enter name...", description: "e.g., myapp (used for container, DNS, database)" }
+      ]
+    },
+    {
+      question: "Which host should run this container?",
+      header: "Host",
+      options: [
+        { label: "pilaster (Recommended)", description: "Main web services host" },
+        { label: "monolith", description: "Infrastructure services" },
+        { label: "zenith", description: "AI/GPU (AMD ROCm)" },
+        { label: "obelisk", description: "GPU compute (NVIDIA)" }
+      ]
+    },
+    {
+      question: "What is the container image?",
+      header: "Image",
+      options: [
+        { label: "Enter image...", description: "e.g., ghcr.io/org/image:v1.0.0" }
+      ]
+    },
+    {
+      question: "Does this service need a database?",
+      header: "Database",
+      options: [
+        { label: "No", description: "No database needed" },
+        { label: "Yes", description: "Create PostgreSQL database" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<service_name> <hostname> <container_image>`
+- Example: `myapp pilaster ghcr.io/org/myapp:1.0.0`
 
 ## Prerequisites Checklist
 
@@ -23,7 +108,7 @@ Complete workflow to deploy a new Docker container service with secrets, Caddy r
 - [ ] Needs secrets/environment variables?
 - [ ] Needs reverse proxy (Caddy)?
 - [ ] Needs external access (Cloudflare tunnel)?
-- [ ] Needs database? (use `/create-db-<host>`)
+- [ ] Needs database? (use `/initialize-pgdb`)
 - [ ] GPU access? (zenith=AMD ROCm, obelisk=NVIDIA)
 
 ## Full Deployment Steps
@@ -40,7 +125,7 @@ mkdir -p hosts/<hostname>/files/docker/env
 
 ### 3. Create database (if needed)
 ```bash
-/create-db-<hostname> <service>
+/initialize-pgdb <hostname> <service>
 ```
 
 ### 4. Create environment file (if needed)

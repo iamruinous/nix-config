@@ -60,7 +60,7 @@ agenix-helper unlock           # Unlock secrets for editing
 
 ## Skills Catalog
 
-Skills are invoked with `/skill-name <arguments>`. Use these when the trigger phrase matches your task.
+Skills are invoked with `/skill-name <arguments>`. If required arguments are missing, the agent will use `mcp_question` to interactively gather them.
 
 ### Secrets Management
 
@@ -78,21 +78,19 @@ Skills are invoked with `/skill-name <arguments>`. Use these when the trigger ph
 | `/setup-cloudflare-tunnel` | "external access", "expose service", "create tunnel" | Create and configure a Cloudflare Tunnel for public access |
 | `/add-caddy-route` | "reverse proxy", "add route", "proxy to container" | Add reverse proxy route to encrypted Caddyfile |
 
-### Container Deployment
+### Database & Container Deployment
 
 | Skill | Trigger Phrase | What It Does |
 |-------|----------------|--------------|
 | `/deploy-container` | "deploy new service", "add container", "full deployment" | Complete workflow: secrets + Caddy + DNS + container definition |
-| `/create-db` | "create database", "new postgres db" | Create PostgreSQL database (prompts for host selection) |
-| `/create-db-pilaster` | "database on pilaster" | Create database on pilaster specifically |
-| `/create-db-monolith` | "database on monolith" | Create database on monolith specifically |
-| `/create-db-zenith` | "database on zenith" | Create database on zenith specifically |
+| `/initialize-pgdb` | "create database", "new postgres db", "init db" | Create PostgreSQL database and user on any configured host |
 
 ### Nix Packaging
 
 | Skill | Trigger Phrase | What It Does |
 |-------|----------------|--------------|
-| `/create-nix-package` | "package this", "create nix package", "add to packages/" | Create new Nix package from source code or binary |
+| `/add-package` | "add package from URL", "package from GitHub", "create package from repo" | Analyze project from URL/path and auto-detect build system to create Nix package |
+| `/create-nix-package` | "package this", "create nix package", "add to packages/" | Create new Nix package from source code or binary (manual type selection) |
 | `/wrap-shell-script` | "wrap script", "nixify bash script" | Convert shell script into reproducible Nix package |
 | `/update-package` | "update package to", "bump version", "new release" | Update package version with automatic hash resolution |
 
@@ -113,7 +111,7 @@ Skills are invoked with `/skill-name <arguments>`. Use these when the trigger ph
 
 **Starting a new service?**
 1. `/deploy-container` - Full workflow (recommended for new services)
-2. Or manually: `/create-db-<host>` → `/encrypt-secret` → `/add-caddy-route` → `/add-dns-record`
+2. Or manually: `/initialize-pgdb` → `/encrypt-secret` → `/add-caddy-route` → `/add-dns-record`
 
 **Updating existing code?**
 - `/update-package <name> <version>` - For packages in `packages/`
@@ -127,6 +125,9 @@ Skills are invoked with `/skill-name <arguments>`. Use these when the trigger ph
 **Need external access?**
 - Internal only: `/add-caddy-route`
 - Public access: `/setup-cloudflare-tunnel` + `/add-dns-record`
+
+**Need a database?**
+- `/initialize-pgdb <host> <db_name>` - Creates database and user on any host
 
 ---
 

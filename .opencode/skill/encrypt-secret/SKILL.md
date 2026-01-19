@@ -4,17 +4,49 @@ description: Create or update an encrypted .age secret file using agenix
 compatibility: Requires agenix, agenix-helper
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.1"
   domain: secrets
+parameters:
+  secret_path:
+    type: string
+    description: Path to the .age secret file to create/update
+    required: true
+    placeholder: "hosts/pilaster/files/docker/env/myapp.env.age"
+  input_file:
+    type: string
+    description: Optional path to plaintext input file
+    required: false
+    placeholder: "/tmp/secret.txt"
 ---
 
 # Encrypt Secret
 
 Create or update an encrypted `.age` secret file using agenix.
 
-**Arguments:** `$ARGUMENTS` should contain:
-- Path to the secret file (e.g., `hosts/pilaster/files/docker/env/myapp.env.age`)
-- Optionally: path to plaintext input file
+## Parameter Handling
+
+**If `secret_path` is missing from `$ARGUMENTS`, use `mcp_question` to gather it:**
+
+```
+mcp_question({
+  questions: [
+    {
+      question: "What is the path for the secret file?",
+      header: "Secret Path",
+      options: [
+        { label: "Docker env file", description: "hosts/<host>/files/docker/env/<service>.env.age" },
+        { label: "Caddyfile", description: "hosts/<host>/files/caddy/Caddyfile.age" },
+        { label: "Cloudflared cert", description: "hosts/<host>/files/cloudflared/cert.pem.age" },
+        { label: "Enter custom path...", description: "Specify a custom path" }
+      ]
+    }
+  ]
+})
+```
+
+**Expected `$ARGUMENTS` format:** `<secret_path> [input_file]`
+- Example: `hosts/pilaster/files/docker/env/myapp.env.age`
+- Example with input: `hosts/pilaster/files/docker/env/myapp.env.age /tmp/secret.txt`
 
 ## Prerequisites
 

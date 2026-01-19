@@ -119,6 +119,11 @@
     builder-bot-mcp.url = "git+ssh://git@forge.meskill.farm/iamruinous/builder-bot-mcp.git";
     builder-bot-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
+    # budgey-dashboard - Token usage analytics dashboard
+    # <https://forge.meskill.farm/iamruinous/budgey-dashboard>
+    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git";
+    budgey-dashboard.inputs.nixpkgs.follows = "nixpkgs";
+
     # Nix User Repository
     # <https://nur.nix-community.org>
     # nur.url = "github:nix-community/NUR";

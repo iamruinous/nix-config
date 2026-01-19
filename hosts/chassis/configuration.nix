@@ -11,6 +11,8 @@
     ./disko.nix
     ./hardware-configuration.nix
     ./caddy.nix
+    ./postgres.nix
+    ./budgey-dashboard.nix
   ];
 
   networking.hostName = "chassis";
