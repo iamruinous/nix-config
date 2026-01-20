@@ -121,8 +121,18 @@
 
     # budgey-dashboard - Token usage analytics dashboard
     # <https://forge.meskill.farm/iamruinous/budgey-dashboard>
-    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git";
+    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.6.0";
     budgey-dashboard.inputs.nixpkgs.follows = "nixpkgs";
+
+    # budgey-extractor - OpenCode session extractor for Postgres + Weaviate
+    # <https://forge.meskill.farm/iamruinous/budgey-extractor>
+    budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git?ref=refs/tags/v0.7.0";
+    budgey-extractor.inputs.nixpkgs.follows = "nixpkgs";
+
+    # ruinagents - Agent definitions, docs, and skills
+    # <https://forge.meskill.farm/iamruinous/ruinagents>
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git";
+    ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository
     # <https://nur.nix-community.org>
