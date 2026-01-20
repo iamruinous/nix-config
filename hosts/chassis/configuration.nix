@@ -13,6 +13,7 @@
     ./caddy.nix
     ./postgres.nix
     ./budgey-dashboard.nix
+    ./weaviate.nix
   ];
 
   networking.hostName = "chassis";
