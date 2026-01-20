@@ -71,6 +71,15 @@
       '';
     };
   };
+
+  # Weaviate vector database for budgey semantic search
+  weaviateHost = {
+    "weaviate.ruinous.ai" = {
+      extraConfig = ''
+        reverse_proxy http://localhost:8080
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
@@ -86,8 +95,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, and budgey dashboard
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // budgeyDashboardHost;
+    # Merge OpenCode projects, docs sites, budgey dashboard, and weaviate
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // budgeyDashboardHost // weaviateHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)
