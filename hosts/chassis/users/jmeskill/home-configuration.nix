@@ -123,11 +123,12 @@
         };
       };
 
-      # Scheduled ingestion of OpenCode session data into PostgreSQL
+      # Scheduled ingestion of OpenCode session data into PostgreSQL and Weaviate
       # Uses TCP with password auth via environment file
       budgey-extractor = {
         enable = true;
         environmentFile = config.age.secrets.chassis_budgey_env.path;
+        weaviate.enable = true; # Uses WEAVIATE_URL and WEAVIATE_API_KEY from environmentFile
       };
     };
   };
