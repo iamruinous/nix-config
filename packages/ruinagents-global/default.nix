@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-  version = "0.8.2";
+  version = "0.8.3";
 in
   pkgs.stdenv.mkDerivation {
     pname = "ruinagents-global";
@@ -7,7 +7,7 @@ in
 
     src = pkgs.fetchzip {
       url = "https://forge.meskill.farm/iamruinous/ruinagents/releases/download/v${version}/ruinagents-${version}.zip";
-      sha256 = "sha256-wIxY1cM+p4Y+iyIThbxOktY0TbV2M123fK0w8RU+W34=";
+      sha256 = "sha256-1pv3oaKtxtltEslpO13p92rKuD+sqcYXjFufuyPN8eU=";
     };
 
     dontBuild = true;

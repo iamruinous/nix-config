@@ -1,11 +1,15 @@
-{perSystem, ...}: {
+{
+  perSystem,
+  flake,
+  ...
+}: {
   nixpkgs.overlays = [
     (final: prev: {
       inherit (perSystem) self;
       agenix-helper = perSystem.self.agenix-helper;
       backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
-      budgey-extractor = perSystem.self.budgey-extractor;
+      budgey-extractor = flake.inputs.budgey-extractor.packages.${prev.system}.default;
       gocmitra = perSystem.self.gocmitra;
       ruinagents-global = perSystem.self.ruinagents-global;
       ruinagents-docs = perSystem.self.ruinagents-docs;
