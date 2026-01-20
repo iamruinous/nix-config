@@ -316,13 +316,32 @@
         ];
       };
       changedetection = {
-        image = "ghcr.io/dgtlmoon/changedetection.io:0.51.4";
+        image = "ghcr.io/dgtlmoon/changedetection.io:0.52.8";
+        dependsOn = ["changedetection-browser"];
         environment = {
           TZ = "America/Phoenix";
+          # Use playwright browser for JS-heavy sites
+          PLAYWRIGHT_DRIVER_URL = "ws://changedetection-browser:3000";
         };
         networks = ["servicenet"];
         volumes = [
           "/data/docker/changedetection/data:/datastore"
+        ];
+      };
+      # Playwright Chrome browser for changedetection.io
+      # https://github.com/dgtlmoon/changedetection.io/wiki/Playwright-content-fetcher
+      changedetection-browser = {
+        image = "dgtlmoon/sockpuppetbrowser:latest";
+        environment = {
+          SCREEN_WIDTH = "1920";
+          SCREEN_HEIGHT = "1024";
+          SCREEN_DEPTH = "16";
+          MAX_CONCURRENT_CHROME_PROCESSES = "10";
+        };
+        networks = ["servicenet"];
+        extraOptions = [
+          "--cap-add=SYS_ADMIN"
+          "--shm-size=2g"
         ];
       };
       deluge = {
