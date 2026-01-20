@@ -1,27 +1,39 @@
 # devshell.nix
 # Using mkShell from nixpkgs
-{pkgs, ...}:
-pkgs.mkShell {
-  packages = with pkgs;
-    [
-      cloudflared
-      cloudflare-cli
-      flarectl # Official Cloudflare CLI (better than cloudflare-cli for some operations)
-      commitlint # Git commit message linter (for pre-commit hook)
-      doggo # Modern DNS client for lookups
-      gitleaks # Secret scanner (for pre-commit hook)
-      go # Go compiler for building/testing Go packages
-      gum # Pretty TUI for justfile commands
-      just # Command runner (replaces Make)
-      nixd # Nix language server for LSP diagnostics
-      pnpm # For running Node.js-based MCP servers
-      uv # Provides uvx for running Python-based MCP servers
-      postgresql # cli for postgres
-      prek
-    ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-      bmaptool # Fast SD card flashing with block map support
-    ];
+{pkgs, ...}: let
+  # MkDocs environment for documentation
+  mkdocsEnv = pkgs.python313.withPackages (ps:
+    with ps; [
+      mkdocs
+      mkdocs-material
+      mkdocs-material-extensions
+      pymdown-extensions
+    ]);
+in
+  pkgs.mkShell {
+    packages = with pkgs;
+      [
+        cloudflared
+        cloudflare-cli
+        flarectl # Official Cloudflare CLI (better than cloudflare-cli for some operations)
+        commitlint # Git commit message linter (for pre-commit hook)
+        doggo # Modern DNS client for lookups
+        gitleaks # Secret scanner (for pre-commit hook)
+        go # Go compiler for building/testing Go packages
+        gum # Pretty TUI for justfile commands
+        just # Command runner (replaces Make)
+        nixd # Nix language server for LSP diagnostics
+        pnpm # For running Node.js-based MCP servers
+        uv # Provides uvx for running Python-based MCP servers
+        postgresql # cli for postgres
+        prek
+
+        # Documentation
+        mkdocsEnv # MkDocs with Material theme
+      ]
+      ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+        bmaptool # Fast SD card flashing with block map support
+      ];
 
   shellHook = ''
     # Set GOPATH to avoid "relative path" errors when running Go tools
