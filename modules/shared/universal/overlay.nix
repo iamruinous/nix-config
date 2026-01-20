@@ -11,8 +11,8 @@
       backup-docker-postgres = perSystem.self.backup-docker-postgres;
       budgey-extractor = flake.inputs.budgey-extractor.packages.${prev.system}.default;
       gocmitra = perSystem.self.gocmitra;
-      ruinagents-global = perSystem.self.ruinagents-global;
-      ruinagents-docs = perSystem.self.ruinagents-docs;
+      ruinagents-global = flake.inputs.ruinagents.packages.${prev.system}.global;
+      ruinagents-docs = flake.inputs.ruinagents.packages.${prev.system}.docs;
       codey-docs = perSystem.self.codey-docs;
       messy-docs = perSystem.self.messy-docs;
       newsy-docs = perSystem.self.newsy-docs;
