@@ -531,16 +531,6 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "Builder Bot (pilaster)"
-    group: "Development"
-    url: "https://builder-bot.meskill.farm"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
   # === Social (pilaster via Cloudflare tunnel) ===
   - name: "Mastodon (pilaster)"
     group: "Social"
@@ -695,16 +685,6 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "OpenCode - codey (chassis)"
-    group: "Development"
-    url: "https://codey.oc.ruinous.ai"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
   - name: "OpenCode - dossiq (chassis)"
     group: "Development"
     url: "https://dossiq.oc.ruinous.ai"
@@ -745,16 +725,6 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "OpenCode - builder-bot (chassis)"
-    group: "Development"
-    url: "https://builder-bot.oc.ruinous.ai"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
   - name: "OpenCode - budgey-dashboard (chassis)"
     group: "Development"
     url: "https://budgey-dashboard.oc.ruinous.ai"
@@ -775,49 +745,9 @@ endpoints:
       - type: discord
       - type: email
 
-  - name: "NATE Docs (chassis)"
+  - name: "Ruinagent Docs (chassis)"
     group: "Documentation"
-    url: "https://nate.agent.ruinous.ai"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "Codey Docs (chassis)"
-    group: "Documentation"
-    url: "https://codey.agent.ruinous.ai"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "Messy Docs (chassis)"
-    group: "Documentation"
-    url: "https://messy.agent.ruinous.ai"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "Newsy Docs (chassis)"
-    group: "Documentation"
-    url: "https://newsy.agent.ruinous.ai"
-    interval: 5m
-    conditions:
-      - "[STATUS] == 200"
-    alerts:
-      - type: discord
-      - type: email
-
-  - name: "Libby Docs (chassis)"
-    group: "Documentation"
-    url: "https://libby.agent.ruinous.ai"
+    url: "https://agents.ruinous.ai"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
