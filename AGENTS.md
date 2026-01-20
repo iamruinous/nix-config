@@ -93,6 +93,7 @@ Skills are invoked with `/skill-name <arguments>`. If required arguments are mis
 | `/create-nix-package` | "package this", "create nix package", "add to packages/" | Create new Nix package from source code or binary (manual type selection) |
 | `/wrap-shell-script` | "wrap script", "nixify bash script" | Convert shell script into reproducible Nix package |
 | `/update-package` | "update package to", "bump version", "new release" | Update package version with automatic hash resolution |
+| `/update-flake-input` | "update flake input", "update ruinagents", "update budgey" | Update versioned flake inputs (ruinagents, budgey-*) to latest tagged version |
 
 ### OpenCode Projects
 
@@ -115,6 +116,7 @@ Skills are invoked with `/skill-name <arguments>`. If required arguments are mis
 
 **Updating existing code?**
 - `/update-package <name> <version>` - For packages in `packages/`
+- `/update-flake-input <name>` - For versioned flake inputs (ruinagents, budgey-*)
 
 **Working with secrets?**
 - Always run `agenix-helper unlock` first
