@@ -1,0 +1,66 @@
+# nix-config Documentation
+
+> Declarative NixOS/Darwin infrastructure for 24 hosts.
+
+SME: NIXEY (Infrastructure)
+Curator: LIBBY (Documentation Voice)
+Repository: github.com/iamruinous/nix-config
+
+## Quick Navigation
+
+- [index.md](index.md): Project overview, host inventory
+- [AGENTS.md](AGENTS.md): Agent context for this documentation
+- [NETWORKS.md](NETWORKS.md): VLANs, DNS domains, container networks
+- [../AGENTS.md](../AGENTS.md): Full project context with skills
+- [../llms.txt](../llms.txt): Root-level token-efficient context
+
+## Key Documentation
+
+- [../hosts/README.md](../hosts/README.md): All 24 hosts with specs
+- [../secrets/README.md](../secrets/README.md): Agenix encryption patterns
+- [../packages/README.md](../packages/README.md): Custom Nix packages
+- [migrations/](migrations/): Migration guides
+- [plans/](plans/): Implementation plans
+
+## Host Categories
+
+Container Hosts (4): monolith, pilaster, zenith, obelisk
+Workstations (5): chassis, framework, jbookpro, jmacmini, studio
+Raspberry Pi (8): rpc-5-{alpha,bravo,charlie,delta}, rpc-4-{echo,foxtrot,golf,hotel}
+Other (7): armistice, void, gap, tty-ruinous-social, ruinous-tty, messy-tty
+
+## Networks
+
+| Network | Purpose |
+|---------|---------|
+| servicenet | Inter-container + Caddy |
+| datanet | Internal databases (--internal) |
+| proxynet | Host port binding |
+
+## DNS Domains
+
+- meskill.farm: Internal production
+- ruinous.ai: Agent ecosystem
+- ruinous.social: Public-facing
+
+## Skills
+
+Secrets: /encrypt-secret, /view-secret, /rekey-secrets
+DNS: /add-dns-record, /setup-cloudflare-tunnel, /add-caddy-route
+Containers: /deploy-container, /create-db-*
+Packaging: /create-nix-package, /update-package
+
+## Commands
+
+```bash
+just remote-rebuild <host>     # Deploy
+just remote-dry-build <host>   # Verify
+agenix-helper unlock           # Before secrets
+agenix rekey -a                # After changes
+```
+
+## Related
+
+- NIXEY SME: agents.ruinous.ai/smes/nixey/
+- Root AGENTS.md: ../AGENTS.md
+- Global Context: agents.ruinous.ai/llms.txt
