@@ -126,7 +126,8 @@
 
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git";
+    # NOTE: Keep pinned to tagged version. Update with: nix flake update ruinagents
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v0.8.12";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository
