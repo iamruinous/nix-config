@@ -1,7 +1,8 @@
 # ruinous.ai-cli.budgey-extractor.enable = true;
 #
-# Scheduled ingestion of OpenCode session data into PostgreSQL.
-# Runs daily, executing dbmate migrations followed by ingest-postgres.
+# Scheduled ingestion of OpenCode session data into PostgreSQL and Weaviate.
+# Runs daily, executing dbmate migrations followed by ingest-postgres and
+# optionally ingest-weaviate for semantic search.
 #
 # Requires:
 #   - ruinous.ai-cli.opencode-projects.enable = true (for registry file)
@@ -13,10 +14,11 @@
 #     databaseUrl = "postgresql:///budgey?host=/run/postgresql";
 #   };
 #
-# Example (remote postgres with password):
+# Example (remote postgres with password + weaviate):
 #   ruinous.ai-cli.budgey-extractor = {
 #     enable = true;
 #     environmentFile = config.age.secrets.budgey_env.path;
+#     weaviate.enable = true;  # Uses WEAVIATE_URL and WEAVIATE_API_KEY from environmentFile
 #   };
 #
 {
@@ -95,6 +97,42 @@ in {
       default = true;
       description = "Whether to run missed jobs if the system was off.";
     };
+
+    weaviate = {
+      enable = mkEnableOption "Weaviate vector database ingestion for semantic search";
+
+      url = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Weaviate URL for vector database connection.
+          If set, this takes precedence over WEAVIATE_URL from environmentFile.
+        '';
+        example = "http://localhost:8080";
+      };
+
+      apiKey = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Weaviate API key for authentication.
+          If set, this takes precedence over WEAVIATE_API_KEY from environmentFile.
+          For secrets, prefer using environmentFile with WEAVIATE_API_KEY.
+        '';
+      };
+
+      chunkSize = mkOption {
+        type = types.int;
+        default = 500;
+        description = "Token count per chunk for semantic search (default: 500).";
+      };
+
+      overlap = mkOption {
+        type = types.float;
+        default = 0.15;
+        description = "Overlap ratio between chunks (default: 0.15 = 15%).";
+      };
+    };
   };
 
   config = mkIf cfg.enable {
@@ -111,7 +149,7 @@ in {
 
     systemd.user.services.budgey-extractor = {
       Unit = {
-        Description = "Budgey Extractor - OpenCode session ingestion to PostgreSQL";
+        Description = "Budgey Extractor - OpenCode session ingestion to PostgreSQL and Weaviate";
         After = ["network.target"];
       };
       Service =
@@ -123,6 +161,19 @@ in {
               if cfg.databaseUrl != null
               then "--dsn '${cfg.databaseUrl}'"
               else "--dsn \"$DATABASE_URL\"";
+
+            # Weaviate arguments
+            weaviateUrlArg =
+              if cfg.weaviate.url != null
+              then "--weaviate-url '${cfg.weaviate.url}'"
+              else "--weaviate-url \"$WEAVIATE_URL\"";
+            weaviateApiKeyArg =
+              if cfg.weaviate.apiKey != null
+              then "--weaviate-api-key '${cfg.weaviate.apiKey}'"
+              else "--weaviate-api-key \"$WEAVIATE_API_KEY\"";
+            weaviateChunkArg = "--chunk-size ${toString cfg.weaviate.chunkSize}";
+            weaviateOverlapArg = "--overlap ${toString cfg.weaviate.overlap}";
+
             script = pkgs.writeShellScript "budgey-extractor-run" ''
               set -euo pipefail
 
@@ -136,6 +187,13 @@ in {
               ${cfg.package}/bin/budgey-extractor \
                 --registry "${cfg.registryPath}" \
                 ingest-postgres ${dsnArg}
+
+              ${optionalString cfg.weaviate.enable ''
+                echo "Running budgey-extractor ingest-weaviate..."
+                ${cfg.package}/bin/budgey-extractor \
+                  --registry "${cfg.registryPath}" \
+                  ingest-weaviate ${weaviateUrlArg} ${weaviateApiKeyArg} ${weaviateChunkArg} ${weaviateOverlapArg}
+              ''}
 
               echo "Budgey extraction complete."
             '';
