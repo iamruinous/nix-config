@@ -114,11 +114,6 @@
     # that's compatible with its boot.loader.raspberryPi options
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
 
-    # builder-bot-mcp - FastMCP server for builder-tty automation
-    # <https://forge.meskill.farm/iamruinous/builder-bot-mcp>
-    builder-bot-mcp.url = "git+ssh://git@forge.meskill.farm/iamruinous/builder-bot-mcp.git";
-    builder-bot-mcp.inputs.nixpkgs.follows = "nixpkgs";
-
     # budgey-dashboard - Token usage analytics dashboard
     # <https://forge.meskill.farm/iamruinous/budgey-dashboard>
     budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.6.0";

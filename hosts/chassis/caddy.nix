@@ -28,101 +28,6 @@
     opencodeProjects
   );
   
-  # Add codey-docs static site
-  codeyDocsHost = {
-    "codey.agent.ruinous.ai" = {
-      extraConfig = ''
-        root * ${pkgs.codey-docs}
-        file_server
-        encode gzip
-        try_files {path} {path}/ /index.html
-        
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          X-Content-Type-Options "nosniff"
-          X-Frame-Options "DENY"
-          Referrer-Policy "strict-origin-when-cross-origin"
-        }
-      '';
-    };
-  };
-  
-  # Add messy-docs static site
-  messyDocsHost = {
-    "messy.agent.ruinous.ai" = {
-      extraConfig = ''
-        root * ${pkgs.messy-docs}
-        file_server
-        encode gzip
-        try_files {path} {path}/ /index.html
-        
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          X-Content-Type-Options "nosniff"
-          X-Frame-Options "DENY"
-          Referrer-Policy "strict-origin-when-cross-origin"
-        }
-      '';
-    };
-  };
-  
-  # Add newsy-docs static site
-  newsyDocsHost = {
-    "newsy.agent.ruinous.ai" = {
-      extraConfig = ''
-        root * ${pkgs.newsy-docs}
-        file_server
-        encode gzip
-        try_files {path} {path}/ /index.html
-        
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          X-Content-Type-Options "nosniff"
-          X-Frame-Options "DENY"
-          Referrer-Policy "strict-origin-when-cross-origin"
-        }
-      '';
-    };
-  };
-  
-  # Add nate-docs static site
-  nateDocsHost = {
-    "nate.agent.ruinous.ai" = {
-      extraConfig = ''
-        root * ${pkgs.nate-docs}
-        file_server
-        encode gzip
-        try_files {path} {path}/ /index.html
-        
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          X-Content-Type-Options "nosniff"
-          X-Frame-Options "DENY"
-          Referrer-Policy "strict-origin-when-cross-origin"
-        }
-      '';
-    };
-  };
-  
-  # Add libby-docs static site
-  libbyDocsHost = {
-    "libby.agent.ruinous.ai" = {
-      extraConfig = ''
-        root * ${pkgs.libby-docs}
-        file_server
-        encode gzip
-        try_files {path} {path}/ /index.html
-
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          X-Content-Type-Options "nosniff"
-          X-Frame-Options "DENY"
-          Referrer-Policy "strict-origin-when-cross-origin"
-        }
-      '';
-    };
-  };
-  
   # Add ruinagents-docs static site
   ruinagentsDocsHost = {
     "agents.ruinous.ai" = {
@@ -182,7 +87,7 @@ in {
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
     # Merge OpenCode projects, docs sites, and budgey dashboard
-    virtualHosts = caddyVirtualHosts // codeyDocsHost // messyDocsHost // newsyDocsHost // nateDocsHost // libbyDocsHost // ruinagentsDocsHost // budgeyDashboardHost;
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // budgeyDashboardHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)

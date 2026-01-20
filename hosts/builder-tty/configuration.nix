@@ -16,7 +16,6 @@
   imports = [
     flake.nixosModules.microvm
     flake.sharedModules.developer
-    flake.inputs.builder-bot-mcp.nixosModules.default
   ];
 
   networking.hostName = "builder-tty";
@@ -144,25 +143,6 @@
     gnused
     coreutils
   ];
-
-  # builder-bot-mcp FastMCP server for n8n automation
-  services.builder-bot-mcp = {
-    enable = true;
-    port = 8000;
-    host = "0.0.0.0";
-    configFile = config.age.secrets.builder_bot_config.path;
-    user = "builder";
-    group = "users";
-    workingDirectory = "/home/builder/Projects/nix-config";
-  };
-
-  # Agenix secret for builder-bot-mcp configuration
-  age.secrets.builder_bot_config = {
-    rekeyFile = ./files/builder-bot-mcp/repos.json.age;
-    owner = "builder";
-    group = "users";
-    mode = "0400";
-  };
 
   system.stateVersion = "25.05";
 }
