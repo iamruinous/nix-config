@@ -1,12 +1,10 @@
 {
   pkgs,
   config,
-  lib,
   ...
 }: {
   environment.systemPackages = [
     pkgs.forgejo-shell
-    pkgs.messy-restricted-shell
   ];
 
   users.users.git.shell = pkgs.forgejo-shell;
