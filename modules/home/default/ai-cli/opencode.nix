@@ -525,7 +525,7 @@ with lib; let
   # Check if any config has notifier enabled
   anyNotifierEnabled = any (c: c.resolved.notifierEnable) (attrValues processedConfigs);
 
-  ruinagentsGlobalPackage = pkgs.callPackage ./../../../../packages/ruinagents-global {};
+  ruinagentsGlobalPackage = pkgs.ruinagents-global;
   ruinagentsGlobalShare = "${ruinagentsGlobalPackage}/share/ruinagents-global";
   firstExisting = paths: let
     existing = builtins.filter (path: builtins.pathExists path) paths;
