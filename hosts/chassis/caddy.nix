@@ -73,10 +73,17 @@
   };
 
   # Weaviate vector database for budgey semantic search
+  # REST API on weaviate.ruinous.ai (HTTP)
+  # gRPC API on grpc.weaviate.ruinous.ai (HTTP/2 cleartext via h2c)
   weaviateHost = {
     "weaviate.ruinous.ai" = {
       extraConfig = ''
         reverse_proxy http://localhost:8080
+      '';
+    };
+    "grpc.weaviate.ruinous.ai" = {
+      extraConfig = ''
+        reverse_proxy h2c://localhost:50051
       '';
     };
   };
