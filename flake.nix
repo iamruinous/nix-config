@@ -116,7 +116,7 @@
 
     # budgey-dashboard - Token usage analytics dashboard
     # <https://forge.meskill.farm/iamruinous/budgey-dashboard>
-    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.6.0";
+    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.7.0";
     budgey-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-extractor - OpenCode session extractor for Postgres + Weaviate
@@ -127,7 +127,7 @@
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
     # NOTE: Keep pinned to tagged version. Update with: nix flake update ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v0.8.15";
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v0.8.16";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository
