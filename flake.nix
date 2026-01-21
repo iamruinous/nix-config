@@ -116,7 +116,7 @@
 
     # budgey-dashboard - Token usage analytics dashboard
     # <https://forge.meskill.farm/iamruinous/budgey-dashboard>
-    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.7.0";
+    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.7.1";
     budgey-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-extractor - OpenCode session extractor for Postgres + Weaviate
