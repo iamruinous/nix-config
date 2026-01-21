@@ -69,10 +69,13 @@ dry-build:
 
 # Rebuild configuration on remote host
 remote-rebuild remotehost:
-    @just header "🖥️  Remote Rebuild"
-    @just info "Rebuilding {{ remotehost }}.meskill.farm..."
-    @NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true" nixos-rebuild --sudo --target-host {{ remotehost }}.meskill.farm switch --flake .#{{ remotehost }} --accept-flake-config
-    @just success "Remote rebuild complete for {{ remotehost }}"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just header "🖥️  Remote Rebuild"
+    just info "Rebuilding {{ remotehost }}.meskill.farm..."
+    export NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true"
+    nixos-rebuild --sudo --target-host {{ remotehost }}.meskill.farm switch --flake .#{{ remotehost }} --accept-flake-config
+    just success "Remote rebuild complete for {{ remotehost }}"
 
 # Dry-build configuration for remote host
 remote-dry-build remotehost:
@@ -101,15 +104,18 @@ bootstrap-mac: install-nix install-nix-darwin
 
 # Build Raspberry Pi SD image on armistice
 pi-sdimage pihost:
-    @just header "🥧 Build Raspberry Pi SD Image"
-    @just info "Building SD image for {{ pihost }} on armistice..."
-    @NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true" nix build .#nixosConfigurations.{{ pihost }}.config.system.build.sdImage \
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just header "🥧 Build Raspberry Pi SD Image"
+    just info "Building SD image for {{ pihost }} on armistice..."
+    export NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true"
+    nix build .#nixosConfigurations.{{ pihost }}.config.system.build.sdImage \
         --builders "ssh://armistice.meskill.farm aarch64-linux - 12 1 benchmark,big-parallel,kvm" \
         --max-jobs 0 \
         --cores 0 \
         --log-format bar-with-logs \
         -o result-{{ pihost }}-sdimage
-    @just success "SD image built: result-{{ pihost }}-sdimage/"
+    just success "SD image built: result-{{ pihost }}-sdimage/"
     @echo ""
     @gum style --foreground 229 "To flash to SD card:"
     @gum style --foreground 245 "  just pi-flash {{ pihost }} /dev/sdX"
