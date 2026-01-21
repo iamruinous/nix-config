@@ -7,6 +7,9 @@
       PasswordAuthentication = lib.mkDefault false;
       PermitRootLogin = lib.mkDefault "prohibit-password";
       KbdInteractiveAuthentication = lib.mkDefault false;
+      # Accept BYPASS_LOGIN_HUB env var from clients (for remote-rebuild, etc.)
+      # Also accept standard locale vars
+      AcceptEnv = ["BYPASS_LOGIN_HUB" "LANG" "LC_*"];
     };
     extraConfig = ''
       Match User jmeskill
