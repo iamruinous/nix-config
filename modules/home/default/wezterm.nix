@@ -23,8 +23,9 @@ in {
       -- And a font size that won't have you squinting
       config.font_size = 18
 
-      -- Slightly transparent and blurred background
-      config.window_background_opacity = 0.9
+      -- Solid background for proper tmux-powerkit separator rendering
+      -- (0.9 opacity causes visual artifacts with powerline separators)
+      config.window_background_opacity = 1.0
       config.macos_window_background_blur = 30
       -- Removes the title bar, leaving only the tab bar. Keeps
       -- the ability to resize by dragging the window's edges.
