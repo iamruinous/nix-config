@@ -168,16 +168,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1768867400,
-        "narHash": "sha256-bm7/p+1wUP4SbPq3B7IqW+HWGeLFCy51COdd/Cc6NW4=",
-        "ref": "refs/tags/v0.6.0",
-        "rev": "82d3cfef0a113ee85fa5ddb3167cd70e73f390e3",
-        "revCount": 43,
+        "lastModified": 1768931942,
+        "narHash": "sha256-WLm+p0TIsL/ASfvlKTm/2OM2fPja2Ts6/YMGXc3c0cM=",
+        "ref": "refs/tags/v0.7.0",
+        "rev": "3eaf773ab6dcae1eda2752f64286a7ba13116321",
+        "revCount": 50,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
       },
       "original": {
-        "ref": "refs/tags/v0.6.0",
+        "ref": "refs/tags/v0.7.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
       }
@@ -1420,11 +1420,11 @@
     "n8n-agent": {
       "flake": false,
       "locked": {
-        "lastModified": 1768949103,
-        "narHash": "sha256-9B7ZeVAwlYnGSg/ba973jxEb8Pjz40r5Yz/XMRNg3yk=",
+        "lastModified": 1768959703,
+        "narHash": "sha256-Ieh5HsBkooSiDfUkY2cNgU1MXN0QulZG+8jzHA82QrU=",
         "ref": "refs/heads/main",
-        "rev": "247b4299f64943e4b9851c16feff77f4333809bc",
-        "revCount": 976,
+        "rev": "4ba246d13616a4b6b4569e9558333c38cf2bdc0c",
+        "revCount": 988,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git"
       },
@@ -1974,16 +1974,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1768955787,
-        "narHash": "sha256-3u59Gv3GH1nVrxBj+pmA5Y8stNXXYHjZXjbf77IRaCQ=",
-        "ref": "refs/tags/v0.8.15",
-        "rev": "019faf6526a7b4db41daf01eebf1a084740b3862",
-        "revCount": 80,
+        "lastModified": 1768960329,
+        "narHash": "sha256-h4873peXRfap4ztj7Rpy7vA98zD96TkNxXry2tv7rXk=",
+        "ref": "refs/tags/v0.8.16",
+        "rev": "3284ff90ed023ca4fcbf5910e092db880bf25c29",
+        "revCount": 81,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       },
       "original": {
-        "ref": "refs/tags/v0.8.15",
+        "ref": "refs/tags/v0.8.16",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       }
