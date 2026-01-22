@@ -67,7 +67,12 @@
         environmentFiles = [config.age.secrets.chassis_weaviate_env.path];
 
         # Expose on localhost only (Caddy will proxy)
-        ports = ["127.0.0.1:8080:8080"];
+        # Port 8080: REST API (HTTP)
+        # Port 50051: gRPC API (for Weaviate v4 client queries)
+        ports = [
+          "127.0.0.1:8080:8080"
+          "127.0.0.1:50051:50051"
+        ];
 
         networks = ["servicenet"];
         volumes = [
