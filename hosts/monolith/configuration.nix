@@ -43,13 +43,13 @@
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
 
-  # Pinchflat lifecycle webhook for transcript processing
+  # Pinchflat lifecycle webhook for YouTube summary processing
   services.pinchflat-lifecycle = {
     enable = true;
-    # webhookUrl uses default: https://n8n.meskill.farm/webhook/pinchflat-transcript
-    webhookUrl = "https://n8n.meskill.dev/webhook/pinchflat-transcript";
+    webhookUrl = "https://n8h.meskill.farm/webhook/youtube-summary";
     allowedChannels = [
       "AI News & Strategy Daily | Nate B Jones"
+      "Nate Herk | AI Automation"
     ];
   };
   boot.plymouth.enable = true;
