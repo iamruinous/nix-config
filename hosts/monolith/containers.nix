@@ -792,7 +792,8 @@
       #   ];
       # };
       pinchflat = {
-        image = "ghcr.io/kieraneglin/pinchflat:v2025.9.26";
+        # TODO: Pin to v2025.9.26 when published to ghcr.io (has deno for yt-dlp)
+        image = "ghcr.io/kieraneglin/pinchflat:latest";
         environment = {
           TZ = "America/Phoenix";
           # Enable debug logging for lifecycle script output
