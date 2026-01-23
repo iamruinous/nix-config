@@ -60,6 +60,35 @@ linux-rebuild:
     @sudo nixos-rebuild switch --flake .#$(hostname)
     @just success "Linux rebuild complete"
 
+# Deploy configuration to host (auto-detects local vs remote, Darwin vs Linux)
+deploy host:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    current_host=$(hostname)
+    os_type=$(uname -s)
+    
+    # Check if target is a Darwin host by looking for darwin-configuration.nix
+    is_darwin_host=false
+    if [ -f "hosts/{{ host }}/darwin-configuration.nix" ]; then
+        is_darwin_host=true
+    fi
+    
+    if [ "{{ host }}" = "$current_host" ]; then
+        # Local deployment
+        if [ "$os_type" = "Darwin" ]; then
+            just darwin-rebuild
+        else
+            just linux-rebuild
+        fi
+    elif [ "$is_darwin_host" = "true" ]; then
+        # Darwin hosts don't support remote-rebuild
+        just error "Darwin hosts don't support remote deployment. Run 'just darwin-rebuild' on {{ host }} directly."
+        exit 1
+    else
+        # Remote NixOS deployment
+        just remote-rebuild {{ host }}
+    fi
+
 # Dry-build configuration for current host
 dry-build:
     @just header "🧪 Dry Build"
