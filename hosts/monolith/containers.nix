@@ -578,6 +578,7 @@
           "/data/docker/n8n/config:/home/node/.n8n"
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
+          "/nas/media:/nas/media"
         ];
       };
       n8n-runner-alpha = {
@@ -596,6 +597,9 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
         networks = ["servicenet"];
         dependsOn = ["n8n"];
+        volumes = [
+          "/nas/media:/nas/media"
+        ];
       };
       n8n-runner-bravo = {
         image = "docker.io/n8nio/runners:2.4.1";
@@ -611,6 +615,9 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
         networks = ["servicenet"];
         dependsOn = ["n8n"];
+        volumes = [
+          "/nas/media:/nas/media"
+        ];
       };
       n8n-runner-charlie = {
         image = "docker.io/n8nio/runners:2.4.1";
@@ -626,6 +633,9 @@
         environmentFiles = [config.age.secrets.monolith_docker_env_n8n_runner.path];
         networks = ["servicenet"];
         dependsOn = ["n8n"];
+        volumes = [
+          "/nas/media:/nas/media"
+        ];
       };
       # Vector database for n8n AI workflows and RAG
       weaviate = {
