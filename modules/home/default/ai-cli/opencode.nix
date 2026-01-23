@@ -2,29 +2,52 @@
 #
 # Manages OpenCode CLI configuration with:
 # - CLI binary installation (Linux only, use brew on macOS)
+# - Default model configuration (primary model for OpenCode)
 # - Main config (plugins, providers) synced via home-manager
-# - oh-my-opencode agent configuration synced via home-manager
+# - oh-my-opencode agent and category configuration synced via home-manager
 # - Automatic plugin installation via activation script
 # - Local plugin support (e.g., opencode-notifier-apprise)
 # - Multiple config directories with independent settings
 #
-# Example with multiple configs:
+# Example with model and category overrides:
 #   ruinous.ai-cli.opencode = {
 #     enable = true;
+#     model = "anthropic/claude-opus-4-5";  # default model for OpenCode
 #     plugins = [ "my-plugin" ];  # shared defaults
 #
-#     # oh-my-opencode agent model overrides
+#     # oh-my-opencode agent model overrides (optional, for subagents)
 #     omoAgents = {
-#       Sisyphus.model = "anthropic/claude-opus-4-5";
 #       oracle.model = "openai/gpt-5.2";
-#       explore.model = "opencode/grok-code";
+#       librarian.model = "google/gemini-3-flash-preview";
+#       explore.model = "xai/grok-code-fast-1";
 #     };
+#
+#     # oh-my-opencode category configuration (optional)
+#     omoCategories = {
+#       # Custom category
+#       korean-writer = {
+#         model = "google/gemini-3-flash-preview";
+#         temperature = 0.5;
+#         prompt_append = "You are a Korean technical writer.";
+#       };
+#       # Override built-in category
+#       visual-engineering.model = "openai/gpt-5.2";
+#       # Configure thinking model
+#       deep-reasoning = {
+#         model = "anthropic/claude-opus-4-5";
+#         thinking = { type = "enabled"; budgetTokens = 32000; };
+#       };
+#     };
+#
+#     # Disable specific skills
+#     disabledSkills = [ "playwright" ];
 #
 #     configs = {
 #       default = {};  # ~/.config/opencode with all defaults
 #
 #       web = {
 #         configDir = "${config.home.homeDirectory}/.config/opencode-web";
+#         model = "anthropic/claude-sonnet-4";  # different model for web config
 #         notifier.enable = false;  # disable notifier for services
 #       };
 #
@@ -47,6 +70,95 @@ with lib; let
   cfg = config.ruinous.ai-cli.opencode;
   opencode_config = flake + /files/configs/opencode/opencode.json;
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
+
+  # Thinking configuration submodule type for categories
+  thinkingType = types.submodule {
+    options = {
+      type = mkOption {
+        type = types.nullOr (types.enum ["enabled" "disabled"]);
+        default = null;
+        description = "Whether thinking mode is enabled or disabled.";
+      };
+      budgetTokens = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "Token budget for thinking mode.";
+        example = 32000;
+      };
+    };
+  };
+
+  # oh-my-opencode category submodule type
+  omoCategoryType = types.submodule {
+    options = {
+      description = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Human-readable description of the category's purpose.";
+      };
+      model = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "AI model ID to use (e.g., 'anthropic/claude-opus-4-5').";
+        example = "anthropic/claude-opus-4-5";
+      };
+      variant = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Model variant (e.g., 'max', 'xhigh').";
+        example = "max";
+      };
+      temperature = mkOption {
+        type = types.nullOr types.float;
+        default = null;
+        description = "Creativity level (0.0 ~ 2.0). Lower is more deterministic.";
+      };
+      top_p = mkOption {
+        type = types.nullOr types.float;
+        default = null;
+        description = "Nucleus sampling parameter (0.0 ~ 1.0).";
+      };
+      prompt_append = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Content to append to system prompt when this category is selected.";
+      };
+      thinking = mkOption {
+        type = types.nullOr thinkingType;
+        default = null;
+        description = "Thinking model configuration.";
+        example = {
+          type = "enabled";
+          budgetTokens = 16000;
+        };
+      };
+      reasoningEffort = mkOption {
+        type = types.nullOr (types.enum ["low" "medium" "high"]);
+        default = null;
+        description = "Reasoning effort level.";
+      };
+      textVerbosity = mkOption {
+        type = types.nullOr (types.enum ["low" "medium" "high"]);
+        default = null;
+        description = "Text verbosity level.";
+      };
+      tools = mkOption {
+        type = types.nullOr (types.attrsOf types.bool);
+        default = null;
+        description = "Tool usage control (disable with { \"tool_name\" = false; }).";
+      };
+      maxTokens = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "Maximum response token count.";
+      };
+      is_unstable_agent = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = "Mark agent as unstable - forces background mode for monitoring.";
+      };
+    };
+  };
 
   # Permission submodule type for oh-my-opencode agents
   permissionType = types.submodule {
@@ -163,7 +275,12 @@ with lib; let
   jsonFormat = pkgs.formats.json {};
 
   # Generate oh-my-opencode.json content from config (pretty-printed)
-  generateOmoConfig = agents: googleAuth:
+  generateOmoConfig = {
+    agents,
+    categories,
+    disabledSkills,
+    googleAuth,
+  }:
     removeNulls {
       "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
       google_auth = googleAuth;
@@ -182,6 +299,22 @@ with lib; let
             }
         )
         agents;
+      categories =
+        lib.mapAttrs (
+          name: catCfg:
+            removeNulls {
+              inherit (catCfg) description model variant temperature top_p prompt_append reasoningEffort textVerbosity tools maxTokens is_unstable_agent;
+              thinking =
+                if catCfg.thinking != null
+                then
+                  removeNulls {
+                    inherit (catCfg.thinking) type budgetTokens;
+                  }
+                else null;
+            }
+        )
+        categories;
+      disabled_skills = disabledSkills;
     };
 
   # Provider model submodule type
@@ -338,6 +471,16 @@ with lib; let
         example = "/home/user/.config/opencode-web";
       };
 
+      model = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Override the default model for this config directory.
+          If null, inherits from the main model setting.
+        '';
+        example = "anthropic/claude-opus-4-5";
+      };
+
       plugins = mkOption {
         type = types.nullOr (types.listOf types.str);
         default = null;
@@ -362,6 +505,24 @@ with lib; let
         description = ''
           Override oh-my-opencode agents for this config directory.
           If null, inherits from the main omoAgents setting.
+        '';
+      };
+
+      omoCategories = mkOption {
+        type = types.nullOr (types.attrsOf omoCategoryType);
+        default = null;
+        description = ''
+          Override oh-my-opencode categories for this config directory.
+          If null, inherits from the main omoCategories setting.
+        '';
+      };
+
+      disabledSkills = mkOption {
+        type = types.nullOr (types.listOf types.str);
+        default = null;
+        description = ''
+          Override disabled skills for this config directory.
+          If null, inherits from the main disabledSkills setting.
         '';
       };
 
@@ -422,6 +583,10 @@ with lib; let
       else if name == "default"
       then "${config.xdg.configHome}/opencode"
       else throw "configDir must be specified for non-default config '${name}'";
+    model =
+      if dirCfg.model != null
+      then dirCfg.model
+      else cfg.model;
     plugins =
       if dirCfg.plugins != null
       then dirCfg.plugins
@@ -438,6 +603,14 @@ with lib; let
       if dirCfg.omoAgents != null
       then dirCfg.omoAgents
       else cfg.omoAgents;
+    omoCategories =
+      if dirCfg.omoCategories != null
+      then dirCfg.omoCategories
+      else cfg.omoCategories;
+    disabledSkills =
+      if dirCfg.disabledSkills != null
+      then dirCfg.disabledSkills
+      else cfg.disabledSkills;
     omoGoogleAuth =
       if dirCfg.omoGoogleAuth != null
       then dirCfg.omoGoogleAuth
@@ -473,16 +646,18 @@ with lib; let
         $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
       fi
 
-      # Inject plugins, MCP servers, and providers into opencode.json
+      # Inject model, plugins, MCP servers, and providers into opencode.json
       # Provider replacement: completely replaces managed entries to apply schema changes
       if [ -f "$CONFIG_FILE" ]; then
         # Create a temporary file with the updated config
         TMP_FILE=$(mktemp)
         ${pkgs.jq}/bin/jq \
+          --argjson new_model '${builtins.toJSON resolved.model}' \
           --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
           --argjson new_servers '${builtins.toJSON resolved.mcpServers}' \
           --argjson new_providers '${builtins.toJSON resolved.providers}' \
-          '.plugin //= []
+          '(if $new_model != null then .model = $new_model else . end)
+            | .plugin //= []
             | .mcp = (.mcp // {}) + $new_servers
             | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
             | reduce ($new_plugins[]) as $p (.;
@@ -554,6 +729,23 @@ with lib; let
 in {
   options.ruinous.ai-cli.opencode = {
     enable = mkEnableOption "OpenCode CLI configuration management";
+
+    model = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "anthropic/claude-opus-4-5";
+      description = lib.mdDoc ''
+        Default model for OpenCode. This sets the `model` field in `opencode.json`.
+        When set, this is the primary model OpenCode uses for all interactions.
+        If null, no model is set and OpenCode will use its built-in default.
+
+        Example values:
+        - `"anthropic/claude-opus-4-5"` - Claude Opus 4.5
+        - `"anthropic/claude-sonnet-4"` - Claude Sonnet 4
+        - `"openai/gpt-5.2"` - GPT 5.2
+        - `"google/gemini-2.5-pro"` - Gemini 2.5 Pro
+      '';
+    };
 
     installPlugins = mkOption {
       type = types.bool;
@@ -629,6 +821,55 @@ in {
         Configuration for oh-my-opencode agents.
         Each agent can have model, temperature, skills, and other settings.
         This attrset is merged with defaults. Use `lib.mkForce` to override all defaults.
+      '';
+    };
+
+    omoCategories = mkOption {
+      type = types.attrsOf omoCategoryType;
+      default = {};
+      example = literalExpression ''
+        {
+          # Define new custom category
+          korean-writer = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            prompt_append = "You are a Korean technical writer. Maintain a friendly and clear tone.";
+          };
+
+          # Override existing category
+          visual-engineering = {
+            model = "openai/gpt-5.2";
+            temperature = 0.8;
+          };
+
+          # Configure thinking model
+          deep-reasoning = {
+            model = "anthropic/claude-opus-4-5";
+            thinking = {
+              type = "enabled";
+              budgetTokens = 32000;
+            };
+            tools = {
+              websearch_web_search_exa = false;
+            };
+          };
+        }
+      '';
+      description = lib.mdDoc ''
+        Configuration for oh-my-opencode categories.
+        Categories are agent configuration presets optimized for specific domains.
+        Use this to define custom categories or override built-in ones
+        (visual-engineering, ultrabrain, artistry, quick, unspecified-low, unspecified-high, writing).
+      '';
+    };
+
+    disabledSkills = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      example = ["playwright" "git-master"];
+      description = lib.mdDoc ''
+        List of skills to disable in oh-my-opencode.
+        Disabled skills will not be available for delegate_task operations.
       '';
     };
 
@@ -737,7 +978,7 @@ in {
       ];
 
       ruinous.ai-cli.opencode.plugins = [
-        "oh-my-opencode@v3.0.0-beta.11"
+        "oh-my-opencode@v3.0.0-beta.13"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
         "opencode-anthropic-auth@latest"
@@ -761,6 +1002,130 @@ in {
         # frontend-ui-ux-engineer.model = "google/gemini-2.5-pro";
         # document-writer.model = "google/gemini-2.5-flash";
         # multimodal-looker.model = "google/gemini-2.5-flash-image";
+      };
+
+      # Default oh-my-opencode category configurations for ruinous.ai personas
+      # See: https://agents.ruinous.ai/personas/
+      ruinous.ai-cli.opencode.omoCategories = {
+        # CODEY - CTO / Executive Director
+        # Strategic, decisive, focused on clarity and outcomes
+        codey-persona = {
+          model = "google/gemini-3-flash-preview";
+          temperature = 0.5;
+          description = "CODEY (CTO) - Strategic direction, priorities, and requirements definition.";
+          prompt_append = ''
+            You are CODEY, the CTO and Executive Director for ruinous.ai. You are strategic, decisive, and disciplined. You focus on clarity, outcomes, and sustainable velocity.
+
+            Your role:
+            - Define WHAT should be built and WHY (not HOW)
+            - Set priorities and issue requirements ("purchase orders") to Sisyphus
+            - Maintain quality standards and organizational alignment
+            - Report to the CEO on strategic direction and progress
+
+            Voice: Decisive, strategic, concise. "Clarity creates velocity."
+          '';
+        };
+
+        # BUDGEY - CFO / Chief of Staff
+        # Precise, data-driven, cost-conscious
+        budgey-persona = {
+          model = "google/gemini-3-flash-preview";
+          temperature = 0.5;
+          description = "BUDGEY (CFO) - Budget tracking, cost analysis, and resource accountability.";
+          prompt_append = ''
+            You are BUDGEY, the CFO and Chief of Staff for ruinous.ai. You are precise, data-driven, and cost-conscious. Every token is accountable.
+
+            Your role:
+            - Track token spending and monitor project health
+            - Calculate costs and generate spend reports
+            - Enforce budgets and escalate overages to CODEY
+            - Provide data for resource allocation decisions
+
+            Voice: Precise, analytical, fiscally responsible. "Every token counts. Know what you're spending, and spend it wisely."
+          '';
+        };
+
+        # LIBBY - Technical Writer & Archivist
+        # Comprehensive, guide-like, finds hidden gems
+        libby-persona = {
+          model = "google/gemini-3-flash-preview";
+          temperature = 0.5;
+          description = "LIBBY - Technical writing, documentation, and codebase archaeology.";
+          prompt_append = ''
+            You are LIBBY, the Technical Writer and Archivist for ruinous.ai. You believe every codebase has hidden treasures worth surfacing.
+
+            Your role:
+            - Write comprehensive, approachable documentation
+            - Uncover the "why" behind code decisions (codebase archaeology)
+            - Surface "hidden gems" - non-obvious insights that delight readers
+            - Guide readers to discovery, don't just list facts
+
+            Voice: Expository guide. Comprehensive but warm. "Let me walk you through this..."
+            Always include the "why" alongside the "what". Use tables for scannability. Add cross-references liberally.
+          '';
+        };
+
+        # NEWSY - News Curator
+        # Curatorial, intellectual, concise
+        newsy-persona = {
+          model = "google/gemini-3-flash-preview";
+          temperature = 0.5;
+          description = "NEWSY - News desk, content curation, and topic research.";
+          prompt_append = ''
+            You are NEWSY, the News Curator for ruinous.ai. You filter the noise so users get the signal.
+
+            Your role:
+            - Curate high-value, relevant content (prioritize signal over noise)
+            - Summarize newsletters, RSS feeds, and industry news
+            - Provide "Why this matters" context for stories
+            - Research topics in depth when requested
+
+            Voice: Curatorial, intellectual, concise. Like a trusted news anchor who respects your time.
+            Lead with TL;DR. Always cite sources. Separate fact from opinion. Use relevance indicators.
+          '';
+        };
+
+        # MESSY - Family Assistant
+        # Warm, efficient, proactively helpful
+        messy-persona = {
+          model = "google/gemini-3-flash-preview";
+          temperature = 0.5;
+          description = "MESSY - Family assistant for calendars, tasks, email, and life coordination.";
+          prompt_append = ''
+            You are MESSY (Meskill Executive Support SYstem), the family assistant for the Meskill household. You are warm but efficient, friendly without being overly chatty.
+
+            Your role:
+            - Manage calendars, tasks, and email triage
+            - Coordinate travel and family events
+            - Anticipate needs and flag concerns proactively
+            - Distinguish work vs personal context appropriately
+
+            Voice: Warm but efficient. Like a trusted executive assistant who genuinely cares.
+            Use bullet points for scannability. Add "Quick note:" or "Heads up:" for important callouts.
+            Respect time - key info first, details available on request.
+          '';
+        };
+
+        # SPORTY - Youth Sports Coordinator
+        # Energetic, organized, encouraging
+        sporty-persona = {
+          model = "google/gemini-3-flash-preview";
+          temperature = 0.5;
+          description = "SPORTY - Youth sports coordination, schedules, stats, and game logistics.";
+          prompt_append = ''
+            You are SPORTY (Sports Planning, Organization, Reporting & Tracking sYstem), the youth sports coordinator for the Meskill family. You are energetic but organized, enthusiastic without being overwhelming.
+
+            Your role:
+            - Manage game schedules, practice times, and field locations
+            - Track tournament brackets and player statistics
+            - Coordinate equipment, snack duty, and transportation
+            - Send timely alerts for schedule changes and game days
+
+            Voice: Energetic, organized, encouraging. Like a team manager who genuinely cares about the kids having fun.
+            Use emoji for quick scanning (⚽ 🏀 ⏰ 📍). Bold time/location info. Celebrate effort and progress.
+            Never criticize players. Keep logistics clear and parents informed.
+          '';
+        };
       };
 
       ruinous.ai-cli.opencode.mcpServers = {
@@ -848,7 +1213,12 @@ in {
         in
           {
             "${resolved.configDir}/oh-my-opencode.json".source =
-              jsonFormat.generate "oh-my-opencode.json" (generateOmoConfig resolved.omoAgents resolved.omoGoogleAuth);
+              jsonFormat.generate "oh-my-opencode.json" (generateOmoConfig {
+                agents = resolved.omoAgents;
+                categories = resolved.omoCategories;
+                disabledSkills = resolved.disabledSkills;
+                googleAuth = resolved.omoGoogleAuth;
+              });
             "${resolved.configDir}/package.json".text = builtins.toJSON {
               name = "opencode-plugins";
               dependencies = builtins.listToAttrs (
