@@ -91,6 +91,12 @@
         upstream = "obsidian-dev:3000";
         description = "Obsidian development web UI";
       };
+
+      # Obsidian Local REST API (development)
+      "api.obsidian.meskill.dev" = {
+        upstream = "obsidian-dev:27123";
+        description = "Obsidian Local REST API (development)";
+      };
     };
 
     # Complex routes with raw Caddy config

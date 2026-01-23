@@ -261,6 +261,12 @@
         upstream = "obsidian:3000";
         description = "Obsidian web UI";
       };
+
+      # Obsidian Local REST API (production)
+      "api.obsidian.meskill.farm" = {
+        upstream = "obsidian:27123";
+        description = "Obsidian Local REST API (production)";
+      };
     };
 
     # Complex routes with raw Caddy config

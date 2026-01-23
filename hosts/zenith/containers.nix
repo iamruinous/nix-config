@@ -397,9 +397,10 @@
           PGID = "1000";
           TZ = "America/Phoenix";
         };
+        extraOptions = ["--shm-size=1g"];
         networks = ["servicenet"];
         volumes = [
-          "/data/containers/obsidian-dev/config:/config"
+          "/data/docker/obsidian-dev/config:/config"
         ];
       };
 
