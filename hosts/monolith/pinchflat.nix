@@ -102,28 +102,98 @@ with lib; let
         exit 0
       fi
 
-      # Check if subtitles exist
-      SUBTITLE_COUNT=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths | length // 0')
-      if [[ "$SUBTITLE_COUNT" -eq 0 ]]; then
-        TITLE=$(echo "$EVENT_DATA" | jq -r '.title // "unknown"')
-        log "No subtitles available for: $TITLE - skipping"
-        exit 0
-      fi
-
-      # Extract metadata for logging
+      # Extract metadata
       TITLE=$(echo "$EVENT_DATA" | jq -r '.title // "unknown"')
       CHANNEL=$(echo "$EVENT_DATA" | jq -r '.source.collection_name // "unknown"')
       VIDEO_ID=$(echo "$EVENT_DATA" | jq -r '.media_id // "unknown"')
+      VIDEO_FILEPATH=$(echo "$EVENT_DATA" | jq -r '.media_filepath // ""')
+
+      # First try subtitle_filepaths from event data
+      SUBTITLE_COUNT=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths | length // 0')
+      SUBTITLE_FILE=""
+
+      if [[ "$SUBTITLE_COUNT" -gt 0 ]]; then
+        # Use first subtitle from event data
+        SUBTITLE_FILE=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths[0] // ""')
+        log "Found subtitle in event data: $SUBTITLE_FILE"
+      elif [[ -n "$VIDEO_FILEPATH" ]]; then
+        # Fallback: Look for .srt file next to the video file
+        VIDEO_DIR=$(dirname "$VIDEO_FILEPATH")
+        VIDEO_BASE=$(basename "$VIDEO_FILEPATH")
+        VIDEO_NAME="''${VIDEO_BASE%.*}"
+
+        # Search for .en.srt or .srt file matching the video name
+        if [[ -f "$VIDEO_DIR/$VIDEO_NAME.en.srt" ]]; then
+          SUBTITLE_FILE="$VIDEO_DIR/$VIDEO_NAME.en.srt"
+          log "Found subtitle on disk: $SUBTITLE_FILE"
+        elif [[ -f "$VIDEO_DIR/$VIDEO_NAME.srt" ]]; then
+          SUBTITLE_FILE="$VIDEO_DIR/$VIDEO_NAME.srt"
+          log "Found subtitle on disk: $SUBTITLE_FILE"
+        else
+          # Try to find any .srt file with matching prefix
+          FOUND_SRT=$(find "$VIDEO_DIR" -maxdepth 1 -name "$VIDEO_NAME*.srt" -type f 2>/dev/null | head -n1)
+          if [[ -n "$FOUND_SRT" ]]; then
+            SUBTITLE_FILE="$FOUND_SRT"
+            log "Found subtitle on disk (pattern match): $SUBTITLE_FILE"
+          fi
+        fi
+      fi
+
+      # Skip if no subtitle found
+      if [[ -z "$SUBTITLE_FILE" ]] || [[ ! -f "$SUBTITLE_FILE" ]]; then
+        log "No subtitles available for: $TITLE - skipping"
+        exit 0
+      fi
       ${channelCheckLogic}
 
-      log "Processing: $TITLE (channel: $CHANNEL, video_id: $VIDEO_ID, subtitles: $SUBTITLE_COUNT)"
+      log "Processing: $TITLE (channel: $CHANNEL, video_id: $VIDEO_ID, subtitle: $SUBTITLE_FILE)"
+
+      # Parse SRT file to extract plain text transcript
+      # SRT format: index, timestamp line, text lines, blank line
+      # We extract only the text lines, removing timestamps and indices
+      parse_srt() {
+        local srt_file="$1"
+        # Remove carriage returns, blank lines at start
+        # Skip lines that are just numbers (subtitle index)
+        # Skip lines matching timestamp pattern (00:00:00,000 --> 00:00:00,000)
+        # Keep only actual text content
+        sed 's/\r//g' "$srt_file" | \
+          grep -v '^[0-9]*$' | \
+          grep -v '^[0-9][0-9]:[0-9][0-9]:[0-9][0-9],[0-9][0-9][0-9] --> ' | \
+          grep -v '^$' | \
+          # Remove HTML-style tags like <font>, </font>, etc.
+          sed 's/<[^>]*>//g' | \
+          # Collapse multiple spaces
+          tr -s ' ' | \
+          # Join lines with spaces, then normalize
+          tr '\n' ' ' | \
+          # Trim leading/trailing whitespace
+          sed 's/^ *//;s/ *$//'
+      }
+
+      TRANSCRIPT_TEXT=$(parse_srt "$SUBTITLE_FILE")
+      TRANSCRIPT_LENGTH=''${#TRANSCRIPT_TEXT}
+
+      if [[ "$TRANSCRIPT_LENGTH" -eq 0 ]]; then
+        log "WARNING: Parsed transcript is empty for: $TITLE - skipping"
+        exit 0
+      fi
+
+      log "Extracted transcript: $TRANSCRIPT_LENGTH characters"
+
+      # Build enhanced payload with transcript text
+      # Add transcript_text and subtitle_filepath to the original event data
+      ENHANCED_PAYLOAD=$(echo "$EVENT_DATA" | jq \
+        --arg transcript "$TRANSCRIPT_TEXT" \
+        --arg subtitle_file "$SUBTITLE_FILE" \
+        '. + {transcript_text: $transcript, subtitle_filepath: $subtitle_file}')
 
       # Send to n8n webhook
       RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WEBHOOK_URL" \
         -H "Content-Type: application/json" \
         -H "X-Pinchflat-Event: media_downloaded" \
         --max-time 30 \
-        -d "$EVENT_DATA" 2>&1) || true
+        -d "$ENHANCED_PAYLOAD" 2>&1) || true
 
       # Extract HTTP status code (last line)
       HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
