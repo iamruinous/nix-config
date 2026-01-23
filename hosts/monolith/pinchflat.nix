@@ -8,7 +8,7 @@
 # Usage:
 #   services.pinchflat-lifecycle = {
 #     enable = true;
-#     webhookUrl = "https://n8n.meskill.farm/webhook/pinchflat-transcript";
+#     webhookUrl = "https://n8h.meskill.farm/webhook/pinchflat-transcript";
 #     allowedChannels = [
 #       "PBS NewsHour"
 #       "CNN"
@@ -108,16 +108,23 @@ with lib; let
       VIDEO_ID=$(echo "$EVENT_DATA" | jq -r '.media_id // "unknown"')
       VIDEO_FILEPATH=$(echo "$EVENT_DATA" | jq -r '.media_filepath // ""')
 
-      # First try subtitle_filepaths from event data
-      SUBTITLE_COUNT=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths | length // 0')
+      # Try to find subtitle file
       SUBTITLE_FILE=""
 
+      # First try subtitle_filepaths from event data
+      SUBTITLE_COUNT=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths | if type == "array" then length else 0 end // 0')
       if [[ "$SUBTITLE_COUNT" -gt 0 ]]; then
-        # Use first subtitle from event data
-        SUBTITLE_FILE=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths[0] // ""')
-        log "Found subtitle in event data: $SUBTITLE_FILE"
-      elif [[ -n "$VIDEO_FILEPATH" ]]; then
-        # Fallback: Look for .srt file next to the video file
+        CANDIDATE=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths[0] // ""')
+        if [[ -n "$CANDIDATE" ]] && [[ -f "$CANDIDATE" ]]; then
+          SUBTITLE_FILE="$CANDIDATE"
+          log "Found subtitle in event data: $SUBTITLE_FILE"
+        else
+          log "Event data subtitle path invalid or missing: $CANDIDATE"
+        fi
+      fi
+
+      # Fallback: Look for .srt file next to the video file
+      if [[ -z "$SUBTITLE_FILE" ]] && [[ -n "$VIDEO_FILEPATH" ]]; then
         VIDEO_DIR=$(dirname "$VIDEO_FILEPATH")
         VIDEO_BASE=$(basename "$VIDEO_FILEPATH")
         VIDEO_NAME="''${VIDEO_BASE%.*}"
@@ -215,7 +222,7 @@ in {
 
     webhookUrl = mkOption {
       type = types.str;
-      default = "https://n8n.meskill.farm/webhook/pinchflat-transcript";
+      default = "https://n8h.meskill.farm/webhook/pinchflat-transcript";
       description = "Webhook URL to send media_downloaded events to";
       example = "https://n8n.example.com/webhook/pinchflat";
     };
