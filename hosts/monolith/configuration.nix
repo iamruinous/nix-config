@@ -17,6 +17,7 @@
     ./caddy-cert-copy.nix
     ./cloudflared.nix
     ./containers.nix
+    ./pinchflat.nix
     ./disko.nix
     ./nfs.nix
     ./printing.nix
@@ -41,6 +42,16 @@
   ruinous.alloy.journal.enable = true;
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
+
+  # Pinchflat lifecycle webhook for transcript processing
+  services.pinchflat-lifecycle = {
+    enable = true;
+    # webhookUrl uses default: https://n8n.meskill.farm/webhook/pinchflat-transcript
+    allowedChannels = [
+      # Add channel names here to enable transcript processing
+      # Example: "PBS NewsHour"
+    ];
+  };
   boot.plymouth.enable = true;
   power.ups.enable = true;
 
