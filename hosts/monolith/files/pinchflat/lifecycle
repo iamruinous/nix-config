@@ -1,0 +1,68 @@
+#!/bin/bash
+# Pinchflat lifecycle script for YouTube transcript extraction
+# Sends media_downloaded events to n8n for transcript processing
+#
+# Events: app_init, media_pre_download, media_downloaded, media_deleted
+# This script only handles media_downloaded events with subtitles.
+#
+# Managed by: nix-config (hosts/monolith/files/pinchflat/lifecycle)
+# Target: n8n workflow "Newsy 3.0 - Ingest - YouTube Transcript"
+
+set -euo pipefail
+
+EVENT_TYPE="${1:-}"
+EVENT_DATA="${2:-}"
+
+# Webhook endpoint for n8n
+WEBHOOK_URL="https://n8n.meskill.farm/webhook/pinchflat-transcript"
+
+# Logging helper
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] [lifecycle] $1"
+}
+
+# Only process media_downloaded events
+if [[ "$EVENT_TYPE" != "media_downloaded" ]]; then
+  exit 0
+fi
+
+# Validate we have event data
+if [[ -z "$EVENT_DATA" ]]; then
+  log "ERROR: No event data received"
+  exit 0
+fi
+
+# Check if subtitles exist
+SUBTITLE_COUNT=$(echo "$EVENT_DATA" | jq -r '.subtitle_filepaths | length // 0')
+if [[ "$SUBTITLE_COUNT" -eq 0 ]]; then
+  TITLE=$(echo "$EVENT_DATA" | jq -r '.title // "unknown"')
+  log "No subtitles available for: $TITLE - skipping"
+  exit 0
+fi
+
+# Extract metadata for logging
+TITLE=$(echo "$EVENT_DATA" | jq -r '.title // "unknown"')
+CHANNEL=$(echo "$EVENT_DATA" | jq -r '.source.collection_name // "unknown"')
+VIDEO_ID=$(echo "$EVENT_DATA" | jq -r '.media_id // "unknown"')
+
+log "Processing: $TITLE (channel: $CHANNEL, video_id: $VIDEO_ID, subtitles: $SUBTITLE_COUNT)"
+
+# Send to n8n webhook
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  -H "X-Pinchflat-Event: media_downloaded" \
+  --max-time 30 \
+  -d "$EVENT_DATA" 2>&1) || true
+
+# Extract HTTP status code (last line)
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+BODY=$(echo "$RESPONSE" | sed '$d')
+
+if [[ "$HTTP_CODE" == "200" ]] || [[ "$HTTP_CODE" == "201" ]] || [[ "$HTTP_CODE" == "202" ]]; then
+  log "SUCCESS: Sent to n8n (HTTP $HTTP_CODE)"
+else
+  log "WARNING: n8n returned HTTP $HTTP_CODE - $BODY"
+  # Don't fail - Pinchflat should continue even if webhook fails
+fi
+
+exit 0
