@@ -255,6 +255,12 @@
         upstream = "zigbee2mqtt:8080";
         description = "Zigbee2MQTT";
       };
+
+      # Obsidian web UI (n8n REST API integration)
+      "obsidian.meskill.farm" = {
+        upstream = "obsidian:3000";
+        description = "Obsidian web UI";
+      };
     };
 
     # Complex routes with raw Caddy config

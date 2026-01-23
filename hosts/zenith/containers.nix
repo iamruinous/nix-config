@@ -387,6 +387,22 @@
         networks = ["servicenet"];
       };
 
+      # Obsidian (Development)
+      # Web-based Obsidian for n8n REST API integration
+      # Ports: 3000 (KasmVNC web UI), 27124 (Local REST API after plugin installed)
+      obsidian-dev = {
+        image = "ghcr.io/linuxserver/obsidian:v1.11.5-ls108";
+        environment = {
+          PUID = "1000";
+          PGID = "1000";
+          TZ = "America/Phoenix";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/containers/obsidian-dev/config:/config"
+        ];
+      };
+
       # llama.cpp - OpenAI-compatible API server with ROCm GPU acceleration
       # Replaces vLLM for better unified memory handling on Strix Halo
       # Model: Qwen2.5-Coder-32B-Instruct Q4_K_M (~24GB weights)

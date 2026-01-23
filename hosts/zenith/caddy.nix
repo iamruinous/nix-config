@@ -85,6 +85,12 @@
         upstream = "weaviate-dev:8080";
         description = "Weaviate development vector database";
       };
+
+      # Obsidian development web UI (n8n REST API integration)
+      "obsidian.meskill.dev" = {
+        upstream = "obsidian-dev:3000";
+        description = "Obsidian development web UI";
+      };
     };
 
     # Complex routes with raw Caddy config
