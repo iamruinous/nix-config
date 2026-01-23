@@ -280,10 +280,12 @@ with lib; let
     categories,
     disabledSkills,
     googleAuth,
+    sisyphusSignature,
   }:
     removeNulls {
       "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
       google_auth = googleAuth;
+      include_co_authored_by = sisyphusSignature;
       agents =
         lib.mapAttrs (
           name: agentCfg:
@@ -553,6 +555,15 @@ with lib; let
         '';
       };
 
+      sisyphusSignature = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = ''
+          Override Sisyphus signature setting for this config directory.
+          If null, inherits from the main sisyphusSignature setting.
+        '';
+      };
+
       notifier = {
         enable = mkOption {
           type = types.nullOr types.bool;
@@ -615,6 +626,10 @@ with lib; let
       if dirCfg.omoGoogleAuth != null
       then dirCfg.omoGoogleAuth
       else cfg.omoGoogleAuth;
+    sisyphusSignature =
+      if dirCfg.sisyphusSignature != null
+      then dirCfg.sisyphusSignature
+      else cfg.sisyphusSignature;
     ruinagentsGlobalEnable =
       if dirCfg.ruinagentsGlobalEnable != null
       then dirCfg.ruinagentsGlobalEnable
@@ -920,6 +935,17 @@ in {
       description = "Whether to enable Google authentication in oh-my-opencode.";
     };
 
+    sisyphusSignature = mkOption {
+      type = types.bool;
+      default = true;
+      description = lib.mdDoc ''
+        Whether to add Sisyphus signature to git commits.
+        When enabled, commits include:
+        - Footer: "Ultraworked with [Sisyphus](...)"
+        - Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+      '';
+    };
+
     ruinagentsGlobal = {
       enable = mkOption {
         type = types.bool;
@@ -1218,6 +1244,7 @@ in {
                 categories = resolved.omoCategories;
                 disabledSkills = resolved.disabledSkills;
                 googleAuth = resolved.omoGoogleAuth;
+                sisyphusSignature = resolved.sisyphusSignature;
               });
             "${resolved.configDir}/package.json".text = builtins.toJSON {
               name = "opencode-plugins";
