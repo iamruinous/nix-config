@@ -48,7 +48,7 @@
     enable = true;
     # webhookUrl uses default: https://n8n.meskill.farm/webhook/pinchflat-transcript
     allowedChannels = [
-      "AI News & Strategy Daily | Nate B Jones"
+      "AI News & Strategy Daily # Nate B Jones"
     ];
   };
   boot.plymouth.enable = true;
