@@ -154,6 +154,12 @@
         description = "Pinchflat media downloader";
       };
 
+      # TubeSync YouTube downloader
+      "tubesync.meskill.farm" = {
+        upstream = "tubesync:4848";
+        description = "TubeSync YouTube downloader";
+      };
+
       # Paperless-ngx documents
       "paperless.meskill.farm" = {
         upstream = "paperless-ngx:8000";

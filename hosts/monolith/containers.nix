@@ -807,6 +807,19 @@
           "${config.services.pinchflat-lifecycle.scriptPath}:/config/extras/user-scripts/lifecycle:ro"
         ];
       };
+      tubesync = {
+        image = "ghcr.io/meeb/tubesync:v0.16.1";
+        environment = {
+          TZ = "America/Phoenix";
+          PUID = "1000";
+          PGID = "1000";
+        };
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/tubesync/config:/config"
+          "/nas/media/YT:/downloads"
+        ];
+      };
       "alert-manager" = {
         image = "docker.io/prom/alertmanager:v0.30.0";
         networks = [
