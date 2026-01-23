@@ -785,11 +785,15 @@
         image = "ghcr.io/kieraneglin/pinchflat:v2025.6.6";
         environment = {
           TZ = "America/Phoenix";
+          # Enable debug logging for lifecycle script output
+          LOG_LEVEL = "debug";
         };
         networks = ["servicenet"];
         volumes = [
           "/data/docker/pinchflat/config:/config"
           "/nas/media/YT:/downloads"
+          # Lifecycle script for transcript extraction webhook
+          "${./files/pinchflat/lifecycle}:/config/extras/user-scripts/lifecycle:ro"
         ];
       };
       "alert-manager" = {
@@ -1017,6 +1021,10 @@
   # Restart docker-n8n service when env secret changes
   systemd.services.docker-n8n = {
     restartTriggers = [config.age.secrets.monolith_docker_env_n8n.rekeyFile];
+  };
+  # Restart docker-pinchflat service when lifecycle script changes
+  systemd.services.docker-pinchflat = {
+    restartTriggers = [./files/pinchflat/lifecycle];
   };
   # Restart docker-gatus service when config or env changes
   systemd.services.docker-gatus = {
