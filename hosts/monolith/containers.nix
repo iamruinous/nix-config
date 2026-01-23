@@ -811,8 +811,8 @@
         image = "ghcr.io/meeb/tubesync:v0.16.1";
         environment = {
           TZ = "America/Phoenix";
-          PUID = "1000";
-          PGID = "1000";
+          PUID = "4000";
+          PGID = "4000";
         };
         networks = ["servicenet"];
         volumes = [
