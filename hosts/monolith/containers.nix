@@ -793,7 +793,7 @@
           "/data/docker/pinchflat/config:/config"
           "/nas/media/YT:/downloads"
           # Lifecycle script for transcript extraction webhook
-          "${./files/pinchflat/lifecycle}:/config/extras/user-scripts/lifecycle:ro"
+          "${config.services.pinchflat-lifecycle.scriptPath}:/config/extras/user-scripts/lifecycle:ro"
         ];
       };
       "alert-manager" = {
@@ -1024,7 +1024,7 @@
   };
   # Restart docker-pinchflat service when lifecycle script changes
   systemd.services.docker-pinchflat = {
-    restartTriggers = [./files/pinchflat/lifecycle];
+    restartTriggers = [config.services.pinchflat-lifecycle.scriptPath];
   };
   # Restart docker-gatus service when config or env changes
   systemd.services.docker-gatus = {
