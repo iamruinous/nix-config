@@ -195,6 +195,22 @@ with lib; let
     };
   };
 
+  # oh-my-opencode LSP server submodule type
+  omoLspType = types.submodule {
+    options = {
+      command = mkOption {
+        type = types.listOf types.str;
+        description = "Command to run the LSP server.";
+        example = ["marksman" "server"];
+      };
+      extensions = mkOption {
+        type = types.listOf types.str;
+        description = "File extensions this LSP server handles.";
+        example = [".md" ".markdown"];
+      };
+    };
+  };
+
   # oh-my-opencode agent submodule type
   omoAgentType = types.submodule {
     options = {
@@ -281,6 +297,7 @@ with lib; let
     disabledSkills,
     googleAuth,
     sisyphusSignature,
+    lsp,
   }:
     removeNulls {
       "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
@@ -317,6 +334,14 @@ with lib; let
         )
         categories;
       disabled_skills = disabledSkills;
+      lsp =
+        lib.mapAttrs (
+          name: lspCfg:
+            removeNulls {
+              inherit (lspCfg) command extensions;
+            }
+        )
+        lsp;
     };
 
   # Provider model submodule type
@@ -519,6 +544,15 @@ with lib; let
         '';
       };
 
+      omoLsp = mkOption {
+        type = types.nullOr (types.attrsOf omoLspType);
+        default = null;
+        description = ''
+          Override oh-my-opencode LSP servers for this config directory.
+          If null, inherits from the main omoLsp setting.
+        '';
+      };
+
       disabledSkills = mkOption {
         type = types.nullOr (types.listOf types.str);
         default = null;
@@ -618,6 +652,10 @@ with lib; let
       if dirCfg.omoCategories != null
       then dirCfg.omoCategories
       else cfg.omoCategories;
+    omoLsp =
+      if dirCfg.omoLsp != null
+      then dirCfg.omoLsp
+      else cfg.omoLsp;
     disabledSkills =
       if dirCfg.disabledSkills != null
       then dirCfg.disabledSkills
@@ -875,6 +913,29 @@ in {
         Categories are agent configuration presets optimized for specific domains.
         Use this to define custom categories or override built-in ones
         (visual-engineering, ultrabrain, artistry, quick, unspecified-low, unspecified-high, writing).
+      '';
+    };
+
+    omoLsp = mkOption {
+      type = types.attrsOf omoLspType;
+      default = {};
+      example = literalExpression ''
+        {
+          marksman = {
+            command = ["marksman" "server"];
+            extensions = [".md" ".markdown"];
+          };
+          typescript = {
+            command = ["typescript-language-server" "--stdio"];
+            extensions = [".ts" ".tsx"];
+          };
+        }
+      '';
+      description = lib.mdDoc ''
+        Configuration for oh-my-opencode LSP servers.
+        Each LSP server provides language intelligence features for specific file types.
+        The key is the server name, and the value contains the command to run and
+        file extensions it handles.
       '';
     };
 
@@ -1204,6 +1265,14 @@ in {
           options.baseURL = "https://ollama.meskill.farm";
         };
       };
+
+      # Default LSP server configurations for oh-my-opencode
+      ruinous.ai-cli.opencode.omoLsp = {
+        marksman = {
+          command = ["marksman" "server"];
+          extensions = [".md" ".markdown"];
+        };
+      };
     }
 
     # Generate home.file entries for all config directories
@@ -1245,6 +1314,7 @@ in {
                 disabledSkills = resolved.disabledSkills;
                 googleAuth = resolved.omoGoogleAuth;
                 sisyphusSignature = resolved.sisyphusSignature;
+                lsp = resolved.omoLsp;
               });
             "${resolved.configDir}/package.json".text = builtins.toJSON {
               name = "opencode-plugins";
