@@ -42,6 +42,7 @@
     ai-cli = {
       opencode = {
         enable = true;
+        sisyphusSignature = false;
         configs.default.notifier.enable = false;
       };
 
