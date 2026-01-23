@@ -48,8 +48,7 @@
     enable = true;
     # webhookUrl uses default: https://n8n.meskill.farm/webhook/pinchflat-transcript
     allowedChannels = [
-      # Add channel names here to enable transcript processing
-      # Example: "PBS NewsHour"
+      "AI News & Strategy Daily | Nate B Jones"
     ];
   };
   boot.plymouth.enable = true;
