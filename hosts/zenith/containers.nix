@@ -318,6 +318,7 @@
           N8N_BLOCK_INTERNAL_NETWORKS = "false";
           OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS = "true";
           N8N_ENVIRONMENT = "dev";
+          N8N_RESTRICT_FILE_ACCESS_TO = "/nas/media";
         };
         environmentFiles = [config.age.secrets.zenith_docker_env_n8n_dev.path];
         networks = ["servicenet" "datanet"];
