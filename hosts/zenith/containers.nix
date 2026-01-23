@@ -138,7 +138,6 @@
         image = "ghcr.io/open-webui/open-webui:v0.7.2";
         dependsOn = ["llama-cpp"];
         environment = {
-          
           OPENAI_API_BASE_URL = "http://llama-cpp:8000/v1";
         };
         networks = ["servicenet"];
@@ -327,6 +326,7 @@
           "/data/docker/n8n-dev/config:/home/node/.n8n"
           "/etc/timezone:/etc/timezone:ro"
           "/etc/localtime:/etc/localtime:ro"
+          "/nas/media:/nas/media"
         ];
       };
 
@@ -345,6 +345,9 @@
         environmentFiles = [config.age.secrets.zenith_docker_env_n8n_dev_runner.path];
         networks = ["servicenet"];
         dependsOn = ["n8n-dev"];
+        volumes = [
+          "/nas/media:/nas/media"
+        ];
       };
 
       # Weaviate vector database for AI workflows
@@ -447,8 +450,6 @@
           "--no-warmup"
         ];
       };
-
-
 
       # DISABLED: Using llama.cpp instead (kept for rollback)
       # # vLLM - OpenAI-compatible API server with ROCm GPU acceleration

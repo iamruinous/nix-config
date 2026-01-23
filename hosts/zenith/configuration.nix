@@ -17,6 +17,7 @@
     ./cloudflared.nix
     ./containers.nix
     ./disko.nix
+    ./nfs.nix
   ];
 
   networking.hostName = "zenith";
