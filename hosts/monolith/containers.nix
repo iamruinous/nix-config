@@ -792,7 +792,7 @@
       #   ];
       # };
       pinchflat = {
-        image = "ghcr.io/kieraneglin/pinchflat:v2025.6.6";
+        image = "ghcr.io/kieraneglin/pinchflat:v2025.9.26";
         environment = {
           TZ = "America/Phoenix";
           # Enable debug logging for lifecycle script output
