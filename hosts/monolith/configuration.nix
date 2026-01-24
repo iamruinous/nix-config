@@ -50,6 +50,7 @@
     allowedChannels = [
       "AI News & Strategy Daily | Nate B Jones"
       "Nate Herk | AI Automation"
+      "Pinch Summarize"
     ];
   };
   boot.plymouth.enable = true;
