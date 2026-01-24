@@ -755,30 +755,16 @@ with lib; let
 
   ruinagentsGlobalPackage = pkgs.ruinagents-global;
   ruinagentsGlobalShare = "${ruinagentsGlobalPackage}/share/ruinagents-global";
-  firstExisting = paths: let
-    existing = builtins.filter (path: builtins.pathExists path) paths;
-  in
-    if existing == []
-    then null
-    else builtins.head existing;
-  skillSourcePath = firstExisting [
-    "${ruinagentsGlobalShare}/skill"
-    "${ruinagentsGlobalShare}/.skills"
-  ];
-  commandSourcePath = firstExisting [
-    "${ruinagentsGlobalShare}/command"
-    "${ruinagentsGlobalShare}/commands"
-    "${ruinagentsGlobalShare}/.command"
-    "${ruinagentsGlobalShare}/.commands"
-  ];
+  skillSourcePath = "${ruinagentsGlobalShare}/skills";
+  commandSourcePath = "${ruinagentsGlobalShare}/commands";
   skillNames =
-    if skillSourcePath == null
-    then []
-    else builtins.filter (name: builtins.pathExists "${skillSourcePath}/${name}/SKILL.md") (builtins.attrNames (builtins.readDir skillSourcePath));
+    if builtins.pathExists skillSourcePath
+    then builtins.filter (name: builtins.pathExists "${skillSourcePath}/${name}/SKILL.md") (builtins.attrNames (builtins.readDir skillSourcePath))
+    else [];
   commandNames =
-    if commandSourcePath == null
-    then []
-    else builtins.filter (name: builtins.pathExists "${commandSourcePath}/${name}") (builtins.attrNames (builtins.readDir commandSourcePath));
+    if builtins.pathExists commandSourcePath
+    then builtins.filter (name: builtins.pathExists "${commandSourcePath}/${name}") (builtins.attrNames (builtins.readDir commandSourcePath))
+    else [];
 in {
   options.ruinous.ai-cli.opencode = {
     enable = mkEnableOption "OpenCode CLI configuration management";
@@ -1282,23 +1268,17 @@ in {
           pc = processedConfigs.${name};
           resolved = pc.resolved;
           skillLinks =
-            if skillSourcePath == null
-            then {}
-            else
-              builtins.listToAttrs (map (skill: {
-                  name = "${resolved.configDir}/skill/${skill}/SKILL.md";
-                  value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
-                })
-                skillNames);
+            builtins.listToAttrs (map (skill: {
+                name = "${resolved.configDir}/skills/${skill}/SKILL.md";
+                value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
+              })
+              skillNames);
           commandLinks =
-            if commandSourcePath == null
-            then {}
-            else
-              builtins.listToAttrs (map (cmd: {
-                  name = "${resolved.configDir}/command/${cmd}";
-                  value = {source = "${commandSourcePath}/${cmd}";};
-                })
-                commandNames);
+            builtins.listToAttrs (map (cmd: {
+                name = "${resolved.configDir}/commands/${cmd}";
+                value = {source = "${commandSourcePath}/${cmd}";};
+              })
+              commandNames);
           ruinagentsEntries =
             {
               "${resolved.configDir}/AGENTS.md".source = "${ruinagentsGlobalShare}/AGENTS.md";
