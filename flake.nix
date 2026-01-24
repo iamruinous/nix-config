@@ -121,13 +121,13 @@
 
     # budgey-extractor - OpenCode session extractor for Postgres + Weaviate
     # <https://forge.meskill.farm/iamruinous/budgey-extractor>
-    budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git?ref=refs/tags/v0.7.0";
+    budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git?ref=refs/tags/v0.7.1";
     budgey-extractor.inputs.nixpkgs.follows = "nixpkgs";
 
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
     # NOTE: Keep pinned to tagged version. Update with: nix flake update ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v1.0.1";
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v1.0.3";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository
