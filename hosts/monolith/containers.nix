@@ -1037,6 +1037,23 @@
           "/data/docker/nocodb/data:/usr/app/data"
         ];
       };
+
+      # Obsidian (Production)
+      # Web-based Obsidian for n8n REST API integration
+      # Ports: 3000 (KasmVNC web UI), 27124 (Local REST API after plugin installed)
+      obsidian = {
+        image = "ghcr.io/linuxserver/obsidian:v1.11.5-ls108";
+        environment = {
+          PUID = "1000";
+          PGID = "1000";
+          TZ = "America/Phoenix";
+        };
+        extraOptions = ["--shm-size=1g"];
+        networks = ["servicenet"];
+        volumes = [
+          "/data/docker/obsidian/config:/config"
+        ];
+      };
     };
   };
 
