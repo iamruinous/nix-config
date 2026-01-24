@@ -62,7 +62,7 @@ home-manager-lib.runHomeManagerTestSuite {
     assert test -f "$CONFIG_FILE"
 
     # Check that default and custom plugins are present
-    assert jq -e '.plugin | index("oh-my-opencode@v2.14.0")' "$CONFIG_FILE"
+    assert jq -e '.plugin | index("oh-my-opencode@v3.0.0-beta.16")' "$CONFIG_FILE"
     assert jq -e '.plugin | index("my-test-plugin@v1.0.0")' "$CONFIG_FILE"
 
     # Check that default and custom MCP servers are present

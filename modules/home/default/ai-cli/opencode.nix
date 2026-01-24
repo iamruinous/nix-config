@@ -593,7 +593,7 @@ with lib; let
         type = types.nullOr types.bool;
         default = null;
         description = ''
-          Override Sisyphus signature setting for this config directory.
+          Override sisyphus signature setting for this config directory.
           If null, inherits from the main sisyphusSignature setting.
         '';
       };
@@ -844,7 +844,7 @@ in {
       default = {};
       example = literalExpression ''
         {
-          Sisyphus.model = "openai/gpt-5.2";
+          sisyphus.model = "openai/gpt-5.2";
           oracle.model = "gpt-5.1-codex-max";
           librarian.model = "google/gemini-2.5-pro";
           explore.model = "xai/grok-code-fast-1";
@@ -986,10 +986,10 @@ in {
       type = types.bool;
       default = true;
       description = lib.mdDoc ''
-        Whether to add Sisyphus signature to git commits.
+        Whether to add sisyphus signature to git commits.
         When enabled, commits include:
-        - Footer: "Ultraworked with [Sisyphus](...)"
-        - Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+        - Footer: "Ultraworked with [sisyphus](...)"
+        - Co-authored-by: sisyphus <clio-agent@sisyphuslabs.ai>
       '';
     };
 
@@ -1051,7 +1051,7 @@ in {
       ];
 
       ruinous.ai-cli.opencode.plugins = [
-        "oh-my-opencode@v3.0.0-beta.13"
+        "oh-my-opencode@v3.0.0-beta.16"
         "opencode-openai-codex-auth@latest"
         "opencode-gemini-auth@latest"
         "opencode-anthropic-auth@latest"
@@ -1068,7 +1068,7 @@ in {
         };
         document-writer.model = "google/gemini-2.5-flash";
         multimodal-looker.model = "google/gemini-2.5-flash-image";
-        # Sisyphus.model = "anthropic/claude-opus-4-5";
+        # sisyphus.model = "anthropic/claude-opus-4-5";
         # oracle.model = "openai/gpt-5.2";
         # librarian.model = "anthropic/claude-sonnet-4-5";
         # explore.model = "opencode/grok-code";
@@ -1091,7 +1091,7 @@ in {
 
             Your role:
             - Define WHAT should be built and WHY (not HOW)
-            - Set priorities and issue requirements ("purchase orders") to Sisyphus
+            - Set priorities and issue requirements ("purchase orders") to sisyphus
             - Maintain quality standards and organizational alignment
             - Report to the CEO on strategic direction and progress
 
