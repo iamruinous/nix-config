@@ -629,6 +629,20 @@
         ];
         dependsOn = ["archivebox" "archivebox-sonic"];
       };
+      # RSS Feed Aggregator
+      freshrss = {
+        image = "docker.io/freshrss/freshrss:1.28.0";
+        environmentFiles = [config.age.secrets.pilaster_docker_env_freshrss.path];
+        networks = [
+          "datanet"
+          "servicenet"
+        ];
+        dependsOn = ["postgres"];
+        volumes = [
+          "/data/docker/freshrss/data:/var/www/FreshRSS/data"
+          "/data/docker/freshrss/extensions:/var/www/FreshRSS/extensions"
+        ];
+      };
     };
   };
 
@@ -715,6 +729,10 @@
   };
   age.secrets.pilaster_docker_env_rallly = {
     rekeyFile = ./files/docker/env/rallly.env.age;
+    mode = "600";
+  };
+  age.secrets.pilaster_docker_env_freshrss = {
+    rekeyFile = ./files/docker/env/freshrss.env.age;
     mode = "600";
   };
 }
