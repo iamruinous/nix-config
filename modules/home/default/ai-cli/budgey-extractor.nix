@@ -121,16 +121,10 @@ in {
         '';
       };
 
-      chunkSize = mkOption {
-        type = types.int;
-        default = 500;
-        description = "Token count per chunk for semantic search (default: 500).";
-      };
-
-      overlap = mkOption {
-        type = types.float;
-        default = 0.15;
-        description = "Overlap ratio between chunks (default: 0.15 = 15%).";
+      className = mkOption {
+        type = types.str;
+        default = "OpenCodeSession";
+        description = "Weaviate class name for storing session data.";
       };
     };
   };
@@ -171,8 +165,7 @@ in {
               if cfg.weaviate.apiKey != null
               then "--weaviate-api-key '${cfg.weaviate.apiKey}'"
               else "--weaviate-api-key \"$WEAVIATE_API_KEY\"";
-            weaviateChunkArg = "--chunk-size ${toString cfg.weaviate.chunkSize}";
-            weaviateOverlapArg = "--overlap ${toString cfg.weaviate.overlap}";
+            weaviateClassArg = "--class-name '${cfg.weaviate.className}'";
 
             script = pkgs.writeShellScript "budgey-extractor-run" ''
               set -euo pipefail
@@ -192,7 +185,7 @@ in {
                 echo "Running budgey-extractor ingest-weaviate..."
                 ${cfg.package}/bin/budgey-extractor \
                   --registry "${cfg.registryPath}" \
-                  ingest-weaviate ${weaviateUrlArg} ${weaviateApiKeyArg} ${weaviateChunkArg} ${weaviateOverlapArg}
+                  ingest-weaviate ${weaviateUrlArg} ${weaviateApiKeyArg} ${weaviateClassArg}
               ''}
 
               echo "Budgey extraction complete."
