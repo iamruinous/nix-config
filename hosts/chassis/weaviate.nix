@@ -17,6 +17,14 @@
     };
   };
 
+  # Allow jmeskill to use docker
+  users.users.jmeskill.extraGroups = ["docker"];
+
+  # Docker CLI tools
+  environment.systemPackages = with pkgs; [
+    lazydocker
+  ];
+
   # Create servicenet network for container communication
   systemd.services.docker-servicenet-network = {
     description = "create docker servicenet network";
