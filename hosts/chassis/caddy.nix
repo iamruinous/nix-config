@@ -54,8 +54,8 @@
           Referrer-Policy "strict-origin-when-cross-origin"
         }
 
-        # HTML: no-cache (always revalidate, use ETag)
-        header @html Cache-Control "no-cache, must-revalidate"
+        # HTML: no-store (never cache - Nix store files have fixed timestamps so ETags don't change between deployments)
+        header @html Cache-Control "no-store"
 
         # Assets: cache for 1 hour, but revalidate with ETag
         header @assets Cache-Control "public, max-age=3600, must-revalidate"
