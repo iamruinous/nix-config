@@ -46,18 +46,43 @@
         configs.default.notifier.enable = false;
       };
 
+      # Kimaki Discord voice bot
+      # Uses common.env for shared tokens (Git, CF, Todoist, Apprise)
+      # Discord credentials stored in ~/.kimaki/discord-sessions.db
+      kimaki = {
+        enable = true;
+        configDir = "${config.home.homeDirectory}/.config/kimaki";
+        cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
+        stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
+        dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
+        environmentFiles = [
+          config.age.secrets.chassis_opencode_common_env.path
+        ];
+      };
+
       # Unified project-centric configuration
       # Projects with caddy.fqdn get:
       #   - Systemd user service (opencode web)
       #   - Caddy route (configured in chassis/caddy.nix)
       #   - CORS configured for the FQDN
       #   - tmuxp session in attach mode (no server window)
+      #
+      # Environment files:
+      #   - common.env.age: Shared tokens (Git, CF, Todoist, Apprise)
+      #   - projects/*.env.age: Per-project secrets (Postgres URIs, API keys)
       opencode-projects = {
         enable = true;
 
+        # Shared environment for all projects
         environmentFiles = [
-          config.age.secrets.chassis_opencode_env.path
+          config.age.secrets.chassis_opencode_common_env.path
         ];
+
+        # Generate direnv snippets for loading secrets in shell
+        direnv.enable = true;
+
+        # Track default/interactive opencode sessions in budgey
+        defaultProject.enable = true;
 
         projects = {
           # nix-config - web service with Caddy
@@ -65,6 +90,9 @@
             workdir = "/home/jmeskill/Projects/github/iamruinous/nix-config";
             port = 9500;
             caddy.fqdn = "nix.oc.ruinous.ai";
+            environmentFiles = [
+              config.age.secrets.chassis_opencode_project_nix_env.path
+            ];
           };
 
           # n8n-agent - web service with Caddy
@@ -72,6 +100,9 @@
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/n8n-agent";
             port = 9501;
             caddy.fqdn = "n8n-agent.oc.ruinous.ai";
+            environmentFiles = [
+              config.age.secrets.chassis_opencode_project_n8n_env.path
+            ];
           };
 
           # dossiq-ai - web service with Caddy
@@ -113,6 +144,9 @@
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor";
             port = 9508;
             caddy.fqdn = "budgey-extractor.oc.ruinous.ai";
+            environmentFiles = [
+              config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
+            ];
           };
 
           # budgey-dashboard - web service with Caddy
@@ -120,6 +154,26 @@
             workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-dashboard";
             port = 9509;
             caddy.fqdn = "budgey-dashboard.oc.ruinous.ai";
+            environmentFiles = [
+              config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
+            ];
+          };
+
+          # kimaki - Discord bot (no web service, budgey tracking only)
+          # Uses isolated XDG dirs managed by ruinous.ai-cli.kimaki module
+          kimaki = {
+            workdir = "${config.home.homeDirectory}/.kimaki";
+            port = 9599; # Unused, required by schema
+            budgey = {
+              enable = true;
+              tags = ["discord" "bot"];
+              configDir = "${config.home.homeDirectory}/.config/kimaki";
+              stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
+              dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
+            };
+            # No web service or caddy for kimaki
+            web.enable = false;
+            tmuxp.enable = false;
           };
         };
       };
@@ -134,12 +188,34 @@
     };
   };
 
-  age.secrets.chassis_opencode_env = {
-    rekeyFile = ./files/opencode/env.age;
+  # Common environment shared by all opencode-projects and kimaki
+  age.secrets.chassis_opencode_common_env = {
+    rekeyFile = ./files/opencode/common.env.age;
     mode = "400";
   };
 
-  # Budgey database credentials (TCP with password auth)
+  # Per-project environment files
+  age.secrets.chassis_opencode_project_nix_env = {
+    rekeyFile = ./files/opencode/projects/nix.env.age;
+    mode = "400";
+  };
+
+  age.secrets.chassis_opencode_project_n8n_env = {
+    rekeyFile = ./files/opencode/projects/n8n.env.age;
+    mode = "400";
+  };
+
+  age.secrets.chassis_opencode_project_budgey_extractor_env = {
+    rekeyFile = ./files/opencode/projects/budgey-extractor.env.age;
+    mode = "400";
+  };
+
+  age.secrets.chassis_opencode_project_budgey_dashboard_env = {
+    rekeyFile = ./files/opencode/projects/budgey-dashboard.env.age;
+    mode = "400";
+  };
+
+  # Budgey-extractor service credentials (scheduled ingestion)
   age.secrets.chassis_budgey_env = {
     rekeyFile = ./files/budgey/env.age;
     mode = "400";

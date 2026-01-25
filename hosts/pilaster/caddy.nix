@@ -148,6 +148,12 @@
         description = "Homarr dashboard";
       };
 
+      # FreshRSS feed aggregator
+      "rss.meskill.farm" = {
+        upstream = "freshrss:80";
+        description = "FreshRSS feed aggregator";
+      };
+
       # --- ruinous.social Services (Migrated) ---
 
       # Alby Hub Bitcoin wallet (internal)
