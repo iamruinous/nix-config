@@ -133,6 +133,23 @@
             port = 9509;
             caddy.fqdn = "budgey-dashboard.oc.ruinous.ai";
           };
+
+          # kimaki - Discord bot (no web service, budgey tracking only)
+          # Uses isolated XDG dirs managed by ruinous.ai-cli.kimaki module
+          kimaki = {
+            workdir = "${config.home.homeDirectory}/.kimaki";
+            port = 9599; # Unused, required by schema
+            budgey = {
+              enable = true;
+              tags = ["discord" "bot"];
+              configDir = "${config.home.homeDirectory}/.config/kimaki";
+              stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
+              dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
+            };
+            # No web service or caddy for kimaki
+            web.enable = false;
+            tmuxp.enable = false;
+          };
         };
       };
 

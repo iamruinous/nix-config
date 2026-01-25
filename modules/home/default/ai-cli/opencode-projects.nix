@@ -191,6 +191,28 @@ with lib; let
           description = "Tags for categorizing this project.";
           example = ["core" "agents"];
         };
+
+        # Path overrides for external projects (like kimaki) that manage their own XDG dirs
+        configDir = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Override config directory for budgey registry (null = use computed path).";
+          example = "/home/user/.config/kimaki";
+        };
+
+        stateDir = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Override state directory for budgey registry (null = use computed path).";
+          example = "/home/user/.local/state/kimaki";
+        };
+
+        dataDir = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = "Override data directory for budgey registry (null = use computed path).";
+          example = "/home/user/.local/share/kimaki";
+        };
       };
     };
   });
@@ -592,13 +614,26 @@ in {
             // optionalAttrs (project.budgey.budgets.monthlyUsd != null) {
               monthly_usd = project.budgey.budgets.monthlyUsd;
             };
+          # Use budgey path overrides if set, otherwise use computed paths
+          configDir =
+            if project.budgey.configDir != null
+            then project.budgey.configDir
+            else paths.config;
+          stateDir =
+            if project.budgey.stateDir != null
+            then project.budgey.stateDir
+            else paths.state;
+          dataDir =
+            if project.budgey.dataDir != null
+            then project.budgey.dataDir
+            else paths.data;
         in
           {
             inherit id name;
             root = project.workdir;
-            opencode_config_dir = paths.config;
-            xdg_state_home = paths.state;
-            xdg_data_home = paths.data;
+            opencode_config_dir = configDir;
+            xdg_state_home = stateDir;
+            xdg_data_home = dataDir;
           }
           // optionalAttrs (budgets != {}) {inherit budgets;}
           // optionalAttrs (project.budgey.tags != []) {tags = project.budgey.tags;})
