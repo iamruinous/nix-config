@@ -742,7 +742,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 16. Update AGENTS.md skills catalog
+- [x] 16. Update AGENTS.md skills catalog
 
   **What to do**:
   - Update skills catalog to reflect new module structure
