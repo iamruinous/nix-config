@@ -124,6 +124,11 @@
     budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git?ref=refs/tags/v0.7.1";
     budgey-extractor.inputs.nixpkgs.follows = "nixpkgs";
 
+    # n8n-agent - n8n workflow automation agent
+    # <https://forge.meskill.farm/iamruinous/n8n-agent>
+    n8n-agent.url = "git+ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git?ref=refs/tags/v0.2.0";
+    n8n-agent.inputs.nixpkgs.follows = "nixpkgs";
+
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
     # NOTE: Keep pinned to tagged version. Update with: nix flake update ruinagents
@@ -194,7 +199,7 @@
 
       checks = {
         ruinage-tests = let
-          pkgs = import inputs.nixpkgs { system = "x86_64-linux"; };
+          pkgs = import inputs.nixpkgs {system = "x86_64-linux";};
         in
           import ./tests/ruinage.test.nix {
             inherit (pkgs) lib pkgs;

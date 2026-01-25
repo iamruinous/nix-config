@@ -2,31 +2,26 @@
 #
 # This module provides:
 # - Global documentation settings (ruinous.ruinage.docs.*)
-# - Per-project documentation configuration (via types.nix)
-# - Symlinks pre-built docs from flake input packages
+# - Auto-discovery of flake inputs with 'docs' packages
+# - Aggregated docs package served from Nix store (accessible by Caddy)
 # - Index page generation listing all projects
 #
 # Architecture:
-# - Each project specifies a flake input name and package output
-# - Docs packages are referenced directly from flake.inputs
-# - Aggregation symlinks these Nix store paths to a central directory
-# - Index page provides navigation to all project docs
-#
-# Note: Caddy configuration should be done at the NixOS level, not home-manager.
-# This module exposes the outputDir and project list for use by system-level Caddy config.
+# - Automatically discovers flake inputs that have a 'docs' package output
+# - Includes local nix-config docs from flake.packages.${system}.docs
+# - A combined derivation symlinks all docs into one package
+# - The package path is exposed for NixOS-level Caddy config
 #
 # Usage:
 #   ruinous.ruinage.docs = {
 #     enable = true;
-#     outputDir = ".local/share/ruinage/docs";
 #   };
 #
-#   ruinous.ruinage.projects.ruinagents = {
-#     docs.enable = true;
-#     docs.flakeInput = "ruinagents";  # References flake.inputs.ruinagents
-#     docs.packageOutput = "docs";      # References .packages.${system}.docs
-#     docs.title = "Ruinous Agents";
-#   };
+# Then in NixOS Caddy config:
+#   virtualHosts."docs.ruinage.ai".extraConfig = ''
+#     root * ${config.home-manager.users.jmeskill.ruinous.ruinage.docs.package}
+#     file_server
+#   '';
 {
   config,
   lib,
@@ -38,41 +33,71 @@ with lib; let
   cfg = config.ruinous.ruinage;
   docsCfg = config.ruinous.ruinage.docs;
 
-  # Filter projects with docs.enable = true
-  docsProjects = filterAttrs (_: p: p.docs.enable) (cfg.projects or {});
-
   # Get docs package for a project from flake inputs
-  getDocsPackage = name: project: let
-    flakeInput = project.docs.flakeInput;
-    packageOutput = project.docs.packageOutput;
-    inputExists = flake.inputs ? ${flakeInput};
-    input = flake.inputs.${flakeInput} or null;
-    hasPackages = input != null && input ? packages && input.packages ? ${pkgs.system};
-    packages = if hasPackages then input.packages.${pkgs.system} else {};
-    hasOutput = packages ? ${packageOutput};
-  in
-    if inputExists && hasPackages && hasOutput
-    then packages.${packageOutput}
+  # Checks if the project name matches a flake input with a docs package
+  getDocsPackageFromInput = projectName:
+    if flake.inputs ? ${projectName} &&
+       flake.inputs.${projectName} ? packages &&
+       flake.inputs.${projectName}.packages ? ${pkgs.system} &&
+       flake.inputs.${projectName}.packages.${pkgs.system} ? docs
+    then flake.inputs.${projectName}.packages.${pkgs.system}.docs
     else null;
 
-  # Filter to only projects with valid docs packages
-  validDocsProjects = filterAttrs (name: project:
-    (getDocsPackage name project) != null
-  ) docsProjects;
+  # Get docs package from local flake packages (for nix-config itself)
+  getLocalDocsPackage = projectName:
+    if projectName == "nix-config" &&
+       flake.packages ? ${pkgs.system} &&
+       flake.packages.${pkgs.system} ? docs
+    then flake.packages.${pkgs.system}.docs
+    else null;
 
-  # Projects that were enabled but have no valid package
-  invalidDocsProjects = filterAttrs (name: project:
-    (getDocsPackage name project) == null
-  ) docsProjects;
+  # Get docs package for a project (tries flake input first, then local)
+  getDocsPackage = projectName:
+    let
+      fromInput = getDocsPackageFromInput projectName;
+      fromLocal = getLocalDocsPackage projectName;
+    in
+      if fromInput != null then fromInput
+      else if fromLocal != null then fromLocal
+      else null;
+
+  # Get all project names from ruinage config
+  allProjectNames = attrNames (cfg.projects or {});
+
+  # Filter to projects that have docs packages available
+  projectsWithDocs = filter (name: getDocsPackage name != null) allProjectNames;
+
+  # Build attrset of { projectName = docsPackage; }
+  allDocsPackages = listToAttrs (map (name: {
+    inherit name;
+    value = getDocsPackage name;
+  }) projectsWithDocs);
+
+  # Human-readable titles for known projects
+  projectTitles = {
+    "nix-config" = "NixOS Configuration";
+    "ruinagents" = "Ruinous Agents";
+    "budgey-dashboard" = "Budgey Dashboard";
+    "budgey-extractor" = "Budgey Extractor";
+    "n8n-agent" = "n8n Agent";
+  };
+
+  # Get title for a project (fallback to capitalized name)
+  getTitle = name:
+    projectTitles.${name} or (
+      lib.concatMapStrings (s: lib.toUpper (lib.substring 0 1 s) + lib.substring 1 (-1) s)
+        (lib.splitString "-" name)
+    );
 
   # Generate index HTML page
   mkIndexHtml = let
+    # Sort project names alphabetically
+    sortedNames = lib.sort (a: b: a < b) (attrNames allDocsPackages);
     projectLinks = concatMapStringsSep "\n    " (name: let
-      project = validDocsProjects.${name};
-      title = project.docs.title;
+      title = getTitle name;
       description = "Documentation for ${title}";
     in ''
-      <li><a href="/${name}/">${title}</a> - ${description}</li>'') (attrNames validDocsProjects);
+      <li><a href="/${name}/">${title}</a> - ${description}</li>'') sortedNames;
   in ''
     <!DOCTYPE html>
     <html lang="en">
@@ -156,18 +181,42 @@ with lib; let
 
   # Generate index.html as a derivation
   indexHtml = pkgs.writeText "ruinage-docs-index.html" mkIndexHtml;
+
+  # Create aggregated docs package with symlinks to all project docs
+  # This package lives in the Nix store and is accessible by Caddy
+  aggregatedDocs = pkgs.runCommand "ruinage-docs-aggregated" {} ''
+    mkdir -p $out
+
+    # Symlink index page
+    ln -s ${indexHtml} $out/index.html
+
+    # Symlink each project's docs
+    ${concatMapStringsSep "\n" (name: let
+      docsPackage = allDocsPackages.${name};
+    in ''
+      ln -s ${docsPackage} $out/${name}
+    '') (attrNames allDocsPackages)}
+  '';
 in {
   options.ruinous.ruinage.docs = {
     enable = mkEnableOption "Documentation aggregation for ruinage projects";
 
-    outputDir = mkOption {
-      type = types.str;
-      default = ".local/share/ruinage/docs";
+    package = mkOption {
+      type = types.package;
+      readOnly = true;
       description = ''
-        Directory where aggregated documentation is stored, relative to home directory.
-        Will be prefixed with $HOME at runtime.
+        The aggregated documentation package. Use this path in Caddy config.
+        This is a read-only option set automatically when docs.enable = true.
       '';
-      example = ".local/share/ruinage/docs";
+    };
+
+    discoveredProjects = mkOption {
+      type = types.listOf types.str;
+      readOnly = true;
+      description = ''
+        List of project names with discovered docs packages.
+        This is auto-populated from flake inputs that have a 'docs' package output.
+      '';
     };
 
     caddy = {
@@ -187,36 +236,10 @@ in {
   };
 
   config = mkIf docsCfg.enable {
-    # Warnings for projects with docs.enable but missing flake input/package
-    warnings = map (name: let
-      project = invalidDocsProjects.${name};
-      flakeInput = project.docs.flakeInput;
-      packageOutput = project.docs.packageOutput;
-    in
-      "ruinage-docs: Project '${name}' has docs.enable=true but flake input '${flakeInput}' or package '${packageOutput}' not found"
-    ) (attrNames invalidDocsProjects);
+    # Expose the aggregated docs package for use by NixOS Caddy config
+    ruinous.ruinage.docs.package = aggregatedDocs;
 
-    # Activation script to symlink docs and generate index
-    home.activation.ruinage-docs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      # Create output directory
-      DOCS_OUTPUT_DIR="$HOME/${docsCfg.outputDir}"
-      $DRY_RUN_CMD mkdir -p "$DOCS_OUTPUT_DIR"
-
-      # Symlink each project's docs from Nix store
-      ${concatMapStringsSep "\n" (name: let
-        project = validDocsProjects.${name};
-        docsPackage = getDocsPackage name project;
-      in ''
-        # Project: ${name}
-        $VERBOSE_ECHO "ruinage-docs: symlinking ${name} docs"
-        $DRY_RUN_CMD rm -f "$DOCS_OUTPUT_DIR/${name}"
-        $DRY_RUN_CMD ln -sfn "${docsPackage}" "$DOCS_OUTPUT_DIR/${name}"
-      '') (attrNames validDocsProjects)}
-
-      # Symlink index page
-      $VERBOSE_ECHO "ruinage-docs: symlinking index.html"
-      $DRY_RUN_CMD rm -f "$DOCS_OUTPUT_DIR/index.html"
-      $DRY_RUN_CMD ln -sfn "${indexHtml}" "$DOCS_OUTPUT_DIR/index.html"
-    '';
+    # Expose list of discovered docs for debugging/introspection
+    ruinous.ruinage.docs.discoveredProjects = attrNames allDocsPackages;
   };
 }

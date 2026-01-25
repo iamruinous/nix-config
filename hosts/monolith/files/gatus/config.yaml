@@ -755,6 +755,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Ruinage Docs (chassis)"
+    group: "Documentation"
+    url: "https://docs.ruinage.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # TERRANAS SERVICES
   # ===========================

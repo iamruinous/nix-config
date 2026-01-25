@@ -25,6 +25,9 @@
     ruinage = {
       enable = true;
 
+      # Enable documentation aggregation site
+      docs.enable = true;
+
       # Include default project for legacy interactive sessions
       budgey.defaultProject.opencode.enable = true;
 
