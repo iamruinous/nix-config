@@ -649,7 +649,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 14. Create tests/ruinage.test.nix
+- [x] 14. Create tests/ruinage.test.nix
 
   **What to do**:
   - Create `tests/ruinage.test.nix` following `tests/opencode.test.nix` pattern

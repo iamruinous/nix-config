@@ -192,11 +192,18 @@
         homeConfigurations = blueprintOutputs.homeConfigurations or {};
       };
 
-      # checks = {
-      #   opencode-module-test = import ./tests/opencode.test.nix {
-      #     inherit (blueprintOutputs.legacyPackages.x86_64-linux) lib pkgs;
-      #     home-manager-lib = inputs.home-manager.lib;
-      #   };
-      # };
+      checks = {
+        ruinage-tests = let
+          pkgs = import inputs.nixpkgs { system = "x86_64-linux"; };
+        in
+          import ./tests/ruinage.test.nix {
+            inherit (pkgs) lib pkgs;
+          };
+
+        # opencode-module-test = import ./tests/opencode.test.nix {
+        #   inherit (blueprintOutputs.legacyPackages.x86_64-linux) lib pkgs;
+        #   home-manager-lib = inputs.home-manager.lib;
+        # };
+      };
     };
 }
