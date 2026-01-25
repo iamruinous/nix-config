@@ -452,6 +452,42 @@ in {
       description = "Environment files applied to ALL projects.";
     };
 
+    direnv = {
+      enable = mkEnableOption "Generate .envrc snippets for projects with environment files";
+
+      secretsDir = mkOption {
+        type = types.str;
+        default = "${config.home.homeDirectory}/.local/state/agenix";
+        description = "Directory where agenix secrets are decrypted (home-manager default).";
+      };
+    };
+
+    defaultProject = {
+      enable = mkEnableOption "Track default opencode sessions in budgey registry";
+
+      budgey = {
+        tags = mkOption {
+          type = types.listOf types.str;
+          default = ["default" "interactive"];
+          description = "Tags for the default project in budgey.";
+        };
+
+        budgets = {
+          weeklyUsd = mkOption {
+            type = types.nullOr types.float;
+            default = null;
+            description = "Weekly budget limit in USD for default sessions.";
+          };
+
+          monthlyUsd = mkOption {
+            type = types.nullOr types.float;
+            default = null;
+            description = "Monthly budget limit in USD for default sessions.";
+          };
+        };
+      };
+    };
+
     projects = mkOption {
       type = types.attrsOf projectType;
       default = {};
@@ -601,47 +637,118 @@ in {
     # This creates ~/.config/ruinagents/budgey/projects.json with all projects that have budgey.enable = true
     (let
       budgeyProjects = filterAttrs (_: p: p.budgey.enable) cfg.projects;
+
+      # Build project entries from configured projects
+      projectEntries = mapAttrsToList (name: project: let
+        paths = mkProjectPaths name;
+        id = builtins.hashString "sha1" project.workdir;
+        budgets =
+          {}
+          // optionalAttrs (project.budgey.budgets.weeklyUsd != null) {
+            weekly_usd = project.budgey.budgets.weeklyUsd;
+          }
+          // optionalAttrs (project.budgey.budgets.monthlyUsd != null) {
+            monthly_usd = project.budgey.budgets.monthlyUsd;
+          };
+        # Use budgey path overrides if set, otherwise use computed paths
+        configDir =
+          if project.budgey.configDir != null
+          then project.budgey.configDir
+          else paths.config;
+        stateDir =
+          if project.budgey.stateDir != null
+          then project.budgey.stateDir
+          else paths.state;
+        dataDir =
+          if project.budgey.dataDir != null
+          then project.budgey.dataDir
+          else paths.data;
+      in
+        {
+          inherit id name;
+          root = project.workdir;
+          opencode_config_dir = configDir;
+          xdg_state_home = stateDir;
+          xdg_data_home = dataDir;
+        }
+        // optionalAttrs (budgets != {}) {inherit budgets;}
+        // optionalAttrs (project.budgey.tags != []) {tags = project.budgey.tags;})
+      budgeyProjects;
+
+      # Default project entry for interactive opencode sessions
+      defaultProjectEntry = let
+        homeDir = config.home.homeDirectory;
+        id = builtins.hashString "sha1" homeDir;
+        budgets =
+          {}
+          // optionalAttrs (cfg.defaultProject.budgey.budgets.weeklyUsd != null) {
+            weekly_usd = cfg.defaultProject.budgey.budgets.weeklyUsd;
+          }
+          // optionalAttrs (cfg.defaultProject.budgey.budgets.monthlyUsd != null) {
+            monthly_usd = cfg.defaultProject.budgey.budgets.monthlyUsd;
+          };
+      in
+        {
+          inherit id;
+          name = "default";
+          root = homeDir;
+          opencode_config_dir = "${homeDir}/.config/opencode";
+          xdg_state_home = "${homeDir}/.local/state";
+          xdg_data_home = "${homeDir}/.local/share";
+        }
+        // optionalAttrs (budgets != {}) {inherit budgets;}
+        // optionalAttrs (cfg.defaultProject.budgey.tags != []) {tags = cfg.defaultProject.budgey.tags;};
+
+      # Combine project entries with optional default project
+      allProjects =
+        projectEntries
+        ++ optionals cfg.defaultProject.enable [defaultProjectEntry];
+
       budgeyRegistry = {
         version = "1.0";
-        projects = mapAttrsToList (name: project: let
-          paths = mkProjectPaths name;
-          id = builtins.hashString "sha1" project.workdir;
-          budgets =
-            {}
-            // optionalAttrs (project.budgey.budgets.weeklyUsd != null) {
-              weekly_usd = project.budgey.budgets.weeklyUsd;
-            }
-            // optionalAttrs (project.budgey.budgets.monthlyUsd != null) {
-              monthly_usd = project.budgey.budgets.monthlyUsd;
-            };
-          # Use budgey path overrides if set, otherwise use computed paths
-          configDir =
-            if project.budgey.configDir != null
-            then project.budgey.configDir
-            else paths.config;
-          stateDir =
-            if project.budgey.stateDir != null
-            then project.budgey.stateDir
-            else paths.state;
-          dataDir =
-            if project.budgey.dataDir != null
-            then project.budgey.dataDir
-            else paths.data;
-        in
-          {
-            inherit id name;
-            root = project.workdir;
-            opencode_config_dir = configDir;
-            xdg_state_home = stateDir;
-            xdg_data_home = dataDir;
-          }
-          // optionalAttrs (budgets != {}) {inherit budgets;}
-          // optionalAttrs (project.budgey.tags != []) {tags = project.budgey.tags;})
-        budgeyProjects;
+        projects = allProjects;
       };
+
+      hasProjects = budgeyProjects != {} || cfg.defaultProject.enable;
     in
-      mkIf (budgeyProjects != {}) {
+      mkIf hasProjects {
         xdg.configFile."ruinagents/budgey/projects.json".text = builtins.toJSON budgeyRegistry;
       })
+
+    # Generate direnv snippets for projects with environment files
+    # Creates ~/.config/direnv/envrc.d/<project>.sh that can be sourced in .envrc
+    (mkIf cfg.direnv.enable (let
+      # Projects that have environment files (global or per-project)
+      projectsWithEnv = filterAttrs (_: p: p.environmentFiles != [] || cfg.environmentFiles != []) cfg.projects;
+
+      # Generate the direnv snippet for a project
+      mkDirenvSnippet = name: project: let
+        # Combine global and per-project env files
+        allEnvFiles = cfg.environmentFiles ++ project.environmentFiles;
+        # Extract secret names from paths (e.g., /path/to/agenix/secret_name -> secret_name)
+        secretNames = map (p: baseNameOf (toString p)) allEnvFiles;
+        # Generate dotenv commands for each secret
+        dotenvCommands = concatMapStringsSep "\n" (secretName: ''
+          # Load ${secretName} if available
+          if [[ -f "${cfg.direnv.secretsDir}/${secretName}" ]]; then
+            dotenv "${cfg.direnv.secretsDir}/${secretName}"
+          fi'') secretNames;
+      in ''
+        # Auto-generated direnv snippet for project: ${name}
+        # Source this in your project's .envrc:
+        #   source_env ~/.config/direnv/envrc.d/${name}.sh
+        #
+        # Or add to .envrc.local:
+        #   source ~/.config/direnv/envrc.d/${name}.sh
+
+        ${dotenvCommands}
+      '';
+    in {
+      xdg.configFile = mapAttrs' (name: project:
+        nameValuePair "direnv/envrc.d/${name}.sh" {
+          text = mkDirenvSnippet name project;
+          executable = false;
+        }) projectsWithEnv;
+    }))
   ]);
 }

@@ -78,6 +78,12 @@
           config.age.secrets.chassis_opencode_common_env.path
         ];
 
+        # Generate direnv snippets for loading secrets in shell
+        direnv.enable = true;
+
+        # Track default/interactive opencode sessions in budgey
+        defaultProject.enable = true;
+
         projects = {
           # nix-config - web service with Caddy
           nix = {
