@@ -46,6 +46,18 @@
         configs.default.notifier.enable = false;
       };
 
+      # Kimaki Discord voice bot
+      kimaki = {
+        enable = true;
+        configDir = "${config.home.homeDirectory}/.config/kimaki";
+        cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
+        stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
+        dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
+        environmentFiles = [
+          config.age.secrets.chassis_kimaki_env.path
+        ];
+      };
+
       # Unified project-centric configuration
       # Projects with caddy.fqdn get:
       #   - Systemd user service (opencode web)
@@ -142,6 +154,12 @@
   # Budgey database credentials (TCP with password auth)
   age.secrets.chassis_budgey_env = {
     rekeyFile = ./files/budgey/env.age;
+    mode = "400";
+  };
+
+  # Kimaki Discord bot credentials
+  age.secrets.chassis_kimaki_env = {
+    rekeyFile = ./files/kimaki/env.age;
     mode = "400";
   };
 

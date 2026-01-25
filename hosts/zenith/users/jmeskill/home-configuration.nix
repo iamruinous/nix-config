@@ -50,23 +50,8 @@ in {
       };
 
       # OpenCode projects moved to chassis - web services run there with native Caddy
-
-      # Kimaki (separate identity) - stays on zenith
-      kimaki = {
-        enable = true;
-        configDir = "${config.home.homeDirectory}/.config/kimaki";
-        cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
-        stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
-        environmentFiles = [
-          config.age.secrets.zenith_kimaki_env.path
-        ];
-      };
+      # Kimaki moved to chassis
     };
-  };
-
-  age.secrets.zenith_kimaki_env = {
-    rekeyFile = ./files/kimaki/env.age;
-    mode = "400";
   };
 
   home.stateVersion = "26.05";

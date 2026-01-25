@@ -305,7 +305,7 @@ with lib; let
     Unit = {
       Description = "OpenCode Web UI - ${name}";
       After = ["network.target"] ++ optionals (allEnvFiles != []) ["agenix.service"];
-      Requires = optionals (allEnvFiles != []) ["agenix.service"];
+      Wants = optionals (allEnvFiles != []) ["agenix.service"];
     };
     Service =
       {

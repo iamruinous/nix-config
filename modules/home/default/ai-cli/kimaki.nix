@@ -266,7 +266,7 @@ in {
         Unit = {
           Description = "Kimaki Discord bot for OpenCode control";
           After = ["network.target"] ++ optionals (cfg.environmentFiles != []) ["agenix.service"];
-          Requires = optionals (cfg.environmentFiles != []) ["agenix.service"];
+          Wants = optionals (cfg.environmentFiles != []) ["agenix.service"];
         };
         Service =
           {
