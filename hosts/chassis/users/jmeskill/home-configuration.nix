@@ -48,6 +48,7 @@
 
       # Kimaki Discord voice bot
       # Uses common.env for shared tokens (Git, CF, Todoist, Apprise)
+      # Plus all project envs since it handles Discord requests for any project
       # Discord credentials stored in ~/.kimaki/discord-sessions.db
       kimaki = {
         enable = true;
@@ -57,6 +58,10 @@
         dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
         environmentFiles = [
           config.age.secrets.chassis_opencode_common_env.path
+          config.age.secrets.chassis_opencode_project_nix_env.path
+          config.age.secrets.chassis_opencode_project_n8n_env.path
+          config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
+          config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
         ];
       };
 
