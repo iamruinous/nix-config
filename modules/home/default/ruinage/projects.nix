@@ -388,7 +388,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+   config = mkIf (cfg.enable or false) {
     # Auto-clone projects to namespace directories on activation
     home.activation.cloneRuinageProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
       ${concatMapStringsSep "\n" (projectName: let
