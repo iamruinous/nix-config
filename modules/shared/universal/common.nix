@@ -1,8 +1,15 @@
 {
   pkgs,
   lib,
+  perSystem,
+  flake,
   ...
 }: {
+  # Custom packages overlay
+  nixpkgs.overlays = [
+    (import ./packages-overlay.nix {inherit perSystem flake;})
+  ];
+
   # universal packages
   environment.systemPackages = with pkgs;
     [
