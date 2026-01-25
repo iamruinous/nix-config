@@ -113,10 +113,10 @@ with lib; let
     && project.assistants.opencode.enable
   ) cfg.projects;
 
-  # Generate all tmuxp sessions
-  tmuxpSessions = mapAttrs mkTmuxpSession tmuxpProjects;
+   # Generate all tmuxp sessions
+   tmuxpSessions = mapAttrs mkTmuxpSession tmuxpProjects;
 in {
-  config = mkIf cfg.enable {
+  config = mkIf (tmuxpProjects != {}) {
     ruinous.tmuxp.sessions = tmuxpSessions;
   };
 }

@@ -154,7 +154,7 @@ in {
     };
   };
 
-  config = mkIf (cfg.enable && hasProjects) {
+  config = mkIf hasProjects {
     xdg.configFile."ruinagents/budgey/projects.json".text = builtins.toJSON budgeyRegistry;
   };
 }

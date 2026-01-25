@@ -8,25 +8,23 @@
   pkgs,
   ...
 }: let
-  # Get OpenCode projects from jmeskill's home-manager config
-  opencodeProjects = config.home-manager.users.jmeskill.ruinous.ai-cli.opencode-projects.projects or {};
+  # Get OpenCode projects from ruinage
+  # Filter for projects with assistants.opencode.enable = true and caddy.fqdn set
+  opencodeProjects = lib.filterAttrs (_: project:
+    (project.assistants.opencode.enable or false) && 
+    (project.assistants.opencode.caddy.fqdn or null) != null
+  ) (config.home-manager.users.jmeskill.ruinous.ruinage.projects or {});
 
-  # Filter to projects with caddy.fqdn set and generate virtual hosts
+  # Generate virtual hosts from filtered projects
   # Each project with caddy.fqdn creates: fqdn -> localhost:port
-  caddyVirtualHosts = lib.filterAttrs (_: v: v != null) (
-    lib.mapAttrs' (
-      name: project:
-        if project.caddy.fqdn != null
-        then
-          lib.nameValuePair project.caddy.fqdn {
-            extraConfig = ''
-              reverse_proxy http://localhost:${toString project.port}
-            '';
-          }
-        else lib.nameValuePair name null
-    )
-    opencodeProjects
-  );
+  caddyVirtualHosts = lib.mapAttrs' (
+    name: project:
+      lib.nameValuePair project.assistants.opencode.caddy.fqdn {
+        extraConfig = ''
+          reverse_proxy http://localhost:${toString project.assistants.opencode.port}
+        '';
+      }
+  ) opencodeProjects;
   
   # Add ruinagents-docs static site
   ruinagentsDocsHost = {

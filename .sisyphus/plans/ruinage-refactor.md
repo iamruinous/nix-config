@@ -546,7 +546,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 12. Add Caddy data export and update caddy.nix
+- [x] 12. Add Caddy data export and update caddy.nix
 
   **What to do**:
   - In `assistants/opencode.nix`, expose project data for Caddy consumption

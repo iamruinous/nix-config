@@ -370,6 +370,30 @@ with lib; let
       };
     };
   });
+
+  # Caddy-compatible project data structure
+  # Exposes projects with caddy configuration for reverse proxy generation
+  caddyProjectsType = types.submodule {
+    options = {
+      caddy = mkOption {
+        type = types.submodule {
+          options = {
+            fqdn = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "FQDN for Caddy reverse proxy route";
+            };
+          };
+        };
+        default = {};
+        description = "Caddy configuration for this project";
+      };
+      port = mkOption {
+        type = types.int;
+        description = "Port for the OpenCode service";
+      };
+    };
+  };
 in {
   options.ruinous.ruinage.assistants.opencode = {
     enable = mkEnableOption "OpenCode AI assistant configuration management";
