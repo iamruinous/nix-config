@@ -363,6 +363,10 @@ with lib; let
     };
   });
 in {
+  imports = [
+    ./direnv.nix
+  ];
+
   options.ruinous.ruinage = {
     projects = mkOption {
       type = types.attrsOf projectType;
@@ -385,6 +389,32 @@ in {
           };
         }
       '';
+    };
+
+    environmentFiles = mkOption {
+      type = types.listOf types.path;
+      default = [];
+      description = "Global environment files to include in all direnv snippets.";
+    };
+
+    direnv = {
+      enable = mkEnableOption "Generate .envrc snippets for projects with environment files";
+
+      autoInject = mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Automatically inject source line into project .envrc.local files.
+          When enabled, creates/updates .envrc.local in each project directory
+          to source the corresponding direnv snippet from ~/.config/direnv/envrc.d/.
+        '';
+      };
+
+      secretsDir = mkOption {
+        type = types.str;
+        default = "${config.home.homeDirectory}/.local/state/agenix";
+        description = "Directory where agenix secrets are decrypted (home-manager default).";
+      };
     };
   };
 
