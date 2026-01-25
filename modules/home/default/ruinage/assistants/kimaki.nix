@@ -229,15 +229,64 @@ in {
       };
     })
 
-    # Register projects with kimaki (projects with assistants.kimaki.enable = true)
+    # Auto-clone kimaki projects to ~/Projects/kimaki/<name>
+    # Kimaki uses separate clones from ruinage to prevent workspace conflicts
     (mkIf (kimakiProjects != {}) {
-      home.activation.registerKimakiProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      home.activation.cloneKimakiProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        # Ensure git can find ssh for cloning
+        export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh"
+        ${concatMapStringsSep "\n" (name: let
+          project = kimakiProjects.${name};
+          workdir = mkKimakiWorkdir name;
+        in ''
+          # Project: ${name}
+          if [ ! -d "${workdir}" ]; then
+            $VERBOSE_ECHO "kimaki: cloning ${name} to ${workdir}"
+            mkdir -p "$(dirname "${workdir}")"
+            ${pkgs.git}/bin/git clone "${ruinageLib.mkGitUrl {
+              owner = project.owner;
+              repo = project.repo;
+              forge = project.forge;
+            }}" "${workdir}" || echo "Warning: Failed to clone ${name} for kimaki"
+          else
+            $VERBOSE_ECHO "kimaki: ${name} already exists at ${workdir} (skipping)"
+          fi
+        '') (attrNames kimakiProjects)}
+      '';
+    })
+
+    # Register projects with kimaki (projects with assistants.kimaki.enable = true)
+    # Runs after cloneKimakiProjects to ensure directories exist
+    # Checks if already registered to avoid unnecessary API calls and rate limits
+    (mkIf (kimakiProjects != {}) {
+      home.activation.registerKimakiProjects = lib.hm.dag.entryAfter ["writeBoundary" "cloneKimakiProjects"] ''
+        KIMAKI_DB="${config.home.homeDirectory}/.kimaki/discord-sessions.db"
+
+        # Helper function to check if project is already registered
+        is_project_registered() {
+          local workdir="$1"
+          if [ -f "$KIMAKI_DB" ]; then
+            # Check if workdir exists in channel_directories table
+            ${pkgs.sqlite}/bin/sqlite3 "$KIMAKI_DB" \
+              "SELECT COUNT(*) FROM channel_directories WHERE directory = '$workdir';" 2>/dev/null | \
+              ${pkgs.gnugrep}/bin/grep -q '^[1-9]'
+          else
+            return 1
+          fi
+        }
+
         ${concatMapStringsSep "\n" (name: let
           workdir = mkKimakiWorkdir name;
         in ''
           if [ -d "${workdir}" ]; then
-            $VERBOSE_ECHO "kimaki: registering project ${name} at ${workdir}"
-            ${pkgs.nodejs}/bin/npx -y kimaki@latest add-project "${workdir}" || true
+            if is_project_registered "${workdir}"; then
+              $VERBOSE_ECHO "kimaki: ${name} already registered at ${workdir} (skipping)"
+            else
+              $VERBOSE_ECHO "kimaki: registering project ${name} at ${workdir}"
+              if ! ${pkgs.nodejs}/bin/npx -y kimaki@latest add-project "${workdir}" 2>&1; then
+                echo "Warning: Failed to register ${name} with kimaki. Run manually: npx -y kimaki@latest add-project \"${workdir}\""
+              fi
+            fi
           else
             $VERBOSE_ECHO "kimaki: project directory ${workdir} does not exist, skipping registration"
           fi

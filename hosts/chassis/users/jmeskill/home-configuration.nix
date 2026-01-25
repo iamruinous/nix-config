@@ -76,9 +76,7 @@
             web.enable = true;
             budgey.enable = true;
           };
-          assistants.kimaki = {
-            enable = true;
-          };
+          assistants.kimaki.enable = true;
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
@@ -93,9 +91,7 @@
             web.enable = true;
             budgey.enable = true;
           };
-          assistants.kimaki = {
-            enable = true;
-          };
+          assistants.kimaki.enable = true;
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
@@ -110,9 +106,7 @@
             web.enable = true;
             budgey.enable = true;
           };
-          assistants.kimaki = {
-            enable = true;
-          };
+          assistants.kimaki.enable = true;
           tmuxp.extraWindows = [
             {
               name = "tests";
@@ -133,6 +127,7 @@
             web.enable = true;
             budgey.enable = true;
           };
+          assistants.kimaki.enable = true;
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
@@ -147,6 +142,7 @@
             web.enable = true;
             budgey.enable = true;
           };
+          assistants.kimaki.enable = true;
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
@@ -175,6 +171,7 @@
             web.enable = true;
             budgey.enable = true;
           };
+          assistants.kimaki.enable = true;
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
@@ -189,6 +186,7 @@
             web.enable = true;
             budgey.enable = true;
           };
+          assistants.kimaki.enable = true;
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
