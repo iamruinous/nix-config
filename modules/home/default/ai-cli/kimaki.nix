@@ -246,6 +246,63 @@ in {
         ]
       '';
     };
+
+    projects = mkOption {
+      type = types.attrsOf (types.submodule ({name, ...}: {
+        options = {
+          workdir = mkOption {
+            type = types.str;
+            description = "Absolute path to the project directory.";
+            example = "/home/user/Projects/my-project";
+          };
+
+          direnvSnippet = mkOption {
+            type = types.nullOr types.str;
+            default = null;
+            description = ''
+              Name of the direnv snippet to source (from opencode-projects).
+              If set, injects source line into .envrc.local.
+              Should match a project name from opencode-projects.direnv.
+            '';
+            example = "nix";
+          };
+        };
+      }));
+      default = {};
+      description = ''
+        Projects to register with kimaki via `npx kimaki add-project`.
+        Each project creates a Discord channel linked to the project directory.
+
+        Example:
+          projects = {
+            nix-config = {
+              workdir = "/home/user/Projects/nix-config";
+              direnvSnippet = "nix";  # Sources ~/.config/direnv/envrc.d/nix.sh
+            };
+            my-app = {
+              workdir = "/home/user/Projects/my-app";
+              # No direnvSnippet - no env injection
+            };
+          };
+      '';
+    };
+
+    direnv = {
+      autoInject = mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Automatically inject direnv source lines into project .envrc.local files.
+          Only applies to projects with direnvSnippet set.
+        '';
+      };
+
+      snippetsDir = mkOption {
+        type = types.str;
+        default = "${config.home.homeDirectory}/.config/direnv/envrc.d";
+        description = "Directory containing direnv snippets from opencode-projects.";
+      };
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -276,6 +333,48 @@ in {
         homeDirectory = config.home.homeDirectory;
         mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
       };
+    })
+
+    # Register projects with kimaki (idempotent - kimaki handles duplicates)
+    (mkIf (cfg.projects != {}) {
+      home.activation.registerKimakiProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        ${concatMapStringsSep "\n" (name: let
+          project = cfg.projects.${name};
+        in ''
+          if [ -d "${project.workdir}" ]; then
+            $VERBOSE_ECHO "kimaki: registering project ${name} at ${project.workdir}"
+            ${pkgs.nodejs}/bin/npx -y kimaki@latest add-project "${project.workdir}" || true
+          fi
+        '') (attrNames cfg.projects)}
+      '';
+    })
+
+    # Auto-inject direnv snippets into .envrc.local
+    (mkIf (cfg.projects != {} && cfg.direnv.autoInject) {
+      home.activation.injectKimakiDirenvSnippets = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        ${concatMapStringsSep "\n" (name: let
+          project = cfg.projects.${name};
+          snippetPath = "${cfg.direnv.snippetsDir}/${project.direnvSnippet}.sh";
+          envrcLocal = "${project.workdir}/.envrc.local";
+          sourceLine = "source_env ${snippetPath}";
+          markerComment = "# kimaki: auto-injected";
+        in optionalString (project.direnvSnippet != null) ''
+          if [ -d "${project.workdir}" ] && [ -f "${snippetPath}" ]; then
+            if [ -f "${envrcLocal}" ]; then
+              if ! ${pkgs.gnugrep}/bin/grep -qF "${sourceLine}" "${envrcLocal}"; then
+                $VERBOSE_ECHO "kimaki: injecting direnv snippet into ${name}/.envrc.local"
+                echo "" >> "${envrcLocal}"
+                echo "${markerComment}" >> "${envrcLocal}"
+                echo "${sourceLine}" >> "${envrcLocal}"
+              fi
+            else
+              $VERBOSE_ECHO "kimaki: creating ${name}/.envrc.local with direnv snippet"
+              echo "${markerComment}" > "${envrcLocal}"
+              echo "${sourceLine}" >> "${envrcLocal}"
+            fi
+          fi
+        '') (attrNames cfg.projects)}
+      '';
     })
 
     # Linux: systemd user service

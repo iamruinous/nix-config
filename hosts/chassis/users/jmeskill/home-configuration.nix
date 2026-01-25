@@ -63,6 +63,35 @@
           config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
           config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
         ];
+
+        # Projects registered with kimaki for Discord channels
+        # These map to the directories in ~/Projects/ruinous.ai/
+        projects = {
+          nix-config = {
+            workdir = "${config.home.homeDirectory}/Projects/ruinous.ai/nix-config";
+            direnvSnippet = "nix";
+          };
+          n8n-agent = {
+            workdir = "${config.home.homeDirectory}/Projects/ruinous.ai/n8n-agent";
+            direnvSnippet = "n8n";
+          };
+          dossiq-ai = {
+            workdir = "${config.home.homeDirectory}/Projects/ruinous.ai/dossiq-ai";
+            direnvSnippet = "dossiq";
+          };
+          ruinagents = {
+            workdir = "${config.home.homeDirectory}/Projects/ruinous.ai/ruinagents";
+            direnvSnippet = "ruinagents";
+          };
+          codey-agent-system = {
+            workdir = "${config.home.homeDirectory}/Projects/ruinous.ai/codey-agent-system";
+            # No direnv snippet - no project-specific env
+          };
+          ml-pspd = {
+            workdir = "${config.home.homeDirectory}/Projects/ruinous.ai/ml-pspd";
+            # No direnv snippet - no project-specific env
+          };
+        };
       };
 
       # Unified project-centric configuration

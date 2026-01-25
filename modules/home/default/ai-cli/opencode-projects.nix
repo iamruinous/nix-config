@@ -455,6 +455,16 @@ in {
     direnv = {
       enable = mkEnableOption "Generate .envrc snippets for projects with environment files";
 
+      autoInject = mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Automatically inject source line into project .envrc.local files.
+          When enabled, creates/updates .envrc.local in each project directory
+          to source the corresponding direnv snippet from ~/.config/direnv/envrc.d/.
+        '';
+      };
+
       secretsDir = mkOption {
         type = types.str;
         default = "${config.home.homeDirectory}/.local/state/agenix";
@@ -749,6 +759,36 @@ in {
           text = mkDirenvSnippet name project;
           executable = false;
         }) projectsWithEnv;
+
+      # Auto-inject source line into .envrc.local for each project
+      home.activation.injectDirenvSnippets = lib.mkIf cfg.direnv.autoInject (
+        lib.hm.dag.entryAfter ["writeBoundary"] ''
+          ${concatMapStringsSep "\n" (name: let
+            project = projectsWithEnv.${name};
+            snippetPath = "${config.home.homeDirectory}/.config/direnv/envrc.d/${name}.sh";
+            envrcLocal = "${project.workdir}/.envrc.local";
+            sourceLine = "source_env ${snippetPath}";
+            markerComment = "# opencode-projects: auto-injected";
+          in ''
+            # Project: ${name}
+            if [ -d "${project.workdir}" ]; then
+              # Check if .envrc.local exists and already has our source line
+              if [ -f "${envrcLocal}" ]; then
+                if ! ${pkgs.gnugrep}/bin/grep -qF "${sourceLine}" "${envrcLocal}"; then
+                  $VERBOSE_ECHO "opencode-projects: injecting direnv snippet into ${name}/.envrc.local"
+                  echo "" >> "${envrcLocal}"
+                  echo "${markerComment}" >> "${envrcLocal}"
+                  echo "${sourceLine}" >> "${envrcLocal}"
+                fi
+              else
+                $VERBOSE_ECHO "opencode-projects: creating ${name}/.envrc.local with direnv snippet"
+                echo "${markerComment}" > "${envrcLocal}"
+                echo "${sourceLine}" >> "${envrcLocal}"
+              fi
+            fi
+          '') (attrNames projectsWithEnv)}
+        ''
+      );
     }))
   ]);
 }

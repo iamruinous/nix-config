@@ -12,16 +12,12 @@
     (flake + /secrets)
   ];
 
-  nixpkgs.overlays = [
-    (_final: _prev: {
-      inherit (perSystem) self;
-      docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
-      eztunnel = perSystem.self.eztunnel;
-      forgejo-mcp = perSystem.self.forgejo-mcp;
-      forgejo-shell = perSystem.self.forgejo-shell;
-      nelko-pl70ebt = perSystem.self.nelko-pl70ebt;
-      ssh-agent-check = perSystem.self.ssh-agent-check;
-    })
+  # Overlay is only needed for standalone homeConfigurations (osConfig == null).
+  # When home-manager is integrated with NixOS/Darwin, Blueprint sets useGlobalPkgs = true
+  # and pkgs are inherited from the system config (which has the overlay already).
+  # Setting nixpkgs.overlays with useGlobalPkgs is deprecated and will be removed.
+  nixpkgs.overlays = lib.mkIf (osConfig == null) [
+    (import ../../shared/universal/packages-overlay.nix {inherit perSystem flake;})
   ];
 
   # Set home.uid from osConfig if available, otherwise fall back to typical Linux UID
