@@ -89,12 +89,10 @@ let
   testSystemdEnvironment = let
     env = ruinageLib.mkSystemdEnvironment {
       homeDirectory = "/home/testuser";
-      extraPackages = [ pkgs.git ];
       configDir = "/home/testuser/.config/opencode";
       cacheDir = "/home/testuser/.cache/opencode";
       stateDir = "/home/testuser/.local/state/opencode";
       dataDir = "/home/testuser/.local/share/opencode";
-      includeSystemPath = true;
     };
   in
     # Verify environment list contains expected entries
@@ -113,7 +111,6 @@ let
 
     wrapped = ruinageLib.mkWrappedOpencode {
       package = mockPackage;
-      extraPackages = [ pkgs.git ];
     };
   in
     # Verify wrapped package is created and is an attribute set

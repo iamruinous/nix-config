@@ -5,8 +5,8 @@
 # - Auto-clone activation script
 # - Project path resolution
 #
-# Projects are defined by their git repository and can be cloned to
-# multiple namespaces (ruinage, kimaki) for different use cases.
+# Projects are defined by their git repository. Having a project defined
+# means it's enabled - no separate enable flag needed.
 {
   config,
   lib,
@@ -15,10 +15,66 @@
 }:
 with lib; let
   cfg = config.ruinous.ruinage;
-  ruinageLib = import ../../../lib/ruinage/wrapper.nix { inherit lib pkgs; };
+  ruinageLib = import ../../../../lib/ruinage/wrapper.nix {inherit lib pkgs;};
 
-  # Project type definition (copied from types.nix)
-  projectType = types.submodule ({
+  # Budgey configuration submodule (reusable across assistants)
+  budgeyType = types.submodule {
+    options = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Include this assistant in the budgey-extractor registry.";
+      };
+
+      budgets = {
+        weeklyUsd = mkOption {
+          type = types.nullOr types.float;
+          default = null;
+          description = "Weekly budget limit in USD.";
+          example = 50.0;
+        };
+
+        monthlyUsd = mkOption {
+          type = types.nullOr types.float;
+          default = null;
+          description = "Monthly budget limit in USD.";
+          example = 200.0;
+        };
+      };
+
+      tags = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Tags for categorizing this project.";
+        example = ["core" "agents"];
+      };
+
+      # Path overrides for assistants that manage their own XDG dirs
+      configDir = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Override config directory for budgey registry (null = use computed path).";
+        example = "/home/user/.config/kimaki";
+      };
+
+      stateDir = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Override state directory for budgey registry (null = use computed path).";
+        example = "/home/user/.local/state/kimaki";
+      };
+
+      dataDir = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Override data directory for budgey registry (null = use computed path).";
+        example = "/home/user/.local/share/kimaki";
+      };
+    };
+  };
+
+  # Project type definition - parameterized by homeDirectory
+  mkProjectType = homeDirectory: types.submodule ({
     name,
     config,
     ...
@@ -26,9 +82,9 @@ with lib; let
     options = {
       # Repository coordinates
       repo = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Repository name (e.g., 'nix-config'). Null for local-only projects.";
+        type = types.str;
+        default = name;
+        description = "Repository name. Defaults to the project key name.";
         example = "nix-config";
       };
 
@@ -44,31 +100,19 @@ with lib; let
         description = "Forge hostname (e.g., 'github.com', 'forge.meskill.farm').";
       };
 
-       ref = mkOption {
-         type = types.nullOr types.str;
-         default = null;
-         description = "Git reference (branch, tag, or commit). Null for default branch.";
-         example = "main";
-       };
+      ref = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Git reference (branch, tag, or commit). Null for default branch.";
+        example = "main";
+      };
 
-       # Working directory path
-       workdir = mkOption {
-         type = types.str;
-         description = "Absolute path to the project working directory.";
-         example = "/home/user/Projects/ruinage/nix-config";
-       };
-
-       # Port configuration
-       port = mkOption {
-         type = types.port;
-         description = "Port number for the OpenCode server.";
-         example = 9500;
-       };
-
-      hostname = mkOption {
+      # Working directory path
+      workdir = mkOption {
         type = types.str;
-        default = "127.0.0.1";
-        description = "Hostname/IP to bind to for CLI serve mode.";
+        default = "${homeDirectory}/Projects/ruinage/${config.repo}";
+        description = "Absolute path to the project working directory. Defaults to ~/Projects/ruinage/<repo>.";
+        example = "/home/user/Projects/ruinage/nix-config";
       };
 
       # Environment configuration
@@ -125,134 +169,6 @@ with lib; let
         };
       };
 
-      # Caddy reverse proxy configuration
-      caddy = {
-        fqdn = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = ''
-            FQDN for Caddy reverse proxy (e.g., "myproject.oc.ruinous.ai").
-            When set, automatically enables web service and configures CORS.
-          '';
-          example = "myproject.oc.ruinous.ai";
-        };
-      };
-
-      # Web service configuration
-      web = {
-        enable = mkOption {
-          type = types.bool;
-          default = false;
-          description = ''
-            Create a systemd user service for the web UI.
-            Automatically enabled when caddy.fqdn is set.
-          '';
-        };
-
-        hostname = mkOption {
-          type = types.str;
-          default = "0.0.0.0";
-          description = "Hostname/IP to bind the web service to.";
-        };
-
-        logLevel = mkOption {
-          type = types.enum ["DEBUG" "INFO" "WARN" "ERROR"];
-          default = "ERROR";
-          description = "Log level for the web service.";
-        };
-
-        mdns = mkOption {
-          type = types.bool;
-          default = true;
-          description = "Enable mDNS service discovery.";
-        };
-
-        cors = mkOption {
-          type = types.listOf types.str;
-          default = [];
-          description = "Additional domains to allow for CORS (caddy.fqdn is automatically added).";
-        };
-
-        printLogs = mkOption {
-          type = types.bool;
-          default = true;
-          description = "Print logs to stderr.";
-        };
-      };
-
-      # Budgey cost tracking configuration
-      budgey = {
-        enable = mkOption {
-          type = types.bool;
-          default = true;
-          description = "Include this project in the budgey-extractor registry.";
-        };
-
-        budgets = {
-          weeklyUsd = mkOption {
-            type = types.nullOr types.float;
-            default = null;
-            description = "Weekly budget limit in USD.";
-            example = 50.0;
-          };
-
-          monthlyUsd = mkOption {
-            type = types.nullOr types.float;
-            default = null;
-            description = "Monthly budget limit in USD.";
-            example = 200.0;
-          };
-        };
-
-        tags = mkOption {
-          type = types.listOf types.str;
-          default = [];
-          description = "Tags for categorizing this project.";
-          example = ["core" "agents"];
-        };
-
-        # Path overrides for external projects (like kimaki) that manage their own XDG dirs
-        configDir = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "Override config directory for budgey registry (null = use computed path).";
-          example = "/home/user/.config/kimaki";
-        };
-
-        stateDir = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "Override state directory for budgey registry (null = use computed path).";
-          example = "/home/user/.local/state/kimaki";
-        };
-
-        dataDir = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "Override data directory for budgey registry (null = use computed path).";
-          example = "/home/user/.local/share/kimaki";
-        };
-      };
-
-      # Namespace configuration (multi-namespace support)
-      namespaces = {
-        ruinage = {
-          enable = mkOption {
-            type = types.bool;
-            default = false;
-            description = "Enable this project in the ruinage namespace.";
-          };
-        };
-
-        kimaki = {
-          enable = mkOption {
-            type = types.bool;
-            default = false;
-            description = "Enable this project in the kimaki namespace.";
-          };
-        };
-      };
-
       # Multi-assistant support
       assistants = {
         opencode = {
@@ -262,32 +178,24 @@ with lib; let
             description = "Enable OpenCode assistant for this project.";
           };
 
-          port = mkOption {
-            type = types.nullOr types.port;
-            default = null;
-            description = "Port for OpenCode server (overrides top-level port if set).";
-          };
-
-          hostname = mkOption {
-            type = types.str;
-            default = "127.0.0.1";
-            description = "Hostname/IP for OpenCode server.";
-          };
-
-          caddy = {
-            fqdn = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "FQDN for OpenCode Caddy reverse proxy.";
-              example = "myproject.oc.ruinous.ai";
-            };
-          };
-
           web = {
             enable = mkOption {
               type = types.bool;
               default = false;
               description = "Enable OpenCode web service.";
+            };
+
+            port = mkOption {
+              type = types.nullOr types.port;
+              default = null;
+              description = "Port for OpenCode web server. Auto-assigned if null.";
+            };
+
+            fqdn = mkOption {
+              type = types.str;
+              default = "${name}.oc.ruinous.ai";
+              description = "FQDN for Caddy reverse proxy. Defaults to <project-name>.oc.ruinous.ai.";
+              example = "myproject.oc.ruinous.ai";
             };
 
             hostname = mkOption {
@@ -304,7 +212,7 @@ with lib; let
 
             mdns = mkOption {
               type = types.bool;
-              default = true;
+              default = false;
               description = "Enable mDNS for OpenCode service discovery.";
             };
 
@@ -320,6 +228,38 @@ with lib; let
               description = "Print OpenCode logs to stderr.";
             };
           };
+
+          # Budgey cost tracking for OpenCode
+          budgey = mkOption {
+            type = budgeyType;
+            default = {};
+            description = "Budgey cost tracking configuration for OpenCode assistant.";
+          };
+        };
+
+        kimaki = {
+          enable = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Register this project with Kimaki Discord bot.";
+          };
+
+          direnvSnippet = mkOption {
+            type = types.str;
+            default = name;
+            description = ''
+              Name of the direnv snippet to source for this project.
+              Defaults to the project name. Used to inject source line into .envrc.local.
+            '';
+            example = "nix";
+          };
+
+          # Budgey cost tracking for Kimaki (future use)
+          budgey = mkOption {
+            type = budgeyType;
+            default = {};
+            description = "Budgey cost tracking configuration for Kimaki assistant.";
+          };
         };
 
         claude-code = {
@@ -327,6 +267,13 @@ with lib; let
             type = types.bool;
             default = false;
             description = "Enable Claude Code assistant for this project.";
+          };
+
+          # Budgey cost tracking for Claude Code (future use)
+          budgey = mkOption {
+            type = budgeyType;
+            default = {};
+            description = "Budgey cost tracking configuration for Claude Code assistant.";
           };
         };
 
@@ -336,6 +283,13 @@ with lib; let
             default = false;
             description = "Enable Gemini assistant for this project.";
           };
+
+          # Budgey cost tracking for Gemini (future use)
+          budgey = mkOption {
+            type = budgeyType;
+            default = {};
+            description = "Budgey cost tracking configuration for Gemini assistant.";
+          };
         };
 
         codex = {
@@ -343,6 +297,13 @@ with lib; let
             type = types.bool;
             default = false;
             description = "Enable Codex assistant for this project.";
+          };
+
+          # Budgey cost tracking for Codex (future use)
+          budgey = mkOption {
+            type = budgeyType;
+            default = {};
+            description = "Budgey cost tracking configuration for Codex assistant.";
           };
         };
       };
@@ -355,10 +316,18 @@ with lib; let
           description = "Enable documentation aggregation for this project.";
         };
 
-        flakeOutput = mkOption {
+        flakeInput = mkOption {
           type = types.str;
-          default = "${name}-docs";
-          description = "Flake output name for documentation.";
+          default = name;
+          description = "Flake input name to get docs from (e.g., 'ruinagents' for flake.inputs.ruinagents).";
+          example = "ruinagents";
+        };
+
+        packageOutput = mkOption {
+          type = types.str;
+          default = "docs";
+          description = "Package output name within the flake input (e.g., 'docs' for .packages.\${system}.docs).";
+          example = "docs";
         };
 
         title = mkOption {
@@ -370,29 +339,36 @@ with lib; let
     };
   });
 in {
-  imports = [
-    ./direnv.nix
-  ];
-
   options.ruinous.ruinage = {
+    enable = mkEnableOption "Ruinage repository-first project management";
+
     projects = mkOption {
-      type = types.attrsOf projectType;
+      type = types.attrsOf (mkProjectType config.home.homeDirectory);
       default = {};
       description = ''
         Repository-first project definitions.
         Each project is keyed by name and defines:
         - Repository coordinates (repo, owner, forge)
-        - Namespace enablement (ruinage, kimaki)
         - Assistant configurations (opencode, kimaki, etc.)
+
+        Having a project defined means it's enabled - no separate enable flag needed.
+        
+        Defaults:
+        - repo: project key name
+        - owner: "iamruinous"
+        - forge: "forge.meskill.farm"
+        - workdir: ~/Projects/ruinage/<repo>
       '';
       example = literalExpression ''
         {
           nix-config = {
             repo = "nix-config";
-            owner = "iamruinous";
             forge = "github.com";
-            namespaces.ruinage.enable = true;
-            assistants.opencode.enable = true;
+            port = 9500;
+            assistants.opencode = {
+              enable = true;
+              budgey.enable = true;
+            };
           };
         }
       '';
@@ -425,53 +401,27 @@ in {
     };
   };
 
-   config = mkIf (cfg.enable or false) {
-    # Auto-clone projects to namespace directories on activation
+  config = mkIf (cfg.enable or false) {
+    # Auto-clone projects to workdir on activation
     home.activation.cloneRuinageProjects = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      # Ensure git can find ssh for cloning
+      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh"
       ${concatMapStringsSep "\n" (projectName: let
         project = cfg.projects.${projectName};
-        homeDir = config.home.homeDirectory;
       in ''
         # Project: ${projectName}
-        ${optionalString (project.repo != null) ''
-          # Clone to ruinage namespace if enabled
-          ${optionalString project.namespaces.ruinage.enable ''
-            RUINAGE_PATH="${ruinageLib.mkProjectPath {
-              homeDirectory = homeDir;
-              namespace = "ruinage";
-              repo = project.repo;
-            }}"
-            if [ ! -d "$RUINAGE_PATH" ]; then
-              $VERBOSE_ECHO "ruinage-projects: cloning ${projectName} to ruinage namespace"
-              ${pkgs.git}/bin/git clone "${ruinageLib.mkGitUrl {
-                owner = project.owner;
-                repo = project.repo;
-                forge = project.forge;
-              }}" "$RUINAGE_PATH" || echo "Warning: Failed to clone ${projectName} to ruinage namespace"
-            else
-              $VERBOSE_ECHO "ruinage-projects: ${projectName} already exists at $RUINAGE_PATH (skipping)"
-            fi
-          ''}
-
-          # Clone to kimaki namespace if enabled
-          ${optionalString project.namespaces.kimaki.enable ''
-            KIMAKI_PATH="${ruinageLib.mkProjectPath {
-              homeDirectory = homeDir;
-              namespace = "kimaki";
-              repo = project.repo;
-            }}"
-            if [ ! -d "$KIMAKI_PATH" ]; then
-              $VERBOSE_ECHO "ruinage-projects: cloning ${projectName} to kimaki namespace"
-              ${pkgs.git}/bin/git clone "${ruinageLib.mkGitUrl {
-                owner = project.owner;
-                repo = project.repo;
-                forge = project.forge;
-              }}" "$KIMAKI_PATH" || echo "Warning: Failed to clone ${projectName} to kimaki namespace"
-            else
-              $VERBOSE_ECHO "ruinage-projects: ${projectName} already exists at $KIMAKI_PATH (skipping)"
-            fi
-          ''}
-        ''}
+        PROJECT_PATH="${project.workdir}"
+        if [ ! -d "$PROJECT_PATH" ]; then
+          $VERBOSE_ECHO "ruinage: cloning ${projectName} to $PROJECT_PATH"
+          mkdir -p "$(dirname "$PROJECT_PATH")"
+          ${pkgs.git}/bin/git clone "${ruinageLib.mkGitUrl {
+            owner = project.owner;
+            repo = project.repo;
+            forge = project.forge;
+          }}" "$PROJECT_PATH" || echo "Warning: Failed to clone ${projectName}"
+        else
+          $VERBOSE_ECHO "ruinage: ${projectName} already exists at $PROJECT_PATH (skipping)"
+        fi
       '') (attrNames cfg.projects)}
     '';
   };

@@ -2,12 +2,46 @@
 #
 # This module provides:
 # - Global OpenCode settings (ruinous.ruinage.assistants.opencode.*)
+# - Model, plugins, MCP servers, providers configuration
 # - Harness configurations (oh-my-opencode, ruinagents)
 # - Per-project OpenCode service generation
 #
 # OpenCode is the primary AI coding assistant, with optional harnesses:
 # - oh-my-opencode: Agent orchestration, categories, LSP servers
 # - ruinagents: AGENTS.md, skills, project context
+#
+# Example:
+#   ruinous.ruinage = {
+#     enable = true;
+#
+#     # Global OpenCode configuration
+#     assistants.opencode = {
+#       enable = true;
+#       model = "anthropic/claude-opus-4-5";
+#       plugins = [ "my-plugin" ];
+#       mcpServers.github = {
+#         type = "remote";
+#         url = "https://api.githubcopilot.com/mcp/";
+#       };
+#
+#       harnesses.oh-my-opencode = {
+#         agents.oracle.model = "openai/gpt-5.2";
+#         categories.visual-engineering.model = "google/gemini-2.5-pro";
+#       };
+#       harnesses.ruinagents.enable = true;
+#     };
+#
+#     # Per-project OpenCode services
+#     projects.nix-config = {
+#       repo = "nix-config";
+#       namespaces.ruinage.enable = true;
+#       assistants.opencode = {
+#         enable = true;
+#         port = 9500;
+#         caddy.fqdn = "nix-config.oc.ruinous.ai";
+#       };
+#     };
+#   };
 {
   config,
   lib,
@@ -23,6 +57,19 @@ with lib; let
   ruinagentsPkgs = flake.inputs.ruinagents.packages.${pkgs.system};
   ruinagentsOpencode = ruinagentsPkgs.opencode;
   ruinagentsShare = "${ruinagentsOpencode}/share/ruinagents-opencode";
+
+  # OpenCode config template from flake
+  opencode_config = flake + /files/configs/opencode/opencode.json;
+
+  # llm-agents packages
+  llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
+
+  # Helper to recursively remove null values from an attrset
+  removeNulls = attrs:
+    lib.filterAttrsRecursive (n: v: v != null) attrs;
+
+  # JSON format helper for pretty-printed output
+  jsonFormat = pkgs.formats.json {};
 
   # Thinking configuration submodule type for categories
   thinkingType = types.submodule {
@@ -377,6 +424,256 @@ with lib; let
     };
   });
 
+  # Config directory submodule type for multiple config directories
+  configDirType = types.submodule ({name, ...}: {
+    options = {
+      configDir = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Custom config directory path. If null, uses the default
+          ~/.config/opencode (only valid for the "default" config).
+        '';
+        example = "/home/user/.config/opencode-web";
+      };
+
+      model = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Override the default model for this config directory.
+          If null, inherits from the main model setting.
+        '';
+        example = "anthropic/claude-opus-4-5";
+      };
+
+      plugins = mkOption {
+        type = types.nullOr (types.listOf types.str);
+        default = null;
+        description = ''
+          Override plugins for this config directory.
+          If null, inherits from the main plugins setting.
+        '';
+      };
+
+      mcpServers = mkOption {
+        type = types.nullOr (types.attrsOf mcpServerType);
+        default = null;
+        description = ''
+          Override MCP servers for this config directory.
+          If null, inherits from the main mcpServers setting.
+        '';
+      };
+
+      providers = mkOption {
+        type = types.nullOr (types.attrsOf providerType);
+        default = null;
+        description = ''
+          Override providers for this config directory.
+          If null, inherits from the main providers setting.
+        '';
+      };
+
+      notifier = {
+        enable = mkOption {
+          type = types.nullOr types.bool;
+          default = null;
+          description = ''
+            Override notifier setting for this config directory.
+            If null, inherits from the main notifier.enable setting.
+          '';
+        };
+      };
+
+      installPlugins = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+        description = ''
+          Override installPlugins setting for this config directory.
+          If null, inherits from the main installPlugins setting.
+        '';
+      };
+    };
+  });
+
+  # Generate oh-my-opencode.json content from config (pretty-printed)
+  generateOmoConfig = {
+    agents,
+    categories,
+    disabledSkills,
+    googleAuth,
+    sisyphusSignature,
+    lsp,
+  }:
+    removeNulls {
+      "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
+      google_auth = googleAuth;
+      include_co_authored_by = sisyphusSignature;
+      agents =
+        lib.mapAttrs (
+          name: agentCfg:
+            removeNulls {
+              inherit (agentCfg) model category skills temperature top_p prompt prompt_append tools disable description mode color;
+              permission =
+                if agentCfg.permission != null
+                then
+                  removeNulls {
+                    inherit (agentCfg.permission) edit bash webfetch doom_loop external_directory;
+                  }
+                else null;
+            }
+        )
+        agents;
+      categories =
+        lib.mapAttrs (
+          name: catCfg:
+            removeNulls {
+              inherit (catCfg) description model variant temperature top_p prompt_append reasoningEffort textVerbosity tools maxTokens is_unstable_agent;
+              thinking =
+                if catCfg.thinking != null
+                then
+                  removeNulls {
+                    inherit (catCfg.thinking) type budgetTokens;
+                  }
+                else null;
+            }
+        )
+        categories;
+      disabled_skills = disabledSkills;
+      lsp =
+        lib.mapAttrs (
+          name: lspCfg:
+            removeNulls {
+              inherit (lspCfg) command extensions;
+            }
+        )
+        lsp;
+    };
+
+  # Resolve effective settings for a config directory
+  resolveConfig = name: dirCfg: {
+    configDir =
+      if dirCfg.configDir != null
+      then dirCfg.configDir
+      else if name == "default"
+      then "${config.xdg.configHome}/opencode"
+      else throw "configDir must be specified for non-default config '${name}'";
+    model =
+      if dirCfg.model != null
+      then dirCfg.model
+      else opencodeAssistant.model;
+    plugins =
+      if dirCfg.plugins != null
+      then dirCfg.plugins
+      else opencodeAssistant.plugins;
+    mcpServers =
+      if dirCfg.mcpServers != null
+      then dirCfg.mcpServers
+      else opencodeAssistant.mcpServers;
+    providers =
+      if dirCfg.providers != null
+      then dirCfg.providers
+      else opencodeAssistant.providers;
+    omoAgents = opencodeAssistant.harnesses.oh-my-opencode.agents;
+    omoCategories = opencodeAssistant.harnesses.oh-my-opencode.categories;
+    omoLsp = opencodeAssistant.harnesses.oh-my-opencode.lsp;
+    disabledSkills = opencodeAssistant.harnesses.oh-my-opencode.disabledSkills;
+    omoGoogleAuth = opencodeAssistant.harnesses.oh-my-opencode.googleAuth;
+    sisyphusSignature = opencodeAssistant.harnesses.oh-my-opencode.sisyphusSignature;
+    ruinagentsGlobalEnable = opencodeAssistant.harnesses.ruinagents.enable;
+    notifierEnable =
+      if dirCfg.notifier.enable != null
+      then dirCfg.notifier.enable
+      else opencodeAssistant.notifier.enable;
+    installPlugins =
+      if dirCfg.installPlugins != null
+      then dirCfg.installPlugins
+      else opencodeAssistant.installPlugins;
+  };
+
+  # Ruinagents skill and command paths
+  skillSourcePath = "${ruinagentsShare}/skills";
+  commandSourcePath = "${ruinagentsShare}/commands";
+  skillNames =
+    if builtins.pathExists skillSourcePath
+    then builtins.filter (name: builtins.pathExists "${skillSourcePath}/${name}/SKILL.md") (builtins.attrNames (builtins.readDir skillSourcePath))
+    else [];
+  commandNames =
+    if builtins.pathExists commandSourcePath
+    then builtins.filter (name: builtins.pathExists "${commandSourcePath}/${name}") (builtins.attrNames (builtins.readDir commandSourcePath))
+    else [];
+
+  # Generate config files and activation scripts for a config directory
+  mkConfigDir = name: dirCfg: let
+    resolved = resolveConfig name dirCfg;
+    safeName = builtins.replaceStrings ["-" "/"] ["_" "_"] name;
+  in {
+    # Activation script for this directory
+    activation = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      CONFIG_DIR="${resolved.configDir}"
+      CONFIG_FILE="$CONFIG_DIR/opencode.json"
+
+      # Ensure config file exists, copy from template if not
+      if [ ! -f "$CONFIG_FILE" ]; then
+        $DRY_RUN_CMD mkdir -p "$CONFIG_DIR"
+        $DRY_RUN_CMD cp "${opencode_config}" "$CONFIG_FILE"
+        $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
+      fi
+
+      # Inject model, plugins, MCP servers, and providers into opencode.json
+      # Provider replacement: completely replaces managed entries to apply schema changes
+      if [ -f "$CONFIG_FILE" ]; then
+        # Create a temporary file with the updated config
+        TMP_FILE=$(mktemp)
+        ${pkgs.jq}/bin/jq \
+          --argjson new_model '${builtins.toJSON resolved.model}' \
+          --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
+          --argjson new_servers '${builtins.toJSON resolved.mcpServers}' \
+          --argjson new_providers '${builtins.toJSON resolved.providers}' \
+          '(if $new_model != null then .model = $new_model else . end)
+            | .plugin //= []
+            | .mcp = (.mcp // {}) + $new_servers
+            | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
+            | reduce ($new_plugins[]) as $p (.;
+                ($p | split("@")[0]) as $pname
+                | ((.plugin | map((. | split("@")[0]) == $pname) | index(true))) as $idx
+                | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end)
+            | walk(if type == "object" then with_entries(select(.value != null)) else . end)
+          ' "$CONFIG_FILE" > "$TMP_FILE"
+
+        # If the file actually changed, update it
+        if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null; then
+          $DRY_RUN_CMD cp "$TMP_FILE" "$CONFIG_FILE"
+          $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
+        fi
+        rm "$TMP_FILE"
+      fi
+
+      ${optionalString resolved.installPlugins ''
+        if command -v ${pkgs.bun}/bin/bun &> /dev/null; then
+          $DRY_RUN_CMD ${pkgs.bun}/bin/bun install --cwd "$CONFIG_DIR" --silent 2>/dev/null || true
+        fi
+      ''}
+    '';
+
+    # Notifier activation for this directory
+    notifierActivation = optionalString resolved.notifierEnable (
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        $DRY_RUN_CMD mkdir -p "${resolved.configDir}/plugin"
+        $DRY_RUN_CMD cp -f "${pkgs.opencode-notifier-apprise}/share/opencode-notifier-apprise/plugin.js" \
+          "${resolved.configDir}/plugin/apprise-notifier.js"
+      ''
+    );
+
+    inherit resolved;
+  };
+
+  # Process all config directories
+  processedConfigs = mapAttrs mkConfigDir (opencodeAssistant.configs or {default = {};});
+
+  # Check if any config has notifier enabled
+  anyNotifierEnabled = any (c: c.resolved.notifierEnable) (attrValues processedConfigs);
+
   # Caddy-compatible project data structure
   # Exposes projects with caddy configuration for reverse proxy generation
   caddyProjectsType = types.submodule {
@@ -419,6 +716,12 @@ in {
         - `"openai/gpt-5.2"` - GPT 5.2
         - `"google/gemini-2.5-pro"` - Gemini 2.5 Pro
       '';
+    };
+
+    installPlugins = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to automatically install plugins via bun on activation.";
     };
 
     plugins = mkOption {
@@ -506,6 +809,39 @@ in {
 
         For OpenAI-compatible servers (vLLM, llama.cpp), use `api = "openai"`.
         For Ollama servers, use `api = "ollama"`.
+      '';
+    };
+
+    notifier = {
+      enable = mkEnableOption "OpenCode Apprise notification plugin";
+    };
+
+    configs = mkOption {
+      type = types.attrsOf configDirType;
+      default = {
+        default = {};
+      };
+      description = lib.mdDoc ''
+        Multiple config directories with independent settings.
+        Each entry creates a separate opencode config directory.
+        The "default" entry uses ~/.config/opencode.
+        Other entries must specify configDir explicitly.
+        Settings can be overridden per-directory or inherited from the main config.
+      '';
+      example = literalExpression ''
+        {
+          default = {};  # ~/.config/opencode with all defaults
+
+          web = {
+            configDir = "''${config.home.homeDirectory}/.config/opencode-web";
+            notifier.enable = false;
+          };
+
+          kimaki = {
+            configDir = "''${config.home.homeDirectory}/.config/opencode-kimaki";
+            notifier.enable = false;
+          };
+        }
       '';
     };
 
@@ -607,6 +943,12 @@ in {
           '';
         };
 
+        googleAuth = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Whether to enable Google authentication in oh-my-opencode.";
+        };
+
         sisyphusSignature = mkOption {
           type = types.bool;
           default = true;
@@ -625,144 +967,446 @@ in {
     };
   };
 
-   config = let
-     ruinageLib = import ../../../lib/ruinage/wrapper.nix { inherit lib pkgs; };
-     
-     # Filter projects that have assistants.opencode.enable = true
-     opencodeProjects = filterAttrs (name: project: 
-       project.assistants.opencode.enable or false
-     ) (cfg.projects or {});
-     
-     # Helper to compute XDG paths for a project
-     mkProjectPaths = projectName: {
-       config = "${config.home.homeDirectory}/.config/opencode-${projectName}";
-       state = "${config.home.homeDirectory}/.local/state/opencode-${projectName}";
-       cache = "${config.home.homeDirectory}/.cache/opencode-${projectName}";
-       data = "${config.home.homeDirectory}/.local/share/opencode-${projectName}";
-     };
-     
-     # Determine effective port for a project (project-specific overrides top-level)
-     getProjectPort = project: 
-       if project.assistants.opencode.port != null
-       then project.assistants.opencode.port
-       else project.port;
-     
-     # Generate systemd service for a project
-     mkOpencodeService = name: project: let
-       paths = mkProjectPaths name;
-       port = getProjectPort project;
-       webConfig = project.assistants.opencode.web;
-       caddyFqdn = project.assistants.opencode.caddy.fqdn;
-       
-       # Combine explicit CORS domains with caddy FQDN
-       allCorsDomains = 
-         webConfig.cors 
-         ++ optionals (caddyFqdn != null) ["https://${caddyFqdn}"];
-       
-       # Build opencode web command arguments
-       opencodeArgs = 
-         [
-           "opencode"
-           "web"
-           "--hostname"
-           webConfig.hostname
-           "--port"
-           (toString port)
-           "--log-level"
-           webConfig.logLevel
-         ]
-         ++ optionals webConfig.mdns ["--mdns"]
-         ++ optionals webConfig.printLogs ["--print-logs"]
-         ++ concatMap (domain: ["--cors" domain]) allCorsDomains;
-       
-       # Build environment variables for the service
-       serviceEnv = ruinageLib.mkSystemdEnvironment {
-         homeDirectory = config.home.homeDirectory;
-         extraPackages = cfg.packages;
-         configDir = paths.config;
-         cacheDir = paths.cache;
-         stateDir = paths.state;
-         dataDir = paths.data;
-         includeSystemPath = true;
-       };
-     in {
-       Unit = {
-         Description = "OpenCode Assistant - ${name}";
-         After = ["network.target"];
-       };
-       Service = {
-         Type = "exec";
-         WorkingDirectory = project.workdir or "${config.home.homeDirectory}/Projects/ruinage/${name}";
-         ExecStart = "${lib.escapeShellArgs opencodeArgs}";
-         Restart = "always";
-         RestartSec = "5s";
-         RestartSteps = 5;
-         RestartMaxDelaySec = "60s";
-         Environment = serviceEnv;
-       };
-       Install = {
-         WantedBy = ["default.target"];
-       };
-     };
-     
-     # Generate fish function for auto-attach to running services
-     mkOpencodeFishFunction = let
-       caseEntries = concatStringsSep "\n    " (map (name: let
-         project = opencodeProjects.${name};
-         port = getProjectPort project;
-       in ''
-         case "${project.workdir or "${config.home.homeDirectory}/Projects/ruinage/${name}"}"
-             # Project: ${name}
-             set -lx OPENCODE_CONFIG_DIR "${(mkProjectPaths name).config}"
-             set -lx XDG_CACHE_HOME "${(mkProjectPaths name).cache}"
-             set -lx XDG_STATE_HOME "${(mkProjectPaths name).state}"
-             set -lx XDG_DATA_HOME "${(mkProjectPaths name).data}"
-             command opencode attach "http://localhost:${toString port}" $argv
-             return'') (attrNames opencodeProjects));
-     in ''
-       # Auto-attach wrapper for opencode
-       # If in a known project directory with a running service, attach to it
-       # Otherwise, run opencode normally
-       
-       # If arguments are passed (like 'run', 'serve', etc.), run normally
-       if test (count $argv) -gt 0
-         command opencode $argv
-         return
-       end
-       
-       # Check if PWD matches a known project with service
-       switch "$PWD"
-           ${caseEntries}
-       end
-       
-       # No match, run opencode normally
-       command opencode $argv
-     '';
-   in mkIf ((cfg.enable or false) && (opencodeAssistant.enable or false)) {
-     # Generate systemd services for projects with opencode enabled
-     systemd.user.services = mkIf (pkgs.stdenv.isLinux && opencodeProjects != {}) (
-       mapAttrs' (name: project:
-         nameValuePair "opencode-${name}" (mkOpencodeService name project)
-       ) opencodeProjects
-     );
-     
-     # Generate fish function for auto-attach
-     programs.fish.functions.opencode = mkIf (opencodeProjects != {}) {
-       body = mkOpencodeFishFunction;
-       description = "Auto-attach to OpenCode service or run normally";
-     };
-     
-     # Create XDG directories for each project
-     home.file = mkIf (opencodeProjects != {}) (
-       foldAttrs (a: b: a // b) {} (map (name: let
-         paths = mkProjectPaths name;
-       in {
-         "${paths.config}/.gitkeep".text = "";
-         "${paths.state}/.gitkeep".text = "";
-         "${paths.cache}/.gitkeep".text = "";
-         "${paths.data}/.gitkeep".text = "";
-       }) (attrNames opencodeProjects))
-     );
-   };
+  config = let
+    ruinageLib = import ../../../../../lib/ruinage/wrapper.nix {inherit lib pkgs;};
 
+    # Filter projects that have assistants.opencode.enable = true
+    opencodeProjects = filterAttrs (
+      name: project:
+        project.assistants.opencode.enable or false
+    ) (cfg.projects or {});
+
+    # Helper to compute XDG paths for a project
+    mkProjectPaths = projectName: {
+      config = "${config.home.homeDirectory}/.config/opencode-${projectName}";
+      state = "${config.home.homeDirectory}/.local/state/opencode-${projectName}";
+      cache = "${config.home.homeDirectory}/.cache/opencode-${projectName}";
+      data = "${config.home.homeDirectory}/.local/share/opencode-${projectName}";
+    };
+
+    # Auto-assign ports starting from 9500 for projects without explicit port
+    # Sort project names for deterministic port assignment
+    sortedProjectNames = sort (a: b: a < b) (attrNames opencodeProjects);
+    projectPortMap = listToAttrs (imap0 (idx: projectName: {
+        name = projectName;
+        value = 9500 + idx;
+      })
+      sortedProjectNames);
+
+    # Get effective port for a project
+    getProjectPort = projectName: project:
+      if project.assistants.opencode.web.port != null
+      then project.assistants.opencode.web.port
+      else projectPortMap.${projectName};
+
+    # Generate systemd service for a project
+    mkOpencodeService = name: project: let
+      paths = mkProjectPaths name;
+      webConfig = project.assistants.opencode.web;
+      port = getProjectPort name project;
+
+      # Combine explicit CORS domains with fqdn
+      allCorsDomains =
+        webConfig.cors
+        ++ ["https://${webConfig.fqdn}"];
+
+      # Build opencode web command arguments
+      # Use full path since systemd doesn't use Environment PATH for ExecStart resolution
+      opencodeArgs =
+        [
+          "${llmAgentsPkgs.opencode}/bin/opencode"
+          "web"
+          "--hostname"
+          webConfig.hostname
+          "--port"
+          (toString port)
+          "--log-level"
+          webConfig.logLevel
+        ]
+        ++ optionals webConfig.mdns ["--mdns"]
+        ++ optionals webConfig.printLogs ["--print-logs"]
+        ++ concatMap (domain: ["--cors" domain]) allCorsDomains;
+
+      # Build environment variables for the service
+      # System and user profile paths provide all installed packages
+      serviceEnv = ruinageLib.mkSystemdEnvironment {
+        homeDirectory = config.home.homeDirectory;
+        configDir = paths.config;
+        cacheDir = paths.cache;
+        stateDir = paths.state;
+        dataDir = paths.data;
+      };
+
+      # Combine global and per-project environment files
+      allEnvFiles = cfg.environmentFiles ++ project.environmentFiles;
+    in {
+      Unit = {
+        Description = "OpenCode Assistant - ${name}";
+        After = ["network.target"];
+      };
+      Service =
+        {
+          Type = "exec";
+          WorkingDirectory = project.workdir or "${config.home.homeDirectory}/Projects/ruinage/${name}";
+          ExecStart = "${lib.escapeShellArgs opencodeArgs}";
+          Restart = "always";
+          RestartSec = "5s";
+          RestartSteps = 5;
+          RestartMaxDelaySec = "60s";
+          Environment = serviceEnv;
+        }
+        // optionalAttrs (allEnvFiles != []) {
+          EnvironmentFile = allEnvFiles;
+        };
+      Install = {
+        WantedBy = ["default.target"];
+      };
+    };
+  in
+    mkIf ((cfg.enable or false) && (opencodeAssistant.enable or false)) (mkMerge [
+      # Base configuration and defaults
+      {
+        assertions =
+          lib.mapAttrsToList (name: server: {
+            assertion = (server.type == "remote" -> server.url != null) && (server.type == "local" -> server.command != null);
+            message = "A remote MCP server must have a 'url' and a local server must have a 'command' for '${name}'.";
+          })
+          opencodeAssistant.mcpServers;
+
+        # Install opencode binary (Linux only - use brew on macOS)
+        home.packages = mkIf pkgs.stdenv.isLinux [
+          llmAgentsPkgs.opencode
+        ];
+
+        # Default plugins
+        ruinous.ruinage.assistants.opencode.plugins = [
+          "oh-my-opencode@latest"
+          "opencode-openai-codex-auth@latest"
+          "opencode-gemini-auth@latest"
+          "opencode-anthropic-auth@latest"
+        ];
+
+        # Default oh-my-opencode agent model configurations
+        ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.agents = {
+          librarian.model = "google/gemini-3-flash-preview";
+          explore.model = "xai/grok-code-fast-1";
+          frontend-ui-ux-engineer = {
+            model = "google/gemini-2.5-pro";
+            temperature = 0.7;
+          };
+          document-writer.model = "google/gemini-2.5-flash";
+          multimodal-looker.model = "google/gemini-2.5-flash-image";
+        };
+
+        # Default oh-my-opencode category configurations for ruinous.ai personas
+        ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.categories = {
+          # CODEY - CTO / Executive Director
+          codey-persona = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            description = "CODEY (CTO) - Strategic direction, priorities, and requirements definition.";
+            prompt_append = ''
+              You are CODEY, the CTO and Executive Director for ruinous.ai. You are strategic, decisive, and disciplined. You focus on clarity, outcomes, and sustainable velocity.
+
+              Your role:
+              - Define WHAT should be built and WHY (not HOW)
+              - Set priorities and issue requirements ("purchase orders") to sisyphus
+              - Maintain quality standards and organizational alignment
+              - Report to the CEO on strategic direction and progress
+
+              Voice: Decisive, strategic, concise. "Clarity creates velocity."
+            '';
+          };
+
+          # BUDGEY - CFO / Chief of Staff
+          budgey-persona = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            description = "BUDGEY (CFO) - Budget tracking, cost analysis, and resource accountability.";
+            prompt_append = ''
+              You are BUDGEY, the CFO and Chief of Staff for ruinous.ai. You are precise, data-driven, and cost-conscious. Every token is accountable.
+
+              Your role:
+              - Track token spending and monitor project health
+              - Calculate costs and generate spend reports
+              - Enforce budgets and escalate overages to CODEY
+              - Provide data for resource allocation decisions
+
+              Voice: Precise, analytical, fiscally responsible. "Every token counts. Know what you're spending, and spend it wisely."
+            '';
+          };
+
+          # LIBBY - Technical Writer & Archivist
+          libby-persona = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            description = "LIBBY - Technical writing, documentation, and codebase archaeology.";
+            prompt_append = ''
+              You are LIBBY, the Technical Writer and Archivist for ruinous.ai. You believe every codebase has hidden treasures worth surfacing.
+
+              Your role:
+              - Write comprehensive, approachable documentation
+              - Uncover the "why" behind code decisions (codebase archaeology)
+              - Surface "hidden gems" - non-obvious insights that delight readers
+              - Guide readers to discovery, don't just list facts
+
+              Voice: Expository guide. Comprehensive but warm. "Let me walk you through this..."
+              Always include the "why" alongside the "what". Use tables for scannability. Add cross-references liberally.
+            '';
+          };
+
+          # NEWSY - News Curator
+          newsy-persona = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            description = "NEWSY - News desk, content curation, and topic research.";
+            prompt_append = ''
+              You are NEWSY, the News Curator for ruinous.ai. You filter the noise so users get the signal.
+
+              Your role:
+              - Curate high-value, relevant content (prioritize signal over noise)
+              - Summarize newsletters, RSS feeds, and industry news
+              - Provide "Why this matters" context for stories
+              - Research topics in depth when requested
+
+              Voice: Curatorial, intellectual, concise. Like a trusted news anchor who respects your time.
+              Lead with TL;DR. Always cite sources. Separate fact from opinion. Use relevance indicators.
+            '';
+          };
+
+          # MESSY - Family Assistant
+          messy-persona = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            description = "MESSY - Family assistant for calendars, tasks, email, and life coordination.";
+            prompt_append = ''
+              You are MESSY (Meskill Executive Support SYstem), the family assistant for the Meskill household. You are warm but efficient, friendly without being overly chatty.
+
+              Your role:
+              - Manage calendars, tasks, and email triage
+              - Coordinate travel and family events
+              - Anticipate needs and flag concerns proactively
+              - Distinguish work vs personal context appropriately
+
+              Voice: Warm but efficient. Like a trusted executive assistant who genuinely cares.
+              Use bullet points for scannability. Add "Quick note:" or "Heads up:" for important callouts.
+              Respect time - key info first, details available on request.
+            '';
+          };
+
+          # SPORTY - Youth Sports Coordinator
+          sporty-persona = {
+            model = "google/gemini-3-flash-preview";
+            temperature = 0.5;
+            description = "SPORTY - Youth sports coordination, schedules, stats, and game logistics.";
+            prompt_append = ''
+              You are SPORTY (Sports Planning, Organization, Reporting & Tracking sYstem), the youth sports coordinator for the Meskill family. You are energetic but organized, enthusiastic without being overwhelming.
+
+              Your role:
+              - Manage game schedules, practice times, and field locations
+              - Track tournament brackets and player statistics
+              - Coordinate equipment, snack duty, and transportation
+              - Send timely alerts for schedule changes and game days
+
+              Voice: Energetic, organized, encouraging. Like a team manager who genuinely cares about the kids having fun.
+              Use emoji for quick scanning. Bold time/location info. Celebrate effort and progress.
+              Never criticize players. Keep logistics clear and parents informed.
+            '';
+          };
+        };
+
+        # Default MCP servers
+        ruinous.ruinage.assistants.opencode.mcpServers = {
+          todoist = {
+            type = "local";
+            command = ["bunx" "-y" "mcp-remote" "https://ai.todoist.net/mcp"];
+          };
+
+          github = {
+            type = "remote";
+            url = "https://api.githubcopilot.com/mcp/";
+            oauth = false;
+            headers = {
+              "Authorization" = "Bearer {env:GITHUB_ACCESS_TOKEN}";
+            };
+          };
+
+          forgejo = {
+            type = "local";
+            command = ["${pkgs.forgejo-mcp}/bin/forgejo-mcp" "--transport" "stdio" "--url" "https://forge.meskill.farm" "--token" "{env:FORGEJO_TOKEN}"];
+          };
+        };
+
+        # Default providers
+        ruinous.ruinage.assistants.opencode.providers = {
+          # Zenith llama.cpp
+          zenith-llama-cpp = {
+            api = "openai";
+            name = "Zenith llama.cpp";
+            options = {
+              baseURL = "https://ai.x.meskill.farm/v1";
+              apiKey = "not-needed";
+            };
+            models = {
+              "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf" = {
+                name = "Qwen 2.5 Coder 32B Q4_K_M";
+                maxTokens = 32768;
+              };
+            };
+          };
+
+          # Obelisk Ollama
+          obelisk-ollama = {
+            api = "ollama";
+            name = "Obelisk Ollama";
+            options.baseURL = "https://ollama.meskill.farm";
+          };
+        };
+
+        # Default LSP servers
+        ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.lsp = {
+          marksman = {
+            command = ["marksman" "server"];
+            extensions = [".md" ".markdown"];
+          };
+        };
+      }
+
+      # Generate home.file entries for all config directories
+      {
+        home.file = mkMerge (map (
+          name: let
+            pc = processedConfigs.${name};
+            resolved = pc.resolved;
+            skillLinks = builtins.listToAttrs (map (skill: {
+                name = "${resolved.configDir}/skills/${skill}/SKILL.md";
+                value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
+              })
+              skillNames);
+            commandLinks = builtins.listToAttrs (map (cmd: {
+                name = "${resolved.configDir}/commands/${cmd}";
+                value = {source = "${commandSourcePath}/${cmd}";};
+              })
+              commandNames);
+            ruinagentsEntries =
+              {
+                "${resolved.configDir}/AGENTS.md".source = "${ruinagentsShare}/AGENTS.md";
+              }
+              // skillLinks
+              // commandLinks;
+          in
+            {
+              "${resolved.configDir}/oh-my-opencode.json".source = jsonFormat.generate "oh-my-opencode.json" (generateOmoConfig {
+                agents = resolved.omoAgents;
+                categories = resolved.omoCategories;
+                disabledSkills = resolved.disabledSkills;
+                googleAuth = resolved.omoGoogleAuth;
+                sisyphusSignature = resolved.sisyphusSignature;
+                lsp = resolved.omoLsp;
+              });
+              "${resolved.configDir}/package.json".text = builtins.toJSON {
+                name = "opencode-plugins";
+                dependencies = builtins.listToAttrs (
+                  map (plugin: let
+                    parts = lib.splitString "@" plugin;
+                    pname = builtins.head parts;
+                    version =
+                      if builtins.length parts > 1
+                      then builtins.elemAt parts 1
+                      else "latest";
+                  in {
+                    name = pname;
+                    value = version;
+                  })
+                  resolved.plugins
+                );
+              };
+            }
+            // optionalAttrs resolved.ruinagentsGlobalEnable ruinagentsEntries
+        ) (attrNames (opencodeAssistant.configs or {default = {};})));
+      }
+
+      # Generate activation scripts for all config directories
+      {
+        home.activation = mkMerge (map (name: let
+          pc = processedConfigs.${name};
+          safeName = builtins.replaceStrings ["-" "/" " "] ["_" "_" "_"] name;
+        in
+          {
+            "opencode-plugins-${safeName}" = pc.activation;
+          }
+          // optionalAttrs pc.resolved.notifierEnable {
+            "opencode-notifier-${safeName}" = pc.notifierActivation;
+          }) (attrNames (opencodeAssistant.configs or {default = {};})));
+      }
+
+      # Install notifier package if any config has it enabled
+      (mkIf anyNotifierEnabled {
+        home.packages = [pkgs.opencode-notifier-apprise];
+      })
+
+      # Generate systemd services for projects with opencode enabled
+      (mkIf (pkgs.stdenv.isLinux && opencodeProjects != {}) {
+        systemd.user.services = mapAttrs' (
+          name: project:
+            nameValuePair "opencode-${name}" (mkOpencodeService name project)
+        )
+        opencodeProjects;
+      })
+
+      # Note: opencode auto-attach is now handled via direnv in direnv.nix
+      # The opencode() function is injected into .envrc.local for each project
+
+      # Create XDG directories, auth symlinks, oh-my-opencode.json and ruinagents files for each project
+      (mkIf (opencodeProjects != {}) {
+        home.file = foldAttrs (a: b: a // b) {} (map (
+          name: let
+            paths = mkProjectPaths name;
+            # Ruinagents skill symlinks for this project
+            projectSkillLinks = builtins.listToAttrs (map (skill: {
+                name = "${paths.config}/skills/${skill}/SKILL.md";
+                value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
+              })
+              skillNames);
+            # Ruinagents command symlinks for this project
+            projectCommandLinks = builtins.listToAttrs (map (cmd: {
+                name = "${paths.config}/commands/${cmd}";
+                value = {source = "${commandSourcePath}/${cmd}";};
+              })
+              commandNames);
+            # All ruinagents entries for this project
+            projectRuinagentsEntries =
+              {
+                "${paths.config}/AGENTS.md".source = "${ruinagentsShare}/AGENTS.md";
+              }
+              // projectSkillLinks
+              // projectCommandLinks;
+            # oh-my-opencode.json for this project (uses global harness settings)
+            projectOmoConfig = {
+              "${paths.config}/oh-my-opencode.json".source = jsonFormat.generate "oh-my-opencode-${name}.json" (generateOmoConfig {
+                agents = opencodeAssistant.harnesses.oh-my-opencode.agents;
+                categories = opencodeAssistant.harnesses.oh-my-opencode.categories;
+                disabledSkills = opencodeAssistant.harnesses.oh-my-opencode.disabledSkills;
+                googleAuth = opencodeAssistant.harnesses.oh-my-opencode.googleAuth;
+                sisyphusSignature = opencodeAssistant.harnesses.oh-my-opencode.sisyphusSignature;
+                lsp = opencodeAssistant.harnesses.oh-my-opencode.lsp;
+              });
+            };
+          in
+            {
+              "${paths.config}/.gitkeep".text = "";
+              "${paths.state}/.gitkeep".text = "";
+              "${paths.cache}/.gitkeep".text = "";
+              "${paths.data}/.gitkeep".text = "";
+            }
+            // ruinageLib.mkAuthSymlinks {
+              dataDir = paths.data;
+              homeDirectory = config.home.homeDirectory;
+              mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
+            }
+            // optionalAttrs opencodeAssistant.harnesses.ruinagents.enable projectRuinagentsEntries
+            // projectOmoConfig
+        ) (attrNames opencodeProjects));
+      })
+    ]);
 }

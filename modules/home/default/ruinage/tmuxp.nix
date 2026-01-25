@@ -23,9 +23,31 @@ with lib; let
   projectHasWeb = project:
     project.assistants.opencode.web.enable or false;
 
+  # Filter projects that have tmuxp enabled
+  tmuxpProjects = filterAttrs (name: project:
+    project.tmuxp.enable
+    && project.assistants.opencode.enable
+  ) cfg.projects;
+
+  # Auto-assign ports starting from 9500 for projects without explicit port
+  # Sort project names for deterministic port assignment (must match opencode.nix logic)
+  sortedProjectNames = sort (a: b: a < b) (attrNames tmuxpProjects);
+  projectPortMap = listToAttrs (imap0 (idx: projectName: {
+    name = projectName;
+    value = 9500 + idx;
+  }) sortedProjectNames);
+
+  # Get effective port for a project
+  getProjectPort = projectName: project:
+    if project.assistants.opencode.web.port != null
+    then project.assistants.opencode.web.port
+    else projectPortMap.${projectName};
+
   # Generate a tmuxp session for a project
   mkTmuxpSession = name: project: let
     hasWebService = projectHasWeb project;
+    webCfg = project.assistants.opencode.web;
+    port = getProjectPort name project;
     projectPath = ruinageLib.mkProjectPath {
       homeDirectory = config.home.homeDirectory;
       namespace = "ruinage";
@@ -33,6 +55,9 @@ with lib; let
     };
    in {
      startDirectory = projectPath;
+
+     # Auto-allow direnv once before session starts
+     beforeScript = "direnv allow ${projectPath}";
 
      windows =
        (
@@ -43,25 +68,25 @@ with lib; let
              name = "logs";
              command = "journalctl --user -fu opencode-${name}.service";
            }
-           # Web service is running via systemd, just attach to it
-           {
-             name = "attach";
-             command = "opencode attach http://localhost:${toString project.assistants.opencode.port}";
-             focus = true;
-           }
-         ]
-         else [
-           # No web service, run server in tmux
-           {
-             name = "server";
-             command = "opencode serve --print-logs --hostname ${project.assistants.opencode.hostname} --port ${toString project.assistants.opencode.port}";
-           }
-           {
-             name = "attach";
-             command = "sleep 2 && opencode attach http://localhost:${toString project.assistants.opencode.port}";
-             focus = true;
-           }
-         ]
+            # Web service is running via systemd, just attach to it
+            {
+              name = "attach";
+              command = "opencode attach http://localhost:${toString port}";
+              focus = true;
+            }
+          ]
+          else [
+            # No web service, run server in tmux
+            {
+              name = "server";
+              command = "opencode serve --print-logs --hostname ${webCfg.hostname} --port ${toString port}";
+            }
+            {
+              name = "attach";
+              command = "sleep 2 && opencode attach http://localhost:${toString port}";
+              focus = true;
+            }
+          ]
        )
        ++ [
          {
@@ -80,17 +105,11 @@ with lib; let
        project.tmuxp.extraWindows);
    };
 
-  # Filter projects that have tmuxp enabled in ruinage namespace
-  tmuxpProjects = filterAttrs (name: project:
-    project.namespaces.ruinage.enable
-    && project.tmuxp.enable
-    && project.assistants.opencode.enable
-  ) cfg.projects;
-
    # Generate all tmuxp sessions
    tmuxpSessions = mapAttrs mkTmuxpSession tmuxpProjects;
 in {
   config = mkIf (tmuxpProjects != {}) {
+    ruinous.tmuxp.enable = true;
     ruinous.tmuxp.sessions = tmuxpSessions;
   };
 }

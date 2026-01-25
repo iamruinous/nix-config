@@ -28,8 +28,9 @@
     # ssh agent forwarding
     openssh.remote.forwarding.enable = true;
 
-    # enable opencode with my preferred plugins
-    ai-cli.opencode.enable = true;
+    # enable opencode with default configuration
+    ruinage.enable = true;
+    ruinage.assistants.opencode.enable = true;
   };
 
   # Ensure homebrew is in the PATH
