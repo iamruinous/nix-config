@@ -54,6 +54,19 @@ in {
     enable = mkEnableOption "Ruinage repository-first project management";
   };
 
+  imports = [
+    ./types.nix
+    ./projects.nix
+    ./assistants/opencode.nix
+    ./assistants/kimaki.nix
+    ./assistants/claude-code.nix
+    ./assistants/gemini.nix
+    ./assistants/codex.nix
+    ./tmuxp.nix
+    ./direnv.nix
+    ./budgey.nix
+  ];
+
   config = mkIf cfg.enable {
     # Module implementation will be added in subsequent TODOs
   };

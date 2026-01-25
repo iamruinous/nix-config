@@ -508,7 +508,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 11. Add claude-code, gemini, codex assistant stubs with harness support
+- [x] 11. Add claude-code, gemini, codex assistant stubs with harness support
 
   **What to do**:
   - Create `modules/home/default/ruinage/assistants/claude-code.nix`:
