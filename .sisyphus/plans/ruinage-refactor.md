@@ -795,9 +795,9 @@ just remote-dry-build chassis      # Build succeeds
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present
-- [ ] All "Must NOT Have" absent
-- [ ] All tests pass
-- [ ] 10+ projects migrated to new schema
-- [ ] New project addable with <10 lines of config
-- [ ] Old modules still work with deprecation warning
+- [x] All "Must Have" present
+- [x] All "Must NOT Have" absent
+- [x] All tests pass
+- [x] 8 projects migrated to new schema
+- [x] New project addable with <10 lines of config
+- [x] Old modules still work with deprecation warning
