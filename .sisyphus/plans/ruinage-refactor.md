@@ -172,7 +172,7 @@ Phase 11 (Documentation)
 
 ## TODOs
 
-- [ ] 1. Create lib/ruinage/ shared library
+- [x] 1. Create lib/ruinage/ shared library
 
   **What to do**:
   - Copy `lib/opencode/wrapper.nix` to `lib/ruinage/wrapper.nix`
@@ -201,7 +201,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 2. Create ruinage module skeleton
+- [x] 2. Create ruinage module skeleton
 
   **What to do**:
   - Create `modules/home/default/ruinage/default.nix` - Main entry, imports sub-modules
