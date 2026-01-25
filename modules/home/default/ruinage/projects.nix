@@ -44,19 +44,26 @@ with lib; let
         description = "Forge hostname (e.g., 'github.com', 'forge.meskill.farm').";
       };
 
-      ref = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Git reference (branch, tag, or commit). Null for default branch.";
-        example = "main";
-      };
+       ref = mkOption {
+         type = types.nullOr types.str;
+         default = null;
+         description = "Git reference (branch, tag, or commit). Null for default branch.";
+         example = "main";
+       };
 
-      # Port configuration
-      port = mkOption {
-        type = types.port;
-        description = "Port number for the OpenCode server.";
-        example = 9500;
-      };
+       # Working directory path
+       workdir = mkOption {
+         type = types.str;
+         description = "Absolute path to the project working directory.";
+         example = "/home/user/Projects/ruinage/nix-config";
+       };
+
+       # Port configuration
+       port = mkOption {
+         type = types.port;
+         description = "Port number for the OpenCode server.";
+         example = 9500;
+       };
 
       hostname = mkOption {
         type = types.str;

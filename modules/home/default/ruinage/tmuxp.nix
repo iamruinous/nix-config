@@ -17,7 +17,7 @@
 }:
 with lib; let
   cfg = config.ruinous.ruinage;
-  ruinageLib = import ../../../lib/ruinage/wrapper.nix { inherit lib pkgs; };
+  ruinageLib = import ../../../../lib/ruinage/wrapper.nix { inherit lib pkgs; };
 
   # Helper to check if a project has web service enabled
   projectHasWeb = project:
@@ -31,80 +31,54 @@ with lib; let
       namespace = "ruinage";
       repo = project.repo;
     };
-  in {
-    start_directory = projectPath;
-    start_commands = ["direnv exec . true"];
+   in {
+     startDirectory = projectPath;
 
-    windows =
-      (
-        if hasWebService
-        then [
-          # Tail the systemd service logs
-          {
-            window_name = "logs";
-            panes = [
-              {
-                shell_command = "journalctl --user -fu opencode-${name}.service";
-              }
-            ];
-          }
-          # Web service is running via systemd, just attach to it
-          {
-            window_name = "attach";
-            panes = [
-              {
-                shell_command = "opencode attach http://localhost:${toString project.assistants.opencode.port}";
-              }
-            ];
-            focus = true;
-          }
-        ]
-        else [
-          # No web service, run server in tmux
-          {
-            window_name = "server";
-            panes = [
-              {
-                shell_command = "opencode serve --print-logs --hostname ${project.assistants.opencode.hostname} --port ${toString project.assistants.opencode.port}";
-              }
-            ];
-          }
-          {
-            window_name = "attach";
-            panes = [
-              {
-                shell_command = "sleep 2 && opencode attach http://localhost:${toString project.assistants.opencode.port}";
-              }
-            ];
-            focus = true;
-          }
-        ]
-      )
-      ++ [
-        {
-          window_name = "editor";
-          panes = [
-            {
-              shell_command = "nvim .";
-            }
-          ];
-        }
-        {
-          window_name = "shell";
-          panes = [{}];
-        }
-      ]
-      ++ (map (window: {
-        window_name = window.name;
-        panes = [
-          {
-            shell_command = window.command;
-          }
-        ];
-        focus = window.focus or false;
-      })
-      project.tmuxp.extraWindows);
-  };
+     windows =
+       (
+         if hasWebService
+         then [
+           # Tail the systemd service logs
+           {
+             name = "logs";
+             command = "journalctl --user -fu opencode-${name}.service";
+           }
+           # Web service is running via systemd, just attach to it
+           {
+             name = "attach";
+             command = "opencode attach http://localhost:${toString project.assistants.opencode.port}";
+             focus = true;
+           }
+         ]
+         else [
+           # No web service, run server in tmux
+           {
+             name = "server";
+             command = "opencode serve --print-logs --hostname ${project.assistants.opencode.hostname} --port ${toString project.assistants.opencode.port}";
+           }
+           {
+             name = "attach";
+             command = "sleep 2 && opencode attach http://localhost:${toString project.assistants.opencode.port}";
+             focus = true;
+           }
+         ]
+       )
+       ++ [
+         {
+           name = "editor";
+           command = "nvim .";
+         }
+         {
+           name = "shell";
+         }
+       ]
+       ++ (map (window: {
+         name = window.name;
+         command = window.command;
+         focus = window.focus or false;
+       })
+       project.tmuxp.extraWindows);
+   };
 
   # Filter projects that have tmuxp enabled in ruinage namespace
   tmuxpProjects = filterAttrs (name: project:

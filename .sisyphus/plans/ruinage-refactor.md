@@ -684,7 +684,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 15. Migrate chassis home-configuration.nix
+- [x] 15. Migrate chassis home-configuration.nix
 
   **What to do**:
   - Update `hosts/chassis/users/jmeskill/home-configuration.nix`
@@ -712,7 +712,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 15. Add deprecation warnings to old modules
+- [x] 15. Add deprecation warnings to old modules
 
   **What to do**:
   - In `opencode-projects.nix`, add `lib.warn` when enabled:

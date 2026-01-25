@@ -518,15 +518,17 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    {
-      assertions = [
-        {
-          assertion = pkgs.stdenv.isLinux || (all (_: p: !projectHasWeb p) (attrValues cfg.projects));
-          message = "OpenCode web services are Linux-only (require systemd).";
-        }
-      ];
-    }
+   config = mkIf cfg.enable (mkMerge [
+     {
+       assertions = [
+         {
+           assertion = pkgs.stdenv.isLinux || (all (_: p: !projectHasWeb p) (attrValues cfg.projects));
+           message = "OpenCode web services are Linux-only (require systemd).";
+         }
+       ];
+       warnings = lib.optional (cfg.projects != {})
+         "ruinous.ai-cli.opencode-projects is deprecated, use ruinous.ruinage.projects";
+     }
 
     # Generate opencode config entries for all projects
     {

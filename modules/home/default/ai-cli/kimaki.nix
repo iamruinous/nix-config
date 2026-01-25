@@ -305,25 +305,28 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    # Ensure kimaki data directory exists and symlink opencode binary
-    # Kimaki hardcodes the path ~/.opencode/bin/opencode, so we create a symlink
-    {
-      home.file.".kimaki/.keep".text = "";
-      home.file.".opencode/bin/opencode".source = "${wrappedOpencode}/bin/opencode";
-    }
+   config = mkIf cfg.enable (mkMerge [
+     # Ensure kimaki data directory exists and symlink opencode binary
+     # Kimaki hardcodes the path ~/.opencode/bin/opencode, so we create a symlink
+     {
+       home.file.".kimaki/.keep".text = "";
+       home.file.".opencode/bin/opencode".source = "${wrappedOpencode}/bin/opencode";
+       warnings = [
+         "ruinous.ai-cli.kimaki is deprecated, use ruinous.ruinage.assistants.kimaki"
+       ];
+     }
 
-    # Assertion for linux-only usage
-    {
-      assertions = [
-        {
-          assertion = pkgs.stdenv.isLinux;
-          message = ''
-            kimaki is linux-only (systemd user service).
-          '';
-        }
-      ];
-    }
+     # Assertion for linux-only usage
+     {
+       assertions = [
+         {
+           assertion = pkgs.stdenv.isLinux;
+           message = ''
+             kimaki is linux-only (systemd user service).
+           '';
+         }
+       ];
+     }
 
     # Symlink shared auth files when using isolated dataDir
     # OpenCode looks for auth.json in XDG_DATA_HOME/opencode/, not XDG_STATE_HOME

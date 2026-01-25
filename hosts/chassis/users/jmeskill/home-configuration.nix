@@ -46,11 +46,33 @@
         configs.default.notifier.enable = false;
       };
 
+      # Keep opencode-projects enabled for budgey-extractor registry
+      # Projects are now managed via ruinous.ruinage.projects
+      opencode-projects = {
+        enable = true;
+        environmentFiles = [
+          config.age.secrets.chassis_opencode_common_env.path
+        ];
+        direnv.enable = true;
+        defaultProject.enable = true;
+        projects = {};
+      };
+
+      # Scheduled ingestion of OpenCode session data into PostgreSQL and Weaviate
+      # Uses TCP with password auth via environment file
+      budgey-extractor = {
+        enable = true;
+        environmentFile = config.age.secrets.chassis_budgey_env.path;
+        weaviate.enable = true; # Uses WEAVIATE_URL and WEAVIATE_API_KEY from environmentFile
+      };
+    };
+
+    ruinage = {
       # Kimaki Discord voice bot
       # Uses common.env for shared tokens (Git, CF, Todoist, Apprise)
       # Plus all project envs since it handles Discord requests for any project
       # Discord credentials stored in ~/.kimaki/discord-sessions.db
-      kimaki = {
+      assistants.kimaki = {
         enable = true;
         configDir = "${config.home.homeDirectory}/.config/kimaki";
         cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
@@ -104,120 +126,186 @@
       # Environment files:
       #   - common.env.age: Shared tokens (Git, CF, Todoist, Apprise)
       #   - projects/*.env.age: Per-project secrets (Postgres URIs, API keys)
-      opencode-projects = {
-        enable = true;
-
-        # Shared environment for all projects
-        environmentFiles = [
-          config.age.secrets.chassis_opencode_common_env.path
-        ];
-
-        # Generate direnv snippets for loading secrets in shell
-        direnv.enable = true;
-
-        # Track default/interactive opencode sessions in budgey
-        defaultProject.enable = true;
-
-        projects = {
-          # nix-config - web service with Caddy
-          nix = {
-            workdir = "/home/jmeskill/Projects/github/iamruinous/nix-config";
+      projects = {
+        # nix-config - web service with Caddy
+        nix = {
+          repo = "nix-config";
+          owner = "iamruinous";
+          forge = "github.com";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/nix-config";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9500;
             caddy.fqdn = "nix.oc.ruinous.ai";
-            environmentFiles = [
-              config.age.secrets.chassis_opencode_project_nix_env.path
-            ];
+            web.enable = true;
           };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+            config.age.secrets.chassis_opencode_project_nix_env.path
+          ];
+        };
 
-          # n8n-agent - web service with Caddy
-          n8n = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/n8n-agent";
+        # n8n-agent - web service with Caddy
+        n8n = {
+          repo = "n8n-agent";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/n8n-agent";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9501;
             caddy.fqdn = "n8n-agent.oc.ruinous.ai";
-            environmentFiles = [
-              config.age.secrets.chassis_opencode_project_n8n_env.path
-            ];
+            web.enable = true;
           };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+            config.age.secrets.chassis_opencode_project_n8n_env.path
+          ];
+        };
 
-          # dossiq-ai - web service with Caddy
-          dossiq = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/dossiq-ai";
+        # dossiq-ai - web service with Caddy
+        dossiq = {
+          repo = "dossiq-ai";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/dossiq-ai";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9502;
             caddy.fqdn = "dossiq.oc.ruinous.ai";
-            tmuxp.extraWindows = [
+            web.enable = true;
+          };
+          tmuxp = {
+            enable = true;
+            extraWindows = [
               {
                 name = "tests";
                 command = "uv run ptw";
               }
             ];
           };
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+          ];
+        };
 
-          # kimaki-discord-voice-bot - web service with Caddy
-          kimaki-discord = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/kimaki-discord-voice-bot";
+        # kimaki-discord-voice-bot - web service with Caddy
+        kimaki-discord = {
+          repo = "kimaki-discord-voice-bot";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/kimaki-discord-voice-bot";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9504;
             caddy.fqdn = "kimaki-discord.oc.ruinous.ai";
+            web.enable = true;
           };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+          ];
+        };
 
-          # n8n-messy-discord-bot - web service with Caddy
-          messy-discord = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/n8n-messy-discord-bot/";
+        # n8n-messy-discord-bot - web service with Caddy
+        messy-discord = {
+          repo = "n8n-messy-discord-bot";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/n8n-messy-discord-bot";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9505;
             caddy.fqdn = "messy-bot.oc.ruinous.ai";
+            web.enable = true;
           };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+          ];
+        };
 
-          # ruinagents - web service with Caddy
-          ruinagents = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/ruinagents";
+        # ruinagents - web service with Caddy
+        ruinagents = {
+          repo = "ruinagents";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/ruinagents";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9507;
             caddy.fqdn = "ruinagents.oc.ruinous.ai";
+            web.enable = true;
           };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+          ];
+        };
 
-          # budgey-extractor - web service with Caddy
-          budgey-extractor = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-extractor";
+        # budgey-extractor - web service with Caddy
+        budgey-extractor = {
+          repo = "budgey-extractor";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/budgey-extractor";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9508;
             caddy.fqdn = "budgey-extractor.oc.ruinous.ai";
-            environmentFiles = [
-              config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
-            ];
+            web.enable = true;
           };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+            config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
+          ];
+        };
 
-          # budgey-dashboard - web service with Caddy
-          budgey-dashboard = {
-            workdir = "/home/jmeskill/Projects/farmforge/iamruinous/budgey-dashboard";
+        # budgey-dashboard - web service with Caddy
+        budgey-dashboard = {
+          repo = "budgey-dashboard";
+          owner = "iamruinous";
+          forge = "forge.meskill.farm";
+          workdir = "${config.home.homeDirectory}/Projects/ruinage/budgey-dashboard";
+          namespaces.ruinage.enable = true;
+          assistants.opencode = {
+            enable = true;
             port = 9509;
             caddy.fqdn = "budgey-dashboard.oc.ruinous.ai";
-            environmentFiles = [
-              config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
-            ];
+            web.enable = true;
           };
-
-          # kimaki - Discord bot (no web service, budgey tracking only)
-          # Uses isolated XDG dirs managed by ruinous.ai-cli.kimaki module
-          kimaki = {
-            workdir = "${config.home.homeDirectory}/.kimaki";
-            port = 9599; # Unused, required by schema
-            budgey = {
-              enable = true;
-              tags = ["discord" "bot"];
-              configDir = "${config.home.homeDirectory}/.config/kimaki";
-              stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
-              dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
-            };
-            # No web service or caddy for kimaki
-            web.enable = false;
-            tmuxp.enable = false;
-          };
+          tmuxp.enable = true;
+          direnv.enable = true;
+          budgey.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+            config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
+          ];
         };
-      };
-
-      # Scheduled ingestion of OpenCode session data into PostgreSQL and Weaviate
-      # Uses TCP with password auth via environment file
-      budgey-extractor = {
-        enable = true;
-        environmentFile = config.age.secrets.chassis_budgey_env.path;
-        weaviate.enable = true; # Uses WEAVIATE_URL and WEAVIATE_API_KEY from environmentFile
       };
     };
   };
