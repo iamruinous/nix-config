@@ -753,8 +753,8 @@ with lib; let
   # Check if any config has notifier enabled
   anyNotifierEnabled = any (c: c.resolved.notifierEnable) (attrValues processedConfigs);
 
-  ruinagentsGlobalPackage = pkgs.ruinagents-global;
-  ruinagentsGlobalShare = "${ruinagentsGlobalPackage}/share/ruinagents-global";
+  ruinagentsGlobalPackage = flake.inputs.ruinagents.packages.${pkgs.system}.opencode;
+  ruinagentsGlobalShare = "${ruinagentsGlobalPackage}/share/ruinagents-opencode";
   skillSourcePath = "${ruinagentsGlobalShare}/skills";
   commandSourcePath = "${ruinagentsGlobalShare}/commands";
   skillNames =

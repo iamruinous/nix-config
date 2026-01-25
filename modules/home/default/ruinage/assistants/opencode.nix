@@ -12,11 +12,17 @@
   config,
   lib,
   pkgs,
+  flake,
   ...
 }:
 with lib; let
   cfg = config.ruinous.ruinage;
   opencodeAssistant = cfg.assistants.opencode or {};
+
+  # Ruinagents package from flake input (replaces ruinagents-global)
+  ruinagentsPkgs = flake.inputs.ruinagents.packages.${pkgs.system};
+  ruinagentsOpencode = ruinagentsPkgs.opencode;
+  ruinagentsShare = "${ruinagentsOpencode}/share/ruinagents-opencode";
 
   # Thinking configuration submodule type for categories
   thinkingType = types.submodule {

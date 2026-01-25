@@ -6,8 +6,11 @@
   config,
   lib,
   pkgs,
+  flake,
   ...
 }: let
+  # Ruinagents docs package from flake input
+  ruinagentsDocs = flake.inputs.ruinagents.packages.${pkgs.system}.docs;
   # Get OpenCode projects from ruinage
   # Filter for projects with assistants.opencode.enable = true and caddy.fqdn set
   opencodeProjects = lib.filterAttrs (_: project:
@@ -30,7 +33,7 @@
   ruinagentsDocsHost = {
     "agents.ruinous.ai" = {
       extraConfig = ''
-        root * ${pkgs.ruinagents-docs}
+        root * ${ruinagentsDocs}
         file_server {
           precompressed gzip
         }

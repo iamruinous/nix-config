@@ -3,13 +3,13 @@
 # This module provides:
 # - Global documentation settings (ruinous.ruinage.docs.*)
 # - Per-project documentation configuration (via types.nix)
-# - Activation script to symlink pre-built docs from flake outputs
+# - Symlinks pre-built docs from flake input packages
 # - Index page generation listing all projects
 #
 # Architecture:
-# - Each project exposes a `<project>-docs` package via its flake.nix
-# - Package contains pre-built static HTML (MkDocs site output)
-# - Aggregation symlinks these outputs to a central directory
+# - Each project specifies a flake input name and package output
+# - Docs packages are referenced directly from flake.inputs
+# - Aggregation symlinks these Nix store paths to a central directory
 # - Index page provides navigation to all project docs
 #
 # Note: Caddy configuration should be done at the NixOS level, not home-manager.
@@ -18,18 +18,20 @@
 # Usage:
 #   ruinous.ruinage.docs = {
 #     enable = true;
-#     outputDir = "~/.local/share/ruinage/docs";
+#     outputDir = ".local/share/ruinage/docs";
 #   };
 #
-#   ruinous.ruinage.projects.nix-config = {
+#   ruinous.ruinage.projects.ruinagents = {
 #     docs.enable = true;
-#     docs.flakeOutput = "nix-config-docs";
-#     docs.title = "NixOS Infrastructure";
+#     docs.flakeInput = "ruinagents";  # References flake.inputs.ruinagents
+#     docs.packageOutput = "docs";      # References .packages.${system}.docs
+#     docs.title = "Ruinous Agents";
 #   };
 {
   config,
   lib,
   pkgs,
+  flake,
   ...
 }:
 with lib; let
@@ -39,15 +41,38 @@ with lib; let
   # Filter projects with docs.enable = true
   docsProjects = filterAttrs (_: p: p.docs.enable) (cfg.projects or {});
 
+  # Get docs package for a project from flake inputs
+  getDocsPackage = name: project: let
+    flakeInput = project.docs.flakeInput;
+    packageOutput = project.docs.packageOutput;
+    inputExists = flake.inputs ? ${flakeInput};
+    input = flake.inputs.${flakeInput} or null;
+    hasPackages = input != null && input ? packages && input.packages ? ${pkgs.system};
+    packages = if hasPackages then input.packages.${pkgs.system} else {};
+    hasOutput = packages ? ${packageOutput};
+  in
+    if inputExists && hasPackages && hasOutput
+    then packages.${packageOutput}
+    else null;
+
+  # Filter to only projects with valid docs packages
+  validDocsProjects = filterAttrs (name: project:
+    (getDocsPackage name project) != null
+  ) docsProjects;
+
+  # Projects that were enabled but have no valid package
+  invalidDocsProjects = filterAttrs (name: project:
+    (getDocsPackage name project) == null
+  ) docsProjects;
+
   # Generate index HTML page
   mkIndexHtml = let
     projectLinks = concatMapStringsSep "\n    " (name: let
-      project = docsProjects.${name};
+      project = validDocsProjects.${name};
       title = project.docs.title;
-      # Use project description if available, otherwise generic text
       description = "Documentation for ${title}";
     in ''
-      <li><a href="/${name}/">${title}</a> - ${description}</li>'') (attrNames docsProjects);
+      <li><a href="/${name}/">${title}</a> - ${description}</li>'') (attrNames validDocsProjects);
   in ''
     <!DOCTYPE html>
     <html lang="en">
@@ -129,20 +154,8 @@ with lib; let
     </html>
   '';
 
-  # Helper to get flake reference for a project
-  # Projects can specify a full flake reference or just the output name
-  getFlakeRef = name: project: let
-    flakeOutput = project.docs.flakeOutput;
-    # If the project has a repo, construct the flake reference
-    # Otherwise, assume it's a local flake output
-    hasRepo = project.repo != null;
-    forge = project.forge;
-    owner = project.owner;
-    repo = project.repo;
-  in
-    if hasRepo
-    then "git+ssh://git@${forge}/${owner}/${repo}#${flakeOutput}"
-    else ".#${flakeOutput}";
+  # Generate index.html as a derivation
+  indexHtml = pkgs.writeText "ruinage-docs-index.html" mkIndexHtml;
 in {
   options.ruinous.ruinage.docs = {
     enable = mkEnableOption "Documentation aggregation for ruinage projects";
@@ -173,38 +186,37 @@ in {
     };
   };
 
-  config = mkIf ((cfg.enable or false) && docsCfg.enable) {
+  config = mkIf docsCfg.enable {
+    # Warnings for projects with docs.enable but missing flake input/package
+    warnings = map (name: let
+      project = invalidDocsProjects.${name};
+      flakeInput = project.docs.flakeInput;
+      packageOutput = project.docs.packageOutput;
+    in
+      "ruinage-docs: Project '${name}' has docs.enable=true but flake input '${flakeInput}' or package '${packageOutput}' not found"
+    ) (attrNames invalidDocsProjects);
+
     # Activation script to symlink docs and generate index
     home.activation.ruinage-docs = lib.hm.dag.entryAfter ["writeBoundary"] ''
       # Create output directory
       DOCS_OUTPUT_DIR="$HOME/${docsCfg.outputDir}"
       $DRY_RUN_CMD mkdir -p "$DOCS_OUTPUT_DIR"
 
-      # Symlink each project's docs
+      # Symlink each project's docs from Nix store
       ${concatMapStringsSep "\n" (name: let
-        project = docsProjects.${name};
-        flakeRef = getFlakeRef name project;
+        project = validDocsProjects.${name};
+        docsPackage = getDocsPackage name project;
       in ''
         # Project: ${name}
-        $VERBOSE_ECHO "ruinage-docs: checking docs for ${name}"
-        
-        # Try to build the flake output
-        DOCS_PATH=$(${pkgs.nix}/bin/nix build --no-link --print-out-paths "${flakeRef}" 2>/dev/null || true)
-        
-        if [ -n "$DOCS_PATH" ] && [ -d "$DOCS_PATH" ]; then
-          $VERBOSE_ECHO "ruinage-docs: symlinking ${name} docs from $DOCS_PATH"
-          $DRY_RUN_CMD rm -f "$DOCS_OUTPUT_DIR/${name}"
-          $DRY_RUN_CMD ln -sfn "$DOCS_PATH" "$DOCS_OUTPUT_DIR/${name}"
-        else
-          echo "Warning: Docs output missing for ${name} (${flakeRef}), skipping"
-        fi
-      '') (attrNames docsProjects)}
+        $VERBOSE_ECHO "ruinage-docs: symlinking ${name} docs"
+        $DRY_RUN_CMD rm -f "$DOCS_OUTPUT_DIR/${name}"
+        $DRY_RUN_CMD ln -sfn "${docsPackage}" "$DOCS_OUTPUT_DIR/${name}"
+      '') (attrNames validDocsProjects)}
 
-      # Generate index page
-      $VERBOSE_ECHO "ruinage-docs: generating index.html"
-      $DRY_RUN_CMD cat > "$DOCS_OUTPUT_DIR/index.html" << 'RUINAGE_INDEX_EOF'
-${mkIndexHtml}
-RUINAGE_INDEX_EOF
+      # Symlink index page
+      $VERBOSE_ECHO "ruinage-docs: symlinking index.html"
+      $DRY_RUN_CMD rm -f "$DOCS_OUTPUT_DIR/index.html"
+      $DRY_RUN_CMD ln -sfn "${indexHtml}" "$DOCS_OUTPUT_DIR/index.html"
     '';
   };
 }

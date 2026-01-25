@@ -344,10 +344,18 @@ let
           description = "Enable documentation aggregation for this project.";
         };
 
-        flakeOutput = mkOption {
+        flakeInput = mkOption {
           type = types.str;
-          default = "${name}-docs";
-          description = "Flake output name for documentation.";
+          default = name;
+          description = "Flake input name to get docs from (e.g., 'ruinagents' for flake.inputs.ruinagents).";
+          example = "ruinagents";
+        };
+
+        packageOutput = mkOption {
+          type = types.str;
+          default = "docs";
+          description = "Package output name within the flake input (e.g., 'docs' for .packages.\${system}.docs).";
+          example = "docs";
         };
 
         title = mkOption {
