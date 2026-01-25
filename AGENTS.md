@@ -95,11 +95,17 @@ Skills are invoked with `/skill-name <arguments>`. If required arguments are mis
 | `/update-package` | "update package to", "bump version", "new release" | Update package version with automatic hash resolution |
 | `/update-flake-input` | "update flake input", "update ruinagents", "update budgey" | Update versioned flake inputs (ruinagents, budgey-*) to latest tagged version |
 
-### OpenCode Projects
+### Ruinage & OpenCode Projects
+
+Projects are managed through the `ruinous.ruinage` module, which provides unified configuration for OpenCode, Kimaki, and other assistants.
 
 | Skill | Trigger Phrase | What It Does |
 |-------|----------------|--------------|
 | `/add-opencode-project` | "add project to opencode", "new opencode project", "opencode web service" | Add project with DNS, Caddy, Gatus monitoring, and deployment |
+
+**Deprecated patterns:**
+- `ruinous.ai-cli.opencode-projects` → use `ruinous.ruinage.projects`
+- `ruinous.ai-cli.kimaki` → use `ruinous.ruinage.assistants.kimaki`
 
 ### Infrastructure
 
@@ -132,6 +138,27 @@ Skills are invoked with `/skill-name <arguments>`. If required arguments are mis
 - `/initialize-pgdb <host> <db_name>` - Creates database and user on any host
 
 ---
+
+## Project Configuration
+
+Projects are now managed through the unified `ruinous.ruinage` module:
+
+```nix
+ruinous.ruinage.projects.my-project = {
+  repo = "my-project";
+  owner = "iamruinous";  # default
+  forge = "forge.meskill.farm";  # default
+  namespaces.ruinage.enable = true;
+  assistants.opencode = {
+    enable = true;
+    port = 9500;
+    caddy.fqdn = "my-project.oc.ruinous.ai";
+  };
+  tmuxp.enable = true;
+  direnv.enable = true;
+  budgey.enable = true;
+};
+```
 
 ## Container Deployment Pattern
 

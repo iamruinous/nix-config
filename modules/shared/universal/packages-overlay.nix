@@ -9,8 +9,6 @@
   backup-docker-postgres = perSystem.self.backup-docker-postgres;
   budgey-extractor = flake.inputs.budgey-extractor.packages.${prev.system}.default;
   gocmitra = perSystem.self.gocmitra;
-  ruinagents-global = flake.inputs.ruinagents.packages.${prev.system}.global;
-  ruinagents-docs = flake.inputs.ruinagents.packages.${prev.system}.docs;
   docker-image-updater = perSystem.self.docker-image-updater;
   docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
   eztunnel = perSystem.self.eztunnel;

@@ -36,22 +36,31 @@ in {
       enable = true;
       sessions.hub = {
         windows = [
-          {name = "top"; command = "btop";}
-          {name = "docker"; command = "sudo lazydocker";}
-          {name = "shell"; focus = true;}
+          {
+            name = "top";
+            command = "btop";
+          }
+          {
+            name = "docker";
+            command = "sudo lazydocker";
+          }
+          {
+            name = "shell";
+            focus = true;
+          }
         ];
       };
     };
 
-    ai-cli = {
-      opencode = {
-        enable = true;
-        configs.default.notifier.enable = false;
-      };
-
-      # OpenCode projects moved to chassis - web services run there with native Caddy
-      # Kimaki moved to chassis
-    };
+    # ai-cli = {
+    #   opencode = {
+    #     enable = true;
+    #     configs.default.notifier.enable = false;
+    #   };
+    #
+    #   # OpenCode projects moved to chassis - web services run there with native Caddy
+    #   # Kimaki moved to chassis
+    # };
   };
 
   home.stateVersion = "26.05";

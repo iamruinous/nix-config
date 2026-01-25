@@ -6,33 +6,47 @@
   config,
   lib,
   pkgs,
+  flake,
   ...
 }: let
-  # Get OpenCode projects from jmeskill's home-manager config
-  opencodeProjects = config.home-manager.users.jmeskill.ruinous.ai-cli.opencode-projects.projects or {};
+  # Ruinagents docs package from flake input
+  ruinagentsDocs = flake.inputs.ruinagents.packages.${pkgs.system}.docs;
+  # Get OpenCode projects from ruinage
+  # Filter for projects with assistants.opencode.web.enable = true
+  opencodeProjects = lib.filterAttrs (_: project:
+    (project.assistants.opencode.enable or false) &&
+    (project.assistants.opencode.web.enable or false)
+  ) (config.home-manager.users.jmeskill.ruinous.ruinage.projects or {});
 
-  # Filter to projects with caddy.fqdn set and generate virtual hosts
-  # Each project with caddy.fqdn creates: fqdn -> localhost:port
-  caddyVirtualHosts = lib.filterAttrs (_: v: v != null) (
-    lib.mapAttrs' (
-      name: project:
-        if project.caddy.fqdn != null
-        then
-          lib.nameValuePair project.caddy.fqdn {
-            extraConfig = ''
-              reverse_proxy http://localhost:${toString project.port}
-            '';
-          }
-        else lib.nameValuePair name null
-    )
-    opencodeProjects
-  );
+  # Auto-assign ports starting from 9500 for projects without explicit port
+  # Sort project names for deterministic port assignment (same logic as opencode.nix)
+  sortedProjectNames = lib.sort (a: b: a < b) (lib.attrNames opencodeProjects);
+  projectPortMap = lib.listToAttrs (lib.imap0 (idx: projectName: {
+    name = projectName;
+    value = 9500 + idx;
+  }) sortedProjectNames);
+
+  getProjectPort = projectName: project:
+    if project.assistants.opencode.web.port != null
+    then project.assistants.opencode.web.port
+    else projectPortMap.${projectName};
+
+  # Generate virtual hosts from filtered projects
+  # Each project with web.enable creates: fqdn -> localhost:port
+  caddyVirtualHosts = lib.mapAttrs' (
+    name: project:
+      lib.nameValuePair project.assistants.opencode.web.fqdn {
+        extraConfig = ''
+          reverse_proxy http://localhost:${toString (getProjectPort name project)}
+        '';
+      }
+  ) opencodeProjects;
   
   # Add ruinagents-docs static site
   ruinagentsDocsHost = {
     "agents.ruinous.ai" = {
       extraConfig = ''
-        root * ${pkgs.ruinagents-docs}
+        root * ${ruinagentsDocs}
         file_server {
           precompressed gzip
         }
