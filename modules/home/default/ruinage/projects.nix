@@ -308,34 +308,6 @@ with lib; let
         };
       };
 
-      # Documentation configuration
-      docs = {
-        enable = mkOption {
-          type = types.bool;
-          default = false;
-          description = "Enable documentation aggregation for this project.";
-        };
-
-        flakeInput = mkOption {
-          type = types.str;
-          default = name;
-          description = "Flake input name to get docs from (e.g., 'ruinagents' for flake.inputs.ruinagents).";
-          example = "ruinagents";
-        };
-
-        packageOutput = mkOption {
-          type = types.str;
-          default = "docs";
-          description = "Package output name within the flake input (e.g., 'docs' for .packages.\${system}.docs).";
-          example = "docs";
-        };
-
-        title = mkOption {
-          type = types.str;
-          default = name;
-          description = "Documentation title.";
-        };
-      };
     };
   });
 in {

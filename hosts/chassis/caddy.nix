@@ -77,6 +77,43 @@
     };
   };
 
+  # Ruinage aggregated documentation site (from home-manager ruinage.docs module)
+  # Aggregated package in Nix store with symlinks to all project docs
+  ruinageDocsPackage = config.home-manager.users.jmeskill.ruinous.ruinage.docs.package;
+  ruinageDocsHost = {
+    "docs.ruinage.ai" = {
+      extraConfig = ''
+        root * ${ruinageDocsPackage}
+        file_server {
+          precompressed gzip
+        }
+        encode gzip
+        try_files {path} {path}/ {path}/index.html /index.html
+
+        # Cache busting: HTML files get short cache, assets get long cache with ETag
+        @html {
+          path *.html /
+        }
+        @assets {
+          path *.css *.js *.woff *.woff2 *.ttf *.png *.jpg *.svg *.ico
+        }
+
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+          X-Content-Type-Options "nosniff"
+          X-Frame-Options "DENY"
+          Referrer-Policy "strict-origin-when-cross-origin"
+        }
+
+        # HTML: no-store (never cache - Nix store files have fixed timestamps so ETags don't change between deployments)
+        header @html Cache-Control "no-store"
+
+        # Assets: cache for 1 hour, but revalidate with ETag
+        header @assets Cache-Control "public, max-age=3600, must-revalidate"
+      '';
+    };
+  };
+
   # Budgey Dashboard - public token analytics dashboard
   budgeyDashboardHost = {
     "budgey.ruinous.ai" = {
@@ -116,8 +153,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey dashboard, and weaviate
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // budgeyDashboardHost // weaviateHost;
+    # Merge OpenCode projects, docs sites, budgey dashboard, ruinage docs, and weaviate
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyDashboardHost // weaviateHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)
