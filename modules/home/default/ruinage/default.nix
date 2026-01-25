@@ -65,6 +65,7 @@ in {
     ./tmuxp.nix
     ./direnv.nix
     ./budgey.nix
+    ./docs.nix
   ];
 
   config = mkIf cfg.enable {

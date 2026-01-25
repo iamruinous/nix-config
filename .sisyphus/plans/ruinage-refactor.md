@@ -573,7 +573,7 @@ Phase 11 (Documentation)
 
 ---
 
-- [ ] 13. Add documentation aggregation system
+- [x] 13. Add documentation aggregation system
 
   **What to do**:
   - Create `modules/home/default/ruinage/docs.nix`
