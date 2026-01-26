@@ -2,6 +2,7 @@
 # Used by:
 #   - budgey-extractor (user service, TCP with password auth)
 #   - budgey-dashboard (system service, TCP with password auth)
+#   - budgey-assistant (system service, TCP with password auth)
 # Also provides admin access via TCP for MCP tools
 {pkgs, ...}: {
   services.postgresql = {
@@ -11,11 +12,15 @@
     # Enable TCP/IP for all budgey services
     enableTCPIP = true;
 
-    # Create budgey database and user
-    ensureDatabases = ["budgey"];
+    # Create budgey and budgey_assistant databases and users
+    ensureDatabases = ["budgey" "budgey_assistant"];
     ensureUsers = [
       {
         name = "budgey";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "budgey_assistant";
         ensureDBOwnership = true;
       }
     ];
