@@ -3,6 +3,11 @@
     if pkgs.stdenv.isDarwin
     then "RESIZE"
     else "NONE";
+  # 1Password SSH agent socket path
+  onePasswordAgentSock =
+    if pkgs.stdenv.isDarwin
+    then "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    else "~/.1password/agent.sock";
 in {
   # Install wezterm via home-manager module
   programs.wezterm = {
@@ -12,6 +17,16 @@ in {
       -- config.set_environment_variables = {
       --   PATH = '/run/current-system/sw/bin:' .. os.getenv('PATH')
       -- }
+
+      -- Use 1Password SSH agent instead of system default
+      local onep_auth = wezterm.home_dir .. '/${
+        if pkgs.stdenv.isDarwin
+        then "Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        else ".1password/agent.sock"
+      }'
+      if #wezterm.glob(onep_auth) == 1 then
+        config.default_ssh_auth_sock = onep_auth
+      end
 
       -- (This is where our config will go)
       -- Pick a colour scheme. WezTerm ships with more than 1,000!
