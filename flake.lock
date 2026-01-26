@@ -1712,6 +1712,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-master": {
+      "locked": {
+        "lastModified": 1769404442,
+        "narHash": "sha256-F1OdoUD2+mAcEKqGdLEzv2zbtKeLS+VSbiLwEjjS76s=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "ab099bec43db69766c59790789e53803c8db8402",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1730741070,
@@ -1994,6 +2010,7 @@
         "nixos-anywhere": "nixos-anywhere",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_7",
+        "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-stable": "nixpkgs-stable_2",
         "plasma-manager": "plasma-manager",
         "ruinagents": "ruinagents",

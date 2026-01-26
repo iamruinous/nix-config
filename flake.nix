@@ -6,6 +6,8 @@
     # <https://search.nixos.org/packages>
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
+    # nixpkgs master for bleeding-edge packages (ROCm 7.1.1 for Strix Halo)
+    nixpkgs-master.url = "github:nixos/nixpkgs/master";
 
     # Map folder structure to flake outputs
     # <https://github.com/numtide/blueprint>
