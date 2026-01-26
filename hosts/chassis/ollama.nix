@@ -19,11 +19,14 @@ in {
   services.ollama = {
     enable = true;
 
-    # Use ROCm package from nixpkgs-master (ROCm 7.1.1 with gfx1151 support)
-    package = pkgs-master.ollama-rocm;
+    # Use Vulkan backend - ROCm 7.1.1 crashes on gfx1151 (Strix Halo)
+    # TODO: Switch back to ollama-rocm once ROCm 7.2+ is available in nixpkgs
+    # package = pkgs-master.ollama-rocm;
+    package = pkgs-master.ollama-vulkan;
 
-    # Strix Halo (gfx1151) - ROCm 7.1.1 has native support, no override needed
-    # rocmOverrideGfx = "11.0.0"; # Only needed for ROCm < 7.1
+    # Strix Halo (gfx1151) - force gfx1100 compatibility mode
+    # Native gfx1151 support in ROCm 7.1.1 still has issues with llama.cpp
+    rocmOverrideGfx = "11.0.0";
 
     # Listen on localhost only - Caddy proxies if needed
     host = "127.0.0.1";
@@ -38,6 +41,11 @@ in {
     # Allow cross-origin requests for web UIs
     environmentVariables = {
       OLLAMA_ORIGINS = "*";
+      # Strix Halo (gfx1151) ROCm workarounds - required until ROCm 7.2+
+      # See: https://github.com/ROCm/ROCm/issues/5534
+      HSA_ENABLE_SDMA = "0"; # Disable SDMA - causes memory corruption on unified memory
+      AMD_SERIALIZE_KERNEL = "1"; # Prevent race conditions in early gfx1151 drivers
+      HIP_VISIBLE_DEVICES = "0"; # Ensure correct iGPU binding
     };
 
     # Don't open firewall - localhost only
