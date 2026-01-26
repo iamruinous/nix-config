@@ -99,7 +99,7 @@
         cmd = ["dockerd" "-H" "tcp://0.0.0.0:2375" "--tls=false"];
       };
       "forgejo-runner" = {
-        image = "code.forgejo.org/forgejo/runner:12.6.2";
+        image = "code.forgejo.org/forgejo/runner:12.5.2";
         dependsOn = ["forgejo-dind"];
         environment = {
           DOCKER_HOST = "tcp://forgejo-dind:2375";
@@ -297,7 +297,7 @@
       # External access via Cloudflare tunnel (n8n.meskill.dev, n8h.meskill.dev)
       # Internal access via Caddy (n8n-dev-int.meskill.farm)
       n8n-dev = {
-        image = "docker.io/n8nio/n8n:2.4.3";
+        image = "docker.io/n8nio/n8n:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -333,7 +333,7 @@
 
       # n8n Runner for external task execution (JavaScript & Python)
       n8n-dev-runner-alpha = {
-        image = "docker.io/n8nio/runners:2.5.2";
+        image = "docker.io/n8nio/runners:2.4.1";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n-dev:5679";
@@ -353,7 +353,7 @@
 
       # Weaviate vector database for AI workflows
       weaviate-dev = {
-        image = "cr.weaviate.io/semitechnologies/weaviate:1.35.3";
+        image = "cr.weaviate.io/semitechnologies/weaviate:1.35.1";
         cmd = ["--host" "0.0.0.0" "--port" "8080" "--scheme" "http"];
         environment = {
           QUERY_DEFAULTS_LIMIT = "25";
@@ -412,7 +412,7 @@
 
       # Init container to download model if not present
       llama-cpp-init = {
-        image = "docker.io/curlimages/curl:8.18.0";
+        image = "docker.io/curlimages/curl:8.11.1";
         volumes = [
           "/data/docker/llama-cpp/models:/models"
         ];
