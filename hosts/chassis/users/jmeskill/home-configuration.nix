@@ -212,6 +212,20 @@
           ];
         };
 
+        # budgey-assistant-dashboard - web service with Caddy
+        budgey-assistant-dashboard = {
+          assistants.opencode = {
+            enable = true;
+            web.enable = true;
+            budgey.enable = true;
+          };
+          assistants.kimaki.enable = true;
+          direnv.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+          ];
+        };
+
         # budgey-assistant-ingest-tools - web service with Caddy
         budgey-assistant-ingest-tools = {
           assistants.opencode = {
