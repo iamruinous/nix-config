@@ -38,6 +38,24 @@
         harnesses.ruinagents.enable = true;
       };
 
+      # Global Claude Code configuration
+      assistants.claude-code = {
+        enable = true;
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Gemini CLI configuration
+      assistants.gemini = {
+        enable = true;
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Codex CLI configuration
+      assistants.codex = {
+        enable = true;
+        harnesses.ruinagents.enable = true;
+      };
+
       # Kimaki Discord voice bot - global service configuration
       # Uses common.env for shared tokens (Git, CF, Todoist, Apprise)
       # Plus all project envs since it handles Discord requests for any project
