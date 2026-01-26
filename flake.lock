@@ -206,18 +206,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1769229134,
-        "narHash": "sha256-oJW7eNdvwa+di70hFUd/fJsF8bWmQNhKPl+IF9KML/A=",
-        "ref": "refs/tags/v0.7.1",
-        "rev": "675b7d3427d01b79a81a92d2e1b8fb0b354d0275",
-        "revCount": 58,
+        "lastModified": 1769233418,
+        "narHash": "sha256-DoPw17Oxhkir8w2XYv84axA94ZjIxJgniuZjol53dtY=",
+        "ref": "refs/tags/v0.7.2",
+        "rev": "977d4e1844b2c8a1ed335835689d08373178c372",
+        "revCount": 61,
         "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git"
+        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git"
       },
       "original": {
-        "ref": "refs/tags/v0.7.1",
+        "ref": "refs/tags/v0.7.2",
         "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git"
+        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git"
       }
     },
     "budgey-extractor_2": {
@@ -2015,16 +2015,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769328137,
-        "narHash": "sha256-nFfxqfu0Jr3an8vnGkODQTvpg/gSu6JCy5lsBuskjpI=",
-        "ref": "refs/tags/v2.0.0",
-        "rev": "49e2e60286880dc3f3bcb5b796f4b639699d924f",
-        "revCount": 102,
+        "lastModified": 1769389733,
+        "narHash": "sha256-SiUm1wulzL6MN8nEcQxMwwc0mS/Tl/YgvT8GDr/tkJ4=",
+        "ref": "refs/tags/v2.2.0",
+        "rev": "e751be2560fe70346f1786a5cc066c15a32faed6",
+        "revCount": 117,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       },
       "original": {
-        "ref": "refs/tags/v2.0.0",
+        "ref": "refs/tags/v2.2.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       }

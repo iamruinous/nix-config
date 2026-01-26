@@ -735,6 +735,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "OpenCode - budgey-assistant-ingest-tools (chassis)"
+    group: "Development"
+    url: "https://budgey-assistant-ingest-tools.oc.ruinous.ai"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   - name: "Budgey Dashboard (chassis)"
     group: "Analytics"
     url: "https://budgey.ruinous.ai"
