@@ -50,7 +50,7 @@ install-nix-darwin:
 darwin-rebuild:
     @just header "🍎 Darwin Rebuild"
     @just info "Rebuilding darwin configuration for $(hostname)..."
-    @darwin-rebuild switch --flake .#$(hostname)
+    @sudo --preserve-env=SSH_AUTH_SOCK darwin-rebuild switch --flake .#$(hostname)
     @just success "Darwin rebuild complete"
 
 # Rebuild NixOS configuration for current host

@@ -252,6 +252,10 @@ run = 'move-node-to-workspace 2'
 if.app-id = 'com.google.Chrome.app.cmeodllendljmgnfaopchncmnpgaocab' # Glance
 run = 'move-node-to-workspace G'
 
+[[on-window-detected]]
+if.app-id = 'com.google.antigravity'
+run = 'move-node-to-workspace G'
+
 ## Full Screen
 
 # W - WezTerm Space

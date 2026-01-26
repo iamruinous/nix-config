@@ -121,12 +121,23 @@ in {
       }
     ];
 
-    interactiveShellInit = ''
+    interactiveShellInit = let
+      onePasswordAgentSock =
+        if pkgs.stdenv.isDarwin
+        then "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        else "$HOME/.1password/agent.sock";
+    in ''
       # Suppress the default "Welcome to fish" greeting
       set -g fish_greeting
 
       ${loginHubScript}
       ${tmuxAttachScript}
+
+      # Ensure 1Password SSH agent is used (clear stale universal variables)
+      set -e SSH_AGENT_PID 2>/dev/null
+      if test -S "${onePasswordAgentSock}"
+        set -gx SSH_AUTH_SOCK "${onePasswordAgentSock}"
+      end
 
       # Check SSH_AUTH_SOCK validity
       if ${pkgs.ssh-agent-check}/bin/ssh-agent-check

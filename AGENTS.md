@@ -114,6 +114,12 @@ Projects are managed through the `ruinous.ruinage` module, which provides unifie
 | `/create-pi-host` | "new raspberry pi", "add pi to cluster" | Bootstrap new Raspberry Pi cluster node configuration |
 | `/kde-extract` | "extract KDE settings", "plasma config" | Extract KDE/Plasma settings to plasma-manager Nix config |
 
+### macOS Window Management
+
+| Skill | Trigger Phrase | What It Does |
+|-------|----------------|--------------|
+| `/add-aerospace-entry` | "add aerospace rule", "assign app to workspace", "aerospace window" | Add AeroSpace window rule to assign app/window to workspace (macOS only) |
+
 ### Skill Selection Guide
 
 **Starting a new service?**

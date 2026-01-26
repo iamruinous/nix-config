@@ -29,8 +29,16 @@
     openssh.remote.forwarding.enable = true;
 
     # enable opencode with default configuration
-    ruinage.enable = true;
-    ruinage.assistants.opencode.enable = true;
+    ruinage = {
+      enable = true;
+
+      # Global OpenCode configuration
+      assistants.opencode = {
+        enable = true;
+        # model, plugins, mcpServers, providers inherited from defaults
+        harnesses.ruinagents.enable = true;
+      };
+    };
   };
 
   # Ensure homebrew is in the PATH
