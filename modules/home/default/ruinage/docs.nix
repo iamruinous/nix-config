@@ -79,6 +79,7 @@ with lib; let
     "ruinagents" = "Ruinous Agents";
     "budgey-dashboard" = "Budgey Dashboard";
     "budgey-extractor" = "Budgey Extractor";
+    "budgey-assistant-ingest-tools" = "Budgey Ingest Tools";
     "n8n-agent" = "n8n Agent";
   };
 
