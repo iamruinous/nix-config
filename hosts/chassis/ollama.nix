@@ -9,9 +9,9 @@
     # Use ROCm package for AMD GPU acceleration (Radeon 8060S)
     package = pkgs.ollama-rocm;
 
-    # Strix Halo (gfx1151) may need override - try gfx1100 kernels if issues
-    # Uncomment if ROCm doesn't detect the GPU properly:
-    # rocmOverrideGfx = "11.0.0";
+    # Strix Halo (gfx1151) needs override - gfx1100 kernels work better
+    # Without this, ollama detects GPU but offloads 0 layers (CPU-only)
+    rocmOverrideGfx = "11.0.0";
 
     # Listen on all interfaces for local network access
     host = "0.0.0.0";
