@@ -54,9 +54,10 @@ with lib; let
   opencodeAssistant = cfg.assistants.opencode or {};
 
   # Ruinagents package from flake input (replaces ruinagents-global)
+  # v2.1.0 changed install path from share/ruinagents-opencode to .config/opencode
   ruinagentsPkgs = flake.inputs.ruinagents.packages.${pkgs.system};
   ruinagentsOpencode = ruinagentsPkgs.opencode;
-  ruinagentsShare = "${ruinagentsOpencode}/share/ruinagents-opencode";
+  ruinagentsShare = "${ruinagentsOpencode}/.config/opencode";
 
   # OpenCode config template from flake
   opencode_config = flake + /files/configs/opencode/opencode.json;
@@ -1407,6 +1408,65 @@ in {
             // optionalAttrs opencodeAssistant.harnesses.ruinagents.enable projectRuinagentsEntries
             // projectOmoConfig
         ) (attrNames opencodeProjects));
+      })
+
+      # Generate activation scripts for per-project opencode.json creation
+      # This creates opencode.json in each project's config directory with proper MCP servers, model, etc.
+      (mkIf (opencodeProjects != {}) {
+        home.activation = mkMerge (map (name: let
+          paths = mkProjectPaths name;
+          safeName = builtins.replaceStrings ["-" "/" " "] ["_" "_" "_"] name;
+          # Per-project activation uses global settings (same as default config)
+          model = opencodeAssistant.model;
+          plugins = opencodeAssistant.plugins;
+          mcpServers = opencodeAssistant.mcpServers;
+          providers = opencodeAssistant.providers;
+          installPlugins = opencodeAssistant.installPlugins;
+        in {
+          "opencode-project-${safeName}" = lib.hm.dag.entryAfter ["writeBoundary"] ''
+            CONFIG_DIR="${paths.config}"
+            CONFIG_FILE="$CONFIG_DIR/opencode.json"
+
+            # Ensure config file exists, copy from template if not
+            if [ ! -f "$CONFIG_FILE" ]; then
+              $DRY_RUN_CMD mkdir -p "$CONFIG_DIR"
+              $DRY_RUN_CMD cp "${opencode_config}" "$CONFIG_FILE"
+              $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
+            fi
+
+            # Inject model, plugins, MCP servers, and providers into opencode.json
+            if [ -f "$CONFIG_FILE" ]; then
+              TMP_FILE=$(mktemp)
+              ${pkgs.jq}/bin/jq \
+                --argjson new_model '${builtins.toJSON model}' \
+                --argjson new_plugins '${builtins.toJSON plugins}' \
+                --argjson new_servers '${builtins.toJSON mcpServers}' \
+                --argjson new_providers '${builtins.toJSON providers}' \
+                '(if $new_model != null then .model = $new_model else . end)
+                  | .plugin //= []
+                  | .mcp = (.mcp // {}) + $new_servers
+                  | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
+                  | reduce ($new_plugins[]) as $p (.;
+                      ($p | split("@")[0]) as $pname
+                      | ((.plugin | map((. | split("@")[0]) == $pname) | index(true))) as $idx
+                      | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end)
+                  | walk(if type == "object" then with_entries(select(.value != null)) else . end)
+                ' "$CONFIG_FILE" > "$TMP_FILE"
+
+              if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null; then
+                $DRY_RUN_CMD cp "$TMP_FILE" "$CONFIG_FILE"
+                $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
+              fi
+              rm "$TMP_FILE"
+            fi
+
+            ${optionalString installPlugins ''
+              if command -v ${pkgs.bun}/bin/bun &> /dev/null; then
+                $DRY_RUN_CMD ${pkgs.bun}/bin/bun install --cwd "$CONFIG_DIR" --silent 2>/dev/null || true
+              fi
+            ''}
+          '';
+        }) (attrNames opencodeProjects));
       })
     ]);
 }

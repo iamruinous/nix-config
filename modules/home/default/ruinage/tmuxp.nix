@@ -53,6 +53,10 @@ with lib; let
       namespace = "ruinage";
       repo = project.repo;
     };
+    homeDir = config.home.homeDirectory;
+    # Use the project-specific wrapper script from ~/.local/bin/
+    # The script handles cd, XDG vars, and attaching to the correct port
+    attachCommand = "${homeDir}/.local/bin/opencode-${name}";
    in {
      startDirectory = projectPath;
 
@@ -69,24 +73,25 @@ with lib; let
              command = "journalctl --user -fu opencode-${name}.service";
            }
             # Web service is running via systemd, just attach to it
-            {
+             # The direnv snippet's opencode() function handles XDG vars and port
+             {
               name = "attach";
-              command = "opencode attach http://localhost:${toString port}";
+              command = attachCommand;
               focus = true;
             }
-          ]
-          else [
-            # No web service, run server in tmux
-            {
-              name = "server";
-              command = "opencode serve --print-logs --hostname ${webCfg.hostname} --port ${toString port}";
-            }
-            {
-              name = "attach";
-              command = "sleep 2 && opencode attach http://localhost:${toString port}";
-              focus = true;
-            }
-          ]
+           ]
+           else [
+             # No web service - fallback to running server directly in tmux (uses default XDG paths)
+             {
+               name = "server";
+               command = "opencode serve --print-logs --hostname ${webCfg.hostname} --port ${toString port}";
+             }
+             {
+               name = "attach";
+               command = "sleep 2 && opencode attach http://localhost:${toString port}";
+               focus = true;
+             }
+           ]
        )
        ++ [
          {

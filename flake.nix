@@ -6,6 +6,8 @@
     # <https://search.nixos.org/packages>
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
+    # nixpkgs master for bleeding-edge packages (ROCm 7.1.1 for Strix Halo)
+    nixpkgs-master.url = "github:nixos/nixpkgs/master";
 
     # Map folder structure to flake outputs
     # <https://github.com/numtide/blueprint>
@@ -120,8 +122,8 @@
     budgey-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-extractor - OpenCode session extractor for Postgres + Weaviate
-    # <https://forge.meskill.farm/iamruinous/budgey-extractor>
-    budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git?ref=refs/tags/v0.7.1";
+    # <https://forge.meskill.farm/iamruinous/budgey-ingest-opencode>
+    budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git?ref=refs/tags/v0.7.2";
     budgey-extractor.inputs.nixpkgs.follows = "nixpkgs";
 
     # n8n-agent - n8n workflow automation agent
@@ -132,7 +134,7 @@
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
     # NOTE: Keep pinned to tagged version. Update with: nix flake update ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v2.0.0";
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v2.2.0";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository

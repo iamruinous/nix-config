@@ -38,6 +38,24 @@
         harnesses.ruinagents.enable = true;
       };
 
+      # Global Claude Code configuration
+      assistants.claude-code = {
+        enable = true;
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Gemini CLI configuration
+      assistants.gemini = {
+        enable = true;
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Codex CLI configuration
+      assistants.codex = {
+        enable = true;
+        harnesses.ruinagents.enable = true;
+      };
+
       # Kimaki Discord voice bot - global service configuration
       # Uses common.env for shared tokens (Git, CF, Todoist, Apprise)
       # Plus all project envs since it handles Discord requests for any project
@@ -191,6 +209,20 @@
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
             config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
+          ];
+        };
+
+        # budgey-assistant-ingest-tools - web service with Caddy
+        budgey-assistant-ingest-tools = {
+          assistants.opencode = {
+            enable = true;
+            web.enable = true;
+            budgey.enable = true;
+          };
+          assistants.kimaki.enable = true;
+          direnv.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
           ];
         };
       };

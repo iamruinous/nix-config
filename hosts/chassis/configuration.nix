@@ -14,6 +14,7 @@
     ./postgres.nix
     ./budgey-dashboard.nix
     ./weaviate.nix
+    ./ollama.nix
   ];
 
   networking.hostName = "chassis";
