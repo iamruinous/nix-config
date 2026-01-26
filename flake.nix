@@ -126,6 +126,11 @@
     budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git?ref=refs/tags/v0.7.2";
     budgey-extractor.inputs.nixpkgs.follows = "nixpkgs";
 
+    # budgey-assistant-ingest-tools - Multi-CLI session extraction and ingestion tools
+    # <https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools>
+    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.11.0";
+    budgey-assistant-ingest-tools.inputs.nixpkgs.follows = "nixpkgs";
+
     # n8n-agent - n8n workflow automation agent
     # <https://forge.meskill.farm/iamruinous/n8n-agent>
     n8n-agent.url = "git+ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git?ref=refs/tags/v0.2.0";

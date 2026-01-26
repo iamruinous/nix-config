@@ -127,7 +127,7 @@
           "llm-agents",
           "nixpkgs"
         ],
-        "systems": "systems_7"
+        "systems": "systems_8"
       },
       "locked": {
         "lastModified": 1767386128,
@@ -160,9 +160,31 @@
         "type": "github"
       }
     },
-    "budgey-dashboard": {
+    "budgey-assistant-ingest-tools": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1769406312,
+        "narHash": "sha256-9LfXzCbhb9wxK67giDbz0JT3gCnj85Lls1NCncBLbts=",
+        "ref": "refs/tags/v0.11.0",
+        "rev": "9566b32320f3f13d435323ed16f2ee4b8f9aa8dd",
+        "revCount": 46,
+        "type": "git",
+        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
+      },
+      "original": {
+        "ref": "refs/tags/v0.11.0",
+        "type": "git",
+        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
+      }
+    },
+    "budgey-dashboard": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -200,7 +222,7 @@
     },
     "budgey-extractor": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -599,7 +621,7 @@
     },
     "flake-utils_3": {
       "inputs": {
-        "systems": "systems_8"
+        "systems": "systems_5"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -635,7 +657,25 @@
     },
     "flake-utils_5": {
       "inputs": {
-        "systems": "systems_11"
+        "systems": "systems_10"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_6": {
+      "inputs": {
+        "systems": "systems_12"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -927,7 +967,7 @@
         "hyprwire": "hyprwire",
         "nixpkgs": "nixpkgs_2",
         "pre-commit-hooks": "pre-commit-hooks_2",
-        "systems": "systems_6",
+        "systems": "systems_7",
         "xdph": "xdph"
       },
       "locked": {
@@ -1063,7 +1103,7 @@
           "hyprutils"
         ],
         "nixpkgs": "nixpkgs",
-        "systems": "systems_5"
+        "systems": "systems_6"
       },
       "locked": {
         "lastModified": 1762461912,
@@ -1437,7 +1477,7 @@
     },
     "n8n-agent": {
       "inputs": {
-        "flake-utils": "flake-utils_3",
+        "flake-utils": "flake-utils_4",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -1990,6 +2030,7 @@
         "agenix": "agenix",
         "agenix-rekey": "agenix-rekey",
         "blueprint": "blueprint",
+        "budgey-assistant-ingest-tools": "budgey-assistant-ingest-tools",
         "budgey-dashboard": "budgey-dashboard",
         "budgey-extractor": "budgey-extractor",
         "disko": "disko",
@@ -2023,7 +2064,7 @@
       "inputs": {
         "budgey-dashboard": "budgey-dashboard_2",
         "budgey-extractor": "budgey-extractor_2",
-        "flake-utils": "flake-utils_4",
+        "flake-utils": "flake-utils_5",
         "n8n-agent": "n8n-agent_2",
         "n8n-messy-discord-bot": "n8n-messy-discord-bot",
         "nix-config": "nix-config",
@@ -2158,6 +2199,21 @@
     },
     "systems_10": {
       "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_11": {
+      "locked": {
         "lastModified": 1689347949,
         "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
         "owner": "nix-systems",
@@ -2171,7 +2227,7 @@
         "type": "github"
       }
     },
-    "systems_11": {
+    "systems_12": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
@@ -2233,16 +2289,16 @@
     },
     "systems_5": {
       "locked": {
-        "lastModified": 1689347949,
-        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
         "owner": "nix-systems",
-        "repo": "default-linux",
-        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
         "type": "github"
       },
       "original": {
         "owner": "nix-systems",
-        "repo": "default-linux",
+        "repo": "default",
         "type": "github"
       }
     },
@@ -2263,16 +2319,16 @@
     },
     "systems_7": {
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "lastModified": 1689347949,
+        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
         "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "repo": "default-linux",
+        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
         "type": "github"
       },
       "original": {
         "owner": "nix-systems",
-        "repo": "default",
+        "repo": "default-linux",
         "type": "github"
       }
     },
@@ -2373,7 +2429,7 @@
       "inputs": {
         "elephant": "elephant",
         "nixpkgs": "nixpkgs_8",
-        "systems": "systems_10"
+        "systems": "systems_11"
       },
       "locked": {
         "lastModified": 1769093508,
@@ -2391,7 +2447,7 @@
     },
     "wezterm": {
       "inputs": {
-        "flake-utils": "flake-utils_5",
+        "flake-utils": "flake-utils_6",
         "freetype2": "freetype2",
         "harfbuzz": "harfbuzz",
         "libpng": "libpng",
