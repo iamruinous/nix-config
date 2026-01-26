@@ -239,7 +239,7 @@
         ];
       };
       wikijs = {
-        image = "ghcr.io/requarks/wiki:2.5.277";
+        image = "ghcr.io/requarks/wiki:2.5.311";
         environment = {
           DB_TYPE = "postgres";
           DB_HOST = "postgres";
@@ -270,7 +270,7 @@
         ];
       };
       mariadb = {
-        image = "docker.io/mariadb:11.8.5";
+        image = "docker.io/mariadb:12.1.2";
         ports = ["3306:3306"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_mariadb.path];
         networks = [
@@ -296,7 +296,7 @@
         ];
       };
       redis = {
-        image = "docker.io/redis:7.4.7";
+        image = "docker.io/redis:8.4.0";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
@@ -304,7 +304,7 @@
         ];
       };
       twenty = {
-        image = "docker.io/twentycrm/twenty:v1.15";
+        image = "docker.io/twentycrm/twenty:v1.16.2";
         environment = {
           REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
@@ -324,7 +324,7 @@
         ];
       };
       twenty-worker = {
-        image = "docker.io/twentycrm/twenty:v1.15";
+        image = "docker.io/twentycrm/twenty:v1.16.2";
         cmd = ["yarn" "worker:prod"];
         environment = {
           REDIS_URL = "redis://redis:6379";
@@ -423,7 +423,7 @@
       };
       "karakeep-meilisearch" = {
         # Pinned to v1.31 - database created with this version, v1.32 is incompatible
-        image = "docker.io/getmeili/meilisearch:v1.31.0";
+        image = "docker.io/getmeili/meilisearch:v1.33.1";
         environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
@@ -464,7 +464,7 @@
         ];
       };
       rallly = {
-        image = "docker.io/lukevella/rallly:3.11.2";
+        image = "docker.io/lukevella/rallly:4.6.3";
         environmentFiles = [config.age.secrets.pilaster_docker_env_rallly.path];
         networks = ["servicenet" "datanet"];
         dependsOn = ["postgres"];
@@ -631,7 +631,7 @@
       };
       # RSS Feed Aggregator
       freshrss = {
-        image = "docker.io/freshrss/freshrss:1.28.0";
+        image = "docker.io/freshrss/freshrss:1.28.1";
         environmentFiles = [config.age.secrets.pilaster_docker_env_freshrss.path];
         networks = [
           "datanet"

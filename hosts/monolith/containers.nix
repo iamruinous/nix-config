@@ -83,7 +83,7 @@
         ];
       };
       mariadb = {
-        image = "docker.io/mariadb:11.8.5";
+        image = "docker.io/mariadb:12.1.2";
         ports = ["3306:3306"];
         environmentFiles = [config.age.secrets.monolith_docker_env_mariadb.path];
         networks = [
@@ -128,7 +128,7 @@
         ];
       };
       postgres = {
-        image = "docker.io/postgres:17.7";
+        image = "docker.io/postgres:18.1";
         ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/17/docker";
@@ -167,7 +167,7 @@
         ];
       };
       gatus = {
-        image = "docker.io/twinproduction/gatus:v5.22.0";
+        image = "docker.io/twinproduction/gatus:v5.34.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_gatus.path];
         networks = ["servicenet"];
         volumes = [
@@ -411,7 +411,7 @@
         dependsOn = ["gluetun"];
       };
       forgejo = {
-        image = "codeberg.org/forgejo/forgejo:13.0.4";
+        image = "codeberg.org/forgejo/forgejo:14.0.1";
         environment = {
           USER_UID = "2000";
           USER_GID = "2000";
@@ -482,7 +482,7 @@
         ];
       };
       "loki" = {
-        image = "docker.io/grafana/loki:3.6.3";
+        image = "docker.io/grafana/loki:3.6.4";
         cmd = ["-config.file=/mnt/config/loki-config.yaml"];
         networks = [
           "datanet"
@@ -544,7 +544,7 @@
         ];
       };
       n8n = {
-        image = "docker.io/n8nio/n8n:2.4.1";
+        image = "docker.io/n8nio/n8n:2.4.3";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -583,7 +583,7 @@
         ];
       };
       n8n-runner-alpha = {
-        image = "docker.io/n8nio/runners:2.4.1";
+        image = "docker.io/n8nio/runners:2.5.2";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -603,7 +603,7 @@
         ];
       };
       n8n-runner-bravo = {
-        image = "docker.io/n8nio/runners:2.4.1";
+        image = "docker.io/n8nio/runners:2.5.2";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -621,7 +621,7 @@
         ];
       };
       n8n-runner-charlie = {
-        image = "docker.io/n8nio/runners:2.4.1";
+        image = "docker.io/n8nio/runners:2.5.2";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -640,7 +640,7 @@
       };
       # Vector database for n8n AI workflows and RAG
       weaviate = {
-        image = "cr.weaviate.io/semitechnologies/weaviate:1.35.1";
+        image = "cr.weaviate.io/semitechnologies/weaviate:1.35.3";
         cmd = [
           "--host"
           "0.0.0.0"
@@ -911,7 +911,7 @@
         ];
       };
       romm = {
-        image = "docker.io/rommapp/romm:3.10.3";
+        image = "docker.io/rommapp/romm:4.4.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_romm.path];
         networks = [
           "servicenet"
