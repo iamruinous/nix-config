@@ -190,16 +190,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769507744,
-        "narHash": "sha256-q0e1xFE/iWVC2ryH1Xty/a+C4fUN3tv3IFINdR6yQuQ=",
-        "ref": "refs/tags/v0.15.2",
-        "rev": "5743a977f7ac225aa519a467b2764969c743dd00",
-        "revCount": 63,
+        "lastModified": 1769540313,
+        "narHash": "sha256-LEPzh48TC1k0AM7FzhSyyIEd/m+4Rf9U2p5Z9Eg7cB0=",
+        "ref": "refs/tags/v0.16.0",
+        "rev": "6feb4b7e39963c24086320662d0f5566801b97bc",
+        "revCount": 75,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       },
       "original": {
-        "ref": "refs/tags/v0.15.2",
+        "ref": "refs/tags/v0.16.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }
