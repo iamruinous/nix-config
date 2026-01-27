@@ -13,6 +13,7 @@
     flake.sharedModules.developer
 
     ./hardware-configuration.nix
+    ./budgey-extractors.nix
     ./caddy.nix
     ./cloudflared.nix
     ./containers.nix
