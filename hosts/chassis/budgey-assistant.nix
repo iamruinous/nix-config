@@ -122,14 +122,17 @@ in {
     };
 
     # Ingestion with upstream migrations (v0.13.0+)
+    # NOTE: Upstream module doesn't support Unix sockets, must use TCP with password
     ingest = {
       enable = true;
       schedule = "*-*-* *:45:00";
       runMigrations = true;
       database = {
-        host = "/run/postgresql"; # Unix socket
+        host = "localhost";
+        port = 5432;
         name = "budgey_assistant";
         user = "budgey_assistant";
+        passwordFile = config.age.secrets.chassis_budgey_assistant_db_password.path;
         createLocally = false; # We manage database in postgres.nix
       };
     };
@@ -183,6 +186,13 @@ in {
 
   age.secrets.chassis_budgey_assistant_deploy_key = {
     rekeyFile = ./files/budgey-assistant/deploy-key.age;
+    mode = "400";
+    owner = "budgey-assistant";
+    group = "budgey-assistant";
+  };
+
+  age.secrets.chassis_budgey_assistant_db_password = {
+    rekeyFile = ./files/budgey-assistant/db-password.age;
     mode = "400";
     owner = "budgey-assistant";
     group = "budgey-assistant";
