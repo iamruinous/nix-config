@@ -44,7 +44,7 @@
     PASSWORD=$(cat ${dbPasswordFile})
     # URL-encode the password (handles / + = and other special chars)
     ENCODED_PASSWORD=$(${pkgs.python3}/bin/python3 -c "import urllib.parse; import sys; print(urllib.parse.quote(sys.argv[1], safe=str()))" "$PASSWORD")
-    export DATABASE_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}"
+    export DATABASE_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}?sslmode=disable"
     exec ${ingestTools.all-tools}/bin/budgey-migrate up
   '';
 
@@ -55,7 +55,7 @@
     PASSWORD=$(cat ${dbPasswordFile})
     # URL-encode the password (handles / + = and other special chars)
     ENCODED_PASSWORD=$(${pkgs.python3}/bin/python3 -c "import urllib.parse; import sys; print(urllib.parse.quote(sys.argv[1], safe=str()))" "$PASSWORD")
-    DB_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}"
+    DB_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}?sslmode=disable"
     exec ${ingestTools.all-tools}/bin/budgey-ingest load \
       -archive ${archivePath} \
       -database "$DB_URL" \
