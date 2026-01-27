@@ -1,21 +1,10 @@
-{
-  config,
-  flake,
-  ...
-}: {
+{flake, ...}: {
   imports = [
     flake.homeModules.default
     flake.homeModules.darwin
   ];
 
   ruinous = {
-    # this system has a battery
-    starship.battery.enable = true;
-    tmux.powerkit.extraPlugins = ["battery"];
-
-    # allow use of 1password op-ssh-sign
-    git.signing.use1Password = true;
-
     # Enable rust-motd for system info on login
     rust-motd.enable = true;
 

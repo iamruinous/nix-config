@@ -58,8 +58,10 @@
       "mimestream"
       "obsidian"
       "oversight"
+      "opencode-desktop"
       "plex"
       "private-internet-access"
+      "protonvpn"
       "raycast"
       "slack"
       "soundsource"
@@ -79,6 +81,7 @@
       "Kindle" = 302584613;
       "PCalc" = 403504866;
       "Paprika3" = 1303222628;
+      "Perplexity" = 6714467650;
       "PixelmatorPro" = 1289583905;
       "Tailscale" = 1475387142;
       "Todoist" = 585829637;
