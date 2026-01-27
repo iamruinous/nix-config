@@ -168,16 +168,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769496846,
-        "narHash": "sha256-JWd5xsF//p+mqqMnCLowL1NTqdHO6tBWYOst8bIpViM=",
-        "ref": "refs/tags/v0.4.1",
-        "rev": "f188a98f2d303ea750860a301b619732a9c265e5",
-        "revCount": 24,
+        "lastModified": 1769497276,
+        "narHash": "sha256-nJ+P8PrBivvGZHKTpbcTcdQ9qVe2+pIpm4OrGMw+hec=",
+        "ref": "refs/tags/v0.4.2",
+        "rev": "4f3b0f72b1c256591ac87f620d048373adb63b44",
+        "revCount": 26,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       },
       "original": {
-        "ref": "refs/tags/v0.4.1",
+        "ref": "refs/tags/v0.4.2",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       }
@@ -190,16 +190,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769493824,
-        "narHash": "sha256-EKac7FIsS/o0ko7TVZO6y81LLdIbCnHrsGp6OrS5I5c=",
-        "ref": "refs/tags/v0.12.0",
-        "rev": "3a2ec0dd094f6f3958a3760ab09ffa229b232257",
-        "revCount": 51,
+        "lastModified": 1769498246,
+        "narHash": "sha256-mH2jakEotMzRNENxwPqU/i8hc/c7lw0YfLhQdf4y5zM=",
+        "ref": "refs/tags/v0.12.1",
+        "rev": "0e4113788371611aa25899779d777647db7be043",
+        "revCount": 53,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       },
       "original": {
-        "ref": "refs/tags/v0.12.0",
+        "ref": "refs/tags/v0.12.1",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }

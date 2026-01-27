@@ -40,34 +40,30 @@ in {
   # ============================================================================
   # DASHBOARD SERVICE (manual configuration to avoid module conflict)
   # ============================================================================
-  #
-  # NOTE: Disabled - upstream budgey-assistant-dashboard v0.4.1 package is still
-  # incomplete (missing pages/ and components/ subdirectories in installed package).
-  # See: https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard/issues/3
-  #
-  # systemd.services.budgey-assistant-dashboard = {
-  #   description = "Budgey Assistant Analytics Dashboard";
-  #   wantedBy = ["multi-user.target"];
-  #   after = ["network.target" "postgresql.service"];
-  #   wants = ["postgresql.service"];
-  #
-  #   serviceConfig = {
-  #     Type = "simple";
-  #     ExecStart = "${dashboardPkg}/bin/budgey-dashboard --host 127.0.0.1 --port 8889";
-  #     Restart = "on-failure";
-  #     RestartSec = "5s";
-  #     EnvironmentFile = config.age.secrets.chassis_budgey_assistant_dashboard_env.path;
-  #     User = "budgey-assistant";
-  #     Group = "budgey-assistant";
-  #     NoNewPrivileges = true;
-  #     ProtectSystem = "strict";
-  #     ProtectHome = true;
-  #     PrivateTmp = true;
-  #     ProtectKernelTunables = true;
-  #     ProtectKernelModules = true;
-  #     ProtectControlGroups = true;
-  #   };
-  # };
+
+  systemd.services.budgey-assistant-dashboard = {
+    description = "Budgey Assistant Analytics Dashboard";
+    wantedBy = ["multi-user.target"];
+    after = ["network.target" "postgresql.service"];
+    wants = ["postgresql.service"];
+
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${dashboardPkg}/bin/budgey-dashboard --host 127.0.0.1 --port 8889";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      EnvironmentFile = config.age.secrets.chassis_budgey_assistant_dashboard_env.path;
+      User = "budgey-assistant";
+      Group = "budgey-assistant";
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+    };
+  };
 
   # ============================================================================
   # INGEST TOOLS (using upstream module)
@@ -120,23 +116,56 @@ in {
       embedModel = "nomic-embed-text";
     };
 
-    # Ingestion - run 45 minutes after extraction
-    ingest = {
-      enable = true;
-      schedule = "*-*-* *:45:00";
-      database = {
-        host = "/run/postgresql";
-        name = "budgey_assistant";
-        user = "budgey_assistant";
-        createLocally = false; # Using our own postgres.nix setup
-      };
-      batchSize = 100;
-    };
+    # Ingestion - DISABLED (using manual override below for proper DATABASE_URL)
+    ingest.enable = false;
 
     # Weaviate for vector search
     weaviate = {
       enable = true;
       host = "localhost:8080";
+    };
+  };
+
+  # ============================================================================
+  # INGEST SERVICE (manual - upstream module has broken URL construction)
+  # ============================================================================
+
+  # Manual ingest service using environment file with proper DATABASE_URL
+  systemd.services.budgey-ingest = {
+    description = "Budgey PostgreSQL ingestion service";
+    after = ["network.target" "postgresql.service"];
+    wants = ["postgresql.service"];
+
+    serviceConfig = {
+      Type = "oneshot";
+      # Use shell wrapper to read DATABASE_URL from env file
+      ExecStart = pkgs.writeShellScript "budgey-ingest-wrapper" ''
+        exec ${ingestTools.all-tools}/bin/budgey-ingest load \
+          -archive ${archiveDir} \
+          -database "$BUDGEY_DATABASE_URL" \
+          -batch-size 100 \
+          -weaviate-host "$BUDGEY_WEAVIATE_HOST" \
+          -weaviate-scheme "$BUDGEY_WEAVIATE_SCHEME" \
+          -weaviate-api-key "$BUDGEY_WEAVIATE_API_KEY"
+      '';
+      User = "budgey-assistant";
+      Group = "budgey-assistant";
+      EnvironmentFile = config.age.secrets.chassis_budgey_assistant_env.path;
+      StateDirectory = "budgey-assistant";
+    };
+
+    environment = {
+      HOME = stateDir;
+    };
+  };
+
+  # Ingest timer - run 45 minutes after extraction
+  systemd.timers.budgey-ingest = {
+    description = "Budgey PostgreSQL ingestion timer";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnCalendar = "*-*-* *:45:00";
+      Persistent = true;
     };
   };
 

@@ -25,13 +25,20 @@
       }
     ];
 
+    # Identity mapping for peer auth (system user -> db user)
+    identMap = ''
+      # MAPNAME       SYSTEM-USERNAME   PG-USERNAME
+      budgey_map      budgey-assistant  budgey_assistant
+    '';
+
     # Authentication:
-    # - Local Unix socket: postgres admin only
+    # - Local Unix socket: postgres admin + budgey services (peer auth)
     # - TCP connections: password auth for all services
     authentication = pkgs.lib.mkOverride 10 ''
       # TYPE  DATABASE        USER            ADDRESS                 METHOD
-      # Local socket connections - postgres admin only
+      # Local socket connections - peer auth for postgres and budgey services
       local   all             postgres                                peer
+      local   budgey_assistant budgey_assistant                        peer map=budgey_map
       # TCP connections from localhost (password auth for budgey services)
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
