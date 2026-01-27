@@ -16,19 +16,14 @@
   config,
   pkgs,
   flake,
-  lib,
   ...
 }: let
   # Packages from flake inputs
   ingestTools = flake.inputs.budgey-assistant-ingest-tools.packages.${pkgs.system};
   dashboardPkg = flake.inputs.budgey-assistant-dashboard.packages.${pkgs.system}.default;
 
-  # Archive repository URL
-  archiveRepo = "git@forge.meskill.farm:iamruinous/assistant-sessions-archive.git";
-
   # State directory for all budgey-assistant data
   stateDir = "/var/lib/budgey-assistant";
-  archiveDir = "${stateDir}/archive";
 in {
   imports = [
     # Import upstream NixOS module for ingest tools
@@ -66,7 +61,7 @@ in {
   };
 
   # ============================================================================
-  # INGEST TOOLS (using upstream module)
+  # INGEST TOOLS (using upstream module v0.14.0+)
   # ============================================================================
 
   services.budgey = {
@@ -75,8 +70,18 @@ in {
     user = "budgey-assistant";
     group = "budgey-assistant";
     createUser = false; # We create our own user below with SSH access
-    archivePath = archiveDir;
     hostName = "chassis";
+
+    # Archive configuration (v0.14.0+)
+    archive = {
+      mode = "git";
+      path = "${stateDir}/archive";
+      git = {
+        url = "ssh://git@forge.meskill.farm/iamruinous/assistant-sessions-archive.git";
+        branch = "main";
+        sshKeyFile = config.age.secrets.chassis_budgey_assistant_deploy_key.path;
+      };
+    };
 
     git = {
       autoCommit = true;
@@ -116,8 +121,18 @@ in {
       embedModel = "nomic-embed-text";
     };
 
-    # Ingestion - DISABLED (using manual override below for proper DATABASE_URL)
-    ingest.enable = false;
+    # Ingestion with upstream migrations (v0.13.0+)
+    ingest = {
+      enable = true;
+      schedule = "*-*-* *:45:00";
+      runMigrations = true;
+      database = {
+        host = "/run/postgresql"; # Unix socket
+        name = "budgey_assistant";
+        user = "budgey_assistant";
+        createLocally = false; # We manage database in postgres.nix
+      };
+    };
 
     # Weaviate for vector search
     weaviate = {
@@ -126,90 +141,7 @@ in {
     };
   };
 
-  # ============================================================================
-  # INGEST SERVICE (manual - upstream module has broken URL construction)
-  # ============================================================================
-
-  # Manual ingest service using environment file with proper DATABASE_URL
-  systemd.services.budgey-ingest = {
-    description = "Budgey PostgreSQL ingestion service";
-    after = ["network.target" "postgresql.service"];
-    wants = ["postgresql.service"];
-
-    serviceConfig = {
-      Type = "oneshot";
-      # Use shell wrapper to read DATABASE_URL from env file
-      ExecStart = pkgs.writeShellScript "budgey-ingest-wrapper" ''
-        exec ${ingestTools.all-tools}/bin/budgey-ingest load \
-          -archive ${archiveDir} \
-          -database "$BUDGEY_DATABASE_URL" \
-          -batch-size 100 \
-          -weaviate-host "$BUDGEY_WEAVIATE_HOST" \
-          -weaviate-scheme "$BUDGEY_WEAVIATE_SCHEME" \
-          -weaviate-api-key "$BUDGEY_WEAVIATE_API_KEY"
-      '';
-      User = "budgey-assistant";
-      Group = "budgey-assistant";
-      EnvironmentFile = config.age.secrets.chassis_budgey_assistant_env.path;
-      StateDirectory = "budgey-assistant";
-    };
-
-    environment = {
-      HOME = stateDir;
-    };
-  };
-
-  # Ingest timer - run 45 minutes after extraction
-  systemd.timers.budgey-ingest = {
-    description = "Budgey PostgreSQL ingestion timer";
-    wantedBy = ["timers.target"];
-    timerConfig = {
-      OnCalendar = "*-*-* *:45:00";
-      Persistent = true;
-    };
-  };
-
-  # ============================================================================
-  # ARCHIVE SYNC SERVICE (custom - not in upstream module)
-  # ============================================================================
-
-  # Archive sync - pull latest from remote, push local changes
-  # This runs before and after the pipeline to keep the archive in sync
-  systemd.services.budgey-assistant-sync = {
-    description = "Budgey Assistant - Sync Archive Repository";
-    after = ["network.target"];
-
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "budgey-sync" ''
-        set -euo pipefail
-        cd ${archiveDir}
-
-        # Initialize if not a git repo yet
-        if [ ! -d ".git" ]; then
-          ${pkgs.git}/bin/git clone ${archiveRepo} .
-          ${pkgs.git}/bin/git config user.email "budgey@chassis.meskill.farm"
-          ${pkgs.git}/bin/git config user.name "Budgey Assistant"
-        fi
-
-        # Pull latest
-        ${pkgs.git}/bin/git pull --rebase || true
-
-        # Add and commit any new files
-        ${pkgs.git}/bin/git add -A
-        if ! ${pkgs.git}/bin/git diff --cached --quiet; then
-          ${pkgs.git}/bin/git commit -m "chore: sync sessions from chassis $(date -Iseconds)"
-        fi
-
-        # Push changes
-        ${pkgs.git}/bin/git push || true
-      '';
-      User = "budgey-assistant";
-      Group = "budgey-assistant";
-      StateDirectory = "budgey-assistant";
-      ReadWritePaths = [stateDir];
-    };
-  };
+  # Archive sync is now handled by upstream budgey-archive-init.service (v0.14.0+)
 
   # ============================================================================
   # USER AND PERMISSIONS
@@ -226,10 +158,9 @@ in {
 
   users.groups.budgey-assistant = {};
 
-  # Ensure state directory exists
+  # Ensure state directory exists (archive dir is managed by upstream module)
   systemd.tmpfiles.rules = [
     "d ${stateDir} 0755 budgey-assistant budgey-assistant -"
-    "d ${archiveDir} 0755 budgey-assistant budgey-assistant -"
   ];
 
   # ============================================================================
@@ -245,6 +176,13 @@ in {
 
   age.secrets.chassis_budgey_assistant_dashboard_env = {
     rekeyFile = ./files/budgey-assistant/dashboard.env.age;
+    mode = "400";
+    owner = "budgey-assistant";
+    group = "budgey-assistant";
+  };
+
+  age.secrets.chassis_budgey_assistant_deploy_key = {
+    rekeyFile = ./files/budgey-assistant/deploy-key.age;
     mode = "400";
     owner = "budgey-assistant";
     group = "budgey-assistant";
