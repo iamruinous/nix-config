@@ -38,18 +38,24 @@
   archivePath = "${stateDir}/archive";
 
   # Wrapper script for budgey-migrate that properly reads password file
+  # URL-encodes the password to handle special characters like / + =
   migrateWrapper = pkgs.writeShellScript "budgey-migrate-wrapper" ''
     set -euo pipefail
     PASSWORD=$(cat ${dbPasswordFile})
-    export DATABASE_URL="postgres://${dbUser}:$PASSWORD@${dbHost}:${toString dbPort}/${dbName}"
+    # URL-encode the password (handles / + = and other special chars)
+    ENCODED_PASSWORD=$(${pkgs.python3}/bin/python3 -c "import urllib.parse; import sys; print(urllib.parse.quote(sys.argv[1], safe=str()))" "$PASSWORD")
+    export DATABASE_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}"
     exec ${ingestTools.all-tools}/bin/budgey-migrate up
   '';
 
   # Wrapper script for budgey-ingest that properly reads password file
+  # URL-encodes the password to handle special characters like / + =
   ingestWrapper = pkgs.writeShellScript "budgey-ingest-wrapper" ''
     set -euo pipefail
     PASSWORD=$(cat ${dbPasswordFile})
-    DB_URL="postgres://${dbUser}:$PASSWORD@${dbHost}:${toString dbPort}/${dbName}"
+    # URL-encode the password (handles / + = and other special chars)
+    ENCODED_PASSWORD=$(${pkgs.python3}/bin/python3 -c "import urllib.parse; import sys; print(urllib.parse.quote(sys.argv[1], safe=str()))" "$PASSWORD")
+    DB_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}"
     exec ${ingestTools.all-tools}/bin/budgey-ingest load \
       -archive ${archivePath} \
       -database "$DB_URL" \
