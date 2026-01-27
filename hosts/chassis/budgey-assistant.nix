@@ -50,6 +50,7 @@
 
   # Wrapper script for budgey-ingest that properly reads password file
   # URL-encodes the password to handle special characters like / + =
+  # Note: Weaviate disabled for now - needs API key auth which isn't supported by CLI
   ingestWrapper = pkgs.writeShellScript "budgey-ingest-wrapper" ''
     set -euo pipefail
     PASSWORD=$(cat ${dbPasswordFile})
@@ -59,8 +60,7 @@
     exec ${ingestTools.all-tools}/bin/budgey-ingest load \
       -archive ${archivePath} \
       -database "$DB_URL" \
-      -batch-size 100 \
-      -weaviate-host localhost:8080
+      -batch-size 100
   '';
 in {
   imports = [
@@ -176,9 +176,10 @@ in {
     };
 
     # Weaviate for vector search
+    # Disabled: Weaviate on chassis has API key auth enabled, but the CLI doesn't support it
     weaviate = {
-      enable = true;
-      host = "localhost:8080";
+      enable = false;
+      # host = "localhost:8080";
     };
   };
 
