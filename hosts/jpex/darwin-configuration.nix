@@ -12,5 +12,7 @@
   users.users.jmeskill.uid = 501;
   system.primaryUser = "jmeskill";
 
+  homebrew.onActivation.cleanup = "none";
+
   system.stateVersion = 6;
 }
