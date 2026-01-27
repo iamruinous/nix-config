@@ -77,7 +77,7 @@ in {
       mode = "git";
       path = "${stateDir}/archive";
       git = {
-        url = "ssh://git@forge.meskill.farm/iamruinous/assistant-sessions-archive.git";
+        url = "ssh://git@forge.meskill.farm/iamruinous/assistant-session-archive.git";
         branch = "main";
         sshKeyFile = config.age.secrets.chassis_budgey_assistant_deploy_key.path;
       };
