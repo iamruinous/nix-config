@@ -17,6 +17,8 @@
     # ssh agent forwarding
     openssh.remote.forwarding.enable = true;
 
+    homebrew.onActivation.cleanup = "none";
+
     # enable opencode with default configuration
     ruinage = {
       enable = true;
