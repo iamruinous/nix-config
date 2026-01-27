@@ -43,17 +43,21 @@
   ) opencodeProjects;
   
   # Add ruinagents-docs static site
+  # NOTE: ruinagents docs come from flake input. Once ruinagents is updated to
+  # generate .etag files, change this to use etag_file_extensions .etag
   ruinagentsDocsHost = {
     "agents.ruinous.ai" = {
       extraConfig = ''
         root * ${ruinagentsDocs}
         file_server {
           precompressed gzip
+          # Read ETags from .etag sidecar files (generated during Nix build)
+          # This solves the Nix store mtime=1 problem where ETags don't change
+          etag_file_extensions .etag
         }
         encode gzip
         try_files {path} {path}/ /index.html
 
-        # Cache busting: HTML files get short cache, assets get long cache with ETag
         @html {
           path *.html /
         }
@@ -68,10 +72,10 @@
           Referrer-Policy "strict-origin-when-cross-origin"
         }
 
-        # HTML: no-store (never cache - Nix store files have fixed timestamps so ETags don't change between deployments)
-        header @html Cache-Control "no-store"
+        # HTML: short cache with revalidation (ETags from .etag files ensure freshness)
+        header @html Cache-Control "public, max-age=60, must-revalidate"
 
-        # Assets: cache for 1 hour, but revalidate with ETag
+        # Assets: longer cache with revalidation
         header @assets Cache-Control "public, max-age=3600, must-revalidate"
       '';
     };
@@ -79,6 +83,7 @@
 
   # Ruinage aggregated documentation site (from home-manager ruinage.docs module)
   # Aggregated package in Nix store with symlinks to all project docs
+  # Each project's docs package should include .etag sidecar files for cache busting
   ruinageDocsPackage = config.home-manager.users.jmeskill.ruinous.ruinage.docs.package;
   ruinageDocsHost = {
     "docs.ruinage.ai" = {
@@ -86,11 +91,13 @@
         root * ${ruinageDocsPackage}
         file_server {
           precompressed gzip
+          # Read ETags from .etag sidecar files (generated during Nix build)
+          # This solves the Nix store mtime=1 problem where ETags don't change
+          etag_file_extensions .etag
         }
         encode gzip
         try_files {path} {path}/ {path}/index.html /index.html
 
-        # Cache busting: HTML files get short cache, assets get long cache with ETag
         @html {
           path *.html /
         }
@@ -105,20 +112,29 @@
           Referrer-Policy "strict-origin-when-cross-origin"
         }
 
-        # HTML: no-store (never cache - Nix store files have fixed timestamps so ETags don't change between deployments)
-        header @html Cache-Control "no-store"
+        # HTML: short cache with revalidation (ETags from .etag files ensure freshness)
+        header @html Cache-Control "public, max-age=60, must-revalidate"
 
-        # Assets: cache for 1 hour, but revalidate with ETag
+        # Assets: longer cache with revalidation
         header @assets Cache-Control "public, max-age=3600, must-revalidate"
       '';
     };
   };
 
-  # Budgey Dashboard - public token analytics dashboard
+  # Budgey Dashboard - public token analytics dashboard (old budgey-extractor)
   budgeyDashboardHost = {
     "budgey.ruinous.ai" = {
       extraConfig = ''
         reverse_proxy http://localhost:8888
+      '';
+    };
+  };
+
+  # Budgey Assistant Dashboard - multi-CLI analytics dashboard (new budgey-assistant)
+  budgeyAssistantDashboardHost = {
+    "assistants.dashboard.ruinage.ai" = {
+      extraConfig = ''
+        reverse_proxy http://localhost:8889
       '';
     };
   };
@@ -153,8 +169,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey dashboard, ruinage docs, and weaviate
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyDashboardHost // weaviateHost;
+    # Merge OpenCode projects, docs sites, budgey dashboards, ruinage docs, and weaviate
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyDashboardHost // budgeyAssistantDashboardHost // weaviateHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)

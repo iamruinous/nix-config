@@ -130,7 +130,7 @@ Each task includes specific `curl`, `psql`, or `systemctl` commands to verify.
 
 ## TODOs
 
-- [ ] 1. Provision PostgreSQL database `budgey_assistant`
+- [x] 1. Provision PostgreSQL database `budgey_assistant`
 
   **What to do**:
   - Edit `hosts/chassis/postgres.nix`

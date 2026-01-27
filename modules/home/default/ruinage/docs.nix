@@ -185,13 +185,18 @@ with lib; let
 
   # Create aggregated docs package with symlinks to all project docs
   # This package lives in the Nix store and is accessible by Caddy
+  # Note: Symlinks preserve ETags from source packages
   aggregatedDocs = pkgs.runCommand "ruinage-docs-aggregated" {} ''
     mkdir -p $out
 
-    # Symlink index page
-    ln -s ${indexHtml} $out/index.html
+    # Copy index page (not symlink, so we can generate its ETag)
+    cp ${indexHtml} $out/index.html
 
-    # Symlink each project's docs
+    # Generate ETag for index.html (RFC 7232 requires quoted hash)
+    hash=$(${pkgs.coreutils}/bin/sha256sum $out/index.html | ${pkgs.coreutils}/bin/cut -d' ' -f1)
+    echo "\"$hash\"" > $out/index.html.etag
+
+    # Symlink each project's docs (preserves their ETags)
     ${concatMapStringsSep "\n" (name: let
       docsPackage = allDocsPackages.${name};
     in ''

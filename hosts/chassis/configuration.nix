@@ -13,6 +13,7 @@
     ./caddy.nix
     ./postgres.nix
     ./budgey-dashboard.nix
+    ./budgey-assistant.nix
     ./weaviate.nix
     ./ollama.nix
   ];
