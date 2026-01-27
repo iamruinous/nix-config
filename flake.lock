@@ -168,16 +168,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769491592,
-        "narHash": "sha256-9C59R44SVNdFYltU7fwEinQB6N8Y5N/6bn4dTlAqmvs=",
-        "ref": "refs/tags/v0.4.0",
-        "rev": "41776f66137dfa165ff50522e4c872a5c28f7f80",
-        "revCount": 22,
+        "lastModified": 1769496846,
+        "narHash": "sha256-JWd5xsF//p+mqqMnCLowL1NTqdHO6tBWYOst8bIpViM=",
+        "ref": "refs/tags/v0.4.1",
+        "rev": "f188a98f2d303ea750860a301b619732a9c265e5",
+        "revCount": 24,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       },
       "original": {
-        "ref": "refs/tags/v0.4.0",
+        "ref": "refs/tags/v0.4.1",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       }

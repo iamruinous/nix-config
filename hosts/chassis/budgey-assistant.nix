@@ -41,23 +41,15 @@ in {
   # DASHBOARD SERVICE (manual configuration to avoid module conflict)
   # ============================================================================
   #
-  # NOTE: Temporarily disabled - upstream budgey-assistant-dashboard v0.4.0 package
-  # is broken (doesn't include dependencies like ludic in PYTHONPATH).
-  # TODO: Re-enable after upstream fix or create proper wrapper.
+  # NOTE: Disabled - upstream budgey-assistant-dashboard v0.4.1 package is still
+  # incomplete (missing pages/ and components/ subdirectories in installed package).
+  # See: https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard/issues/3
   #
   # systemd.services.budgey-assistant-dashboard = {
   #   description = "Budgey Assistant Analytics Dashboard";
   #   wantedBy = ["multi-user.target"];
   #   after = ["network.target" "postgresql.service"];
   #   wants = ["postgresql.service"];
-  #
-  #   environment = {
-  #     HOST = "127.0.0.1";
-  #     PORT = "8889";
-  #     PYTHONPATH = "${dashboardPkg}/lib/python3.14/site-packages";
-  #   };
-  #
-  #   path = [pkgs.bash];
   #
   #   serviceConfig = {
   #     Type = "simple";
