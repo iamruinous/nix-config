@@ -1,4 +1,9 @@
-{flake, pkgs, ...}: {
+{
+  config,
+  flake,
+  pkgs,
+  ...
+}: {
   imports = [
     flake.homeModules.default
     flake.homeModules.darwin
@@ -23,8 +28,37 @@
     openssh.remote.forwarding.enable = true;
 
     # enable opencode with default configuration
-    ruinage.enable = true;
-    ruinage.assistants.opencode.enable = true;
+    ruinage = {
+      enable = true;
+
+      # Global OpenCode configuration
+      assistants.opencode = {
+        enable = true;
+        # model, plugins, mcpServers, providers inherited from defaults
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Claude Code configuration
+      assistants.claude-code = {
+        enable = true;
+        # model, plugins, mcpServers, providers inherited from defaults
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Codex configuration
+      assistants.codex = {
+        enable = true;
+        # model, plugins, mcpServers, providers inherited from defaults
+        harnesses.ruinagents.enable = true;
+      };
+
+      # Global Gemini configuration
+      assistants.gemini = {
+        enable = true;
+        # model, plugins, mcpServers, providers inherited from defaults
+        harnesses.ruinagents.enable = true;
+      };
+    };
   };
 
   # Budgey assistant session extractors (upstream module v0.16.0+)
@@ -37,8 +71,11 @@
 
     archive = {
       mode = "git";
-      git.url = "ssh://git@forge.meskill.farm/iamruinous/assistant-session-archive.git";
-      # Uses SSH agent for authentication (no explicit key needed)
+      git = {
+        url = "ssh://git@forge.meskill.farm/iamruinous/assistant-session-archive.git";
+        # Deploy key shared with chassis for non-interactive git operations
+        sshKeyFile = config.age.secrets.budgey_deploy_key.path;
+      };
     };
 
     git = {
@@ -66,6 +103,13 @@
   xdg.configFile."aerospace/aerospace.toml".source = ./aerospace.toml;
 
   programs.wezterm.enable = true;
+
+  # Budgey deploy key for git archive push (shared with chassis)
+  age.secrets.budgey_deploy_key = {
+    rekeyFile = flake + /files/configs/budgey/deploy-key.age;
+    path = "${config.home.homeDirectory}/.local/share/budgey/deploy-key";
+    mode = "400";
+  };
 
   home.stateVersion = "26.05";
 }
