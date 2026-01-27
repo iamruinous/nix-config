@@ -19,11 +19,10 @@
   homebrew = {
     enable = pkgs.stdenv.isDarwin;
     onActivation.autoUpdate = true;
-    onActivation.cleanup = "zap";
+    onActivation.cleanup = lib.mkDefault "zap";
     onActivation.upgrade = true;
     brews = [
       "boring"
-      "crush"
       "gemini-cli"
       "mas"
       "opencode"
@@ -70,7 +69,6 @@
       "telegram"
     ];
     taps = [
-      "charmbracelet/tap"
       "ggozad/formulas"
       "nikitabobko/tap"
     ];
