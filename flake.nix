@@ -128,7 +128,8 @@
 
     # budgey-assistant-ingest-tools - Multi-CLI session extraction and ingestion tools
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools>
-    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.12.1";
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-ingest-tools
+    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.14.0";
     budgey-assistant-ingest-tools.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
@@ -145,7 +146,7 @@
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
     # NOTE: Keep pinned to tagged version. Update with: nix flake update ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v2.7.1";
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.4.0";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository
