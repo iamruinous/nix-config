@@ -40,41 +40,42 @@ in {
   # ============================================================================
   # DASHBOARD SERVICE (manual configuration to avoid module conflict)
   # ============================================================================
-
-  systemd.services.budgey-assistant-dashboard = {
-    description = "Budgey Assistant Analytics Dashboard";
-    wantedBy = ["multi-user.target"];
-    after = ["network.target" "postgresql.service"];
-    wants = ["postgresql.service"];
-
-    environment = {
-      HOST = "127.0.0.1";
-      PORT = "8889";
-    };
-
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${dashboardPkg}/bin/budgey-dashboard --host 127.0.0.1 --port 8889";
-      Restart = "on-failure";
-      RestartSec = "5s";
-
-      # Environment file with BUDGEY_DATABASE_URL
-      EnvironmentFile = config.age.secrets.chassis_budgey_assistant_dashboard_env.path;
-
-      # Run as dedicated user
-      User = "budgey-assistant";
-      Group = "budgey-assistant";
-
-      # Security hardening
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-    };
-  };
+  #
+  # NOTE: Temporarily disabled - upstream budgey-assistant-dashboard v0.4.0 package
+  # is broken (doesn't include dependencies like ludic in PYTHONPATH).
+  # TODO: Re-enable after upstream fix or create proper wrapper.
+  #
+  # systemd.services.budgey-assistant-dashboard = {
+  #   description = "Budgey Assistant Analytics Dashboard";
+  #   wantedBy = ["multi-user.target"];
+  #   after = ["network.target" "postgresql.service"];
+  #   wants = ["postgresql.service"];
+  #
+  #   environment = {
+  #     HOST = "127.0.0.1";
+  #     PORT = "8889";
+  #     PYTHONPATH = "${dashboardPkg}/lib/python3.14/site-packages";
+  #   };
+  #
+  #   path = [pkgs.bash];
+  #
+  #   serviceConfig = {
+  #     Type = "simple";
+  #     ExecStart = "${dashboardPkg}/bin/budgey-dashboard --host 127.0.0.1 --port 8889";
+  #     Restart = "on-failure";
+  #     RestartSec = "5s";
+  #     EnvironmentFile = config.age.secrets.chassis_budgey_assistant_dashboard_env.path;
+  #     User = "budgey-assistant";
+  #     Group = "budgey-assistant";
+  #     NoNewPrivileges = true;
+  #     ProtectSystem = "strict";
+  #     ProtectHome = true;
+  #     PrivateTmp = true;
+  #     ProtectKernelTunables = true;
+  #     ProtectKernelModules = true;
+  #     ProtectControlGroups = true;
+  #   };
+  # };
 
   # ============================================================================
   # INGEST TOOLS (using upstream module)
