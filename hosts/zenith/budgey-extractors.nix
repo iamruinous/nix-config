@@ -28,9 +28,9 @@ in {
     flake.inputs.budgey-assistant-ingest-tools.nixosModules.default
   ];
 
-  # ============================================================================
-  # EXTRACTORS ONLY (using upstream module v0.15.4+)
-  # ============================================================================
+# ============================================================================
+# EXTRACTORS ONLY (using upstream module v0.15.5+)
+# ============================================================================
 
   services.budgey = {
     enable = true;
@@ -56,28 +56,26 @@ in {
       autoPush = true;
     };
 
-    # Extractors - run at :15 past the hour (staggered from chassis at :00)
-    # This reduces git push conflicts until upstream adds pull-before-push
-    # See: https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools/issues/21
+    # Extractors - run hourly (v0.15.5 adds git pull --rebase before push)
     extractors = {
       opencode = {
         enable = true;
-        schedule = "*-*-* *:15:00";
+        schedule = "hourly";
         since = "24h";
       };
       claude = {
         enable = true;
-        schedule = "*-*-* *:15:00";
+        schedule = "hourly";
         since = "24h";
       };
       codex = {
         enable = true;
-        schedule = "*-*-* *:15:00";
+        schedule = "hourly";
         since = "24h";
       };
       gemini = {
         enable = true;
-        schedule = "*-*-* *:15:00";
+        schedule = "hourly";
         since = "24h";
       };
     };

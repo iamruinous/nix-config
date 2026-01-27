@@ -23,6 +23,22 @@
     # enable opencode with default configuration
     ruinage.enable = true;
     ruinage.assistants.opencode.enable = true;
+
+    # Budgey assistant session extractors
+    # Extracts sessions hourly and pushes to shared git archive
+    # Chassis handles enrichment and ingestion
+    budgey-extractors = {
+      enable = true;
+      hostName = "jmacmini";
+      git.url = "ssh://git@forge.meskill.farm/iamruinous/assistant-session-archive.git";
+      # Uses SSH agent for authentication (no explicit key needed)
+      extractors = {
+        opencode.enable = true;
+        claude.enable = true;
+        codex.enable = true;
+        gemini.enable = true;
+      };
+    };
   };
 
   # Ensure homebrew is in the PATH
