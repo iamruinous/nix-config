@@ -129,13 +129,13 @@
     # budgey-assistant-ingest-tools - Multi-CLI session extraction and ingestion tools
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-ingest-tools
-    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.14.0";
+    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.15.1";
     budgey-assistant-ingest-tools.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-dashboard
-    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.2";
+    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.3";
     budgey-assistant-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # n8n-agent - n8n workflow automation agent
@@ -143,15 +143,20 @@
     n8n-agent.url = "git+ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git?ref=refs/tags/v0.2.0";
     n8n-agent.inputs.nixpkgs.follows = "nixpkgs";
 
-    # ruinagents - Agent definitions, docs, and skills
-    # <https://forge.meskill.farm/iamruinous/ruinagents>
-    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.4.0";
-    ruinagents.inputs.nixpkgs.follows = "nixpkgs";
+     # ruinagents - Agent definitions, docs, and skills
+     # <https://forge.meskill.farm/iamruinous/ruinagents>
+     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
+     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.4.0";
+     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Nix User Repository
-    # <https://nur.nix-community.org>
-    # nur.url = "github:nix-community/NUR";
+     # nix-clawdbot - Claude Code integration for Nix
+     # <https://github.com/clawdbot/nix-clawdbot>
+     nix-clawdbot.url = "github:clawdbot/nix-clawdbot";
+     nix-clawdbot.inputs.nixpkgs.follows = "nixpkgs";
+
+     # Nix User Repository
+     # <https://nur.nix-community.org>
+     # nur.url = "github:nix-community/NUR";
   };
 
   # Load the blueprint

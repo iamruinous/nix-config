@@ -12,10 +12,6 @@
 # Note: The dashboard is configured manually (not via module) because the
 # budgey-assistant-dashboard module conflicts with the existing budgey-dashboard
 # module (both define services.budgey-dashboard).
-#
-# WORKAROUND: The upstream module has a bug where it puts $(cat ...) in systemd
-# Environment= directives, but systemd doesn't do shell expansion there. We override
-# the migrate and ingest services to use wrapper scripts instead.
 {
   config,
   pkgs,
@@ -28,40 +24,6 @@
 
   # State directory for all budgey-assistant data
   stateDir = "/var/lib/budgey-assistant";
-
-  # Database configuration
-  dbHost = "localhost";
-  dbPort = 5432;
-  dbName = "budgey_assistant";
-  dbUser = "budgey_assistant";
-  dbPasswordFile = config.age.secrets.chassis_budgey_assistant_db_password.path;
-  archivePath = "${stateDir}/archive";
-
-  # Wrapper script for budgey-migrate that properly reads password file
-  # URL-encodes the password to handle special characters like / + =
-  migrateWrapper = pkgs.writeShellScript "budgey-migrate-wrapper" ''
-    set -euo pipefail
-    PASSWORD=$(cat ${dbPasswordFile})
-    # URL-encode the password (handles / + = and other special chars)
-    ENCODED_PASSWORD=$(${pkgs.python3}/bin/python3 -c "import urllib.parse; import sys; print(urllib.parse.quote(sys.argv[1], safe=str()))" "$PASSWORD")
-    export DATABASE_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}?sslmode=disable"
-    exec ${ingestTools.all-tools}/bin/budgey-migrate up
-  '';
-
-  # Wrapper script for budgey-ingest that properly reads password file
-  # URL-encodes the password to handle special characters like / + =
-  # Note: Weaviate disabled for now - needs API key auth which isn't supported by CLI
-  ingestWrapper = pkgs.writeShellScript "budgey-ingest-wrapper" ''
-    set -euo pipefail
-    PASSWORD=$(cat ${dbPasswordFile})
-    # URL-encode the password (handles / + = and other special chars)
-    ENCODED_PASSWORD=$(${pkgs.python3}/bin/python3 -c "import urllib.parse; import sys; print(urllib.parse.quote(sys.argv[1], safe=str()))" "$PASSWORD")
-    DB_URL="postgres://${dbUser}:$ENCODED_PASSWORD@${dbHost}:${toString dbPort}/${dbName}?sslmode=disable"
-    exec ${ingestTools.all-tools}/bin/budgey-ingest load \
-      -archive ${archivePath} \
-      -database "$DB_URL" \
-      -batch-size 100
-  '';
 in {
   imports = [
     # Import upstream NixOS module for ingest tools
@@ -99,7 +61,7 @@ in {
   };
 
   # ============================================================================
-  # INGEST TOOLS (using upstream module v0.14.0+)
+  # INGEST TOOLS (using upstream module v0.15.1+)
   # ============================================================================
 
   services.budgey = {
@@ -159,8 +121,7 @@ in {
       embedModel = "nomic-embed-text";
     };
 
-    # Ingestion with upstream migrations (v0.13.0+)
-    # NOTE: Upstream module doesn't support Unix sockets, must use TCP with password
+    # Ingestion with upstream migrations (v0.15.1+)
     ingest = {
       enable = true;
       schedule = "*-*-* *:45:00";
@@ -171,32 +132,52 @@ in {
         name = "budgey_assistant";
         user = "budgey_assistant";
         passwordFile = config.age.secrets.chassis_budgey_assistant_db_password.path;
+        sslmode = "disable"; # Local PostgreSQL without SSL
         createLocally = false; # We manage database in postgres.nix
       };
     };
 
     # Weaviate for vector search
-    # Disabled: Weaviate on chassis has API key auth enabled, but the CLI doesn't support it
+    # TODO: Enable once we create a separate API key secret file for the client
+    # The server's API key is in chassis_weaviate_env, but we need a plain-text file
+    # containing just the key value for the weaviate.apiKeyFile option (added in v0.15.0)
     weaviate = {
       enable = false;
       # host = "localhost:8080";
+      # apiKeyFile = config.age.secrets.chassis_budgey_weaviate_api_key.path;
     };
   };
 
-  # Archive sync is now handled by upstream budgey-archive-init.service (v0.14.0+)
+  # Archive sync handled by upstream budgey-archive-init.service
+  # All fixes integrated in v0.15.1: passwordFile, sslmode, Claude session_id
 
   # ============================================================================
-  # SERVICE OVERRIDES (workaround for upstream passwordFile bug)
+  # EXTRACTOR SERVICE OVERRIDES
   # ============================================================================
-  # The upstream module puts $(cat ...) in systemd Environment= directives,
-  # but systemd doesn't do shell expansion there. Override with wrapper scripts.
+  # Run extractors as jmeskill (who owns the session data) instead of budgey-assistant.
+  # This avoids permission issues with reading ~/.claude, ~/.codex, etc.
+  # The archive directory is made group-writable so jmeskill can write to it.
+  # See: https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools/issues/15
 
-  systemd.services.budgey-migrate.serviceConfig.ExecStart = pkgs.lib.mkForce migrateWrapper;
-  systemd.services.budgey-migrate.serviceConfig.Environment = pkgs.lib.mkForce [
-    "HOME=${stateDir}"
-  ];
+  systemd.services.budgey-extract-claude.serviceConfig = {
+    User = pkgs.lib.mkForce "jmeskill";
+    Group = pkgs.lib.mkForce "budgey-assistant";
+  };
 
-  systemd.services.budgey-ingest.serviceConfig.ExecStart = pkgs.lib.mkForce ingestWrapper;
+  systemd.services.budgey-extract-opencode.serviceConfig = {
+    User = pkgs.lib.mkForce "jmeskill";
+    Group = pkgs.lib.mkForce "budgey-assistant";
+  };
+
+  systemd.services.budgey-extract-codex.serviceConfig = {
+    User = pkgs.lib.mkForce "jmeskill";
+    Group = pkgs.lib.mkForce "budgey-assistant";
+  };
+
+  systemd.services.budgey-extract-gemini.serviceConfig = {
+    User = pkgs.lib.mkForce "jmeskill";
+    Group = pkgs.lib.mkForce "budgey-assistant";
+  };
 
   # ============================================================================
   # USER AND PERMISSIONS
@@ -211,11 +192,16 @@ in {
     openssh.authorizedKeys.keys = [];
   };
 
+  # Add jmeskill to budgey-assistant group for archive write access
+  users.users.jmeskill.extraGroups = ["budgey-assistant"];
+
   users.groups.budgey-assistant = {};
 
-  # Ensure state directory exists (archive dir is managed by upstream module)
+  # Ensure state directory exists with group-write access for extractors
+  # Extractors run as jmeskill (to read session data) but need to write to archive
   systemd.tmpfiles.rules = [
-    "d ${stateDir} 0755 budgey-assistant budgey-assistant -"
+    "d ${stateDir} 0775 budgey-assistant budgey-assistant -"
+    "d ${stateDir}/archive 0775 budgey-assistant budgey-assistant -"
   ];
 
   # ============================================================================
