@@ -168,15 +168,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769440997,
-        "narHash": "sha256-fqECcltyZ/3vrUfHKX2dqGR86EF8A16LZtNk99nPOYs=",
-        "ref": "refs/heads/main",
-        "rev": "026322f0fa3b4e8d54cbd66a344301814e4a5f4b",
-        "revCount": 15,
+        "lastModified": 1769497276,
+        "narHash": "sha256-nJ+P8PrBivvGZHKTpbcTcdQ9qVe2+pIpm4OrGMw+hec=",
+        "ref": "refs/tags/v0.4.2",
+        "rev": "4f3b0f72b1c256591ac87f620d048373adb63b44",
+        "revCount": 26,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       },
       "original": {
+        "ref": "refs/tags/v0.4.2",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       }
@@ -189,16 +190,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769406312,
-        "narHash": "sha256-9LfXzCbhb9wxK67giDbz0JT3gCnj85Lls1NCncBLbts=",
-        "ref": "refs/tags/v0.11.0",
-        "rev": "9566b32320f3f13d435323ed16f2ee4b8f9aa8dd",
-        "revCount": 46,
+        "lastModified": 1769498246,
+        "narHash": "sha256-mH2jakEotMzRNENxwPqU/i8hc/c7lw0YfLhQdf4y5zM=",
+        "ref": "refs/tags/v0.12.1",
+        "rev": "0e4113788371611aa25899779d777647db7be043",
+        "revCount": 53,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       },
       "original": {
-        "ref": "refs/tags/v0.11.0",
+        "ref": "refs/tags/v0.12.1",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }
@@ -225,22 +226,6 @@
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
       }
     },
-    "budgey-dashboard_2": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1769024493,
-        "narHash": "sha256-agYHn5B1R3SGPPxqiaIDySLQPXfP3pFgJkKqvggGEVI=",
-        "ref": "refs/heads/main",
-        "rev": "d8e13dfb894d9c45bd2ff3523439ab36296e27a1",
-        "revCount": 65,
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
-      }
-    },
     "budgey-extractor": {
       "inputs": {
         "flake-utils": "flake-utils_4",
@@ -261,22 +246,6 @@
         "ref": "refs/tags/v0.7.2",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git"
-      }
-    },
-    "budgey-extractor_2": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1769229134,
-        "narHash": "sha256-oJW7eNdvwa+di70hFUd/fJsF8bWmQNhKPl+IF9KML/A=",
-        "ref": "refs/heads/main",
-        "rev": "675b7d3427d01b79a81a92d2e1b8fb0b354d0275",
-        "revCount": 58,
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-extractor.git"
       }
     },
     "crane": {
@@ -1536,54 +1505,6 @@
         "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git"
       }
     },
-    "n8n-agent_2": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1769230282,
-        "narHash": "sha256-0aDiqhAVmrtom1Q3v7GWYfncmtXT12W2PB56TvQ6LkA=",
-        "ref": "refs/heads/main",
-        "rev": "305fe70ff2ff1281a9db996d489c2c6866752245",
-        "revCount": 1042,
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git"
-      }
-    },
-    "n8n-messy-discord-bot": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1768949426,
-        "narHash": "sha256-+k2p+cOhA10ZJk86L0NLrprHuVIgD1uHoyCFppvNKIc=",
-        "ref": "refs/heads/main",
-        "rev": "5cb73f542ba9b53f882ade5e8654cc744401e261",
-        "revCount": 19,
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-messy-discord-bot.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-messy-discord-bot.git"
-      }
-    },
-    "nix-config": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1769228849,
-        "narHash": "sha256-KOxdvsqfQSJLp3Q4C967EOJR83x6VJSwkp3lKpmsa6Y=",
-        "owner": "iamruinous",
-        "repo": "nix-config",
-        "rev": "3cf4bcacd84c3ae4781b38f4f9080c8272d111e0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "iamruinous",
-        "repo": "nix-config",
-        "type": "github"
-      }
-    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -2102,27 +2023,22 @@
     },
     "ruinagents": {
       "inputs": {
-        "budgey-dashboard": "budgey-dashboard_2",
-        "budgey-extractor": "budgey-extractor_2",
         "flake-utils": "flake-utils_6",
-        "n8n-agent": "n8n-agent_2",
-        "n8n-messy-discord-bot": "n8n-messy-discord-bot",
-        "nix-config": "nix-config",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1769389733,
-        "narHash": "sha256-SiUm1wulzL6MN8nEcQxMwwc0mS/Tl/YgvT8GDr/tkJ4=",
-        "ref": "refs/tags/v2.2.0",
-        "rev": "e751be2560fe70346f1786a5cc066c15a32faed6",
-        "revCount": 117,
+        "lastModified": 1769483342,
+        "narHash": "sha256-OzJxC83OW52SX0RwYE4O7xHwD72Ts74ckMy7CwBTMKc=",
+        "ref": "refs/tags/v2.7.1",
+        "rev": "0527018904deb79e1b49706d8c6c4f1aa9ad13b5",
+        "revCount": 146,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       },
       "original": {
-        "ref": "refs/tags/v2.2.0",
+        "ref": "refs/tags/v2.7.1",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       }
