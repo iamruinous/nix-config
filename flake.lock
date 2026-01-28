@@ -127,7 +127,7 @@
           "llm-agents",
           "nixpkgs"
         ],
-        "systems": "systems_9"
+        "systems": "systems_8"
       },
       "locked": {
         "lastModified": 1769353768,
@@ -162,29 +162,30 @@
     },
     "budgey-assistant-dashboard": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "budgey-ingest-tools": "budgey-ingest-tools",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1769504883,
-        "narHash": "sha256-CmWJJlVR5tKejDp1guKKG+W+qSOSsiRxrzq9VlsK5BE=",
-        "ref": "refs/tags/v0.4.3",
-        "rev": "0f80626d4bcc923e757e98609a0b6cc78b5dc84c",
-        "revCount": 28,
+        "lastModified": 1769570034,
+        "narHash": "sha256-p13CQ64ddhVKWlXjs/G0kuNHsRAfOQ7tJuA7k5BduWk=",
+        "ref": "refs/tags/v0.4.5",
+        "rev": "394df5aac08365a2f9d944d12a3a9f0976c9846d",
+        "revCount": 32,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       },
       "original": {
-        "ref": "refs/tags/v0.4.3",
+        "ref": "refs/tags/v0.4.5",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       }
     },
     "budgey-assistant-ingest-tools": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -204,48 +205,26 @@
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }
     },
-    "budgey-dashboard": {
+    "budgey-ingest-tools": {
       "inputs": {
-        "flake-utils": "flake-utils_3",
+        "flake-utils": "flake-utils",
         "nixpkgs": [
+          "budgey-assistant-dashboard",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1768979236,
-        "narHash": "sha256-7u1lytcSbs0ORlNyRKpimVO9waCbapCDpZTQbAnx+tc=",
-        "ref": "refs/tags/v0.7.2",
-        "rev": "0d07fd67e7bff447fd18bb6b6d27b8bca61cdecb",
-        "revCount": 57,
+        "lastModified": 1769558834,
+        "narHash": "sha256-ykmhT3VBkp7S9IXzoa/ffEq4lZwDfZCztHn6tSHn7o8=",
+        "ref": "refs/heads/main",
+        "rev": "c5bd2bea3f9adce41b7ca80815b13e984de53efa",
+        "revCount": 84,
         "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
+        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       },
       "original": {
-        "ref": "refs/tags/v0.7.2",
         "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git"
-      }
-    },
-    "budgey-extractor": {
-      "inputs": {
-        "flake-utils": "flake-utils_4",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1769233418,
-        "narHash": "sha256-DoPw17Oxhkir8w2XYv84axA94ZjIxJgniuZjol53dtY=",
-        "ref": "refs/tags/v0.7.2",
-        "rev": "977d4e1844b2c8a1ed335835689d08373178c372",
-        "revCount": 61,
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git"
-      },
-      "original": {
-        "ref": "refs/tags/v0.7.2",
-        "type": "git",
-        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git"
+        "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }
     },
     "crane": {
@@ -629,7 +608,7 @@
     },
     "flake-utils_4": {
       "inputs": {
-        "systems": "systems_6"
+        "systems": "systems_9"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -683,25 +662,7 @@
     },
     "flake-utils_7": {
       "inputs": {
-        "systems": "systems_12"
-      },
-      "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "flake-utils_8": {
-      "inputs": {
-        "systems": "systems_14"
+        "systems": "systems_13"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -1014,7 +975,7 @@
         "hyprwire": "hyprwire",
         "nixpkgs": "nixpkgs_2",
         "pre-commit-hooks": "pre-commit-hooks_2",
-        "systems": "systems_8",
+        "systems": "systems_7",
         "xdph": "xdph"
       },
       "locked": {
@@ -1150,7 +1111,7 @@
           "hyprutils"
         ],
         "nixpkgs": "nixpkgs",
-        "systems": "systems_7"
+        "systems": "systems_6"
       },
       "locked": {
         "lastModified": 1762461912,
@@ -1524,7 +1485,7 @@
     },
     "n8n-agent": {
       "inputs": {
-        "flake-utils": "flake-utils_5",
+        "flake-utils": "flake-utils_4",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -1546,7 +1507,7 @@
     },
     "nix-clawdbot": {
       "inputs": {
-        "flake-utils": "flake-utils_6",
+        "flake-utils": "flake-utils_5",
         "home-manager": "home-manager_5",
         "nix-steipete-tools": "nix-steipete-tools",
         "nixpkgs": [
@@ -2088,8 +2049,6 @@
         "blueprint": "blueprint",
         "budgey-assistant-dashboard": "budgey-assistant-dashboard",
         "budgey-assistant-ingest-tools": "budgey-assistant-ingest-tools",
-        "budgey-dashboard": "budgey-dashboard",
-        "budgey-extractor": "budgey-extractor",
         "disko": "disko",
         "fenix": "fenix",
         "flake-registry": "flake-registry",
@@ -2120,7 +2079,7 @@
     },
     "ruinagents": {
       "inputs": {
-        "flake-utils": "flake-utils_7",
+        "flake-utils": "flake-utils_6",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -2282,21 +2241,6 @@
     },
     "systems_12": {
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
-    "systems_13": {
-      "locked": {
         "lastModified": 1689347949,
         "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
         "owner": "nix-systems",
@@ -2310,7 +2254,7 @@
         "type": "github"
       }
     },
-    "systems_14": {
+    "systems_13": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
@@ -2387,16 +2331,16 @@
     },
     "systems_6": {
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "lastModified": 1689347949,
+        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
         "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "repo": "default-linux",
+        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
         "type": "github"
       },
       "original": {
         "owner": "nix-systems",
-        "repo": "default",
+        "repo": "default-linux",
         "type": "github"
       }
     },
@@ -2417,16 +2361,16 @@
     },
     "systems_8": {
       "locked": {
-        "lastModified": 1689347949,
-        "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
         "owner": "nix-systems",
-        "repo": "default-linux",
-        "rev": "31732fcf5e8fea42e59c2488ad31a0e651500f68",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
         "type": "github"
       },
       "original": {
         "owner": "nix-systems",
-        "repo": "default-linux",
+        "repo": "default",
         "type": "github"
       }
     },
@@ -2512,7 +2456,7 @@
       "inputs": {
         "elephant": "elephant",
         "nixpkgs": "nixpkgs_9",
-        "systems": "systems_13"
+        "systems": "systems_12"
       },
       "locked": {
         "lastModified": 1769093508,
@@ -2530,7 +2474,7 @@
     },
     "wezterm": {
       "inputs": {
-        "flake-utils": "flake-utils_8",
+        "flake-utils": "flake-utils_7",
         "freetype2": "freetype2",
         "harfbuzz": "harfbuzz",
         "libpng": "libpng",

@@ -7,7 +7,6 @@
   agenix-helper = perSystem.self.agenix-helper;
   backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
   backup-docker-postgres = perSystem.self.backup-docker-postgres;
-  budgey-extractor = flake.inputs.budgey-extractor.packages.${prev.system}.default;
   gocmitra = perSystem.self.gocmitra;
   docker-image-updater = perSystem.self.docker-image-updater;
   docker-mcp-gateway = perSystem.self.docker-mcp-gateway;

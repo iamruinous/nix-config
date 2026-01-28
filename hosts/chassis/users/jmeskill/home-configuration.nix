@@ -70,8 +70,6 @@
           config.age.secrets.chassis_opencode_common_env.path
           config.age.secrets.chassis_opencode_project_nix_env.path
           config.age.secrets.chassis_opencode_project_n8n_env.path
-          config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
-          config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
         ];
       };
 
@@ -181,37 +179,6 @@
           ];
         };
 
-        # budgey-extractor - web service with Caddy
-        budgey-extractor = {
-          repo = "budgey-ingest-opencode";
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
-          direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-            config.age.secrets.chassis_opencode_project_budgey_extractor_env.path
-          ];
-        };
-
-        # budgey-dashboard - web service with Caddy
-        budgey-dashboard = {
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
-          direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-            config.age.secrets.chassis_opencode_project_budgey_dashboard_env.path
-          ];
-        };
-
         # budgey-assistant-dashboard - web service with Caddy
         budgey-assistant-dashboard = {
           assistants.opencode = {
@@ -258,57 +225,6 @@
   age.secrets.chassis_opencode_project_n8n_env = {
     rekeyFile = ./files/opencode/projects/n8n.env.age;
     mode = "400";
-  };
-
-  age.secrets.chassis_opencode_project_budgey_extractor_env = {
-    rekeyFile = ./files/opencode/projects/budgey-extractor.env.age;
-    mode = "400";
-  };
-
-  age.secrets.chassis_opencode_project_budgey_dashboard_env = {
-    rekeyFile = ./files/opencode/projects/budgey-dashboard.env.age;
-    mode = "400";
-  };
-
-  # Budgey-extractor service credentials (scheduled ingestion)
-  age.secrets.chassis_budgey_env = {
-    rekeyFile = ./files/budgey/env.age;
-    mode = "400";
-  };
-
-  # Budgey-extractor scheduled ingestion - runs hourly
-  # Uses incremental sync (only imports new sessions since last run)
-  systemd.user.services.budgey-extractor = {
-    Unit = {
-      Description = "Budgey OpenCode Session Extractor";
-      After = ["network-online.target"];
-    };
-    Service = {
-      Type = "oneshot";
-      EnvironmentFile = config.age.secrets.chassis_budgey_env.path;
-      # Uses env vars: DATABASE_URL, WEAVIATE_URL, WEAVIATE_API_KEY
-      ExecStart = let
-        extractor = "${flake.inputs.budgey-extractor.packages.x86_64-linux.default}/bin/budgey-extractor";
-      in "${extractor} ingest-postgres --dsn \${DATABASE_URL}";
-      # TODO: Re-enable once issue #33 is fixed
-      # ExecStartPost = let
-      #   extractor = "${flake.inputs.budgey-extractor.packages.x86_64-linux.default}/bin/budgey-extractor";
-      # in "${extractor} ingest-weaviate --weaviate-url \${WEAVIATE_URL} --weaviate-api-key \${WEAVIATE_API_KEY}";
-    };
-  };
-
-  systemd.user.timers.budgey-extractor = {
-    Unit = {
-      Description = "Run Budgey Extractor hourly";
-    };
-    Timer = {
-      OnCalendar = "hourly";
-      Persistent = true; # Run immediately if missed (e.g., system was off)
-      RandomizedDelaySec = "5m"; # Spread load
-    };
-    Install = {
-      WantedBy = ["timers.target"];
-    };
   };
 
   home.stateVersion = "26.05";

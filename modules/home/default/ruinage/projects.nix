@@ -23,7 +23,7 @@ with lib; let
       enable = mkOption {
         type = types.bool;
         default = false;
-        description = "Include this assistant in the budgey-extractor registry.";
+        description = "Include this assistant in the budgey registry.";
       };
 
       budgets = {
