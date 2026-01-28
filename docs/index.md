@@ -28,7 +28,7 @@ This repository manages the entire ruinous.ai infrastructure declaratively:
 | **macOS Systems** | 3 | jbookpro, jmacmini, studio |
 | **MicroVMs** | 2 | ruinous-tty, messy-tty |
 
-**The insight:** Every host is defined in code. No snowflakes. When obelisk's GPU catches fire, rebuilding it is `just remote-rebuild obelisk`, not a week of archaeology.
+**The insight:** Every host is defined in code. No snowflakes. When obelisk's GPU catches fire, rebuilding it is `just deploy obelisk`, not a week of archaeology.
 
 ---
 
@@ -108,17 +108,17 @@ Full skill documentation in [Root AGENTS.md](../AGENTS.md).
 ## Common Commands
 
 ```bash
-# Deployment
-just remote-rebuild <host>     # Deploy to remote host
-just remote-dry-build <host>   # Verify build first
+# Hosts (auto-detect local/remote, Darwin/NixOS)
+just check [host]              # Verify build (dry-build)
+just deploy [host]             # Deploy configuration
+just build [host]              # Build without switching
 
 # Secrets
-agenix-helper unlock           # Before editing secrets
-agenix rekey -a                # After changing secrets.nix
-agenix-helper lock             # When done
+just unlock                    # Before editing secrets
+just rekey                     # After changing secrets.nix
 
 # Validation
-just check                     # Dry-build representative hosts
+just canary                    # Dry-build representative hosts
 ```
 
 ---

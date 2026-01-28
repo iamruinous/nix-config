@@ -53,10 +53,10 @@ Packaging: /create-nix-package, /update-package
 ## Commands
 
 ```bash
-just remote-rebuild <host>     # Deploy
-just remote-dry-build <host>   # Verify
-agenix-helper unlock           # Before secrets
-agenix rekey -a                # After changes
+just check [host]              # Verify build (dry-build)
+just deploy [host]             # Deploy configuration
+just unlock                    # Before secrets
+just rekey                     # After changes
 ```
 
 ## Related
