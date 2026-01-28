@@ -72,6 +72,17 @@ with lib; let
         '';
         example = ["/Users/me/shared" "/tmp/vm-data"];
       };
+
+      netBridged = mkOption {
+        type = types.nullOr types.str;
+        default = "en0";
+        description = ''
+          Network interface to bridge to for DHCP from router.
+          Use "en0" for Ethernet, "Wi-Fi" for wireless.
+          Set to null to use default shared (NAT) networking.
+        '';
+        example = "Wi-Fi";
+      };
     };
   };
 
@@ -84,7 +95,11 @@ with lib; let
       then ["--no-graphics"]
       else [];
     dirArgs = concatMap (dir: ["--dir" dir]) vmCfg.sharedDirs;
-    allArgs = baseArgs ++ graphicsArgs ++ dirArgs;
+    netArgs =
+      if vmCfg.netBridged != null
+      then ["--net-bridged=${vmCfg.netBridged}"]
+      else [];
+    allArgs = baseArgs ++ graphicsArgs ++ netArgs ++ dirArgs;
 
     # Log paths
     logDir = "/tmp/tart-vm";
