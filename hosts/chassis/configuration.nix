@@ -17,6 +17,7 @@
     ./weaviate.nix
     ./ollama.nix
     ./harmonia.nix
+    ./forgejo-runner.nix
   ];
 
   networking.hostName = "chassis";
