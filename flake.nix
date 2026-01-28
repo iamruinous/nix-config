@@ -146,7 +146,7 @@
      # ruinagents - Agent definitions, docs, and skills
      # <https://forge.meskill.farm/iamruinous/ruinagents>
      # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.4.0";
+     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.5.0";
      ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
      # nix-clawdbot - Claude Code integration for Nix
