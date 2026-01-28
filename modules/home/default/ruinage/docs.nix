@@ -77,9 +77,8 @@ with lib; let
   projectTitles = {
     "nix-config" = "NixOS Configuration";
     "ruinagents" = "Ruinous Agents";
-    "budgey-dashboard" = "Budgey Dashboard";
-    "budgey-extractor" = "Budgey Extractor";
     "budgey-assistant-ingest-tools" = "Budgey Ingest Tools";
+    "budgey-assistant-dashboard" = "Budgey Assistant Dashboard";
     "n8n-agent" = "n8n Agent";
   };
 

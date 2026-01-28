@@ -127,4 +127,4 @@ just check                     # Dry-build representative hosts
 
 - [ruinagents](https://agents.ruinous.ai/) — Agent protocols and personas
 - [n8n-agent](../n8n-agent/) — Workflow automation
-- [budgey-dashboard](../budgey-dashboard/) — Cost analytics
+- [budgey-assistant-dashboard](../budgey-assistant-dashboard/) — Multi-CLI analytics dashboard

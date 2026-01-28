@@ -1,8 +1,6 @@
 # Local PostgreSQL server for chassis
 # Used by:
-#   - budgey-extractor (user service, TCP with password auth)
-#   - budgey-dashboard (system service, TCP with password auth)
-#   - budgey-assistant (system service, TCP with password auth)
+#   - budgey-assistant-dashboard (system service, TCP with password auth)
 # Also provides admin access via TCP for MCP tools
 {pkgs, ...}: {
   services.postgresql = {

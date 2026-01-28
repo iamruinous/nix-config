@@ -121,15 +121,6 @@
     };
   };
 
-  # Budgey Dashboard - public token analytics dashboard (old budgey-extractor)
-  budgeyDashboardHost = {
-    "budgey.ruinous.ai" = {
-      extraConfig = ''
-        reverse_proxy http://localhost:8888
-      '';
-    };
-  };
-
   # Budgey Assistant Dashboard - multi-CLI analytics dashboard (new budgey-assistant)
   budgeyAssistantDashboardHost = {
     "assistants.dashboard.ruinage.ai" = {
@@ -188,8 +179,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey dashboards, ruinage docs, weaviate, and harmonia
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyDashboardHost // budgeyAssistantDashboardHost // weaviateHost // harmoniaHost;
+    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, and harmonia
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // weaviateHost // harmoniaHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)

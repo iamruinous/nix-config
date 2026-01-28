@@ -116,16 +116,6 @@
     # that's compatible with its boot.loader.raspberryPi options
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
 
-    # budgey-dashboard - Token usage analytics dashboard
-    # <https://forge.meskill.farm/iamruinous/budgey-dashboard>
-    budgey-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-dashboard.git?ref=refs/tags/v0.7.2";
-    budgey-dashboard.inputs.nixpkgs.follows = "nixpkgs";
-
-    # budgey-extractor - OpenCode session extractor for Postgres + Weaviate
-    # <https://forge.meskill.farm/iamruinous/budgey-ingest-opencode>
-    budgey-extractor.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-ingest-opencode.git?ref=refs/tags/v0.7.2";
-    budgey-extractor.inputs.nixpkgs.follows = "nixpkgs";
-
     # budgey-assistant-ingest-tools - Multi-CLI session extraction and ingestion tools
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-ingest-tools
@@ -135,7 +125,7 @@
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-dashboard
-    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.3";
+    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.5";
     budgey-assistant-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # n8n-agent - n8n workflow automation agent
