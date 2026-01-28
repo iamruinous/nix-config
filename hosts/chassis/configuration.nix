@@ -16,6 +16,7 @@
     ./budgey-assistant.nix
     ./weaviate.nix
     ./ollama.nix
+    ./harmonia.nix
   ];
 
   networking.hostName = "chassis";

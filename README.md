@@ -142,6 +142,7 @@ Multiple desktop environment modules available:
 - **[Caddy](https://caddyserver.com)** - Reverse proxy and web server
 - **[Cloudflared](https://github.com/cloudflare/cloudflared)** - Cloudflare tunnel support
 - **[Grafana Alloy](https://grafana.com/docs/alloy)** - Observability and monitoring
+- **[Harmonia](https://github.com/nix-community/harmonia)** - Private Nix binary cache
 
 ### Home Manager Modules
 
@@ -288,4 +289,43 @@ agenix -e secrets/<secret-name>.age
 ```
 
 Secrets are automatically decrypted on the target system and available to services that reference them.
+
+## Private Binary Cache
+
+A private [Harmonia](https://github.com/nix-community/harmonia) binary cache is available for hosts on the Tailscale network at `cache.nix.meskill.farm`.
+
+### Configuring Clients
+
+Add the following to your NixOS configuration to use the private cache:
+
+```nix
+nix.settings = {
+  substituters = [ "https://cache.nix.meskill.farm" ];
+  trusted-public-keys = [ "cache.nix.meskill.farm-1:9Ih1t1q9biWeHg28x+qunDj42JkaGfLd95YD2ltEAAw=" ];
+};
+```
+
+Or for flake-based configurations in `flake.nix`:
+
+```nix
+nixConfig = {
+  extra-substituters = [ "https://cache.nix.meskill.farm" ];
+  extra-trusted-public-keys = [ "cache.nix.meskill.farm-1:9Ih1t1q9biWeHg28x+qunDj42JkaGfLd95YD2ltEAAw=" ];
+};
+```
+
+### Access Requirements
+
+- Host must be on the Tailscale network (100.0.0.0/8) or local network (10.55.0.0/16)
+- No authentication required for authorized networks
+- External requests receive HTTP 403
+
+### Verifying Cache Access
+
+```sh
+# Test cache connectivity
+curl -I https://cache.nix.meskill.farm/nix-cache-info
+
+# Expected response: HTTP 200 with cache metadata
+```
 
