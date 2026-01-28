@@ -1,11 +1,13 @@
 {
   flake,
   config,
+  osConfig,
   ...
 }: {
   imports = [
     flake.homeModules.default
     flake.homeModules.kde
+    flake.inputs.nix-moltbot.homeManagerModules.clawdbot
   ];
 
   programs.wezterm.enable = true;
@@ -225,6 +227,55 @@
   age.secrets.chassis_opencode_project_n8n_env = {
     rekeyFile = ./files/opencode/projects/n8n.env.age;
     mode = "400";
+  };
+
+  # Moltbot - Personal AI Assistant for Discord
+  # Minimal Discord-only configuration using Anthropic Claude
+  # Secrets defined in hosts/chassis/moltbot.nix
+  programs.clawdbot = {
+    enable = true;
+
+    # Use Anthropic Claude as the AI provider
+    providers.anthropic.apiKeyFile = osConfig.age.secrets.chassis_moltbot_anthropic_key.path;
+
+    # Default model configuration
+    defaults = {
+      model = "anthropic/claude-sonnet-4-20250514";
+      thinkingDefault = "medium";
+    };
+
+    # Disable first-party plugins we don't need for minimal setup
+    firstParty = {
+      summarize.enable = false;
+      peekaboo.enable = false;
+      oracle.enable = false;
+      poltergeist.enable = false;
+      sag.enable = false;
+      camsnap.enable = false;
+      gogcli.enable = false;
+      bird.enable = false;
+      sonoscli.enable = false;
+      imsg.enable = false;
+    };
+
+    # Discord configuration via configOverrides
+    # See: https://docs.molt.bot/channels/discord
+    instances.default = {
+      enable = true;
+      configOverrides = {
+        channels = {
+          discord = {
+            enabled = true;
+            tokenFile = osConfig.age.secrets.chassis_moltbot_discord_token.path;
+            # DM policy: pairing mode requires approval via `moltbot pairing approve`
+            dm = {
+              policy = "pairing";
+              allowFrom = []; # Empty = require pairing for all DMs
+            };
+          };
+        };
+      };
+    };
   };
 
   home.stateVersion = "26.05";

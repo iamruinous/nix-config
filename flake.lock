@@ -880,7 +880,7 @@
     "home-manager_5": {
       "inputs": {
         "nixpkgs": [
-          "nix-clawdbot",
+          "nix-moltbot",
           "nixpkgs"
         ]
       },
@@ -1505,29 +1505,6 @@
         "url": "ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git"
       }
     },
-    "nix-clawdbot": {
-      "inputs": {
-        "flake-utils": "flake-utils_5",
-        "home-manager": "home-manager_5",
-        "nix-steipete-tools": "nix-steipete-tools",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1769481403,
-        "narHash": "sha256-QvKRtICKNB/UZcEk1rX4DiD+RDo0MDLUb7XxTojKyYA=",
-        "owner": "clawdbot",
-        "repo": "nix-clawdbot",
-        "rev": "474ee3894509e0ad282ca7dc6959c234c412d5cb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "clawdbot",
-        "repo": "nix-clawdbot",
-        "type": "github"
-      }
-    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -1580,6 +1557,29 @@
       "original": {
         "owner": "zhaofengli-wip",
         "repo": "nix-homebrew",
+        "type": "github"
+      }
+    },
+    "nix-moltbot": {
+      "inputs": {
+        "flake-utils": "flake-utils_5",
+        "home-manager": "home-manager_5",
+        "nix-steipete-tools": "nix-steipete-tools",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1769481403,
+        "narHash": "sha256-QvKRtICKNB/UZcEk1rX4DiD+RDo0MDLUb7XxTojKyYA=",
+        "owner": "moltbot",
+        "repo": "nix-moltbot",
+        "rev": "474ee3894509e0ad282ca7dc6959c234c412d5cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "moltbot",
+        "repo": "nix-moltbot",
         "type": "github"
       }
     },
@@ -2061,10 +2061,10 @@
         "llm-agents": "llm-agents",
         "microvm": "microvm",
         "n8n-agent": "n8n-agent",
-        "nix-clawdbot": "nix-clawdbot",
         "nix-darwin": "nix-darwin",
         "nix-flatpak": "nix-flatpak",
         "nix-homebrew": "nix-homebrew",
+        "nix-moltbot": "nix-moltbot",
         "nixos-anywhere": "nixos-anywhere",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_8",
