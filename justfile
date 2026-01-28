@@ -96,6 +96,44 @@ dry-build:
     @nixos-rebuild dry-build --flake .#$(hostname)
     @just success "Dry-build complete for $(hostname)"
 
+# Dry-build configuration for current Darwin host
+darwin-dry-build:
+    @just header "🧪 Darwin Dry Build"
+    @just info "Dry-building darwin configuration for $(hostname)..."
+    @nix build .#darwinConfigurations.$(hostname).system --dry-run
+    @just success "Dry-build complete for $(hostname)"
+
+# Verify configuration for host (auto-detects local vs remote, Darwin vs Linux)
+verify host:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    current_host=$(hostname)
+    os_type=$(uname -s)
+    
+    # Check if target is a Darwin host by looking for darwin-configuration.nix
+    is_darwin_host=false
+    if [ -f "hosts/{{ host }}/darwin-configuration.nix" ]; then
+        is_darwin_host=true
+    fi
+    
+    if [ "{{ host }}" = "$current_host" ]; then
+        # Local verification
+        if [ "$os_type" = "Darwin" ]; then
+            just darwin-dry-build
+        else
+            just dry-build
+        fi
+    elif [ "$is_darwin_host" = "true" ]; then
+        # Darwin hosts - use nix build --dry-run
+        just header "🧪 Darwin Dry Build"
+        just info "Dry-building darwin configuration for {{ host }}..."
+        nix build .#darwinConfigurations.{{ host }}.system --dry-run
+        just success "Dry-build complete for {{ host }}"
+    else
+        # Remote NixOS - use remote-dry-build
+        just remote-dry-build {{ host }}
+    fi
+
 # Rebuild configuration on remote host
 remote-rebuild remotehost:
     #!/usr/bin/env bash

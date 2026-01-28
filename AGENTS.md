@@ -50,11 +50,19 @@ This repository is the domain of **[NIXEY](https://agents.ruinous.ai/smes/nixey/
 ### Commands
 
 ```bash
-just remote-rebuild <host>     # Deploy to host
-just remote-dry-build <host>   # Verify build
+just deploy <host>             # Smart deploy (auto-detects local vs remote)
+just verify <host>             # Smart dry-build (auto-detects Darwin vs NixOS)
+just remote-rebuild <host>     # Deploy to remote NixOS host
+just remote-dry-build <host>   # Verify build for remote NixOS host
 just check                     # Dry-build representative hosts
 agenix-helper unlock           # Unlock secrets for editing
 ```
+
+### Deployment Workflow
+
+1. Make changes to host configuration
+2. Verify build: `just verify <host>`
+3. Deploy: `just deploy <host>`
 
 ---
 
@@ -74,9 +82,9 @@ Skills are invoked with `/skill-name <arguments>`. If required arguments are mis
 
 | Skill | Trigger Phrase | What It Does |
 |-------|----------------|--------------|
-| `/add-dns-record` | "add DNS", "create CNAME", "point domain" | Add CNAME/A record to Cloudflare via cfcli |
-| `/setup-cloudflare-tunnel` | "external access", "expose service", "create tunnel" | Create and configure a Cloudflare Tunnel for public access |
-| `/add-caddy-route` | "reverse proxy", "add route", "proxy to container" | Add reverse proxy route to encrypted Caddyfile |
+| `/add-dns-record` | "add DNS", "create CNAME", "A record", "point domain", "cfcli add", "DNS entry" | Add CNAME/A record to Cloudflare via cfcli |
+| `/setup-cloudflare-tunnel` | "external access", "expose service", "create tunnel", "public access" | Create and configure a Cloudflare Tunnel for public access |
+| `/add-caddy-route` | "reverse proxy", "add route", "proxy to container", "Caddy route" | Add reverse proxy route to encrypted Caddyfile |
 
 ### Database & Container Deployment
 
@@ -111,6 +119,7 @@ Projects are managed through the `ruinous.ruinage` module, which provides unifie
 
 | Skill | Trigger Phrase | What It Does |
 |-------|----------------|--------------|
+| `/nix-deploy` | "deploy", "rebuild", "just deploy", "remote-rebuild", "apply changes" | Deploy NixOS/Darwin configuration to local or remote host |
 | `/create-pi-host` | "new raspberry pi", "add pi to cluster" | Bootstrap new Raspberry Pi cluster node configuration |
 | `/kde-extract` | "extract KDE settings", "plasma config" | Extract KDE/Plasma settings to plasma-manager Nix config |
 
