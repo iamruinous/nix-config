@@ -96,20 +96,18 @@ ls hosts/<hostname>/darwin-configuration.nix 2>/dev/null && echo "Darwin" || ech
 
 ### 2. Dry-build verification (recommended)
 
-**For remote NixOS hosts:**
+**Smart verify (auto-detects Darwin vs NixOS, local vs remote):**
 ```bash
-just remote-dry-build <hostname>
+just verify <hostname>
 ```
 
-**For local NixOS host:**
-```bash
-just dry-build
-```
+**Or use specific commands:**
 
-**For Darwin hosts:**
-```bash
-nix build .#darwinConfigurations.<hostname>.system --dry-run
-```
+| Scenario | Command |
+|----------|---------|
+| Remote NixOS | `just remote-dry-build <hostname>` |
+| Local NixOS | `just dry-build` |
+| Darwin (any) | `just darwin-dry-build` or `nix build .#darwinConfigurations.<hostname>.system --dry-run` |
 
 ### 3. Deploy
 
@@ -206,7 +204,7 @@ Use `/deploy-container` skill for the complete workflow, which includes:
 - [ ] Changes committed (or stashed) - deployment reads from working directory
 - [ ] No unencrypted secrets in configuration
 - [ ] Container images pinned (no `:latest`)
-- [ ] `just remote-dry-build <host>` passes
+- [ ] `just verify <host>` passes
 
 ## Troubleshooting
 

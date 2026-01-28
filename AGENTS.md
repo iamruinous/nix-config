@@ -51,8 +51,9 @@ This repository is the domain of **[NIXEY](https://agents.ruinous.ai/smes/nixey/
 
 ```bash
 just deploy <host>             # Smart deploy (auto-detects local vs remote)
+just verify <host>             # Smart dry-build (auto-detects Darwin vs NixOS)
 just remote-rebuild <host>     # Deploy to remote NixOS host
-just remote-dry-build <host>   # Verify build before deploying
+just remote-dry-build <host>   # Verify build for remote NixOS host
 just check                     # Dry-build representative hosts
 agenix-helper unlock           # Unlock secrets for editing
 ```
@@ -60,8 +61,8 @@ agenix-helper unlock           # Unlock secrets for editing
 ### Deployment Workflow
 
 1. Make changes to host configuration
-2. Verify build: `just remote-dry-build <host>`
-3. Deploy: `just deploy <host>` (or `just remote-rebuild <host>` for remote)
+2. Verify build: `just verify <host>`
+3. Deploy: `just deploy <host>`
 
 ---
 
