@@ -235,14 +235,22 @@
   # Minimal Discord-only configuration using Anthropic Claude
   # Secrets defined in hosts/chassis/moltbot.nix
   #
-  # WORKAROUND: nix-moltbot uses hardcoded /bin/mkdir which doesn't exist on NixOS
-  # We pre-create the directories before the clawdbotDirs activation runs
-  # Bug: https://github.com/moltbot/nix-moltbot - home-manager module uses /bin/mkdir
-  home.activation.clawdbotDirsFix = lib.hm.dag.entryBefore ["clawdbotDirs"] ''
-    ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
-    ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
-    ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
-  '';
+  # WORKAROUND: nix-moltbot uses hardcoded /bin/mkdir and /bin/ln which don't exist on NixOS
+  # Override the upstream activation scripts with fixed versions using proper Nix paths
+  # Bug: https://github.com/moltbot/nix-moltbot - home-manager module assumes macOS paths
+  home.activation.clawdbotDirs = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] ''
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
+    run ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
+  '');
+
+  # The upstream clawdbotConfigFiles links a generated JSON config to the state dir.
+  # Since home.file already manages the config at .clawdbot/clawdbot.json, we just
+  # need to ensure the symlink doesn't fail. The actual config is managed by home.file.
+  home.activation.clawdbotConfigFiles = lib.mkForce (lib.hm.dag.entryAfter ["clawdbotDirs"] ''
+    # Config is managed by home.file, nothing to do here
+    true
+  '');
 
   programs.clawdbot = {
     enable = true;
