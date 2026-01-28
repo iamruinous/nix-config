@@ -152,15 +152,20 @@ nix-config/
 ## Commands
 
 ```bash
-# Deployment
-just remote-rebuild <host>     # Deploy to remote host
-just remote-dry-build <host>   # Verify without deploying
-just check                     # Dry-build representative hosts
+# Hosts (auto-detect local/remote, Darwin/NixOS)
+just check [host]              # Verify build (dry-build)
+just deploy [host]             # Deploy configuration
+just build [host]              # Build without switching
+just install                   # Install Nix + nix-darwin
+
+# Validation
+just canary                    # Dry-build representative hosts
 
 # Secrets
-agenix-helper unlock           # Unlock for editing
-agenix-helper lock             # Lock when done
-agenix rekey -a                # Rekey after changes
+just unlock                    # Unlock agenix identity
+just peek <secret>             # View encrypted secret
+just encrypt <secret>          # Create/edit encrypted secret
+just rekey                     # Re-encrypt all secrets
 
 # Development
 nix develop                    # Enter dev shell
@@ -180,22 +185,20 @@ nix build .#<package>          # Build package
 ### Workflow
 
 ```bash
-agenix-helper unlock
-agenix view file.age > /tmp/edit.txt
-# ... edit ...
-rm file.age && agenix edit -i /tmp/edit.txt file.age
-rm /tmp/edit.txt && agenix rekey -a
-agenix-helper lock
+just unlock                    # Unlock for editing
+just peek file.age             # View secret
+just encrypt file.age          # Create/edit secret
+just rekey                     # Re-encrypt all secrets
 ```
 
 ## Container Deployment Pattern
 
 1. Define container in `hosts/<host>/containers.nix`
-2. Create encrypted env file → agenix
+2. Create encrypted env file → `just encrypt`
 3. Create DNS record → cfcli
 4. Update Caddy routes → docker-caddy module or Caddyfile.age
-5. Verify: `just remote-dry-build <host>`
-6. Deploy: `just remote-rebuild <host>`
+5. Verify: `just check <host>`
+6. Deploy: `just deploy <host>`
 
 ## Docker Caddy Module
 
@@ -227,7 +230,7 @@ services.docker-caddy = {
 
 - Format: Material for MkDocs
 - Nix formatting: alejandra
-- CI: `just check` for validation
+- CI: `just canary` for validation
 
 ## Related
 

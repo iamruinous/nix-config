@@ -4,13 +4,13 @@ description: Deploy NixOS/Darwin configuration to local or remote host using jus
 compatibility: Requires nix, just
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "2.0"
   domain: deployment
 parameters:
   hostname:
     type: select
-    description: Target host to deploy to
-    required: true
+    description: Target host to deploy to (defaults to current host if omitted)
+    required: false
     options:
       - label: "chassis"
         description: "AI development workstation (NixOS)"
@@ -57,6 +57,7 @@ mcp_question({
       question: "Which host do you want to deploy to?",
       header: "Host",
       options: [
+        { label: "Current host (default)", description: "Deploy to this machine" },
         { label: "chassis", description: "AI development workstation (NixOS)" },
         { label: "framework", description: "NixOS laptop" },
         { label: "monolith", description: "Infrastructure hub" },
@@ -79,53 +80,32 @@ mcp_question({
 })
 ```
 
-**Expected `$ARGUMENTS` format:** `<hostname> [--no-dry-run]`
-- Example: `pilaster` (with dry-build verification)
-- Example: `monolith --no-dry-run` (deploy directly)
+**Expected `$ARGUMENTS` format:** `[hostname] [--no-dry-run]`
+- Example: (empty) - deploy to current host with dry-build
+- Example: `pilaster` - deploy to pilaster with dry-build
+- Example: `monolith --no-dry-run` - deploy directly without verification
 
 ## Steps
 
-### 1. Determine host type
+### 1. Dry-build verification (recommended)
 
-Check if the host is Darwin (macOS) or NixOS:
-
+**Smart check (auto-detects Darwin vs NixOS, local vs remote):**
 ```bash
-# Darwin hosts have darwin-configuration.nix
-ls hosts/<hostname>/darwin-configuration.nix 2>/dev/null && echo "Darwin" || echo "NixOS"
+just check [hostname]
 ```
 
-### 2. Dry-build verification (recommended)
+If hostname is omitted, uses current host.
 
-**Smart verify (auto-detects Darwin vs NixOS, local vs remote):**
-```bash
-just verify <hostname>
-```
-
-**Or use specific commands:**
-
-| Scenario | Command |
-|----------|---------|
-| Remote NixOS | `just remote-dry-build <hostname>` |
-| Local NixOS | `just dry-build` |
-| Darwin (any) | `just darwin-dry-build` or `nix build .#darwinConfigurations.<hostname>.system --dry-run` |
-
-### 3. Deploy
+### 2. Deploy
 
 **Smart deploy (auto-detects local vs remote, Darwin vs Linux):**
 ```bash
-just deploy <hostname>
+just deploy [hostname]
 ```
 
-**Or use specific commands:**
+If hostname is omitted, uses current host.
 
-| Scenario | Command |
-|----------|---------|
-| Local NixOS | `just linux-rebuild` |
-| Local Darwin | `just darwin-rebuild` |
-| Remote NixOS | `just remote-rebuild <hostname>` |
-| Remote Darwin | SSH to host, run `just darwin-rebuild` |
-
-### 4. Verify deployment
+### 3. Verify deployment
 
 After deployment completes:
 
@@ -163,10 +143,10 @@ ssh <hostname>.meskill.farm "systemctl status docker-caddy"
 
 ```bash
 # 1. Verify the build
-just remote-dry-build pilaster
+just check pilaster
 
 # 2. Deploy
-just remote-rebuild pilaster
+just deploy pilaster
 
 # 3. Verify container is running
 ssh pilaster.meskill.farm "docker ps | grep <container-name>"
@@ -176,7 +156,7 @@ ssh pilaster.meskill.farm "docker ps | grep <container-name>"
 
 ```bash
 # 1. Deploy host with Caddy changes
-just remote-rebuild <hostname>
+just deploy <hostname>
 
 # 2. Caddy auto-reloads when Caddyfile changes (via systemd trigger)
 ```
@@ -185,10 +165,10 @@ just remote-rebuild <hostname>
 
 ```bash
 # 1. Rekey secrets first
-agenix rekey -a
+just rekey
 
 # 2. Deploy to host
-just remote-rebuild <hostname>
+just deploy <hostname>
 ```
 
 ### Full container deployment workflow
@@ -204,7 +184,7 @@ Use `/deploy-container` skill for the complete workflow, which includes:
 - [ ] Changes committed (or stashed) - deployment reads from working directory
 - [ ] No unencrypted secrets in configuration
 - [ ] Container images pinned (no `:latest`)
-- [ ] `just verify <host>` passes
+- [ ] `just check [host]` passes
 
 ## Troubleshooting
 
@@ -236,10 +216,13 @@ sudo --preserve-env=SSH_AUTH_SOCK darwin-rebuild switch --flake .#<hostname>
 ## Example
 
 ```bash
+# Deploy to current host with verification
+/nix-deploy
+
 # Deploy to pilaster with verification
 /nix-deploy pilaster
 
-# Deploy to chassis (local) without dry-run
+# Deploy to chassis without dry-run
 /nix-deploy chassis --no-dry-run
 
 # Deploy to monolith after container changes

@@ -174,23 +174,22 @@ To build and apply the nix-darwin configuration for a specific macOS host (e.g.,
 darwin-rebuild switch --flake .#jmacmini
 ```
 
-Or use the justfile helper:
+Or use the justfile helper (auto-detects local/remote, Darwin/NixOS):
 
 ```sh
-just darwin-rebuild
+just deploy              # Deploy to current host
+just deploy jmacmini     # Deploy to specific host
 ```
-
-This automatically uses the current hostname.
 
 ### Remote Deployment
 
 To deploy a configuration to a remote NixOS host:
 
 ```sh
-just remote-rebuild <hostname>
+just deploy <hostname>
 ```
 
-This will connect to `<hostname>.meskill.farm` and apply the configuration.
+This will auto-detect the host type and connect to `<hostname>.meskill.farm` to apply the configuration.
 
 ### Updating Flake Inputs
 
@@ -221,15 +220,15 @@ For detailed information about available shells, direnv integration, and creatin
 
 ### Bootstrap macOS
 
-To bootstrap a fresh macOS system with Nix and nix-darwin:
+To bootstrap a fresh macOS system with Lix (Nix fork) and nix-darwin:
 
 ```sh
-just bootstrap-mac
+just install
 ```
 
 This will:
-1. Install Nix with the daemon
-2. Install nix-darwin
+1. Install Lix via lix-installer (on macOS) or Nix (on Linux)
+2. Install nix-darwin (macOS only)
 3. Apply the configuration for the current hostname
 
 ## Adding a New Host
