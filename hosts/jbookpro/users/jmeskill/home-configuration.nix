@@ -71,7 +71,7 @@
   programs.budgey = {
     enable = true;
     package = flake.inputs.budgey-assistant-ingest-tools.packages.${pkgs.system}.all-tools;
-    hostName = "jmacmini";
+    hostName = "jbookpro";
 
     archive = {
       mode = "git";
