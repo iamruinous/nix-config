@@ -235,28 +235,82 @@
   # Minimal Discord-only configuration using Anthropic Claude
   # Secrets defined in hosts/chassis/moltbot.nix
   #
-  # WORKAROUND: nix-moltbot uses hardcoded /bin/mkdir and /bin/ln which don't exist on NixOS
-  # Override the upstream activation scripts with fixed versions using proper Nix paths
-  # Bug: https://github.com/moltbot/nix-moltbot - home-manager module assumes macOS paths
+  # NOTE: nix-moltbot home-manager module has multiple issues on NixOS:
+  # 1. Uses hardcoded /bin/mkdir and /bin/ln (macOS paths)
+  # 2. Generates invalid config keys (tokenFile, messages.queue.byProvider)
+  # 3. Wrapper script doesn't properly interpolate secrets
+  #
+  # We disable the upstream module and use a custom systemd service instead.
+  # The custom service reads secrets at runtime and sets environment variables.
+
+  # Create required directories
   home.activation.clawdbotDirs = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] ''
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
     run ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
   '');
 
-  # The upstream clawdbotConfigFiles links a generated JSON config to the state dir.
-  # Since home.file already manages the config at .clawdbot/clawdbot.json, we just
-  # need to ensure the symlink doesn't fail. The actual config is managed by home.file.
+  # Disable upstream config file management
   home.activation.clawdbotConfigFiles = lib.mkForce (lib.hm.dag.entryAfter ["clawdbotDirs"] ''
-    # Config is managed by home.file, nothing to do here
     true
   '');
 
+  # Generate valid clawdbot config (token is read from env at runtime)
+  home.file.".clawdbot/clawdbot.json".text = builtins.toJSON {
+    gateway.mode = "local";
+    agents = {
+      defaults = {
+        workspace = "${config.home.homeDirectory}/.clawdbot/workspace";
+        model.primary = "anthropic/claude-sonnet-4-20250514";
+        thinkingDefault = "medium";
+      };
+      list = [{ id = "main"; default = true; }];
+    };
+    channels.discord = {
+      enabled = true;
+      # Token is set via DISCORD_BOT_TOKEN env var at runtime
+      dm = {
+        policy = "pairing";
+        allowFrom = [];
+      };
+    };
+  };
+
+  # Custom systemd service that properly handles secrets
+  systemd.user.services.clawdbot-gateway = {
+    Unit.Description = "Clawdbot gateway";
+    Service = {
+      ExecStart = "${pkgs.writeShellScript "clawdbot-gateway-start" ''
+        set -euo pipefail
+
+        # Read secrets from agenix-managed files
+        export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
+        export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
+
+        # Set clawdbot environment
+        export HOME="${config.home.homeDirectory}"
+        export CLAWDBOT_CONFIG_PATH="${config.home.homeDirectory}/.clawdbot/clawdbot.json"
+        export CLAWDBOT_STATE_DIR="${config.home.homeDirectory}/.clawdbot"
+        export CLAWDBOT_NIX_MODE=1
+
+        exec ${pkgs.clawdbot}/bin/clawdbot gateway --port 18789
+      ''}";
+      WorkingDirectory = "${config.home.homeDirectory}/.clawdbot";
+      Restart = "always";
+      RestartSec = "5s";
+      StandardOutput = "append:/tmp/clawdbot/clawdbot-gateway.log";
+      StandardError = "append:/tmp/clawdbot/clawdbot-gateway.log";
+    };
+    Install.WantedBy = ["default.target"];
+  };
+
+  # Keep upstream module enabled but disable its systemd service
+  # We use our own custom service that properly handles secrets
   programs.clawdbot = {
     enable = true;
 
-    # Use Anthropic Claude as the AI provider
-    providers.anthropic.apiKeyFile = osConfig.age.secrets.chassis_moltbot_anthropic_key.path;
+    # Disable upstream systemd service (we use our own)
+    systemd.enable = false;
 
     # Default model configuration
     defaults = {
@@ -278,23 +332,10 @@
       imsg.enable = false;
     };
 
-    # Discord configuration via configOverrides
-    # See: https://docs.molt.bot/channels/discord
+    # Keep default instance but disable its service
     instances.default = {
       enable = true;
-      configOverrides = {
-        channels = {
-          discord = {
-            enabled = true;
-            tokenFile = osConfig.age.secrets.chassis_moltbot_discord_token.path;
-            # DM policy: pairing mode requires approval via `moltbot pairing approve`
-            dm = {
-              policy = "pairing";
-              allowFrom = []; # Empty = require pairing for all DMs
-            };
-          };
-        };
-      };
+      systemd.enable = false;
     };
   };
 
