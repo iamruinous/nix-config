@@ -70,6 +70,9 @@ fi
 SSH_CMD="@ssh@/bin/ssh -o StrictHostKeyChecking=accept-new \
     -o ServerAliveInterval=30 \
     -o ServerAliveCountMax=3 \
+    -o SetEnv=BYPASS_LOGIN_HUB=true \
+    -o RequestTTY=no \
+    -o LogLevel=ERROR \
     -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} \
     -N \
     ${REMOTE_HOST}"

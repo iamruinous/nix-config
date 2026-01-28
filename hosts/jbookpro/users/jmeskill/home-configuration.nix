@@ -1,11 +1,14 @@
 {
   config,
   flake,
+  pkgs,
   ...
 }: {
   imports = [
     flake.homeModules.default
     flake.homeModules.darwin
+    # Upstream budgey home-manager module (v0.16.0+ with launchd support)
+    flake.inputs.budgey-assistant-ingest-tools.homeManagerModules.default
   ];
 
   ruinous = {
@@ -58,6 +61,39 @@
         enable = true;
         # model, plugins, mcpServers, providers inherited from defaults
         harnesses.ruinagents.enable = true;
+      };
+    };
+  };
+
+  # Budgey assistant session extractors (upstream module v0.16.0+)
+  # Extracts sessions hourly and pushes to shared git archive
+  # Chassis handles enrichment and ingestion
+  programs.budgey = {
+    enable = true;
+    package = flake.inputs.budgey-assistant-ingest-tools.packages.${pkgs.system}.all-tools;
+    hostName = "jmacmini";
+
+    archive = {
+      mode = "git";
+      git = {
+        url = "ssh://git@forge.meskill.farm/iamruinous/assistant-session-archive.git";
+        # Deploy key shared with chassis for non-interactive git operations
+        sshKeyFile = config.age.secrets.budgey_deploy_key.path;
+      };
+    };
+
+    git = {
+      autoCommit = true;
+      autoPush = true;
+    };
+
+    services = {
+      enable = true;
+      extractors = {
+        opencode.enable = true;
+        claude.enable = true;
+        codex.enable = true;
+        gemini.enable = true;
       };
     };
   };
