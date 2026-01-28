@@ -1,3 +1,24 @@
+---
+name: add-package
+description: Analyze project from URL/path and auto-detect build system to create Nix package
+compatibility: Requires nix
+metadata:
+  author: ruinous.ai
+  version: "1.1"
+  domain: packaging
+parameters:
+  source:
+    type: string
+    description: GitHub URL, git URL, or local path to the project
+    required: true
+    placeholder: "https://github.com/user/repo"
+  package_name:
+    type: string
+    description: Package name (optional - auto-detected from source)
+    required: false
+    placeholder: "my-package"
+---
+
 # Add Package
 
 Analyze a project from a URL or local directory and create a Nix package with auto-detected build system.
