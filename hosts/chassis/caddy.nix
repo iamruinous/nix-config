@@ -154,6 +154,25 @@
       '';
     };
   };
+
+  # Harmonia binary cache - Tailscale/local network only
+  # Serves Nix store paths for private package caching
+  harmoniaHost = {
+    "cache.nix.meskill.farm" = {
+      extraConfig = ''
+        # Restrict to Tailscale IPs (100.x.x.x) and local network (10.55.x.x)
+        @allowed {
+          remote_ip 100.0.0.0/8 10.55.0.0/16 127.0.0.1/8
+        }
+        handle @allowed {
+          reverse_proxy http://localhost:5000
+        }
+        handle {
+          respond "Access denied - Tailscale or local network required" 403
+        }
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
@@ -169,8 +188,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey dashboards, ruinage docs, and weaviate
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyDashboardHost // budgeyAssistantDashboardHost // weaviateHost;
+    # Merge OpenCode projects, docs sites, budgey dashboards, ruinage docs, weaviate, and harmonia
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyDashboardHost // budgeyAssistantDashboardHost // weaviateHost // harmoniaHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)
