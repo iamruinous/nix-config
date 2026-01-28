@@ -196,6 +196,32 @@ check:
     @echo ""
     @gum style --foreground 82 --bold "✓ All sanity checks passed!"
 
+# Unlock agenix identity for secret operations
+unlock:
+    @just header "🔓 Unlock Agenix"
+    @agenix-helper unlock
+    @just success "Agenix identity unlocked"
+
+# Re-encrypt all secrets for hosts that need them
+rekey:
+    @just header "🔑 Rekey Secrets"
+    @just info "Re-encrypting secrets for all hosts..."
+    @agenix rekey -a
+    @just success "Secrets rekeyed"
+    @echo ""
+    @gum style --foreground 229 "Don't forget to commit the rekeyed secrets:"
+    @gum style --foreground 245 "  git add secrets/"
+
+# View an encrypted secret
+peek secret:
+    @just header "👁️  View Secret"
+    @agenix view {{ secret }}
+
+# Create or edit an encrypted secret
+encrypt secret:
+    @just header "🔐 Edit Secret"
+    @agenix edit {{ secret }}
+
 # Set password for a user (hashed and encrypted with agenix)
 user-password user:
     #!/usr/bin/env bash
