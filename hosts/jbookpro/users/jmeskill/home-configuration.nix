@@ -108,5 +108,12 @@
 
   programs.wezterm.enable = true;
 
+  # Budgey deploy key for git archive push (shared with chassis)
+  age.secrets.budgey_deploy_key = {
+    rekeyFile = flake + /files/configs/budgey/deploy-key.age;
+    path = "${config.home.homeDirectory}/.local/share/budgey/deploy-key";
+    mode = "400";
+  };
+
   home.stateVersion = "26.05";
 }
