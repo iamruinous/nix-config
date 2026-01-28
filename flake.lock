@@ -130,11 +130,11 @@
         "systems": "systems_9"
       },
       "locked": {
-        "lastModified": 1767386128,
-        "narHash": "sha256-BJDu7dIMauO2nYRSL4aI8wDNtEm2KOb7lDKP3hxdrpo=",
+        "lastModified": 1769353768,
+        "narHash": "sha256-zI+7cbMI4wMIR57jMjDSEsVb3grapTnURDxxJPYFIW0=",
         "owner": "numtide",
         "repo": "blueprint",
-        "rev": "0ed984d51a3031065925ab08812a5434f40b93d4",
+        "rev": "c7da5c70ad1c9b60b6f5d4f674fbe205d48d8f6c",
         "type": "github"
       },
       "original": {
@@ -1488,11 +1488,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1769179138,
-        "narHash": "sha256-o51hx7iJFacHWeUoeczozlPfiJz/efiLNkEzDOg5Dps=",
+        "lastModified": 1769570694,
+        "narHash": "sha256-32P8dCOPXM6lm//SBDvLEPH8OqbwWS1VP2CWY2H56jw=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "cd994b5ff299de10c087b61d01a008cedc8aae58",
+        "rev": "2b41ea37285c6af0582c05225c63a33860ed2d1b",
         "type": "github"
       },
       "original": {
@@ -1906,11 +1906,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1768875095,
-        "narHash": "sha256-dYP3DjiL7oIiiq3H65tGIXXIT1Waiadmv93JS0sS+8A=",
+        "lastModified": 1769433173,
+        "narHash": "sha256-Gf1dFYgD344WZ3q0LPlRoWaNdNQq8kSBDLEWulRQSEs=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ed142ab1b3a092c4d149245d0c4126a5d7ea00b0",
+        "rev": "13b0f9e6ac78abbbb736c635d87845c4f4bee51b",
         "type": "github"
       },
       "original": {
@@ -2126,16 +2126,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769560264,
-        "narHash": "sha256-Y6d9OB3zJxDtMYoXR/49Qsyt+SvCcorpQhlFBt+Yp14=",
-        "ref": "refs/tags/v3.5.0",
-        "rev": "960a4ac4cc6da20b414a979a7bdb4a6dabb48ae1",
-        "revCount": 165,
+        "lastModified": 1769565840,
+        "narHash": "sha256-8LJsHYVKlp0x99BTZMKjqtR+HuiGccpXOv5GR4jbnNQ=",
+        "ref": "refs/tags/v3.7.0",
+        "rev": "7435daa4a660982dfcba8bc36533e7b92e910d2b",
+        "revCount": 171,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       },
       "original": {
-        "ref": "refs/tags/v3.5.0",
+        "ref": "refs/tags/v3.7.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       }
@@ -2474,11 +2474,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1768158989,
-        "narHash": "sha256-67vyT1+xClLldnumAzCTBvU0jLZ1YBcf4vANRWP3+Ak=",
+        "lastModified": 1769515380,
+        "narHash": "sha256-CWWK3PaQ7zhr+Jcf5zyaTR2cfRBXPo09H7+5nWApL8s=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "e96d59dff5c0d7fddb9d113ba108f03c3ef99eca",
+        "rev": "9911802c2822def2eec3d22e2cafd1619ede94a5",
         "type": "github"
       },
       "original": {
