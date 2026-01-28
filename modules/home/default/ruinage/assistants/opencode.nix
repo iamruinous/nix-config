@@ -1264,6 +1264,9 @@ in {
           };
         };
 
+        # Default disabled skills - disable built-in git-master to use ruinagents custom skill
+        ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.disabledSkills = ["git-master"];
+
         # Default LSP servers
         ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.lsp = {
           marksman = {
