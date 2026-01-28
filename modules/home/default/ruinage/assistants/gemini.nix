@@ -4,11 +4,13 @@
 # - Global Gemini settings (ruinous.ruinage.assistants.gemini.*)
 # - Harness configurations (ruinagents)
 # - Per-project Gemini context file deployment
+# - Custom context file discovery (AGENTS.md support)
 #
 # Gemini CLI (Google) uses:
 # - Global config: ~/.gemini/
-# - Context file: GEMINI.md
+# - Context file: GEMINI.md (we extend to also discover AGENTS.md)
 # - Skills directory: ~/.gemini/skills/
+# - Settings: ~/.gemini/settings.json
 #
 # Example:
 #   ruinous.ruinage = {
@@ -54,6 +56,18 @@ with lib; let
     name: project:
       project.assistants.gemini.enable or false
   ) (cfg.projects or {});
+
+  # Global settings.json for Gemini CLI
+  # Configures context file discovery to include AGENTS.md (agents.md spec)
+  # alongside the default GEMINI.md
+  globalSettings = {
+    context = {
+      # Load both AGENTS.md and GEMINI.md as context files
+      # AGENTS.md follows the agents.md spec (https://agents.md/)
+      # GEMINI.md is the Gemini CLI default
+      fileName = ["AGENTS.md" "GEMINI.md"];
+    };
+  };
 in {
   options.ruinous.ruinage.assistants.gemini = {
     enable = mkEnableOption "Gemini CLI assistant configuration management";
@@ -78,6 +92,8 @@ in {
       in
         {
           "${configDir}/GEMINI.md".source = "${ruinagentsShare}/GEMINI.md";
+          # Global settings.json with AGENTS.md context discovery
+          "${configDir}/settings.json".text = builtins.toJSON globalSettings;
         }
         // skillLinks;
     })
