@@ -2,6 +2,8 @@
   flake,
   config,
   osConfig,
+  pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -232,6 +234,16 @@
   # Moltbot - Personal AI Assistant for Discord
   # Minimal Discord-only configuration using Anthropic Claude
   # Secrets defined in hosts/chassis/moltbot.nix
+  #
+  # WORKAROUND: nix-moltbot uses hardcoded /bin/mkdir which doesn't exist on NixOS
+  # We pre-create the directories before the clawdbotDirs activation runs
+  # Bug: https://github.com/moltbot/nix-moltbot - home-manager module uses /bin/mkdir
+  home.activation.clawdbotDirsFix = lib.hm.dag.entryBefore ["clawdbotDirs"] ''
+    ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
+    ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
+    ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
+  '';
+
   programs.clawdbot = {
     enable = true;
 
