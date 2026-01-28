@@ -68,7 +68,7 @@ This directory is curated by **LIBBY** (documentation voice) with domain experti
 
 ### Verification Before Completion
 
-1. `just remote-dry-build <target>` passes
+1. `just check <target>` passes
 2. No unencrypted secrets in commit
 3. Container images pinned (no `:latest`)
 4. DNS records created if needed

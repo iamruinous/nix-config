@@ -9,7 +9,7 @@
 # Registration:
 #   1. Generate token in Forgejo: Site Admin > Actions > Runners > Create new Runner
 #   2. Encrypt with: agenix-helper unlock && agenix edit hosts/chassis/files/forgejo-runner/token.age
-#   3. Deploy: just remote-rebuild chassis
+#   3. Deploy: just deploy chassis
 #   4. Runner auto-registers on first start
 #
 # Workflow usage:

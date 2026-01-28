@@ -50,19 +50,33 @@ This repository is the domain of **[NIXEY](https://agents.ruinous.ai/smes/nixey/
 ### Commands
 
 ```bash
-just deploy <host>             # Smart deploy (auto-detects local vs remote)
-just verify <host>             # Smart dry-build (auto-detects Darwin vs NixOS)
-just remote-rebuild <host>     # Deploy to remote NixOS host
-just remote-dry-build <host>   # Verify build for remote NixOS host
-just check                     # Dry-build representative hosts
-agenix-helper unlock           # Unlock secrets for editing
+# Hosts (auto-detect local/remote, Darwin/NixOS)
+just check [host]              # Verify build (dry-build)
+just deploy [host]             # Deploy configuration
+just build [host]              # Build without switching
+just install                   # Install Nix + nix-darwin
+
+# Validation
+just canary                    # Dry-build representative hosts
+
+# Secrets
+just unlock                    # Unlock agenix identity
+just peek <secret>             # View encrypted secret
+just encrypt <secret>          # Create/edit encrypted secret
+just rekey                     # Re-encrypt all secrets
+
+# RPi Images
+just sd-image <host>           # Build SD image for Raspberry Pi
+just sd-flash <host> <device>  # Flash SD image to device
 ```
+
+For user passwords and advanced operations, see `just --list`.
 
 ### Deployment Workflow
 
 1. Make changes to host configuration
-2. Verify build: `just verify <host>`
-3. Deploy: `just deploy <host>`
+2. Verify build: `just check [host]`
+3. Deploy: `just deploy [host]`
 
 ---
 
@@ -181,8 +195,8 @@ ruinous.ruinage.projects.my-project = {
 2. Create encrypted env → `/encrypt-secret`
 3. Create DNS record → `/add-dns-record`
 4. Configure Caddy routes → `/add-caddy-route`
-5. Verify: `just remote-dry-build <host>`
-6. Deploy: `just remote-rebuild <host>`
+5. Verify: `just check <host>`
+6. Deploy: `just deploy <host>`
 
 ---
 
@@ -201,7 +215,7 @@ ruinous.ruinage.projects.my-project = {
 
 Before completing any task:
 
-- [ ] `just remote-dry-build <target>` passes
+- [ ] `just check <target>` passes
 - [ ] No unencrypted secrets in commit
 - [ ] Container images pinned (no `:latest`)
 - [ ] DNS records created if needed
@@ -213,7 +227,7 @@ Before completing any task:
 
 - **Format:** Material for MkDocs
 - **Nix formatting:** alejandra
-- **CI validation:** `just check`
+- **CI validation:** `just canary`
 
 ---
 
