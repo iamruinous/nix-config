@@ -1,0 +1,46 @@
+# Build Nix packages on the native runner to populate Harmonia binary cache
+#
+# Runs on: chassis (native Nix runner)
+# Triggers: push to main, manual dispatch
+# Cache: Packages built here are automatically available at cache.nix.meskill.farm
+name: Nix Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**'
+      - 'flake.nix'
+      - 'flake.lock'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Specific package to build (leave empty for all)'
+        required: false
+        default: ''
+
+jobs:
+  build-packages:
+    name: Build Nix Packages
+    runs-on: nix
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build all packages
+        if: ${{ github.event.inputs.package == '' }}
+        run: |
+          echo "Building all packages..."
+          # List and build each package
+          for pkg in $(nix flake show --json 2>/dev/null | jq -r '.packages."x86_64-linux" | keys[]' 2>/dev/null || echo ""); do
+            if [ -n "$pkg" ]; then
+              echo "Building $pkg..."
+              nix build ".#$pkg" --no-link || echo "Warning: Failed to build $pkg"
+            fi
+          done
+
+      - name: Build specific package
+        if: ${{ github.event.inputs.package != '' }}
+        run: |
+          echo "Building ${{ github.event.inputs.package }}..."
+          nix build ".#${{ github.event.inputs.package }}"
