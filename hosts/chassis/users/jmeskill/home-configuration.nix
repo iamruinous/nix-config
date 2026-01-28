@@ -256,22 +256,25 @@
   '');
 
   # Generate valid clawdbot config (token is read from env at runtime)
-  home.file.".clawdbot/clawdbot.json".text = builtins.toJSON {
-    gateway.mode = "local";
-    agents = {
-      defaults = {
-        workspace = "${config.home.homeDirectory}/.clawdbot/workspace";
-        model.primary = "anthropic/claude-sonnet-4-20250514";
-        thinkingDefault = "medium";
+  # Use mkForce to override the upstream module's config file
+  home.file.".clawdbot/clawdbot.json" = lib.mkForce {
+    text = builtins.toJSON {
+      gateway.mode = "local";
+      agents = {
+        defaults = {
+          workspace = "${config.home.homeDirectory}/.clawdbot/workspace";
+          model.primary = "anthropic/claude-sonnet-4-20250514";
+          thinkingDefault = "medium";
+        };
+        list = [{ id = "main"; default = true; }];
       };
-      list = [{ id = "main"; default = true; }];
-    };
-    channels.discord = {
-      enabled = true;
-      # Token is set via DISCORD_BOT_TOKEN env var at runtime
-      dm = {
-        policy = "pairing";
-        allowFrom = [];
+      channels.discord = {
+        enabled = true;
+        # Token is set via DISCORD_BOT_TOKEN env var at runtime
+        dm = {
+          policy = "pairing";
+          allowFrom = [];
+        };
       };
     };
   };
