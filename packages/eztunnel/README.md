@@ -102,6 +102,9 @@ The tunnel is created with the following SSH options:
 - `StrictHostKeyChecking=accept-new`: Automatically accepts new host keys
 - `ServerAliveInterval=30`: Sends keep-alive packets every 30 seconds
 - `ServerAliveCountMax=3`: Disconnects after 3 failed keep-alive attempts
+- `SetEnv=BYPASS_LOGIN_HUB=true`: Bypasses login hub interactive prompts
+- `RequestTTY=no`: Prevents TTY allocation for non-interactive operation
+- `LogLevel=ERROR`: Suppresses non-error SSH messages
 - `-N`: No remote command execution (tunnel only)
 - `-L`: Local port forwarding
 
