@@ -35,8 +35,8 @@ in
     src = pkgs.fetchFromGitHub {
       owner = "fabioluciano";
       repo = "tmux-powerkit";
-      rev = "a3bf1a951b297adab8d1e6225cff5987fe6bd5e8"; # main branch as of 2026-01-11
-      sha256 = "0ip4xwcxk4fxw7r8mvymyay5wvszkvb9wacsrfa1r1fa9g37jkzp";
+      rev = "200ba5846ebf43b93bb8abc4de4b4d13f70b6825"; # main branch as of 2026-01-11
+      sha256 = "sha256-R7FpIoaqvqE3ATSaq7yT2ZnME+KJPJ8IrpGNGV9cmNM=";
     };
 
     # Powerkit requires bash 5.0+, bc, jq, and other utilities
