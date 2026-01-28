@@ -17,6 +17,7 @@
     ./ollama.nix
     ./harmonia.nix
     ./forgejo-runner.nix
+    ./moltbot.nix
   ];
 
   networking.hostName = "chassis";
