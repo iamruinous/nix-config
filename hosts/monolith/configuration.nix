@@ -44,14 +44,12 @@
   services.tailscale.extraUpFlags = ["--advertise-routes=10.55.0.0/16"];
 
   # Pinchflat lifecycle webhook for YouTube summary processing
+  # Uses media profile filtering - assign the "newsy-summarize" profile in Pinchflat
+  # to sources you want summarized instead of maintaining a channel allowlist
   services.pinchflat-lifecycle = {
     enable = true;
     webhookUrl = "https://n8h.meskill.farm/webhook/youtube-summary";
-    allowedChannels = [
-      "AI News & Strategy Daily | Nate B Jones"
-      "Nate Herk | AI Automation"
-      "Pinch Summarize"
-    ];
+    allowedProfiles = ["newsy-summarize"];
   };
   boot.plymouth.enable = true;
   power.ups.enable = true;
