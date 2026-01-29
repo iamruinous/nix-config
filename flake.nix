@@ -141,7 +141,7 @@
      # ruinagents - Agent definitions, docs, and skills
      # <https://forge.meskill.farm/iamruinous/ruinagents>
      # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.10.0";
+     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.11.0";
      ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
      # nix-moltbot - Moltbot personal AI assistant for Nix

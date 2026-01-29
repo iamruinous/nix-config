@@ -966,6 +966,37 @@ in {
         enable = mkEnableOption "ruinagents harness for AGENTS.md and skills";
       };
     };
+
+    ocx = {
+      enable = mkEnableOption "OCX extension manager for OpenCode plugins";
+
+      registries = mkOption {
+        type = types.attrsOf types.str;
+        default = {
+          kdco = "https://registry.kdco.dev";
+        };
+        description = lib.mdDoc ''
+          OCX registries to configure globally.
+          Keys are registry names, values are URLs.
+          The kdco registry is included by default for opencode-worktree and related plugins.
+        '';
+      };
+
+      plugins = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        example = [ "kdco/worktree" "kdco/workspace" ];
+        description = lib.mdDoc ''
+          OCX plugins to install globally.
+          These are installed via `ocx add --global <plugin>`.
+          Plugins from the kdco registry include:
+          - `kdco/worktree` - Git worktrees with automatic terminal spawning (tmux-aware)
+          - `kdco/workspace` - Structured planning with rule injection
+          - `kdco/background-agents` - Async delegation with persistent outputs
+          - `kdco/notify` - Native OS notifications
+        '';
+      };
+    };
   };
 
   config = let
@@ -1347,6 +1378,33 @@ in {
       # Install notifier package if any config has it enabled
       (mkIf anyNotifierEnabled {
         home.packages = [pkgs.opencode-notifier-apprise];
+      })
+
+      # OCX extension manager for OpenCode plugins (e.g., kdco/worktree)
+      (mkIf (opencodeAssistant.ocx.enable or false) {
+        # OCX activation script - configures registries and installs plugins
+        home.activation.opencode-ocx = let
+          ocxCfg = opencodeAssistant.ocx;
+          # Build registry add commands
+          registryCommands = concatStringsSep "\n" (
+            mapAttrsToList (name: url:
+              ''$DRY_RUN_CMD ${pkgs.bun}/bin/bunx ocx registry add "${url}" --name "${name}" --global 2>/dev/null || true''
+            ) ocxCfg.registries
+          );
+          # Build plugin add commands
+          pluginCommands = concatStringsSep "\n" (
+            map (plugin:
+              ''$DRY_RUN_CMD ${pkgs.bun}/bin/bunx ocx add "${plugin}" --global 2>/dev/null || true''
+            ) ocxCfg.plugins
+          );
+        in lib.hm.dag.entryAfter ["writeBoundary"] ''
+          # OCX extension manager setup
+          # Configure registries
+          ${registryCommands}
+
+          # Install OCX plugins globally
+          ${pluginCommands}
+        '';
       })
 
       # Generate systemd services for projects with opencode enabled

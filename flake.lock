@@ -2125,16 +2125,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769671021,
-        "narHash": "sha256-vw45tuotByN61Ghm1kPLkDE84IwNSTQ1fwwy89zELxo=",
-        "ref": "refs/tags/v3.10.0",
-        "rev": "2e9f5183b92b697e2b0589d228743f97deb5ce5a",
-        "revCount": 190,
+        "lastModified": 1769680743,
+        "narHash": "sha256-wkOBi5TXckSzdSj/qRQ7Ixyo5ogCpdIm4KYP3uihkdE=",
+        "ref": "refs/tags/v3.11.0",
+        "rev": "7befa265d172878a50ea53bf6216cb209b8cd40f",
+        "revCount": 201,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       },
       "original": {
-        "ref": "refs/tags/v3.10.0",
+        "ref": "refs/tags/v3.11.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       }

@@ -173,6 +173,16 @@
       '';
     };
   };
+
+  # Moltbot/Clawdbot - Personal AI gateway web interface
+  # Dashboard and control UI for Discord/WhatsApp bot
+  moltbotHost = {
+    "moltbot.ruinous.ai" = {
+      extraConfig = ''
+        reverse_proxy http://localhost:18789
+      '';
+    };
+  };
 in {
   # Open firewall for HTTP/HTTPS
   networking.firewall.allowedTCPPorts = [80 443];
@@ -188,8 +198,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, harmonia, and messy-attributes-editor
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // messyAttributesEditorHost // weaviateHost // harmoniaHost;
+    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, harmonia, messy-attributes-editor, and moltbot
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // messyAttributesEditorHost // weaviateHost // harmoniaHost // moltbotHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)
