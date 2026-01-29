@@ -19,11 +19,9 @@
     syncthing = {
       enable = true;
       claudeSessions.enable = true;
-      # Device IDs - get from Syncthing web UI after first run
-      # jbookpro ID will be filled in after deployment
       devices = {
         jbookpro = {
-          id = "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX";
+          id = "MLNPWYZ-LAZM4PW-VXMGTLG-CFI4SCZ-EEWJEXX-VMHOFFA-XZMAFEI-HEPITAW";
         };
       };
     };

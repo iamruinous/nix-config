@@ -20,11 +20,9 @@
     syncthing = {
       enable = true;
       claudeSessions.enable = true;
-      # Device IDs - get from Syncthing web UI after first run
-      # jmacmini ID will be filled in after deployment
       devices = {
         jmacmini = {
-          id = "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX";
+          id = "SG7DSAA-HQVGRUF-PO5AKJV-QZSE5GD-PYARYJW-VL7CN3R-U6NJO22-X4ZPSQR";
         };
       };
     };
