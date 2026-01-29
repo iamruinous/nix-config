@@ -354,6 +354,29 @@
   systemd.user.services.clawdbot-gateway = {
     Unit.Description = "Clawdbot gateway";
     Service = {
+      ExecStartPre = "${pkgs.writeShellScript "clawdbot-gateway-prepare" ''
+        set -euo pipefail
+
+        # Read WhatsApp allowFrom from agenix secret (one phone number per line, E.164 format)
+        # Secret is optional - if not configured, WhatsApp will use empty allowlist
+        WHATSAPP_ALLOWFROM_FILE="${
+          if osConfig.age.secrets ? chassis_moltbot_whatsapp_allowfrom
+          then osConfig.age.secrets.chassis_moltbot_whatsapp_allowfrom.path
+          else ""
+        }"
+        if [ -n "$WHATSAPP_ALLOWFROM_FILE" ] && [ -f "$WHATSAPP_ALLOWFROM_FILE" ]; then
+          # Convert newline-separated phone numbers to JSON array
+          ALLOWFROM_JSON=$(${pkgs.jq}/bin/jq -R -s 'split("\n") | map(select(length > 0))' < "$WHATSAPP_ALLOWFROM_FILE")
+        else
+          ALLOWFROM_JSON='[]'
+        fi
+
+        # Patch the config with the secret allowFrom list
+        ${pkgs.jq}/bin/jq --argjson allowFrom "$ALLOWFROM_JSON" \
+          '.channels.whatsapp.allowFrom = $allowFrom' \
+          "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
+          > /tmp/clawdbot/clawdbot-runtime.json
+      ''}";
       ExecStart = "${pkgs.writeShellScript "clawdbot-gateway-start" ''
         set -euo pipefail
 
@@ -362,9 +385,9 @@
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
         export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
 
-        # Set clawdbot environment
+        # Set clawdbot environment - use runtime-patched config
         export HOME="${config.home.homeDirectory}"
-        export CLAWDBOT_CONFIG_PATH="${config.home.homeDirectory}/.clawdbot/clawdbot.json"
+        export CLAWDBOT_CONFIG_PATH="/tmp/clawdbot/clawdbot-runtime.json"
         export CLAWDBOT_STATE_DIR="${config.home.homeDirectory}/.clawdbot"
         export CLAWDBOT_NIX_MODE=1
 
