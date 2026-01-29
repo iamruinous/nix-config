@@ -60,4 +60,21 @@
     owner = "jmeskill";
     group = "users";
   };
+
+  # Messy Discord bot token (separate bot for messy agent)
+  # This enables cross-channel memory: messy-discord + whatsapp share the same agent
+  age.secrets.chassis_moltbot_messy_discord_token = lib.mkIf (builtins.pathExists ./files/moltbot/messy-discord-token.age) {
+    rekeyFile = ./files/moltbot/messy-discord-token.age;
+    mode = "400";
+    owner = "jmeskill";
+    group = "users";
+  };
+
+  # Codey Discord bot token (separate bot for codey agent - #ops channel)
+  age.secrets.chassis_moltbot_codey_discord_token = lib.mkIf (builtins.pathExists ./files/moltbot/codey-discord-token.age) {
+    rekeyFile = ./files/moltbot/codey-discord-token.age;
+    mode = "400";
+    owner = "jmeskill";
+    group = "users";
+  };
 }
