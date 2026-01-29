@@ -341,6 +341,11 @@
           guilds = {
             "481143305745465354" = {
               requireMention = true;
+              channels = {
+                "moltbot-chat" = {
+                  requireMention = false;
+                };
+              };
             };
           };
         };
