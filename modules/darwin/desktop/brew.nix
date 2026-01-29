@@ -48,6 +48,7 @@
       "element"
       "gog-galaxy"
       "google-chrome"
+      "hazel"
       "jellyfin"
       "keka"
       "knockknock"
@@ -81,6 +82,7 @@
       "Paprika3" = 1303222628;
       "Perplexity" = 6714467650;
       "PixelmatorPro" = 1289583905;
+      "Shellfish" = 1336634154;
       "Tailscale" = 1475387142;
       "Todoist" = 585829637;
       "aSPICEPro" = 1560593107;
