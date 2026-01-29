@@ -221,6 +221,9 @@
 
         # messy-attributes-editor - web service with Caddy
         messy-attributes-editor = {
+          # Disable docs aggregation - upstream docs build needs fixing
+          # (mkdocstrings can't find messy_attributes module in build env)
+          docs.enable = false;
           assistants.opencode = {
             enable = true;
             web.enable = true;
@@ -274,7 +277,10 @@
   home.activation.clawdbotDirs = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] ''
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace/memory
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy/memory
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/memory
     run ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
   '');
 
@@ -298,7 +304,7 @@
           # Include bundled extensions from clawdbot-gateway package
           "${pkgs.clawdbot-gateway}/lib/clawdbot/node_modules/.pnpm/clawdbot@2026.1.24-3_@types+express@5.0.6_audio-decode@2.2.3_devtools-protocol@0.0.1561482_typescript@5.9.3/node_modules/clawdbot/extensions"
         ];
-        slots.memory = "none"; # Disable default memory plugin (not available in nix package)
+        slots.memory = "memory-core"; # Built-in memory using Markdown files + SQLite
         entries.discord.enabled = true; # Explicitly enable discord plugin
       };
       agents = {
@@ -306,6 +312,11 @@
           workspace = "${config.home.homeDirectory}/.clawdbot/workspace";
           model.primary = "anthropic/claude-sonnet-4-20250514";
           thinkingDefault = "medium";
+          # Enable semantic memory search with local embeddings (no API key needed)
+          memorySearch = {
+            enabled = true;
+            provider = "local"; # Uses node-llama-cpp with local embedding model
+          };
         };
         list = [
           {
@@ -315,7 +326,6 @@
           {
             id = "messy";
             workspace = "${config.home.homeDirectory}/.clawdbot/agents/messy";
-            soulPath = "${config.home.homeDirectory}/.clawdbot/agents/messy/SOUL.md";
           }
         ];
       };
@@ -335,18 +345,20 @@
           };
         };
         whatsapp = {
-          enabled = true;
-          dmPolicy = "allowlist";
-          allowFrom = [];
-          selfChatMode = false;
-          ackReaction = {
-            emoji = "eyes";
-            direct = true;
-            group = "mentions";
+          accounts.default = {
+            enabled = true;
+            dmPolicy = "allowlist";
+            allowFrom = [];
           };
-          agent = "messy";
         };
       };
+      # Route WhatsApp messages to MESSY agent
+      bindings = [
+        {
+          agentId = "messy";
+          match = { channel = "whatsapp"; };
+        }
+      ];
     };
   };
 
@@ -373,7 +385,7 @@
 
         # Patch the config with the secret allowFrom list
         ${pkgs.jq}/bin/jq --argjson allowFrom "$ALLOWFROM_JSON" \
-          '.channels.whatsapp.allowFrom = $allowFrom' \
+          '.channels.whatsapp.accounts.default.allowFrom = $allowFrom' \
           "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
           > /tmp/clawdbot/clawdbot-runtime.json
       ''}";
@@ -486,6 +498,26 @@
 
     *MESSY v1.1.0 — Meskill Family Assistant*
   '';
+
+  # Clawdbot tmuxp session for TUI access
+  ruinous.tmuxp.sessions.clawdbot = {
+    startDirectory = "${config.home.homeDirectory}/.clawdbot";
+    startCommands = ["source ${config.home.homeDirectory}/.envrc"];
+    windows = [
+      {
+        name = "logs";
+        command = "journalctl --user -u clawdbot-gateway -f";
+      }
+      {
+        name = "tui";
+        command = "clawdbot tui";
+        focus = true;
+      }
+      {
+        name = "shell";
+      }
+    ];
+  };
 
   # Keep upstream module enabled but disable its systemd service
   # We use our own custom service that properly handles secrets
