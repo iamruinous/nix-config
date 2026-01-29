@@ -350,7 +350,7 @@
               requireMention = true;
               channels = {
                 # #moltbot-chat - no @ required (convention: *bot-chat channels)
-                "1465597974506635306" = {
+                "moltbot-chat" = {
                   requireMention = false;
                 };
               };
@@ -373,7 +373,7 @@
                 requireMention = true;
                 channels = {
                   # #messybot-chat - no @ required (convention: *bot-chat channels)
-                  "1466533002950480026" = {
+                  "messybot-chat" = {
                     requireMention = false;
                   };
                 };
@@ -397,7 +397,7 @@
                 requireMention = true;
                 channels = {
                   # #codeybot-chat - no @ required (convention: *bot-chat channels)
-                  "1466522929352282252" = {
+                  "codeybot-chat" = {
                     requireMention = false;
                   };
                 };
