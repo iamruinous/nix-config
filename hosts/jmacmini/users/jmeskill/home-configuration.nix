@@ -15,6 +15,19 @@
     # allow use of 1password op-ssh-sign
     git.signing.use1Password = true;
 
+    # Syncthing for cross-machine sync
+    syncthing = {
+      enable = true;
+      claudeSessions.enable = true;
+      # Device IDs - get from Syncthing web UI after first run
+      # jbookpro ID will be filled in after deployment
+      devices = {
+        jbookpro = {
+          id = "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX";
+        };
+      };
+    };
+
     # Enable rust-motd for system info on login
     rust-motd.enable = true;
 
