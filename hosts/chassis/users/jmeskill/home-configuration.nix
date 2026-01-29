@@ -280,6 +280,8 @@
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace/memory
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy/memory
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/codey
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/codey/memory
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/memory
     run ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
   '');
@@ -327,10 +329,15 @@
             id = "messy";
             workspace = "${config.home.homeDirectory}/.clawdbot/agents/messy";
           }
+          {
+            id = "codey";
+            workspace = "${config.home.homeDirectory}/.clawdbot/agents/codey";
+          }
         ];
       };
       channels = {
         discord = {
+          # Default account (main bot) - uses DISCORD_BOT_TOKEN env var
           enabled = true;
           dm = {
             enabled = true;
@@ -348,6 +355,30 @@
               };
             };
           };
+          # Messy account (separate bot for messy agent)
+          # Token is injected at runtime from agenix secret
+          accounts.messy = {
+            name = "Messy Bot";
+            enabled = true;
+            token = "PLACEHOLDER_MESSY_TOKEN"; # Replaced at runtime
+            dm = {
+              enabled = true;
+              policy = "open";
+              allowFrom = ["*"];
+            };
+          };
+          # Codey account (separate bot for codey agent - #ops channel)
+          # Token is injected at runtime from agenix secret
+          accounts.codey = {
+            name = "Codey Bot";
+            enabled = true;
+            token = "PLACEHOLDER_CODEY_TOKEN"; # Replaced at runtime
+            dm = {
+              enabled = true;
+              policy = "open";
+              allowFrom = ["*"];
+            };
+          };
         };
         whatsapp = {
           accounts.default = {
@@ -357,8 +388,28 @@
           };
         };
       };
-      # Route WhatsApp messages to MESSY agent
+      # Session bridging: use main scope so all DMs share context per agent
+      session = {
+        dmScope = "main";
+      };
+      # Route channels to agents:
+      # - Discord default → main agent
+      # - Discord messy → messy agent (shares memory with WhatsApp!)
+      # - Discord codey → codey agent (#ops channel)
+      # - WhatsApp → messy agent
       bindings = [
+        {
+          agentId = "main";
+          match = { channel = "discord"; accountId = "default"; };
+        }
+        {
+          agentId = "messy";
+          match = { channel = "discord"; accountId = "messy"; };
+        }
+        {
+          agentId = "codey";
+          match = { channel = "discord"; accountId = "codey"; };
+        }
         {
           agentId = "messy";
           match = { channel = "whatsapp"; };
@@ -388,9 +439,40 @@
           ALLOWFROM_JSON='[]'
         fi
 
-        # Patch the config with the secret allowFrom list
+        # Read messy Discord bot token from agenix secret (optional)
+        MESSY_DISCORD_TOKEN_FILE="${
+          if osConfig.age.secrets ? chassis_moltbot_messy_discord_token
+          then osConfig.age.secrets.chassis_moltbot_messy_discord_token.path
+          else ""
+        }"
+        if [ -n "$MESSY_DISCORD_TOKEN_FILE" ] && [ -f "$MESSY_DISCORD_TOKEN_FILE" ]; then
+          MESSY_DISCORD_TOKEN=$(cat "$MESSY_DISCORD_TOKEN_FILE")
+        else
+          MESSY_DISCORD_TOKEN=""
+        fi
+
+        # Read codey Discord bot token from agenix secret (optional)
+        CODEY_DISCORD_TOKEN_FILE="${
+          if osConfig.age.secrets ? chassis_moltbot_codey_discord_token
+          then osConfig.age.secrets.chassis_moltbot_codey_discord_token.path
+          else ""
+        }"
+        if [ -n "$CODEY_DISCORD_TOKEN_FILE" ] && [ -f "$CODEY_DISCORD_TOKEN_FILE" ]; then
+          CODEY_DISCORD_TOKEN=$(cat "$CODEY_DISCORD_TOKEN_FILE")
+        else
+          CODEY_DISCORD_TOKEN=""
+        fi
+
+        # Patch the config with secrets:
+        # 1. WhatsApp allowFrom list
+        # 2. Messy Discord bot token (if configured)
+        # 3. Codey Discord bot token (if configured)
         ${pkgs.jq}/bin/jq --argjson allowFrom "$ALLOWFROM_JSON" \
-          '.channels.whatsapp.accounts.default.allowFrom = $allowFrom' \
+          --arg messyToken "$MESSY_DISCORD_TOKEN" \
+          --arg codeyToken "$CODEY_DISCORD_TOKEN" \
+          '.channels.whatsapp.accounts.default.allowFrom = $allowFrom |
+           if $messyToken != "" then .channels.discord.accounts.messy.token = $messyToken else . end |
+           if $codeyToken != "" then .channels.discord.accounts.codey.token = $codeyToken else . end' \
           "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
           > /tmp/clawdbot/clawdbot-runtime.json
       ''}";
