@@ -4,8 +4,8 @@ This directory contains configurations for all systems managed by this flake. Ea
 
 ## Overview
 
-This infrastructure consists of **24 hosts** spanning multiple platforms:
-- **14 NixOS servers** - Infrastructure, compute nodes, and Raspberry Pi cluster
+This infrastructure consists of **25 hosts** spanning multiple platforms:
+- **15 NixOS servers** - Infrastructure, compute nodes, and Raspberry Pi cluster
 - **2 NixOS thin clients** - High Availability pair
 - **1 Cloud VPS** - Remote services
 - **2 NixOS workstations** - Desktop and laptop
@@ -39,10 +39,19 @@ This infrastructure consists of **24 hosts** spanning multiple platforms:
 - Tailscale, Grafana Alloy monitoring
 
 #### [zenith](zenith/README.md)
-**Minisforum MS-S1 MAX** - AI-capable container server
+**Minisforum MS-S1 MAX** - AI + development container server
 - AMD Ryzen AI Max+ 395 (16 cores, 32 threads), 128 GB LPDDR5x
 - Radeon 8060S GPU, 50 TOPS NPU (126 TOPS total)
 - Dual 10GbE networking, Docker containers
+- AI inference (llama.cpp), n8n workflows, PostgreSQL, Weaviate
+- Tailscale subnet routing, Caddy reverse proxy, Cloudflared tunnels
+
+#### [azimuth](azimuth/README.md)
+**Minisforum MS-S1 MAX** - Lightweight AI inference server
+- AMD Ryzen AI Max+ 395 (16 cores, 32 threads), 128 GB LPDDR5x
+- Radeon 8060S GPU, 50 TOPS NPU (126 TOPS total)
+- Dual 10GbE networking, Docker containers
+- Minimal AI stack (llama.cpp + Open WebUI only)
 - Tailscale subnet routing, Caddy reverse proxy
 
 ### ARM Servers
@@ -160,11 +169,11 @@ The RPC is a cluster of Raspberry Pi devices for edge computing and experimentat
 
 ### VLAN Configuration
 - **Management Network** (10.55.10.0/24) - gap, void
-- **Services Network** (10.55.20.0/24 - VLAN 2) - monolith, obelisk, pilaster, zenith, MicroVMs
+- **Services Network** (10.55.20.0/24 - VLAN 2) - monolith, obelisk, pilaster, zenith, azimuth, MicroVMs
 
 ### Tailscale VPN
 Multiple hosts advertise subnet routes (10.55.0.0/16):
-- monolith, obelisk, pilaster, zenith (on-premises)
+- monolith, obelisk, pilaster, zenith, azimuth (on-premises)
 - tty-ruinous-social (cloud access)
 
 ### High Availability
@@ -184,7 +193,7 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 - **Prometheus Node Exporter**: obelisk
 
 ### Container Orchestration
-- **Docker** on: monolith, obelisk, pilaster, zenith, tty-ruinous-social
+- **Docker** on: monolith, obelisk, pilaster, zenith, azimuth, tty-ruinous-social
 - **MicroVM** on: obelisk (hosts 2 VMs)
 
 ### Container Networks
@@ -217,7 +226,8 @@ Multiple hosts advertise subnet routes (10.55.0.0/16):
 | monolith | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Infrastructure hub |
 | obelisk | Server | NixOS | i9-14900KF | 64 GB | GPU compute + VMs |
 | pilaster | Server | NixOS | i9-13900H (14c/20t) | 96 GB | Containers |
-| zenith | Server | NixOS | Ryzen AI Max+ 395 | 128 GB | AI + Containers |
+| zenith | Server | NixOS | Ryzen AI Max+ 395 | 128 GB | AI + Dev services |
+| azimuth | Server | NixOS | Ryzen AI Max+ 395 | 128 GB | AI inference |
 | void | Thin Client | NixOS | GX-424CC | 4 GB | HA master |
 | gap | Thin Client | NixOS | GX-424CC | 4 GB | HA backup |
 | tty-ruinous-social | VPS | NixOS | 4 cores | 8 GB | Cloud services |

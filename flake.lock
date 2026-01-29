@@ -169,16 +169,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769581536,
-        "narHash": "sha256-q1Azpo2xQVZU+QVkzXUNbPx1edcKnytj5gsHHZ5o75Y=",
-        "ref": "refs/tags/v0.4.6",
-        "rev": "da16fb6b81970fc94b128f0610c9563258fa05b1",
-        "revCount": 33,
+        "lastModified": 1769644113,
+        "narHash": "sha256-rBzPSBy3GYSPlw3OIrshn04pGBkbe24GE5ay9aOj+qY=",
+        "ref": "refs/tags/v0.4.9",
+        "rev": "6418384fadff03cf9dc1b2700b76856c78675cd3",
+        "revCount": 37,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       },
       "original": {
-        "ref": "refs/tags/v0.4.6",
+        "ref": "refs/tags/v0.4.9",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       }
@@ -191,16 +191,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769582952,
-        "narHash": "sha256-E+5hTD6Ge89jOnqx5/ZjFWSdG9J+pLFcZIWkyygsapU=",
-        "ref": "refs/tags/v0.17.0",
-        "rev": "4e1e684439394a716e0d4bfee594fc8eef812435",
-        "revCount": 88,
+        "lastModified": 1769597063,
+        "narHash": "sha256-J9dfObEAoc5uCv6/4SLm4y861FWkUCDHHvLFArEO/1I=",
+        "ref": "refs/tags/v0.18.2",
+        "rev": "a9fa5bc96a06776c0ff20b91914256590ce97a52",
+        "revCount": 100,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       },
       "original": {
-        "ref": "refs/tags/v0.17.0",
+        "ref": "refs/tags/v0.18.2",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }
@@ -1570,15 +1570,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1769481403,
-        "narHash": "sha256-QvKRtICKNB/UZcEk1rX4DiD+RDo0MDLUb7XxTojKyYA=",
-        "owner": "moltbot",
+        "lastModified": 1769600068,
+        "narHash": "sha256-7IHO/xjpmLQtwjT/eu5HMVjPtoIcRTXSfyjKC9SaCRI=",
+        "owner": "iamruinous",
         "repo": "nix-moltbot",
-        "rev": "474ee3894509e0ad282ca7dc6959c234c412d5cb",
+        "rev": "69cfbfe274dbd2511259c5fce952c40e28d30d72",
         "type": "github"
       },
       "original": {
-        "owner": "moltbot",
+        "owner": "iamruinous",
         "repo": "nix-moltbot",
         "type": "github"
       }
@@ -2085,16 +2085,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769565840,
-        "narHash": "sha256-8LJsHYVKlp0x99BTZMKjqtR+HuiGccpXOv5GR4jbnNQ=",
-        "ref": "refs/tags/v3.7.0",
-        "rev": "7435daa4a660982dfcba8bc36533e7b92e910d2b",
-        "revCount": 171,
+        "lastModified": 1769646327,
+        "narHash": "sha256-4W8a+MqNxVy4Fh7FhDU3WPQ9ktMWG9cc3+OnKKsNN6g=",
+        "ref": "refs/tags/v3.8.0",
+        "rev": "c38ae717c9331dc166bfd11cbb9ea9ae48036762",
+        "revCount": 184,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       },
       "original": {
-        "ref": "refs/tags/v3.7.0",
+        "ref": "refs/tags/v3.8.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/ruinagents.git"
       }

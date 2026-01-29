@@ -1,6 +1,6 @@
-# zenith
+# azimuth
 
-NixOS server for AI inference, development workflows, and container services.
+NixOS server for AI inference - lightweight deployment with same hardware as zenith.
 
 ## Hardware
 
@@ -21,7 +21,6 @@ NixOS server for AI inference, development workflows, and container services.
 - systemd-networkd configuration
 - nftables firewall
 - Tailscale VPN with subnet routing (10.55.0.0/16)
-- Cloudflared tunnels for external access
 
 ### Virtualization & Containers
 - Docker with btrfs storage driver
@@ -29,23 +28,14 @@ NixOS server for AI inference, development workflows, and container services.
   - **servicenet**: Inter-container communication
   - **proxynet**: Services exposed via Caddy
   - **datanet**: Internal-only network for databases
-  - **forgejo-actions**: CI/CD runners
+  - **forgejo-actions**: CI/CD runners (provisioned but unused)
 
 ### Services
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **llama.cpp** | zenith.cpp.ruinous.ai, ollama.x.meskill.farm | OpenAI-compatible API with ROCm GPU acceleration |
-| **Open WebUI** | zenith.ui.ruinous.ai | Web interface for llama.cpp |
-| **MCP Gateway** | mcp.x.meskill.farm | Model Context Protocol gateway for AI tool integration |
-| **n8n-dev** | n8n.meskill.dev | Workflow automation development environment |
-| **n8n webhooks** | n8h.meskill.dev | n8n webhook endpoints |
-| **Weaviate** | weaviate.meskill.dev | Vector database for AI workflows |
-| **Dawarich** | timeline.meskill.farm | Location tracking and history |
-| **Nominatim** | nominatim.meskill.farm | OpenStreetMap geocoding service |
-| **Obsidian** | obsidian.meskill.dev | Web-based Obsidian for n8n integration |
-| **PostgreSQL** | :5432 | Primary database server |
-| **Redis** | - | In-memory data store |
+| **llama.cpp** | azimuth.cpp.ruinous.ai | OpenAI-compatible API with ROCm GPU acceleration |
+| **Open WebUI** | azimuth.ui.ruinous.ai | Web interface for llama.cpp |
 | **Caddy** | - | Reverse proxy with Cloudflare DNS and HTTPS |
 
 #### AI Stack
@@ -54,42 +44,19 @@ NixOS server for AI inference, development workflows, and container services.
   - Context: 32K tokens
   - Uses kyuz0 AMD Strix Halo Toolboxes ROCm 7.1.1 image
 - **Open WebUI**: Chat interface for interacting with llama.cpp
-- **MCP Gateway**: Model Context Protocol gateway for AI tool integration
-
-#### Development Stack
-- **n8n-dev**: Workflow automation with external task runners
-- **n8n-dev-runner-alpha**: JavaScript & Python task execution
-- **Weaviate-dev**: Vector database for AI workflows
-- **Obsidian-dev**: Web-based Obsidian with REST API for n8n integration
-
-#### Data Services
-- **PostgreSQL 18**: Primary database with automatic backups
-- **Redis**: In-memory data store (noeviction policy)
-- **Dawarich**: Location tracking with PostGIS backend
-- **Nominatim**: US-West geocoding (OpenStreetMap data)
-
-#### CI/CD
-- **Forgejo Runner**: CI/CD runner with Docker-in-Docker support
-- **Forgejo DinD**: Docker daemon for isolated builds
-
-#### Discord Bots
-- **messy-discord-bot-dev**: Messy assistant bot (development)
-- **newsy-discord-bot-dev**: Newsy assistant bot (development)
 
 ### Development
 - Developer tools and environment
 - nix-ld for dynamic library support
-- docker-mcp-gateway package
 
 ### Security & Management
 - Firmware updates via fwupd
-- Budgey extractors for cost tracking
 
 ## Purpose
 
-Full-featured AI and development server running Docker containers with Caddy reverse proxy. Hosts AI inference (llama.cpp), workflow automation (n8n), databases (PostgreSQL, Redis, Weaviate), location services (Dawarich, Nominatim), and CI/CD infrastructure. Uses Tailscale for secure remote access with subnet routing capabilities.
+Lightweight AI inference server running Docker containers with Caddy reverse proxy. Identical hardware to zenith but with minimal services - primarily for local LLM inference via llama.cpp. Uses Tailscale for secure remote access with subnet routing capabilities.
 
-**Comparison with azimuth**: zenith is the full-featured sibling running AI inference plus development services, while azimuth runs a minimal AI stack (llama.cpp + Open WebUI only) on identical hardware.
+**Comparison with zenith**: azimuth runs a minimal AI stack (llama.cpp + Open WebUI only), while zenith hosts additional development services (n8n, Weaviate, PostgreSQL, Discord bots, Dawarich, etc.).
 
 ## Managing Container Environment Files
 
@@ -101,7 +68,7 @@ When adding a new container to `containers.nix` that requires environment variab
 
 1. **Add the age secret declaration** to `containers.nix`:
    ```nix
-   age.secrets.zenith_docker_env_<container_name> = {
+   age.secrets.azimuth_docker_env_<container_name> = {
      rekeyFile = ./files/docker/env/<container_name>.env.age;
      mode = "600";
    };
@@ -117,13 +84,13 @@ When adding a new container to `containers.nix` that requires environment variab
 
 3. **Encrypt the file using agenix**:
    ```bash
-   agenix edit --input /tmp/<container_name>.env hosts/zenith/files/docker/env/<container_name>.env.age
+   agenix edit --input /tmp/<container_name>.env hosts/azimuth/files/docker/env/<container_name>.env.age
    rm /tmp/<container_name>.env
    ```
 
 4. **Add the encrypted file to git**:
    ```bash
-   git add hosts/zenith/files/docker/env/<container_name>.env.age
+   git add hosts/azimuth/files/docker/env/<container_name>.env.age
    ```
 
 5. **Rekey all secrets** (requires interactive authentication):
@@ -133,21 +100,21 @@ When adding a new container to `containers.nix` that requires environment variab
 
 6. **Add the rekeyed secret to git**:
    ```bash
-   git add secrets/nixos/zenith/
+   git add secrets/nixos/azimuth/
    ```
 
 7. **Update the container definition** to use `environmentFiles`:
    ```nix
    <container_name> = {
      image = "...";
-     environmentFiles = [config.age.secrets.zenith_docker_env_<container_name>.path];
+     environmentFiles = [config.age.secrets.azimuth_docker_env_<container_name>.path];
      # ... other container config
    };
    ```
 
 8. **Test the configuration**:
    ```bash
-   nixos-rebuild dry-build --flake .#zenith
+   nixos-rebuild dry-build --flake .#azimuth
    ```
 
 ### Security Notes
