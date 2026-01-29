@@ -16,6 +16,17 @@
     starship.battery.enable = true;
     tmux.powerkit.extraPlugins = ["battery"];
 
+    # Syncthing for cross-machine sync
+    syncthing = {
+      enable = true;
+      claudeSessions.enable = true;
+      devices = {
+        jmacmini = {
+          id = "SG7DSAA-HQVGRUF-PO5AKJV-QZSE5GD-PYARYJW-VL7CN3R-U6NJO22-X4ZPSQR";
+        };
+      };
+    };
+
     # allow use of 1password op-ssh-sign
     git.signing.use1Password = true;
 
