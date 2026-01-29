@@ -44,10 +44,11 @@ in {
   };
 
   # Wrapper env file that maps N8N_AGENT_PROD_POSTGRES_DATABASE_URI to DATABASE_URL
+  # Note: owner/group set to root while service is disabled (user doesn't exist)
   age.secrets.chassis_messy_attributes_editor_env = {
     rekeyFile = ./files/messy-attributes-editor/env.age;
     mode = "400";
-    owner = "messy-attributes-editor";
-    group = "messy-attributes-editor";
+    owner = "root";
+    group = "root";
   };
 }
