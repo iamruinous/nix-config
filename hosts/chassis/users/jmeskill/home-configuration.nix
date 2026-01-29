@@ -444,8 +444,13 @@
   };
 
   # Custom systemd service that properly handles secrets
+  # Restart trigger ensures service restarts when config changes
   systemd.user.services.clawdbot-gateway = {
-    Unit.Description = "Clawdbot gateway";
+    Unit = {
+      Description = "Clawdbot gateway";
+      # Restart when config file changes (home-manager will detect derivation changes)
+      X-Restart-Triggers = [ "${config.home.file.".clawdbot/clawdbot.json".source}" ];
+    };
     Service = {
       ExecStartPre = "${pkgs.writeShellScript "clawdbot-gateway-prepare" ''
         set -euo pipefail
