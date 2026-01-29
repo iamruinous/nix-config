@@ -32,7 +32,9 @@ in {
   ];
 
   services.messy-attributes-editor = {
-    enable = true;
+    # DISABLED: Waiting for upstream fix - missing typeguard dependency
+    # See: https://forge.meskill.farm/iamruinous/messy-attributes-editor/issues/3
+    enable = false;
     package = pkg;
     host = "127.0.0.1";
     port = 8000;
