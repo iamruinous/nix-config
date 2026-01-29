@@ -221,6 +221,9 @@
 
         # messy-attributes-editor - web service with Caddy
         messy-attributes-editor = {
+          # Disable docs aggregation - upstream docs build needs fixing
+          # (mkdocstrings can't find messy_attributes module in build env)
+          docs.enable = false;
           assistants.opencode = {
             enable = true;
             web.enable = true;
@@ -315,7 +318,6 @@
           {
             id = "messy";
             workspace = "${config.home.homeDirectory}/.clawdbot/agents/messy";
-            soulPath = "${config.home.homeDirectory}/.clawdbot/agents/messy/SOUL.md";
           }
         ];
       };
@@ -335,7 +337,6 @@
           };
         };
         whatsapp = {
-          enabled = true;
           dmPolicy = "allowlist";
           allowFrom = [];
           selfChatMode = false;
@@ -344,7 +345,6 @@
             direct = true;
             group = "mentions";
           };
-          agent = "messy";
         };
       };
     };
@@ -486,6 +486,26 @@
 
     *MESSY v1.1.0 — Meskill Family Assistant*
   '';
+
+  # Clawdbot tmuxp session for TUI access
+  ruinous.tmuxp.sessions.clawdbot = {
+    startDirectory = "${config.home.homeDirectory}/.clawdbot";
+    startCommands = ["source ${config.home.homeDirectory}/.envrc"];
+    windows = [
+      {
+        name = "logs";
+        command = "journalctl --user -u clawdbot-gateway -f";
+      }
+      {
+        name = "tui";
+        command = "clawdbot tui";
+        focus = true;
+      }
+      {
+        name = "shell";
+      }
+    ];
+  };
 
   # Keep upstream module enabled but disable its systemd service
   # We use our own custom service that properly handles secrets

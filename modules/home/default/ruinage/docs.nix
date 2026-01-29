@@ -64,8 +64,15 @@ with lib; let
   # Get all project names from ruinage config
   allProjectNames = attrNames (cfg.projects or {});
 
-  # Filter to projects that have docs packages available
-  projectsWithDocs = filter (name: getDocsPackage name != null) allProjectNames;
+  # Check if project has docs enabled (default true for backwards compatibility)
+  projectDocsEnabled = name:
+    let project = cfg.projects.${name} or {};
+    in (project.docs.enable or true);
+
+  # Filter to projects that have docs packages available AND docs.enable = true
+  projectsWithDocs = filter (name:
+    getDocsPackage name != null && projectDocsEnabled name
+  ) allProjectNames;
 
   # Build attrset of { projectName = docsPackage; }
   allDocsPackages = listToAttrs (map (name: {

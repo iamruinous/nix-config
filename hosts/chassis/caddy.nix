@@ -130,6 +130,15 @@
     };
   };
 
+  # Messy Attributes Editor - CRUD webservice for messy_attribute table
+  messyAttributesEditorHost = {
+    "attributes.messy.ruinage.ai" = {
+      extraConfig = ''
+        reverse_proxy http://localhost:8000
+      '';
+    };
+  };
+
   # Weaviate vector database for budgey semantic search
   # REST API on weaviate.ruinous.ai (HTTP)
   # gRPC API on grpc.weaviate.ruinous.ai (HTTP/2 cleartext via h2c)
@@ -179,8 +188,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, and harmonia
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // weaviateHost // harmoniaHost;
+    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, harmonia, and messy-attributes-editor
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // messyAttributesEditorHost // weaviateHost // harmoniaHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)

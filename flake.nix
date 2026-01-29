@@ -133,10 +133,15 @@
     n8n-agent.url = "git+ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git?ref=refs/tags/v0.2.0";
     n8n-agent.inputs.nixpkgs.follows = "nixpkgs";
 
+    # messy-attributes-editor - CRUD webservice for messy_attribute table
+    # <https://forge.meskill.farm/iamruinous/messy-attributes-editor>
+    messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git";
+    messy-attributes-editor.inputs.nixpkgs.follows = "nixpkgs";
+
      # ruinagents - Agent definitions, docs, and skills
      # <https://forge.meskill.farm/iamruinous/ruinagents>
      # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.8.0";
+     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.10.0";
      ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
      # nix-moltbot - Moltbot personal AI assistant for Nix

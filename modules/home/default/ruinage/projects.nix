@@ -169,6 +169,18 @@ with lib; let
         };
       };
 
+      # Documentation configuration
+      docs = {
+        enable = mkOption {
+          type = types.bool;
+          default = true;
+          description = ''
+            Include this project's docs in the aggregated documentation.
+            Set to false to exclude projects with broken or unavailable docs.
+          '';
+        };
+      };
+
       # Multi-assistant support
       assistants = {
         opencode = {
