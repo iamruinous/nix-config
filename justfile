@@ -127,6 +127,21 @@ build host=`hostname`:
         just remote-build {{ host }}
     fi
 
+# Bootstrap host with nixos-anywhere (initial installation)
+[group('host')]
+bringup host sshpass:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just header "🚀 Bringup - nixos-anywhere"
+    just info "Bootstrapping {{ host }} with nixos-anywhere..."
+    just warn "This will ERASE the target system and install NixOS!"
+    gum confirm "Bootstrap {{ host }}?" || exit 1
+    env SSHPASS="{{ sshpass }}" nix run github:nix-community/nixos-anywhere -- \
+        --flake .#{{ host }} \
+        --target-host nixos@{{ host }}.meskill.farm \
+        --env-password
+    just success "Bringup complete for {{ host }}"
+
 # Install Nix and nix-darwin (if on macOS)
 [group('host')]
 install:

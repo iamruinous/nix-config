@@ -119,13 +119,13 @@
     # budgey-assistant-ingest-tools - Multi-CLI session extraction and ingestion tools
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-ingest-tools
-    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.17.0";
+    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.18.2";
     budgey-assistant-ingest-tools.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-dashboard
-    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.6";
+    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.9";
     budgey-assistant-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # n8n-agent - n8n workflow automation agent
@@ -136,12 +136,12 @@
      # ruinagents - Agent definitions, docs, and skills
      # <https://forge.meskill.farm/iamruinous/ruinagents>
      # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.7.0";
+     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.8.0";
      ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
      # nix-moltbot - Moltbot personal AI assistant for Nix
-     # <https://github.com/moltbot/nix-moltbot>
-     nix-moltbot.url = "github:moltbot/nix-moltbot";
+     # <https://github.com/iamruinous/nix-moltbot>
+     nix-moltbot.url = "github:iamruinous/nix-moltbot";
      nix-moltbot.inputs.nixpkgs.follows = "nixpkgs";
 
      # Nix User Repository

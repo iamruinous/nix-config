@@ -180,6 +180,7 @@
           direnv.enable = true;
           environmentFiles = [
             config.age.secrets.chassis_opencode_common_env.path
+            config.age.secrets.chassis_opencode_project_ruinagents_env.path
           ];
         };
 
@@ -231,6 +232,11 @@
     mode = "400";
   };
 
+  age.secrets.chassis_opencode_project_ruinagents_env = {
+    rekeyFile = ./files/opencode/projects/ruinagents.env.age;
+    mode = "400";
+  };
+
   # Moltbot - Personal AI Assistant for Discord
   # Minimal Discord-only configuration using Anthropic Claude
   # Secrets defined in hosts/chassis/moltbot.nix
@@ -257,23 +263,49 @@
 
   # Generate valid clawdbot config (token is read from env at runtime)
   # Use mkForce to override the upstream module's config file
+  #
+  # Key fixes for nix-moltbot issues:
+  # 1. plugins.load.paths - bundled extensions aren't in default search path
+  # 2. plugins.slots.memory = "none" - default memory-core plugin causes startup failure
+  # 3. plugins.entries.discord.enabled - explicitly enable discord plugin
   home.file.".clawdbot/clawdbot.json" = lib.mkForce {
     text = builtins.toJSON {
       gateway.mode = "local";
+      plugins = {
+        load.paths = [
+          # Include bundled extensions from clawdbot-gateway package
+          "${pkgs.clawdbot-gateway}/lib/clawdbot/node_modules/.pnpm/clawdbot@2026.1.24-3_@types+express@5.0.6_audio-decode@2.2.3_devtools-protocol@0.0.1561482_typescript@5.9.3/node_modules/clawdbot/extensions"
+        ];
+        slots.memory = "none"; # Disable default memory plugin (not available in nix package)
+        entries.discord.enabled = true; # Explicitly enable discord plugin
+      };
       agents = {
         defaults = {
           workspace = "${config.home.homeDirectory}/.clawdbot/workspace";
           model.primary = "anthropic/claude-sonnet-4-20250514";
           thinkingDefault = "medium";
         };
-        list = [{ id = "main"; default = true; }];
+        list = [
+          {
+            id = "main";
+            default = true;
+          }
+        ];
       };
       channels.discord = {
         enabled = true;
         # Token is set via DISCORD_BOT_TOKEN env var at runtime
         dm = {
-          policy = "pairing";
-          allowFrom = [];
+          enabled = true;
+          policy = "open"; # Allow DMs from everyone
+          allowFrom = ["*"];
+        };
+        # Guild (server) configuration
+        groupPolicy = "allowlist"; # Only respond in allowlisted guilds
+        guilds = {
+          "481143305745465354" = {
+            requireMention = true; # Require @mention to respond in channels
+          };
         };
       };
     };
@@ -289,6 +321,7 @@
         # Read secrets from agenix-managed files
         export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
+        export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
 
         # Set clawdbot environment
         export HOME="${config.home.homeDirectory}"
@@ -306,6 +339,13 @@
     };
     Install.WantedBy = ["default.target"];
   };
+
+  # Create ~/.envrc with clawdbot secrets for interactive use
+  home.file.".envrc".text = ''
+    # Clawdbot secrets for interactive CLI use (tui, etc.)
+    export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
+    export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
+  '';
 
   # Keep upstream module enabled but disable its systemd service
   # We use our own custom service that properly handles secrets

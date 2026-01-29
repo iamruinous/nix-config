@@ -35,4 +35,11 @@
     owner = "jmeskill";
     group = "users";
   };
+
+  age.secrets.chassis_moltbot_gateway_token = {
+    rekeyFile = ./files/moltbot/gateway-token.age;
+    mode = "400";
+    owner = "jmeskill";
+    group = "users";
+  };
 }
