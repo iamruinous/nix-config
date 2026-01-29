@@ -10,18 +10,7 @@
   pkgs,
   flake,
   ...
-}: let
-  # Get the upstream package
-  upstreamPkg = flake.inputs.messy-attributes-editor.packages.${pkgs.system}.default;
-
-  # Override to add missing typeguard dependency
-  # ludic requires typeguard but it's not in the upstream package's dependencies
-  pkg = upstreamPkg.overrideAttrs (oldAttrs: {
-    propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or []) ++ [
-      pkgs.python313Packages.typeguard
-    ];
-  });
-in {
+}: {
   imports = [
     flake.inputs.messy-attributes-editor.nixosModules.default
   ];
@@ -32,10 +21,8 @@ in {
   ];
 
   services.messy-attributes-editor = {
-    # DISABLED: Waiting for upstream fix - missing typeguard dependency
-    # See: https://forge.meskill.farm/iamruinous/messy-attributes-editor/issues/3
-    enable = false;
-    package = pkg;
+    enable = true;
+    package = flake.inputs.messy-attributes-editor.packages.${pkgs.system}.default;
     host = "127.0.0.1";
     port = 8000;
     # Use the n8n project env which contains N8N_AGENT_PROD_POSTGRES_DATABASE_URI
@@ -44,11 +31,10 @@ in {
   };
 
   # Wrapper env file that maps N8N_AGENT_PROD_POSTGRES_DATABASE_URI to DATABASE_URL
-  # Note: owner/group set to root while service is disabled (user doesn't exist)
   age.secrets.chassis_messy_attributes_editor_env = {
     rekeyFile = ./files/messy-attributes-editor/env.age;
     mode = "400";
-    owner = "root";
-    group = "root";
+    owner = "messy-attributes-editor";
+    group = "messy-attributes-editor";
   };
 }
