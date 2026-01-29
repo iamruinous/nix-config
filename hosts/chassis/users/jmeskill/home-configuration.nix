@@ -349,7 +349,8 @@
             "481143305745465354" = {
               requireMention = true;
               channels = {
-                "moltbot-chat" = {
+                # #moltbot-chat - no @ required (convention: *bot-chat channels)
+                "1465597974506635306" = {
                   requireMention = false;
                 };
               };
@@ -366,6 +367,18 @@
               policy = "open";
               allowFrom = ["*"];
             };
+            groupPolicy = "allowlist";
+            guilds = {
+              "481143305745465354" = {
+                requireMention = true;
+                channels = {
+                  # #messybot-chat - no @ required (convention: *bot-chat channels)
+                  "1466533002950480026" = {
+                    requireMention = false;
+                  };
+                };
+              };
+            };
           };
           # Codey account (separate bot for codey agent - #ops channel)
           # Token is injected at runtime from agenix secret
@@ -377,6 +390,18 @@
               enabled = true;
               policy = "open";
               allowFrom = ["*"];
+            };
+            groupPolicy = "allowlist";
+            guilds = {
+              "481143305745465354" = {
+                requireMention = true;
+                channels = {
+                  # #codeybot-chat - no @ required (convention: *bot-chat channels)
+                  "1466522929352282252" = {
+                    requireMention = false;
+                  };
+                };
+              };
             };
           };
         };
