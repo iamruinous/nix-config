@@ -7,6 +7,13 @@
   # Note: Port 80, 443 handled by docker-caddy module (see caddy.nix)
   networking.firewall.allowedTCPPorts = [5432];
 
+  # Create data directories with correct permissions before containers start
+  # curlimages/curl runs as uid 100, needs write access to download models
+  systemd.tmpfiles.rules = [
+    "d /data/docker/llama-cpp 0755 root root -"
+    "d /data/docker/llama-cpp/models 0777 root root -"
+  ];
+
   virtualisation.docker.storageDriver = "btrfs";
   virtualisation.docker.autoPrune = {
     enable = true;
