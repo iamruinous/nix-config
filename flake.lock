@@ -1488,11 +1488,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1769677983,
-        "narHash": "sha256-9YfcVqEGGrL48gEhz+JCjkvq0td6XQ2J6NJ/3OPd65E=",
+        "lastModified": 1769678941,
+        "narHash": "sha256-Qmydb4VVS3CZtcJkCTvcz5c3SyBWfc0e0u8vbqrKptU=",
         "ref": "refs/heads/main",
-        "rev": "fd5ebdd844c4206e77f5143ff119fff77affce32",
-        "revCount": 5,
+        "rev": "7553638453fec44e5d45e2a51de2c05e482636ff",
+        "revCount": 6,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git"
       },
