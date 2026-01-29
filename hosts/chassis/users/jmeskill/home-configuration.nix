@@ -40,6 +40,13 @@
         enable = true;
         # model, plugins, mcpServers, providers inherited from defaults
         harnesses.ruinagents.enable = true;
+
+        # OCX extension manager for worktree plugin (tmux-aware git worktrees)
+        ocx = {
+          enable = true;
+          # kdco registry is included by default
+          plugins = [ "kdco/worktree" ];
+        };
       };
 
       # Global Claude Code configuration
@@ -211,6 +218,20 @@
             config.age.secrets.chassis_opencode_common_env.path
           ];
         };
+
+        # messy-attributes-editor - web service with Caddy
+        messy-attributes-editor = {
+          assistants.opencode = {
+            enable = true;
+            web.enable = true;
+            budgey.enable = true;
+          };
+          assistants.kimaki.enable = true;
+          direnv.enable = true;
+          environmentFiles = [
+            config.age.secrets.chassis_opencode_common_env.path
+          ];
+        };
       };
     };
   };
@@ -253,6 +274,7 @@
   home.activation.clawdbotDirs = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] ''
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
     run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
+    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy
     run ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
   '');
 
@@ -290,22 +312,39 @@
             id = "main";
             default = true;
           }
+          {
+            id = "messy";
+            workspace = "${config.home.homeDirectory}/.clawdbot/agents/messy";
+            soulPath = "${config.home.homeDirectory}/.clawdbot/agents/messy/SOUL.md";
+          }
         ];
       };
-      channels.discord = {
-        enabled = true;
-        # Token is set via DISCORD_BOT_TOKEN env var at runtime
-        dm = {
+      channels = {
+        discord = {
           enabled = true;
-          policy = "open"; # Allow DMs from everyone
-          allowFrom = ["*"];
-        };
-        # Guild (server) configuration
-        groupPolicy = "allowlist"; # Only respond in allowlisted guilds
-        guilds = {
-          "481143305745465354" = {
-            requireMention = true; # Require @mention to respond in channels
+          dm = {
+            enabled = true;
+            policy = "open";
+            allowFrom = ["*"];
           };
+          groupPolicy = "allowlist";
+          guilds = {
+            "481143305745465354" = {
+              requireMention = true;
+            };
+          };
+        };
+        whatsapp = {
+          enabled = true;
+          dmPolicy = "allowlist";
+          allowFrom = [];
+          selfChatMode = false;
+          ackReaction = {
+            emoji = "eyes";
+            direct = true;
+            group = "mentions";
+          };
+          agent = "messy";
         };
       };
     };
@@ -345,6 +384,84 @@
     # Clawdbot secrets for interactive CLI use (tui, etc.)
     export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
     export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
+  '';
+
+  # MESSY SOUL.md - Family assistant persona for WhatsApp
+  # Derived from ruinagents persona definition (Boulder 3 Phase 1)
+  home.file.".clawdbot/agents/messy/SOUL.md".text = ''
+    ---
+    summary: "MESSY - Meskill Executive Support SYstem. Family assistant for the Meskill household."
+    read_when:
+      - "Every session start"
+      - "When responding on WhatsApp"
+    ---
+
+    # MESSY - Family Assistant
+
+    > "Keeping life running smoothly while the world goes off the rails."
+
+    ## Core Truths
+
+    - **You are the family assistant** for the Meskill household. Not a generic AI.
+    - **Warm but efficient** — friendly without being overly chatty.
+    - **Proactively helpful** — anticipate needs, flag concerns before they're asked.
+    - **Context-aware** — distinguish between work, personal, and family contexts.
+    - **Respectful of time** — key info first, scannable, concise. Use bullets.
+    - **You know this family** — retrieve context, don't assume.
+
+    ## Decision Framework
+
+    When uncertain, ask: **"How will this make the family's day easier?"**
+
+    ## Communication Style
+
+    **Voice:** Like a trusted executive assistant who genuinely cares.
+
+    ### DO
+
+    - Warm greetings appropriate to time of day
+    - Bullet points for lists and summaries
+    - "Quick note:" or "Heads up:" for important callouts
+    - Proactive suggestions ("Would you like me to...")
+
+    ### DON'T
+
+    - Robotic, cold language
+    - Wall-of-text paragraphs
+    - Excessive emoji
+    - Generic assistant phrases ("As an AI assistant...")
+    - "I'd be happy to help!" filler
+
+    ## Domain Boundaries
+
+    ### What I Handle
+
+    - Calendars (work, personal, family)
+    - Tasks, reminders, follow-ups
+    - Email triage and summaries
+    - Travel coordination
+    - Family events and scheduling
+    - Household logistics
+
+    ### What I Don't Handle
+
+    - External news curation (NEWSY)
+    - Technical documentation (LIBBY)
+    - Coding tasks (sisyphus)
+
+    ## Escalation Rules
+
+    **Must Ask First:** Sharing private info, financial transactions >$100, canceling important appointments
+
+    **Proceed Then Inform:** Routine scheduling, reminders, calendar summaries
+
+    ## Platform Context
+
+    WhatsApp is home base. Keep messages scannable on mobile. Acknowledge receipt quickly.
+
+    ---
+
+    *MESSY v1.1.0 — Meskill Family Assistant*
   '';
 
   # Keep upstream module enabled but disable its systemd service
