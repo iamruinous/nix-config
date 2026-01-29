@@ -3,17 +3,126 @@
 # Generates a lifecycle script for Pinchflat that sends media_downloaded
 # events to an n8n webhook for YouTube summary processing.
 #
-# Only videos from channels in the allowedChannels list will trigger webhooks.
+# Filtering can be done by either:
+#   - allowedProfiles: List of Pinchflat media profile names (recommended)
+#   - allowedChannels: List of Pinchflat source collection names (channel names)
+#
+# Using allowedProfiles is preferred because profiles are configured once in
+# Pinchflat and can be assigned to multiple sources, avoiding the need to
+# update this config when adding new channels.
 #
 # Usage:
 #   services.pinchflat-lifecycle = {
 #     enable = true;
 #     webhookUrl = "https://n8h.meskill.farm/webhook/youtube-summary";
-#     allowedChannels = [
-#       "PBS NewsHour"
-#       "CNN"
-#     ];
+#     # Recommended: filter by media profile
+#     allowedProfiles = [ "Summarize" ];
+#     # OR filter by channel name (legacy)
+#     # allowedChannels = [ "PBS NewsHour" "CNN" ];
 #   };
+#
+# ============================================================================
+# LIFECYCLE EVENT DATA REFERENCE
+# ============================================================================
+# The lifecycle script receives a JSON payload with the following structure.
+# This is the MediaItem struct with source and media_profile associations.
+#
+# MediaItem fields (root level):
+#   id                    - Internal database ID
+#   uuid                  - UUID for public URLs (prevents enumeration)
+#   title                 - Video title
+#   media_id              - YouTube video ID
+#   description           - Video description
+#   original_url          - Original YouTube URL
+#   livestream            - Boolean: is this a livestream?
+#   short_form_content    - Boolean: is this a YouTube Short?
+#   media_downloaded_at   - UTC datetime when downloaded
+#   media_redownloaded_at - UTC datetime of quality upgrade (if any)
+#   uploaded_at           - UTC datetime when uploaded to YouTube
+#   upload_date_index     - Index for ordering within same upload date
+#   duration_seconds      - Video duration in seconds
+#   playlist_index        - Position in playlist (0 for channels)
+#   predicted_media_filepath - Expected filepath before download
+#   media_filepath        - Actual filepath after download
+#   media_size_bytes      - File size in bytes
+#   thumbnail_filepath    - Path to thumbnail image
+#   metadata_filepath     - Path to metadata JSON
+#   nfo_filepath          - Path to NFO file
+#   subtitle_filepaths    - Array of [language, filepath] pairs
+#   last_error            - Last error message (if any)
+#   prevent_download      - Boolean: prevent future downloads?
+#   prevent_culling       - Boolean: prevent automatic deletion?
+#   culled_at             - UTC datetime when culled
+#   inserted_at           - Record creation time
+#   updated_at            - Record update time
+#
+# Source fields (nested under "source"):
+#   id                    - Internal database ID
+#   uuid                  - UUID for public URLs
+#   enabled               - Boolean: is source active?
+#   custom_name           - User-defined name for source
+#   collection_name       - YouTube channel/playlist name
+#   collection_id         - YouTube channel/playlist ID
+#   collection_type       - "channel" or "playlist"
+#   description           - Source description
+#   original_url          - YouTube channel/playlist URL
+#   index_frequency_minutes - How often to check for new videos
+#   fast_index            - Boolean: use fast indexing?
+#   download_media        - Boolean: download videos?
+#   last_indexed_at       - Last index time
+#   download_cutoff_date  - Only download videos after this date
+#   retention_period_days - Auto-delete after N days
+#   title_filter_regex    - Regex to filter video titles
+#   series_directory      - Output directory path
+#   media_profile_id      - ID of associated media profile
+#   output_path_template_override - Custom output path template
+#   min_duration_seconds  - Minimum video duration filter
+#   max_duration_seconds  - Maximum video duration filter
+#   inserted_at           - Record creation time
+#   updated_at            - Record update time
+#
+# MediaProfile fields (nested under "source.media_profile"):
+#   id                    - Internal database ID
+#   name                  - Profile name (e.g., "Summarize", "Archive")
+#   output_path_template  - Default output path template
+#   download_subs         - Boolean: download subtitles?
+#   download_auto_subs    - Boolean: download auto-generated subs?
+#   embed_subs            - Boolean: embed subs in video?
+#   sub_langs             - Subtitle language codes
+#   download_thumbnail    - Boolean: download thumbnail?
+#   embed_thumbnail       - Boolean: embed thumbnail in video?
+#   download_source_images - Boolean: download channel art?
+#   download_metadata     - Boolean: download metadata JSON?
+#   embed_metadata        - Boolean: embed metadata in video?
+#   download_nfo          - Boolean: download NFO file?
+#   sponsorblock_behaviour - "disabled", "mark", or "remove"
+#   sponsorblock_categories - Array of SponsorBlock categories
+#   shorts_behaviour      - "include", "exclude", or "only"
+#   livestream_behaviour  - "include", "exclude", or "only"
+#   audio_track           - Preferred audio track
+#   preferred_resolution  - "4320p", "2160p", "1440p", "1080p", etc.
+#   media_container       - Output container format
+#   redownload_delay_days - Days before quality upgrade attempt
+#   inserted_at           - Record creation time
+#   updated_at            - Record update time
+#
+# Example JSON payload structure:
+# {
+#   "id": 123,
+#   "title": "Video Title",
+#   "media_id": "dQw4w9WgXcQ",
+#   "media_filepath": "/downloads/Channel/2024-01-15 Video Title/...",
+#   "subtitle_filepaths": [["en", "/path/to/subs.en.vtt"]],
+#   "duration_seconds": 300,
+#   "source": {
+#     "collection_name": "PBS NewsHour",
+#     "media_profile": {
+#       "name": "Summarize",
+#       "download_subs": true
+#     }
+#   }
+# }
+# ============================================================================
 #
 {
   config,
@@ -24,12 +133,38 @@
 with lib; let
   cfg = config.services.pinchflat-lifecycle;
 
-  # Generate the bash array of allowed channels
+  # Determine which filter mode to use
+  # Priority: allowedProfiles > allowedChannels > no filter
+  hasProfileFilter = cfg.allowedProfiles != [];
+  hasChannelFilter = cfg.allowedChannels != [];
+
+  # Generate the bash array and check function for allowed profiles
+  profilesArray =
+    if hasProfileFilter
+    then ''
+      # Allowed media profiles for transcript processing
+      ALLOWED_PROFILES=(
+      ${concatMapStringsSep "\n" (p: "  \"${p}\"") cfg.allowedProfiles}
+      )
+
+      # Check if media profile is in the allowed list
+      is_allowed_profile() {
+        local profile="$1"
+        for allowed in "''${ALLOWED_PROFILES[@]}"; do
+          if [[ "$profile" == "$allowed" ]]; then
+            return 0
+          fi
+        done
+        return 1
+      }
+    ''
+    else "";
+
+  # Generate the bash array of allowed channels (legacy)
   channelsArray =
-    if cfg.allowedChannels == []
-    then ""
-    else ''
-      # Allowed channels for transcript processing
+    if hasChannelFilter && !hasProfileFilter
+    then ''
+      # Allowed channels for transcript processing (legacy mode)
       ALLOWED_CHANNELS=(
       ${concatMapStringsSep "\n" (ch: "  \"${ch}\"") cfg.allowedChannels}
       )
@@ -44,20 +179,30 @@ with lib; let
         done
         return 1
       }
-    '';
+    ''
+    else "";
 
-  # Generate the channel check logic
-  channelCheckLogic =
-    if cfg.allowedChannels == []
-    then ""
-    else ''
+  # Generate the filter check logic
+  filterCheckLogic =
+    if hasProfileFilter
+    then ''
+
+      # Check if this media profile is in the allowed list
+      if ! is_allowed_profile "$MEDIA_PROFILE"; then
+        log "Media profile '$MEDIA_PROFILE' not in allowed list - skipping"
+        exit 0
+      fi
+    ''
+    else if hasChannelFilter
+    then ''
 
       # Check if this channel is in the allowed list
       if ! is_allowed_channel "$CHANNEL"; then
         log "Channel '$CHANNEL' not in allowed list - skipping"
         exit 0
       fi
-    '';
+    ''
+    else "";
 
   # Generate the lifecycle script
   # NOTE: Uses plain commands (jq, curl, awk) since this runs INSIDE the Pinchflat container
@@ -84,7 +229,7 @@ with lib; let
       # Webhook endpoint for n8n
       WEBHOOK_URL="${cfg.webhookUrl}"
 
-      ${channelsArray}
+      ${profilesArray}${channelsArray}
 
       # Logging helper
       log() {
@@ -133,12 +278,13 @@ with lib; let
       # Extract metadata from event data
       TITLE=$(echo "$EVENT_DATA" | jq -r '.title // "unknown"')
       CHANNEL=$(echo "$EVENT_DATA" | jq -r '.source.collection_name // "unknown"')
+      MEDIA_PROFILE=$(echo "$EVENT_DATA" | jq -r '.source.media_profile.name // "unknown"')
       VIDEO_ID=$(echo "$EVENT_DATA" | jq -r '.media_id // "unknown"')
       VIDEO_FILEPATH=$(echo "$EVENT_DATA" | jq -r '.media_filepath // ""')
       DESCRIPTION=$(echo "$EVENT_DATA" | jq -r '.description // ""')
       ORIGINAL_URL=$(echo "$EVENT_DATA" | jq -r '.original_url // .webpage_url // ""')
-      UPLOAD_DATE=$(echo "$EVENT_DATA" | jq -r '.upload_date // ""')
-      DURATION_SECONDS=$(echo "$EVENT_DATA" | jq -r '.duration // 0')
+      UPLOAD_DATE=$(echo "$EVENT_DATA" | jq -r '.uploaded_at // ""')
+      DURATION_SECONDS=$(echo "$EVENT_DATA" | jq -r '.duration_seconds // 0')
 
       # Try to find subtitle file
       SUBTITLE_FILE=""
@@ -183,9 +329,9 @@ with lib; let
         log "No subtitles available for: $TITLE - skipping"
         exit 0
       fi
-      ${channelCheckLogic}
+      ${filterCheckLogic}
 
-      log "Processing: $TITLE (channel: $CHANNEL, video_id: $VIDEO_ID, subtitle: $SUBTITLE_FILE)"
+      log "Processing: $TITLE (profile: $MEDIA_PROFILE, channel: $CHANNEL, video_id: $VIDEO_ID)"
 
       # Parse and deduplicate transcript
       TRANSCRIPT_TEXT=$(parse_srt "$SUBTITLE_FILE")
@@ -256,13 +402,29 @@ in {
       example = "https://n8n.example.com/webhook/youtube-summary";
     };
 
+    allowedProfiles = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = ''
+        List of Pinchflat media profile names to process for transcription.
+        Only videos from sources using these profiles will trigger the webhook.
+        This is the recommended filtering method - create a "Summarize" profile
+        in Pinchflat and assign it to sources you want summarized.
+        Takes precedence over allowedChannels if both are set.
+        If empty (and allowedChannels is empty), ALL videos will be processed.
+      '';
+      example = ["Summarize"];
+    };
+
     allowedChannels = mkOption {
       type = types.listOf types.str;
       default = [];
       description = ''
-        List of Pinchflat collection names (channel names) to process for transcription.
+        (Legacy) List of Pinchflat collection names (channel names) to process.
         Only videos from these channels will trigger the webhook.
-        If empty, ALL channels will be processed.
+        Consider using allowedProfiles instead for easier maintenance.
+        Ignored if allowedProfiles is set.
+        If empty (and allowedProfiles is empty), ALL channels will be processed.
       '';
       example = [
         "PBS NewsHour"
