@@ -100,26 +100,26 @@
     group = "users";
   };
 
-  # GitHub token for gh CLI - sourced from Infisical
+  # GitHub token for gh CLI - sourced from Infisical /shared
   # Enables moltbot to create/manage GitHub issues programmatically
+  # Shared across services - see /infisical-secrets skill for structure
   age.secrets.chassis_moltbot_github_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "GITHUB_TOKEN";
-      env = "homelab";
-      path = "/";
+      path = "/shared";
     };
     mode = "400";
     owner = "jmeskill";
     group = "users";
   };
 
-  # Forgejo token for tea CLI - sourced from Infisical
+  # Forgejo token for tea CLI - sourced from Infisical /shared
   # Enables moltbot to create/manage issues on forge.meskill.farm
+  # Shared across services - see /infisical-secrets skill for structure
   age.secrets.chassis_moltbot_forgejo_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "FORGEJO_TOKEN";
-      env = "homelab";
-      path = "/";
+      path = "/shared";
     };
     mode = "400";
     owner = "jmeskill";
