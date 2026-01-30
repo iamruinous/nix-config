@@ -16,6 +16,9 @@
     starship.battery.enable = true;
     tmux.powerkit.extraPlugins = ["battery"];
 
+    # Raycast script commands
+    raycast.enable = true;
+
     # Syncthing for cross-machine sync
     syncthing = {
       enable = true;

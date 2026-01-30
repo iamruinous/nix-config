@@ -15,6 +15,9 @@
     # allow use of 1password op-ssh-sign
     git.signing.use1Password = true;
 
+    # Raycast script commands
+    raycast.enable = true;
+
     # Syncthing for cross-machine sync
     syncthing = {
       enable = true;
