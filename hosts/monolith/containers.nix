@@ -1038,6 +1038,24 @@
         ];
       };
 
+      # Infisical - Secrets management platform
+      # https://infisical.com/docs/self-hosting/deployment-options/standalone-infisical
+      infisical = {
+        image = "docker.io/infisical/infisical:v0.158.0";
+        environment = {
+          TZ = "America/Phoenix";
+        };
+        environmentFiles = [config.age.secrets.monolith_docker_env_infisical.path];
+        networks = [
+          "servicenet"
+          "datanet"
+        ];
+        dependsOn = ["postgres" "redis"];
+        volumes = [
+          "/data/docker/infisical/data:/app/data"
+        ];
+      };
+
       # Obsidian (Production)
       # Web-based Obsidian for n8n REST API integration
       # Ports: 3000 (KasmVNC web UI), 27124 (Local REST API after plugin installed)
@@ -1169,6 +1187,10 @@
   };
   age.secrets.monolith_docker_env_tasktrove = {
     rekeyFile = ./files/docker/env/tasktrove.env.age;
+    mode = "600";
+  };
+  age.secrets.monolith_docker_env_infisical = {
+    rekeyFile = ./files/docker/env/infisical.env.age;
     mode = "600";
   };
   age.secrets.monolith_git_id_ed25519 = {
