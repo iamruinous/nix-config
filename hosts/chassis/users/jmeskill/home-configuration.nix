@@ -542,16 +542,18 @@
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
         export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
 
-        # GitHub/Forgejo CLI authentication (from Infisical via agenix-rekey)
-        # These enable moltbot to create/manage issues programmatically
+        # GitHub CLI authentication (from Infisical via agenix-rekey)
+        # gh CLI uses GITHUB_TOKEN or GH_TOKEN - no config file needed
         export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_github_token.path})"
-        export GH_TOKEN="$GITHUB_TOKEN"  # gh CLI uses GH_TOKEN
-        export FORGEJO_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
-        export GITEA_TOKEN="$FORGEJO_TOKEN"  # tea CLI uses GITEA_TOKEN
+        export GH_TOKEN="$GITHUB_TOKEN"
 
-        # Tea CLI configuration for forge.meskill.farm
-        export GITEA_URL="https://forge.meskill.farm"
-        export TEA_CONFIG="${config.home.homeDirectory}/.config/tea/config.yml"
+        # Tea/Forgejo CLI authentication (from Infisical via agenix-rekey)
+        # Using env vars for isolation from user's interactive config
+        export GITEA_SERVER_URL="https://forge.meskill.farm"
+        export GITEA_SERVER_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
+        # Legacy env var names for compatibility
+        export FORGEJO_TOKEN="$GITEA_SERVER_TOKEN"
+        export GITEA_TOKEN="$GITEA_SERVER_TOKEN"
 
         # Add gh and tea CLI to PATH
         export PATH="${pkgs.gh}/bin:${pkgs.tea}/bin:$PATH"
