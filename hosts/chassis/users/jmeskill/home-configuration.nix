@@ -337,68 +337,75 @@
       };
       channels = {
         discord = {
-          # Default account (main bot) - uses DISCORD_BOT_TOKEN env var
           enabled = true;
-          dm = {
-            enabled = true;
-            policy = "open";
-            allowFrom = ["*"];
-          };
-          groupPolicy = "allowlist";
-          guilds = {
-            "481143305745465354" = {
-              requireMention = true;
-              channels = {
-                # #moltbot-chat - no @ required (convention: *bot-chat channels)
-                "moltbot-chat" = {
-                  requireMention = false;
-                };
-              };
-            };
-          };
-          # Messy account (separate bot for messy agent)
-          # Token is injected at runtime from agenix secret
-          accounts.messy = {
-            name = "Messy Bot";
-            enabled = true;
-            token = "PLACEHOLDER_MESSY_TOKEN"; # Replaced at runtime
-            dm = {
+          # All Discord bots are defined as named accounts
+          # Tokens are injected at runtime from agenix secrets
+          accounts = {
+            # Default account (main bot) - moltbot for general use
+            default = {
+              name = "Moltbot";
               enabled = true;
-              policy = "open";
-              allowFrom = ["*"];
-            };
-            groupPolicy = "allowlist";
-            guilds = {
-              "481143305745465354" = {
-                requireMention = true;
-                channels = {
-                  # #messybot-chat - no @ required (convention: *bot-chat channels)
-                  "messybot-chat" = {
-                    requireMention = false;
+              token = "PLACEHOLDER_DEFAULT_TOKEN"; # Replaced at runtime
+              dm = {
+                enabled = true;
+                policy = "open";
+                allowFrom = ["*"];
+              };
+              groupPolicy = "allowlist";
+              guilds = {
+                "481143305745465354" = {
+                  requireMention = true;
+                  channels = {
+                    # #moltbot-chat - no @ required (convention: *bot-chat channels)
+                    "moltbot-chat" = {
+                      requireMention = false;
+                    };
                   };
                 };
               };
             };
-          };
-          # Codey account (separate bot for codey agent - #ops channel)
-          # Token is injected at runtime from agenix secret
-          accounts.codey = {
-            name = "Codey Bot";
-            enabled = true;
-            token = "PLACEHOLDER_CODEY_TOKEN"; # Replaced at runtime
-            dm = {
+            # Messy account (separate bot for messy agent)
+            messy = {
+              name = "Messy Bot";
               enabled = true;
-              policy = "open";
-              allowFrom = ["*"];
+              token = "PLACEHOLDER_MESSY_TOKEN"; # Replaced at runtime
+              dm = {
+                enabled = true;
+                policy = "open";
+                allowFrom = ["*"];
+              };
+              groupPolicy = "allowlist";
+              guilds = {
+                "481143305745465354" = {
+                  requireMention = true;
+                  channels = {
+                    # #messybot-chat - no @ required (convention: *bot-chat channels)
+                    "messybot-chat" = {
+                      requireMention = false;
+                    };
+                  };
+                };
+              };
             };
-            groupPolicy = "allowlist";
-            guilds = {
-              "481143305745465354" = {
-                requireMention = true;
-                channels = {
-                  # #codeybot-chat - no @ required (convention: *bot-chat channels)
-                  "codeybot-chat" = {
-                    requireMention = false;
+            # Codey account (separate bot for codey agent - #ops channel)
+            codey = {
+              name = "Codey Bot";
+              enabled = true;
+              token = "PLACEHOLDER_CODEY_TOKEN"; # Replaced at runtime
+              dm = {
+                enabled = true;
+                policy = "open";
+                allowFrom = ["*"];
+              };
+              groupPolicy = "allowlist";
+              guilds = {
+                "481143305745465354" = {
+                  requireMention = true;
+                  channels = {
+                    # #codeybot-chat - no @ required (convention: *bot-chat channels)
+                    "codeybot-chat" = {
+                      requireMention = false;
+                    };
                   };
                 };
               };
@@ -493,14 +500,20 @@
           CODEY_DISCORD_TOKEN=""
         fi
 
+        # Read default Discord bot token from agenix secret
+        DEFAULT_DISCORD_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_discord_token.path}")
+
         # Patch the config with secrets:
         # 1. WhatsApp allowFrom list
-        # 2. Messy Discord bot token (if configured)
-        # 3. Codey Discord bot token (if configured)
+        # 2. Default Discord bot token (main bot)
+        # 3. Messy Discord bot token (if configured)
+        # 4. Codey Discord bot token (if configured)
         ${pkgs.jq}/bin/jq --argjson allowFrom "$ALLOWFROM_JSON" \
+          --arg defaultToken "$DEFAULT_DISCORD_TOKEN" \
           --arg messyToken "$MESSY_DISCORD_TOKEN" \
           --arg codeyToken "$CODEY_DISCORD_TOKEN" \
           '.channels.whatsapp.accounts.default.allowFrom = $allowFrom |
+           .channels.discord.accounts.default.token = $defaultToken |
            if $messyToken != "" then .channels.discord.accounts.messy.token = $messyToken else . end |
            if $codeyToken != "" then .channels.discord.accounts.codey.token = $codeyToken else . end' \
           "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
