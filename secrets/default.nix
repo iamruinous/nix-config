@@ -48,8 +48,11 @@
         else readFile (flake + /secrets/id_age.pub);
 
       storageMode = "local";
+      # Rekeyed secrets (host-key encrypted) - hash-prefixed files
       localStorageDir = flake + /secrets/${target};
-      generatedSecretsDir = flake + /secrets/${target};
+      # Generated secrets (master-key encrypted) - source files from generators
+      # MUST be different from localStorageDir to avoid orphan cleanup conflicts
+      generatedSecretsDir = flake + /secrets/generated/${target};
     };
   };
 }
