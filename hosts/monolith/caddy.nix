@@ -256,6 +256,12 @@
         description = "Zigbee2MQTT";
       };
 
+      # Infisical secrets management
+      "infisical.meskill.farm" = {
+        upstream = "infisical:8080";
+        description = "Infisical secrets management";
+      };
+
       # Obsidian web UI (n8n REST API integration)
       "obsidian.meskill.farm" = {
         upstream = "obsidian:3000";

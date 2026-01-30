@@ -447,6 +447,16 @@ endpoints:
       - type: discord
       - type: email
 
+  - name: "Infisical (monolith)"
+    group: "Infrastructure"
+    url: "https://infisical.meskill.farm"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: discord
+      - type: email
+
   # ===========================
   # PILASTER SERVICES
   # ===========================
