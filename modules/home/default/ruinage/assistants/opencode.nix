@@ -856,7 +856,7 @@ in {
               sisyphus.model = "openai/gpt-5.2";
               oracle.model = "gpt-5.1-codex-max";
               librarian.model = "google/gemini-2.5-pro";
-              explore.model = "xai/grok-code-fast-1";
+              explore.model = "anthropic/claude-haiku-4-5";
               frontend-ui-ux-engineer = {
                 model = "google/gemini-2.5-pro";
                 temperature = 0.7;
@@ -1081,6 +1081,8 @@ in {
         {
           Type = "exec";
           WorkingDirectory = projectPath;
+          # Allow direnv before exec to avoid "is blocked" errors
+          ExecStartPre = "${pkgs.direnv}/bin/direnv allow ${projectPath}";
           # Wrap with direnv exec to activate the project's devshell
           # This ensures tools defined in the project's flake.nix devShell are available
           ExecStart = "${pkgs.direnv}/bin/direnv exec ${projectPath} ${lib.escapeShellArgs opencodeArgs}";
@@ -1124,7 +1126,7 @@ in {
         # Default oh-my-opencode agent model configurations
         ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.agents = {
           librarian.model = "google/gemini-3-flash-preview";
-          explore.model = "xai/grok-code-fast-1";
+          explore.model = "anthropic/claude-haiku-4-5";
           frontend-ui-ux-engineer = {
             model = "google/gemini-2.5-pro";
             temperature = 0.7;
