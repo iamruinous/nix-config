@@ -300,6 +300,35 @@
           }
         '';
       };
+
+      # GitHub webhook proxy for Forgejo (restricted to webhook paths with signature validation)
+      "hooks.forge.meskill.farm" = {
+        description = "GitHub webhook proxy for Forgejo";
+        config = ''
+          # Only handle Forgejo webhook API paths
+          handle /api/v1/repos/*/hooks/* {
+            # Require GitHub webhook signature header
+            @has_signature header X-Hub-Signature-256 *
+
+            handle @has_signature {
+              reverse_proxy forgejo:3000 {
+                header_up Host {upstream_hostport}
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                header_up X-Forwarded-Proto {scheme}
+              }
+            }
+
+            # Reject requests without signature
+            respond "Unauthorized" 401
+          }
+
+          # Block all other paths
+          handle {
+            respond "Not Found" 404
+          }
+        '';
+      };
     };
   };
 
