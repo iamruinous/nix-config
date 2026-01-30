@@ -533,6 +533,19 @@
            if $codeyToken != "" then .channels.discord.accounts.codey.token = $codeyToken else . end' \
           "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
           > /tmp/clawdbot/clawdbot-runtime.json
+
+        # Create moltbot-specific tea config with embedded token
+        # This isolates moltbot's Forgejo auth from user's interactive config
+        mkdir -p /tmp/clawdbot/config/tea
+        FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_forgejo_token.path}")
+        cat > /tmp/clawdbot/config/tea/config.yml << EOF
+        logins:
+          - name: forge.meskill.farm
+            url: https://forge.meskill.farm
+            token: $FORGEJO_TOKEN
+            default: true
+            user: iamruinous
+        EOF
       ''}";
       ExecStart = "${pkgs.writeShellScript "clawdbot-gateway-start" ''
         set -euo pipefail
@@ -547,11 +560,13 @@
         export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_github_token.path})"
         export GH_TOKEN="$GITHUB_TOKEN"
 
-        # Tea/Forgejo CLI authentication (from Infisical via agenix-rekey)
-        # Using env vars for isolation from user's interactive config
+        # Tea/Forgejo CLI authentication
+        # Use moltbot-specific config dir created in ExecStartPre
+        # This isolates moltbot from user's interactive tea config
+        export XDG_CONFIG_HOME="/tmp/clawdbot/config"
+        # Also set env vars for direct API use and compatibility
         export GITEA_SERVER_URL="https://forge.meskill.farm"
         export GITEA_SERVER_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
-        # Legacy env var names for compatibility
         export FORGEJO_TOKEN="$GITEA_SERVER_TOKEN"
         export GITEA_TOKEN="$GITEA_SERVER_TOKEN"
 
