@@ -1036,6 +1036,7 @@ in {
       paths = mkProjectPaths name;
       webConfig = project.assistants.opencode.web;
       port = getProjectPort name project;
+      projectPath = project.workdir or "${config.home.homeDirectory}/Projects/ruinage/${name}";
 
       # Combine explicit CORS domains with fqdn
       allCorsDomains =
@@ -1079,8 +1080,10 @@ in {
       Service =
         {
           Type = "exec";
-          WorkingDirectory = project.workdir or "${config.home.homeDirectory}/Projects/ruinage/${name}";
-          ExecStart = "${lib.escapeShellArgs opencodeArgs}";
+          WorkingDirectory = projectPath;
+          # Wrap with direnv exec to activate the project's devshell
+          # This ensures tools defined in the project's flake.nix devShell are available
+          ExecStart = "${pkgs.direnv}/bin/direnv exec ${projectPath} ${lib.escapeShellArgs opencodeArgs}";
           Restart = "always";
           RestartSec = "5s";
           RestartSteps = 5;
