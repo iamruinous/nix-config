@@ -128,7 +128,8 @@
       else "";
     # Use literal username since systemd doesn't expand shell variables
     userProfilePath = "/etc/profiles/per-user/${username}/bin";
-    systemPaths = "/run/current-system/sw/bin:${userProfilePath}:/usr/bin:/bin";
+    # Include /run/wrappers/bin for setuid wrappers (sudo, etc.) on NixOS
+    systemPaths = "/run/wrappers/bin:/run/current-system/sw/bin:${userProfilePath}:/usr/bin:/bin";
   in "${prependStr}${systemPaths}";
 
   # Build systemd Environment list for OpenCode-based services
