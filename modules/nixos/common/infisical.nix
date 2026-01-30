@@ -32,6 +32,7 @@ with lib; let
   # Helper script that fetches a secret from Infisical
   # Usage: infisical-get <env> <path> <secret-name>
   # Output: Secret value to stdout
+  # Auth: Uses INFISICAL_TOKEN if set, otherwise falls back to user login
   infisicalGetScript = pkgs.writeShellScript "infisical-get" ''
     set -euo pipefail
 
@@ -39,17 +40,22 @@ with lib; let
     path="$2"
     name="$3"
 
-    # Require INFISICAL_TOKEN to be set (service token or machine identity)
-    if [[ -z "''${INFISICAL_TOKEN:-}" ]]; then
-      echo "Error: INFISICAL_TOKEN environment variable must be set" >&2
-      exit 1
-    fi
-
     # Set API URL from config or environment
     export INFISICAL_API_URL="''${INFISICAL_API_URL:-${cfg.apiUrl}}"
     export INFISICAL_DISABLE_UPDATE_CHECK=true
 
+    # Check authentication: prefer INFISICAL_TOKEN, fall back to user login
+    if [[ -z "''${INFISICAL_TOKEN:-}" ]]; then
+      # Check if user is logged in
+      if ! ${pkgs.infisical}/bin/infisical user >/dev/null 2>&1; then
+        echo "Error: Not authenticated with Infisical." >&2
+        echo "Either set INFISICAL_TOKEN or run: infisical login --domain ${cfg.apiUrl}" >&2
+        exit 1
+      fi
+    fi
+
     exec ${pkgs.infisical}/bin/infisical secrets get "$name" \
+      --projectId="${cfg.projectId}" \
       --env="$env" \
       --path="$path" \
       --plain \
@@ -64,6 +70,12 @@ in {
       default = "https://infisical.meskill.farm";
       description = "Infisical API URL.";
       example = "https://app.infisical.com";
+    };
+
+    projectId = mkOption {
+      type = types.str;
+      default = "f95d3144-22bb-4c95-9ee8-f3319d4924d5";
+      description = "Infisical project ID for NixOS secrets.";
     };
 
     env = mkOption {
@@ -95,24 +107,48 @@ in {
     };
 
     # Convenience function for generating agenix-rekey generator scripts
+    # Returns a function that conforms to agenix-rekey's generator.script type:
+    # { name, secret, lib, pkgs, file, deps, decrypt, ... }: "shell script string"
     mkGenerator = mkOption {
-      type = types.functionTo types.path;
+      type = types.functionTo (types.functionTo types.str);
       readOnly = true;
       default = {
         name,
         env ? cfg.env,
         path ? cfg.path,
       }:
-        pkgs.writeShellScript "agenix-gen-${name}" ''
-          set -euo pipefail
-          ${infisicalGetScript} "${env}" "${path}" "${name}" > "$out"
+        # Return a function that agenix-rekey will call with its standard arguments
+        { pkgs, lib, ... }:
+        ''
+          # Set Infisical API URL
+          export INFISICAL_API_URL="''${INFISICAL_API_URL:-${cfg.apiUrl}}"
+          export INFISICAL_DISABLE_UPDATE_CHECK=true
+
+          # Check authentication: prefer INFISICAL_TOKEN, fall back to user login
+          if [[ -z "''${INFISICAL_TOKEN:-}" ]]; then
+            # Check if user is logged in
+            if ! ${pkgs.infisical}/bin/infisical user >/dev/null 2>&1; then
+              echo "Error: Not authenticated with Infisical." >&2
+              echo "Either set INFISICAL_TOKEN or run: infisical login --domain ${cfg.apiUrl}" >&2
+              exit 1
+            fi
+          fi
+
+          ${pkgs.infisical}/bin/infisical secrets get "${name}" \
+            --projectId="${cfg.projectId}" \
+            --env="${env}" \
+            --path="${path}" \
+            --plain \
+            --silent
         '';
       description = ''
         Helper function to create agenix-rekey generator scripts.
         
+        Returns a function compatible with agenix-rekey's generator.script option,
+        which expects: { name, secret, lib, pkgs, file, deps, decrypt, ... }: "shell script"
+        
         Usage:
           age.secrets."my-secret" = {
-            file = ./secrets/my-secret.age;
             generator.script = config.ruinous.infisical.mkGenerator {
               name = "MY_SECRET_NAME";
               # Optional: override defaults
