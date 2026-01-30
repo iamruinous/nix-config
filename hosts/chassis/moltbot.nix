@@ -10,6 +10,7 @@
 # This file defines:
 #   1. The nixpkgs overlay (adds pkgs.clawdbot etc.)
 #   2. The agenix secrets needed by the home-manager module
+#   3. Infisical-sourced secrets for GitHub/Forgejo CLI access
 #
 # WhatsApp Setup:
 #   1. Create the phone number secret:
@@ -22,14 +23,35 @@
 #   2. Deploy: home-manager switch --flake .#jmeskill@chassis
 #   3. Pair: clawdbot channels login whatsapp (scan QR)
 #
+# GitHub/Forgejo CLI Access (Infisical Integration):
+#   Tokens are sourced from Infisical during agenix-rekey and encrypted
+#   to .age files. This enables moltbot to:
+#   - Create/manage issues on GitHub (gh CLI)
+#   - Create/manage issues on forge.meskill.farm (tea CLI)
+#
+#   To regenerate secrets from Infisical:
+#     agenix-helper unlock
+#     agenix rekey -a  # Fetches from Infisical and re-encrypts
+#     agenix-helper lock
+#
 # References:
 #   - https://github.com/moltbot/moltbot
 #   - https://github.com/moltbot/nix-moltbot
-{flake, lib, ...}: {
+{
+  flake,
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   # Add the nix-moltbot overlay to make pkgs.clawdbot available
   nixpkgs.overlays = [
     flake.inputs.nix-moltbot.overlays.default
   ];
+
+  # Enable Infisical integration for agenix-rekey
+  # Tokens are fetched from Infisical and re-encrypted to .age files during rekey
+  ruinous.infisical.enable = true;
 
   # Secrets for moltbot - these are referenced by the home-manager config
   # The actual moltbot service configuration is in the user's home-manager config
@@ -73,6 +95,32 @@
   # Codey Discord bot token (separate bot for codey agent - #ops channel)
   age.secrets.chassis_moltbot_codey_discord_token = lib.mkIf (builtins.pathExists ./files/moltbot/codey-discord-token.age) {
     rekeyFile = ./files/moltbot/codey-discord-token.age;
+    mode = "400";
+    owner = "jmeskill";
+    group = "users";
+  };
+
+  # GitHub token for gh CLI - sourced from Infisical
+  # Enables moltbot to create/manage GitHub issues programmatically
+  age.secrets.chassis_moltbot_github_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "GITHUB_TOKEN";
+      env = "homelab";
+      path = "/";
+    };
+    mode = "400";
+    owner = "jmeskill";
+    group = "users";
+  };
+
+  # Forgejo token for tea CLI - sourced from Infisical
+  # Enables moltbot to create/manage issues on forge.meskill.farm
+  age.secrets.chassis_moltbot_forgejo_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "FORGEJO_TOKEN";
+      env = "homelab";
+      path = "/";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";

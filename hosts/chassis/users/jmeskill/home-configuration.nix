@@ -14,6 +14,12 @@
 
   programs.wezterm.enable = true;
 
+  # GitHub and Forgejo CLI tools for moltbot issue management
+  home.packages = with pkgs; [
+    gh   # GitHub CLI
+    tea  # Forgejo/Gitea CLI
+  ];
+
   ruinous = {
     rust-motd.enable = true;
     openssh.remote.forwarding.enable = true;
@@ -527,6 +533,20 @@
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
         export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
 
+        # GitHub/Forgejo CLI authentication (from Infisical via agenix-rekey)
+        # These enable moltbot to create/manage issues programmatically
+        export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_github_token.path})"
+        export GH_TOKEN="$GITHUB_TOKEN"  # gh CLI uses GH_TOKEN
+        export FORGEJO_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
+        export GITEA_TOKEN="$FORGEJO_TOKEN"  # tea CLI uses GITEA_TOKEN
+
+        # Tea CLI configuration for forge.meskill.farm
+        export GITEA_URL="https://forge.meskill.farm"
+        export TEA_CONFIG="${config.home.homeDirectory}/.config/tea/config.yml"
+
+        # Add gh and tea CLI to PATH
+        export PATH="${pkgs.gh}/bin:${pkgs.tea}/bin:$PATH"
+
         # Set clawdbot environment - use runtime-patched config
         export HOME="${config.home.homeDirectory}"
         export CLAWDBOT_CONFIG_PATH="/tmp/clawdbot/clawdbot-runtime.json"
@@ -549,6 +569,32 @@
     # Clawdbot secrets for interactive CLI use (tui, etc.)
     export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
     export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
+
+    # GitHub/Forgejo CLI authentication (from Infisical via agenix-rekey)
+    export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_github_token.path})"
+    export GH_TOKEN="$GITHUB_TOKEN"
+    export FORGEJO_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
+    export GITEA_TOKEN="$FORGEJO_TOKEN"
+  '';
+
+  # Tea CLI configuration for forge.meskill.farm
+  # Token is injected via GITEA_TOKEN environment variable
+  # This config file provides the login definition that tea needs
+  home.file.".config/tea/config.yml".text = ''
+    logins:
+      - name: forge.meskill.farm
+        url: https://forge.meskill.farm
+        # Token is provided via GITEA_TOKEN environment variable
+        # tea CLI will use the token from environment when this field is empty
+        token: ""
+        default: true
+        ssh_host: ""
+        insecure: false
+        ssh_key: ""
+        ssh_certificate_principal: ""
+        ssh_agent: false
+        user: iamruinous
+        created: 0
   '';
 
   # MESSY SOUL.md - Family assistant persona for WhatsApp
