@@ -169,16 +169,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769644113,
-        "narHash": "sha256-rBzPSBy3GYSPlw3OIrshn04pGBkbe24GE5ay9aOj+qY=",
-        "ref": "refs/tags/v0.4.9",
-        "rev": "6418384fadff03cf9dc1b2700b76856c78675cd3",
-        "revCount": 37,
+        "lastModified": 1769739851,
+        "narHash": "sha256-QEe9WHREBH3mRkY/+St3F290q4WDHQWvdOzVoIh/2Ik=",
+        "ref": "refs/tags/v0.4.10",
+        "rev": "7e1cf444d8fff1297d47f9f5c75e5bb098333c81",
+        "revCount": 40,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       },
       "original": {
-        "ref": "refs/tags/v0.4.9",
+        "ref": "refs/tags/v0.4.10",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git"
       }
@@ -1467,11 +1467,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1769570694,
-        "narHash": "sha256-32P8dCOPXM6lm//SBDvLEPH8OqbwWS1VP2CWY2H56jw=",
+        "lastModified": 1769763865,
+        "narHash": "sha256-8tmNbA7572xD+JEIfpOUP4XXeejqwh8Uka13Sol1XL4=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "2b41ea37285c6af0582c05225c63a33860ed2d1b",
+        "rev": "62f5bff0fafe0b3eedc2f835e94a7dd4da4a6f11",
         "type": "github"
       },
       "original": {
@@ -1488,15 +1488,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769679590,
-        "narHash": "sha256-+Eoz9xBHammdyl/Vrmq9xE8XWDFkF/3/nYque/YfeF8=",
-        "ref": "refs/heads/main",
-        "rev": "2196e52df63d3858d41f863bdde07c8124ac257d",
-        "revCount": 7,
+        "lastModified": 1769760545,
+        "narHash": "sha256-Cl5ao2hRi6aDVQMeuAjLQlKEjH9BnklEbc53HaleJe0=",
+        "ref": "refs/tags/v0.3.0",
+        "rev": "58c7b1cc2dcd5cd6ab4c7de3b0c49a1c41c08776",
+        "revCount": 8,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git"
       },
       "original": {
+        "ref": "refs/tags/v0.3.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git"
       }
@@ -1906,11 +1907,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1769433173,
-        "narHash": "sha256-Gf1dFYgD344WZ3q0LPlRoWaNdNQq8kSBDLEWulRQSEs=",
+        "lastModified": 1769527094,
+        "narHash": "sha256-xV20Alb7ZGN7qujnsi5lG1NckSUmpIb05H2Xar73TDc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "13b0f9e6ac78abbbb736c635d87845c4f4bee51b",
+        "rev": "afce96367b2e37fc29afb5543573cd49db3357b7",
         "type": "github"
       },
       "original": {
@@ -2473,11 +2474,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1769515380,
-        "narHash": "sha256-CWWK3PaQ7zhr+Jcf5zyaTR2cfRBXPo09H7+5nWApL8s=",
+        "lastModified": 1769691507,
+        "narHash": "sha256-8aAYwyVzSSwIhP2glDhw/G0i5+wOrren3v6WmxkVonM=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "9911802c2822def2eec3d22e2cafd1619ede94a5",
+        "rev": "28b19c5844cc6e2257801d43f2772a4b4c050a1b",
         "type": "github"
       },
       "original": {

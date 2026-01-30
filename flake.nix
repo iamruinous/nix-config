@@ -125,7 +125,7 @@
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-dashboard
-    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.9";
+    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.10";
     budgey-assistant-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # n8n-agent - n8n workflow automation agent
@@ -135,7 +135,8 @@
 
     # messy-attributes-editor - CRUD webservice for messy_attribute table
     # <https://forge.meskill.farm/iamruinous/messy-attributes-editor>
-    messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git";
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input messy-attributes-editor
+    messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git?ref=refs/tags/v0.3.0";
     messy-attributes-editor.inputs.nixpkgs.follows = "nixpkgs";
 
      # ruinagents - Agent definitions, docs, and skills
