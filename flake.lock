@@ -191,16 +191,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769597063,
-        "narHash": "sha256-J9dfObEAoc5uCv6/4SLm4y861FWkUCDHHvLFArEO/1I=",
-        "ref": "refs/tags/v0.18.2",
-        "rev": "a9fa5bc96a06776c0ff20b91914256590ce97a52",
-        "revCount": 100,
+        "lastModified": 1769819783,
+        "narHash": "sha256-yotnI3ljpeHhYfwULb9dw+64LuS9xOZyLh2wGl9WjV0=",
+        "ref": "refs/tags/v0.18.3",
+        "rev": "fba21ef9a817b115ff1dc1efb712e719b4dd1aa3",
+        "revCount": 101,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       },
       "original": {
-        "ref": "refs/tags/v0.18.2",
+        "ref": "refs/tags/v0.18.3",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git"
       }
@@ -1467,11 +1467,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1769763865,
-        "narHash": "sha256-8tmNbA7572xD+JEIfpOUP4XXeejqwh8Uka13Sol1XL4=",
+        "lastModified": 1769813338,
+        "narHash": "sha256-IlRKon8+bfoi/uOa8CUPAAWW0Pv6AHBSF1jVSD4QO8U=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "62f5bff0fafe0b3eedc2f835e94a7dd4da4a6f11",
+        "rev": "58939415e56d01c30d429cf0c49a9d8e2a6a07c3",
         "type": "github"
       },
       "original": {
@@ -1907,11 +1907,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1769527094,
-        "narHash": "sha256-xV20Alb7ZGN7qujnsi5lG1NckSUmpIb05H2Xar73TDc=",
+        "lastModified": 1769740369,
+        "narHash": "sha256-xKPyJoMoXfXpDM5DFDZDsi9PHArf2k5BJjvReYXoFpM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "afce96367b2e37fc29afb5543573cd49db3357b7",
+        "rev": "6308c3b21396534d8aaeac46179c14c439a89b8a",
         "type": "github"
       },
       "original": {

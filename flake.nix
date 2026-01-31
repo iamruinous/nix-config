@@ -119,7 +119,7 @@
     # budgey-assistant-ingest-tools - Multi-CLI session extraction and ingestion tools
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-ingest-tools
-    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.18.2";
+    budgey-assistant-ingest-tools.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools.git?ref=refs/tags/v0.18.3";
     budgey-assistant-ingest-tools.inputs.nixpkgs.follows = "nixpkgs";
 
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
