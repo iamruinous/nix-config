@@ -840,11 +840,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1769187349,
-        "narHash": "sha256-clG+nT6I2qxjIgk5WoSDKJyNhzKJs9jzbCujPF2S/yg=",
+        "lastModified": 1769813945,
+        "narHash": "sha256-9ABv9Lo9t6MrFjlnRnU8Zw1C6LVj2+R8PipQ/rxGLHk=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "082a4cd87c6089d1d9c58ebe52655f9e07245fcb",
+        "rev": "475921375def3eb930e1f8883f619ff8609accb6",
         "type": "github"
       },
       "original": {
@@ -898,7 +898,7 @@
     "home-manager_5": {
       "inputs": {
         "nixpkgs": [
-          "nix-moltbot",
+          "nix-openclaw",
           "nixpkgs"
         ]
       },
@@ -1600,7 +1600,7 @@
         "type": "github"
       }
     },
-    "nix-moltbot": {
+    "nix-openclaw": {
       "inputs": {
         "flake-utils": "flake-utils_6",
         "home-manager": "home-manager_5",
@@ -1610,16 +1610,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769600068,
-        "narHash": "sha256-7IHO/xjpmLQtwjT/eu5HMVjPtoIcRTXSfyjKC9SaCRI=",
+        "lastModified": 1769832880,
+        "narHash": "sha256-AWlU24ssHiWJbTua7EUe9PBm07eQq96KUux3AHAjYqs=",
         "owner": "iamruinous",
-        "repo": "nix-moltbot",
-        "rev": "69cfbfe274dbd2511259c5fce952c40e28d30d72",
+        "repo": "nix-openclaw",
+        "rev": "858daaba1b0386a3e3892b295317f384c59b9fb5",
         "type": "github"
       },
       "original": {
         "owner": "iamruinous",
-        "repo": "nix-moltbot",
+        "repo": "nix-openclaw",
         "type": "github"
       }
     },
@@ -1628,15 +1628,15 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1768673601,
-        "narHash": "sha256-n5+aU505rTI1sJGd3PDhfvJS00lLjiARckqjLxdG+XA=",
-        "owner": "clawdbot",
+        "lastModified": 1769810114,
+        "narHash": "sha256-MlQ4G7MIkFDIvekIiucJEZP0FmeyOpwadI1dCq0EmSk=",
+        "owner": "openclaw",
         "repo": "nix-steipete-tools",
-        "rev": "1ab855984e2581e35a76d57cbb97abf0693dad3b",
+        "rev": "76188dc559493e752f23a53d4563b77dea7c0428",
         "type": "github"
       },
       "original": {
-        "owner": "clawdbot",
+        "owner": "openclaw",
         "repo": "nix-steipete-tools",
         "type": "github"
       }
@@ -2105,7 +2105,7 @@
         "nix-darwin": "nix-darwin",
         "nix-flatpak": "nix-flatpak",
         "nix-homebrew": "nix-homebrew",
-        "nix-moltbot": "nix-moltbot",
+        "nix-openclaw": "nix-openclaw",
         "nixos-anywhere": "nixos-anywhere",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_8",

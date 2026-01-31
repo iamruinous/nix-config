@@ -17,7 +17,7 @@
     ./ollama.nix
     ./harmonia.nix
     ./forgejo-runner.nix
-    ./moltbot.nix
+    ./openclaw.nix
     ./messy-attributes-editor.nix
   ];
 

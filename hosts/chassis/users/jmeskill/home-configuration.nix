@@ -9,12 +9,12 @@
   imports = [
     flake.homeModules.default
     flake.homeModules.kde
-    flake.inputs.nix-moltbot.homeManagerModules.clawdbot
+    flake.inputs.nix-openclaw.homeManagerModules.openclaw
   ];
 
   programs.wezterm.enable = true;
 
-  # GitHub and Forgejo CLI tools for moltbot issue management
+  # GitHub and Forgejo CLI tools for openclaw issue management
   home.packages = with pkgs; [
     gh # GitHub CLI
     tea # Forgejo/Gitea CLI
@@ -267,17 +267,17 @@
     mode = "400";
   };
 
-  # Moltbot - Personal AI Assistant for Discord
+  # Openclaw - Personal AI Assistant for Discord
   # Minimal Discord-only configuration using Anthropic Claude
-  # Secrets defined in hosts/chassis/moltbot.nix
+  # Secrets defined in hosts/chassis/openclaw.nix
   #
-  # NOTE: nix-moltbot home-manager module has multiple issues on NixOS:
+  # NOTE: nix-openclaw home-manager module has issues on NixOS:
   # 1. Uses hardcoded /bin/mkdir and /bin/ln (macOS paths)
-  # 2. Generates invalid config keys (tokenFile, messages.queue.byProvider)
-  # 3. Wrapper script doesn't properly interpolate secrets
+  # 2. Systemd service doesn't properly handle secrets at runtime
   #
-  # We disable the upstream module and use a custom systemd service instead.
+  # We disable the upstream module's systemd service and use a custom one.
   # The custom service reads secrets at runtime and sets environment variables.
+  # Migration from fork (github:iamruinous/nix-moltbot) - see issue #391
 
   # Create required directories
   home.activation.clawdbotDirs = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -297,20 +297,21 @@
     true
   '');
 
-  # Generate valid clawdbot config (token is read from env at runtime)
+  # Generate valid openclaw config (token is read from env at runtime)
   # Use mkForce to override the upstream module's config file
   #
-  # Key fixes for nix-moltbot issues:
+  # Key workarounds for nix-openclaw on NixOS:
   # 1. plugins.load.paths - bundled extensions aren't in default search path
-  # 2. plugins.slots.memory = "none" - default memory-core plugin causes startup failure
+  # 2. plugins.slots.memory = "memory-core" - explicit memory plugin
   # 3. plugins.entries.discord.enabled - explicitly enable discord plugin
   home.file.".clawdbot/clawdbot.json" = lib.mkForce {
     text = builtins.toJSON {
       gateway.mode = "local";
       plugins = {
         load.paths = [
-          # Include bundled extensions from clawdbot-gateway package
-          "${pkgs.clawdbot-gateway}/lib/clawdbot/node_modules/.pnpm/clawdbot@2026.1.24-3_@types+express@5.0.6_audio-decode@2.2.3_devtools-protocol@0.0.1561482_typescript@5.9.3/node_modules/clawdbot/extensions"
+          # Include bundled extensions from openclaw-gateway package
+          # NOTE: This path may need updating when upstream package structure changes
+          "${pkgs.openclaw-gateway}/lib/openclaw/node_modules/.pnpm/openclaw@2026.1.24-3_@types+express@5.0.6_audio-decode@2.2.3_devtools-protocol@0.0.1561482_typescript@5.9.3/node_modules/openclaw/extensions"
         ];
         slots.memory = "memory-core"; # Built-in memory using Markdown files + SQLite
         entries.discord.enabled = true; # Explicitly enable discord plugin
@@ -344,6 +345,9 @@
       channels = {
         discord = {
           enabled = true;
+          # Allow bots to see webhook messages (required for #ops CTO triggers)
+          # WARNING: Keep requireMention = true on most channels to prevent loops
+          allowBots = true;
           # All Discord bots are defined as named accounts
           # Tokens are injected at runtime from agenix secrets
           accounts = {
@@ -538,8 +542,8 @@
           "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
           > /tmp/clawdbot/clawdbot-runtime.json
 
-        # Create moltbot-specific tea config with embedded token
-        # This isolates moltbot's Forgejo auth from user's interactive config
+        # Create openclaw-specific tea config with embedded token
+        # This isolates openclaw's Forgejo auth from user's interactive config
         mkdir -p /tmp/clawdbot/config/tea
         FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_forgejo_token.path}")
         cat > /tmp/clawdbot/config/tea/config.yml << EOF
@@ -565,8 +569,8 @@
         export GH_TOKEN="$GITHUB_TOKEN"
 
         # Tea/Forgejo CLI authentication
-        # Use moltbot-specific config dir created in ExecStartPre
-        # This isolates moltbot from user's interactive tea config
+        # Use openclaw-specific config dir created in ExecStartPre
+        # This isolates openclaw from user's interactive tea config
         export XDG_CONFIG_HOME="/tmp/clawdbot/config"
         # Also set env vars for direct API use and compatibility
         export GITEA_SERVER_URL="https://forge.meskill.farm"
@@ -577,13 +581,14 @@
         # Add gh and tea CLI to PATH
         export PATH="${pkgs.gh}/bin:${pkgs.tea}/bin:$PATH"
 
-        # Set clawdbot environment - use runtime-patched config
+        # Set openclaw environment - use runtime-patched config
+        # NOTE: Environment variables still use CLAWDBOT_ prefix for backwards compat
         export HOME="${config.home.homeDirectory}"
         export CLAWDBOT_CONFIG_PATH="/tmp/clawdbot/clawdbot-runtime.json"
         export CLAWDBOT_STATE_DIR="${config.home.homeDirectory}/.clawdbot"
         export CLAWDBOT_NIX_MODE=1
 
-        exec ${pkgs.clawdbot}/bin/clawdbot gateway --port 18789
+        exec ${pkgs.openclaw}/bin/openclaw gateway --port 18789
       ''}";
       WorkingDirectory = "${config.home.homeDirectory}/.clawdbot";
       Restart = "always";
@@ -594,9 +599,9 @@
     Install.WantedBy = ["default.target"];
   };
 
-  # Create ~/.envrc with clawdbot secrets for interactive use
+  # Create ~/.envrc with openclaw secrets for interactive use
   home.file.".envrc".text = ''
-    # Clawdbot secrets for interactive CLI use (tui, etc.)
+    # Openclaw secrets for interactive CLI use (tui, etc.)
     export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
     export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
 
@@ -705,8 +710,8 @@
   #   *MESSY v1.1.0 — Meskill Family Assistant*
   # '';
 
-  # Clawdbot tmuxp session for TUI access
-  ruinous.tmuxp.sessions.clawdbot = {
+  # Openclaw tmuxp session for TUI access
+  ruinous.tmuxp.sessions.openclaw = {
     startDirectory = "${config.home.homeDirectory}/.clawdbot";
     startCommands = ["source ${config.home.homeDirectory}/.envrc"];
     windows = [
@@ -716,7 +721,7 @@
       }
       {
         name = "tui";
-        command = "clawdbot tui";
+        command = "openclaw tui";
         focus = true;
       }
       {
@@ -725,40 +730,15 @@
     ];
   };
 
-  # Keep upstream module enabled but disable its systemd service
-  # We use our own custom service that properly handles secrets
-  programs.clawdbot = {
-    enable = true;
-
-    # Disable upstream systemd service (we use our own)
-    systemd.enable = false;
-
-    # Default model configuration
-    defaults = {
-      model = "anthropic/claude-sonnet-4-20250514";
-      thinkingDefault = "medium";
-    };
-
-    # Disable first-party plugins we don't need for minimal setup
-    firstParty = {
-      summarize.enable = false;
-      peekaboo.enable = false;
-      oracle.enable = false;
-      poltergeist.enable = false;
-      sag.enable = false;
-      camsnap.enable = false;
-      gogcli.enable = false;
-      bird.enable = false;
-      sonoscli.enable = false;
-      imsg.enable = false;
-    };
-
-    # Keep default instance but disable its service
-    instances.default = {
-      enable = true;
-      systemd.enable = false;
-    };
-  };
+  # NOTE: We do NOT enable programs.openclaw because:
+  # 1. The upstream schema-only config requires all options defined (no defaults)
+  # 2. We use our own custom systemd service for proper secret handling
+  # 3. We only need the overlay for pkgs.openclaw and pkgs.openclaw-gateway
+  #
+  # The overlay is added in hosts/chassis/openclaw.nix via:
+  #   nixpkgs.overlays = [ flake.inputs.nix-openclaw.overlays.default ];
+  #
+  # Migration from fork (github:iamruinous/nix-moltbot) - see issue #391
 
   home.stateVersion = "26.05";
 }
