@@ -1157,6 +1157,7 @@ in {
           "opencode-openai-codex-auth@latest"
           "opencode-gemini-auth@latest"
           "opencode-anthropic-auth@latest"
+          "@tmegit/opencode-worktree-session" # Session isolation via git worktrees
         ];
 
         # Default instructions (supplementary context files combined with AGENTS.md)
@@ -1503,6 +1504,11 @@ in {
           );
         in lib.hm.dag.entryAfter ["writeBoundary"] ''
           # OCX extension manager setup
+          # Initialize global config if it doesn't exist
+          if [ ! -f "$HOME/.config/ocx/config.json" ]; then
+            $DRY_RUN_CMD ${pkgs.bun}/bin/bunx ocx init --global 2>/dev/null || true
+          fi
+
           # Configure registries
           ${registryCommands}
 
@@ -1528,6 +1534,7 @@ in {
         home.file = foldAttrs (a: b: a // b) {} (map (
           name: let
             paths = mkProjectPaths name;
+            projectCfg = opencodeProjects.${name}.assistants.opencode;
             # Ruinagents skill symlinks for this project
             projectSkillLinks = builtins.listToAttrs (map (skill: {
                 name = "${paths.config}/skills/${skill}/SKILL.md";
@@ -1564,6 +1571,14 @@ in {
                 lsp = opencodeAssistant.harnesses.oh-my-opencode.lsp;
               });
             };
+            # Per-project prompt_append instruction file (if set)
+            projectPromptAppend = optionalAttrs (projectCfg.prompt_append != null) {
+              "${paths.config}/instructions/${name}-prompt.md".text = ''
+                # Project-Specific Instructions: ${name}
+
+                ${projectCfg.prompt_append}
+              '';
+            };
           in
             {
               "${paths.config}/.gitkeep".text = "";
@@ -1579,6 +1594,7 @@ in {
             // projectInstructionLinks
             // optionalAttrs opencodeAssistant.harnesses.ruinagents.enable projectRuinagentsEntries
             // projectOmoConfig
+            // projectPromptAppend
         ) (attrNames opencodeProjects));
       })
 
@@ -1588,10 +1604,20 @@ in {
         home.activation = mkMerge (map (name: let
           paths = mkProjectPaths name;
           safeName = builtins.replaceStrings ["-" "/" " "] ["_" "_" "_"] name;
-          # Per-project activation uses global settings (same as default config)
+          projectCfg = opencodeProjects.${name}.assistants.opencode;
+          # Per-project settings with fallback to global
           model = opencodeAssistant.model;
           plugins = opencodeAssistant.plugins;
-          instructions = opencodeAssistant.instructions;
+          # Use per-project instructions if set, otherwise global
+          baseInstructions =
+            if projectCfg.instructions != null
+            then projectCfg.instructions
+            else opencodeAssistant.instructions;
+          # If prompt_append is set, add a project-specific instruction file
+          instructions =
+            if projectCfg.prompt_append != null
+            then baseInstructions ++ ["instructions/${name}-prompt.md"]
+            else baseInstructions;
           mcpServers = opencodeAssistant.mcpServers;
           providers = opencodeAssistant.providers;
           installPlugins = opencodeAssistant.installPlugins;

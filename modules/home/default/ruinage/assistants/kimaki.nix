@@ -4,6 +4,7 @@
 # - Global Kimaki settings (ruinous.ruinage.assistants.kimaki.*)
 # - Service configuration (stateDir, configDir, environmentFiles, etc.)
 # - Per-project Kimaki registration
+# - OpenCode config generation for kimaki project workdirs
 #
 # Kimaki is a Discord bot for controlling OpenCode agents, connecting
 # Discord channels to OpenCode projects for interaction via messages and voice.
@@ -46,7 +47,11 @@
 with lib; let
   cfg = config.ruinous.ruinage.assistants.kimaki;
   ruinageCfg = config.ruinous.ruinage;
+  opencodeAssistant = ruinageCfg.assistants.opencode or {};
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
+
+  # OpenCode config template from flake (same as opencode.nix uses)
+  opencode_config = flake + /files/configs/opencode/opencode.json;
 
   # Import shared Ruinage library from top-level lib/
   ruinageLib = import ../../../../../lib/ruinage/wrapper.nix {inherit lib pkgs;};
@@ -188,6 +193,17 @@ in {
       '';
     };
 
+    instructions = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      example = ["instructions/cost-optimization.md" "docs/discord-guidelines.md"];
+      description = ''
+        Default instruction files for all Kimaki OpenCode instances.
+        If empty, falls back to the global opencode instructions.
+        Supports relative paths, absolute paths, glob patterns, and URLs.
+      '';
+    };
+
     direnv = {
       autoInject = mkOption {
         type = types.bool;
@@ -322,6 +338,69 @@ in {
           fi
         '') (attrNames kimakiProjects)}
       '';
+    })
+
+    # Generate opencode.json in each kimaki project workdir
+    # Uses global kimaki instructions (or fallback to global opencode instructions)
+    (mkIf (kimakiProjects != {}) {
+      home.activation.generateKimakiOpencodeConfigs = lib.hm.dag.entryAfter ["writeBoundary" "cloneKimakiProjects"] (let
+        # Get effective instructions: kimaki global -> opencode global
+        instructions =
+          if cfg.instructions != []
+          then cfg.instructions
+          else opencodeAssistant.instructions or [];
+        # Get settings from global opencode assistant
+        model = opencodeAssistant.model or null;
+        plugins = opencodeAssistant.plugins or [];
+        mcpServers = opencodeAssistant.mcpServers or {};
+        providers = opencodeAssistant.providers or {};
+      in ''
+        ${concatMapStringsSep "\n" (name: let
+          workdir = mkKimakiWorkdir name;
+          configDir = "${workdir}/.opencode";
+          configFile = "${configDir}/opencode.json";
+        in ''
+          # Generate opencode.json for kimaki project: ${name}
+          if [ -d "${workdir}" ]; then
+            $DRY_RUN_CMD mkdir -p "${configDir}"
+            
+            # Ensure config file exists, copy from template if not
+            if [ ! -f "${configFile}" ]; then
+              $DRY_RUN_CMD cp "${opencode_config}" "${configFile}"
+              $DRY_RUN_CMD chmod +w "${configFile}"
+            fi
+            
+            # Inject model, plugins, instructions, MCP servers, and providers
+            if [ -f "${configFile}" ]; then
+              TMP_FILE=$(mktemp)
+              ${pkgs.jq}/bin/jq \
+                --argjson new_model '${builtins.toJSON model}' \
+                --argjson new_plugins '${builtins.toJSON plugins}' \
+                --argjson new_instructions '${builtins.toJSON instructions}' \
+                --argjson new_servers '${builtins.toJSON mcpServers}' \
+                --argjson new_providers '${builtins.toJSON providers}' \
+                '(if $new_model != null then .model = $new_model else . end)
+                  | .plugin //= []
+                  | (if ($new_instructions | length) > 0 then .instructions = $new_instructions else . end)
+                  | .mcp = (.mcp // {}) + $new_servers
+                  | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
+                  | reduce ($new_plugins[]) as $p (.;
+                      ($p | split("@")[0]) as $pname
+                      | ((.plugin | map((. | split("@")[0]) == $pname) | index(true))) as $idx
+                      | if $idx != null then .plugin[$idx] = $p else .plugin += [$p] end)
+                  | walk(if type == "object" then with_entries(select(.value != null)) else . end)
+                ' "${configFile}" > "$TMP_FILE"
+              
+              if ! diff -q "${configFile}" "$TMP_FILE" > /dev/null 2>&1; then
+                $DRY_RUN_CMD cp "$TMP_FILE" "${configFile}"
+                $DRY_RUN_CMD chmod +w "${configFile}"
+                $VERBOSE_ECHO "kimaki: updated opencode.json for ${name}"
+              fi
+              rm "$TMP_FILE"
+            fi
+          fi
+        '') (attrNames kimakiProjects)}
+      '');
     })
 
     # Linux: systemd user service

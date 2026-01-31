@@ -190,6 +190,27 @@ with lib; let
             description = "Enable OpenCode assistant for this project.";
           };
 
+          instructions = mkOption {
+            type = types.nullOr (types.listOf types.str);
+            default = null;
+            example = ["instructions/cost-optimization.md" "docs/guidelines.md"];
+            description = ''
+              Override instructions for this project.
+              If null, inherits from the global opencode instructions setting.
+              Supports relative paths, absolute paths, glob patterns, and URLs.
+            '';
+          };
+
+          prompt_append = mkOption {
+            type = types.nullOr types.str;
+            default = null;
+            example = "Focus on performance optimization for this codebase.";
+            description = ''
+              Additional text to append to the system prompt for this project.
+              If null, no additional prompt is appended.
+            '';
+          };
+
           web = {
             enable = mkOption {
               type = types.bool;
