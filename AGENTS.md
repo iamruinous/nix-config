@@ -15,6 +15,21 @@ This repository is the domain of **[NIXEY](https://agents.ruinous.ai/smes/nixey/
 
 ---
 
+## Public Repository Notice
+
+⚠️ **This is a public repository.** Be discreet with sensitive information:
+
+| Keep Private | OK to Include |
+|--------------|---------------|
+| API keys, tokens, passwords | Hostnames (already in config) |
+| Infisical/vault project IDs | Service names and architecture |
+| Internal URLs with auth tokens | Network topology |
+| Database credentials | General deployment patterns |
+
+When creating issues or PRs, avoid including actual secret values, project IDs, or authenticated URLs. Reference secrets by name, not value.
+
+---
+
 ## Tiered Context Loading
 
 | Need | Load |
