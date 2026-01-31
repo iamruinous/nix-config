@@ -14,6 +14,10 @@
 
   programs.wezterm.enable = true;
 
+  # Allow git operations in budgey-assistant archive directory
+  # The archive is owned by budgey-assistant service but extractors run as jmeskill
+  programs.git.extraConfig.safe.directory = "/var/lib/budgey-assistant/archive";
+
   # GitHub and Forgejo CLI tools for openclaw issue management
   home.packages = with pkgs; [
     gh # GitHub CLI
