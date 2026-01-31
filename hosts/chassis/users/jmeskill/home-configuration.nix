@@ -609,25 +609,7 @@
     export GITEA_TOKEN="$FORGEJO_TOKEN"
   '';
 
-  # Tea CLI configuration for forge.meskill.farm
-  # Token is injected via GITEA_TOKEN environment variable
-  # This config file provides the login definition that tea needs
-  home.file.".config/tea/config.yml".text = ''
-    logins:
-      - name: forge.meskill.farm
-        url: https://forge.meskill.farm
-        # Token is provided via GITEA_TOKEN environment variable
-        # tea CLI will use the token from environment when this field is empty
-        token: ""
-        default: true
-        ssh_host: ""
-        insecure: false
-        ssh_key: ""
-        ssh_certificate_principal: ""
-        ssh_agent: false
-        user: iamruinous
-        created: 0
-  '';
+
 
   # MESSY SOUL.md - Family assistant persona for WhatsApp
   # Derived from ruinagents persona definition (Boulder 3 Phase 1)
