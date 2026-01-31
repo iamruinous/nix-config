@@ -255,7 +255,7 @@ in {
           dshow = "-c diff.external=difft show --ext-diff";
         };
         tag.forceSignAnnotated = true;
-        pull.rebase = false;
+        pull.rebase = true;
         fetch.prune = true;
         push.default = "tracking";
         merge.tool = "vim";
