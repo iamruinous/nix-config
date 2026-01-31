@@ -46,13 +46,6 @@
         enable = true;
         # model, plugins, mcpServers, providers inherited from defaults
         harnesses.ruinagents.enable = true;
-
-        # OCX extension manager for worktree plugin (tmux-aware git worktrees)
-        ocx = {
-          enable = true;
-          # kdco registry is included by default
-          plugins = ["kdco/worktree"];
-        };
       };
 
       # Global Claude Code configuration
