@@ -412,6 +412,10 @@
                     "codeybot-chat" = {
                       requireMention = false;
                     };
+                    # #ops - codey sees all messages (no @ required)
+                    "ops" = {
+                      requireMention = false;
+                    };
                   };
                 };
               };
