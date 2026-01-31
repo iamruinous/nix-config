@@ -24,3 +24,4 @@ COMMIT_MSG*.txt
 
 # Project-local temporary files (see .context/global/standards.md)
 tmp/
+.worktrees

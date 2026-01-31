@@ -2,11 +2,15 @@
 # Used by both NixOS/Darwin (via overlay.nix) and standalone home-manager configs
 #
 # Usage: import ./packages-overlay.nix {inherit perSystem flake;}
-{perSystem, flake}: final: prev: {
+{
+  perSystem,
+  flake,
+}: final: prev: {
   inherit (perSystem) self;
   agenix-helper = perSystem.self.agenix-helper;
   backup-docker-mariadb = perSystem.self.backup-docker-mariadb;
   backup-docker-postgres = perSystem.self.backup-docker-postgres;
+  chat-organizer = perSystem.self.chat-organizer;
   gocmitra = perSystem.self.gocmitra;
   docker-image-updater = perSystem.self.docker-image-updater;
   docker-mcp-gateway = perSystem.self.docker-mcp-gateway;
