@@ -1135,8 +1135,60 @@ in {
           multimodal-looker.model = "google/gemini-2.5-flash-image";
         };
 
-        # Default oh-my-opencode category configurations for ruinous.ai personas
+        # Default oh-my-opencode category configurations
         ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.categories = {
+          # ===================
+          # Work Categories
+          # ===================
+          # These define model tiers for different task complexities
+
+          quick = {
+            model = "anthropic/claude-haiku-4-5";
+            description = "Trivial tasks - issue creation, typo fixes, simple modifications";
+          };
+
+          unspecified-low = {
+            model = "anthropic/claude-haiku-4-5";
+            description = "Low effort tasks that don't fit other categories";
+          };
+
+          writing = {
+            model = "google/gemini-2.5-flash";
+            description = "Documentation, prose, technical writing";
+          };
+
+          unspecified-high = {
+            model = "anthropic/claude-sonnet-4";
+            description = "High effort tasks that don't fit other categories";
+          };
+
+          visual-engineering = {
+            model = "google/gemini-2.5-pro";
+            temperature = 0.7;
+            description = "Frontend, UI/UX, design, styling, animation";
+          };
+
+          ultrabrain = {
+            model = "anthropic/claude-opus-4-5";
+            description = "Genuinely hard, logic-heavy tasks requiring deep reasoning";
+          };
+
+          deep = {
+            model = "anthropic/claude-sonnet-4";
+            description = "Goal-oriented autonomous problem-solving with thorough research";
+          };
+
+          artistry = {
+            model = "anthropic/claude-sonnet-4";
+            temperature = 0.8;
+            description = "Complex problem-solving with unconventional, creative approaches";
+          };
+
+          # ===================
+          # Persona Categories
+          # ===================
+          # These define voice/role for ruinous.ai personas
+
           # CODEY - CTO / Executive Director
           codey-persona = {
             model = "google/gemini-3-flash-preview";
