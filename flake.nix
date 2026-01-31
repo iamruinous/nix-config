@@ -145,10 +145,11 @@
      ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.11.0";
      ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
-     # nix-moltbot - Moltbot personal AI assistant for Nix
-     # <https://github.com/iamruinous/nix-moltbot>
-     nix-moltbot.url = "github:iamruinous/nix-moltbot";
-     nix-moltbot.inputs.nixpkgs.follows = "nixpkgs";
+     # nix-openclaw - Openclaw personal AI assistant for Nix
+     # <https://github.com/iamruinous/nix-openclaw>
+     # Fork of openclaw/nix-openclaw with path fix - see issue #391
+     nix-openclaw.url = "github:iamruinous/nix-openclaw";
+     nix-openclaw.inputs.nixpkgs.follows = "nixpkgs";
 
      # Nix User Repository
      # <https://nur.nix-community.org>

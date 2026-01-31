@@ -174,9 +174,10 @@
     };
   };
 
-  # Moltbot/Clawdbot - Personal AI gateway web interface
+  # Openclaw (formerly Moltbot/Clawdbot) - Personal AI gateway web interface
   # Dashboard and control UI for Discord/WhatsApp bot
-  moltbotHost = {
+  # NOTE: Domain retained as moltbot.ruinous.ai for external DNS compatibility
+  openclawHost = {
     "moltbot.ruinous.ai" = {
       extraConfig = ''
         reverse_proxy http://localhost:18789
@@ -198,8 +199,8 @@ in {
     globalConfig = ''
       acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
     '';
-    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, harmonia, messy-attributes-editor, and moltbot
-    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // messyAttributesEditorHost // weaviateHost // harmoniaHost // moltbotHost;
+    # Merge OpenCode projects, docs sites, budgey assistant dashboard, ruinage docs, weaviate, harmonia, messy-attributes-editor, and openclaw
+    virtualHosts = caddyVirtualHosts // ruinagentsDocsHost // ruinageDocsHost // budgeyAssistantDashboardHost // messyAttributesEditorHost // weaviateHost // harmoniaHost // openclawHost;
   };
 
   # Caddy environment secrets (Cloudflare API token)

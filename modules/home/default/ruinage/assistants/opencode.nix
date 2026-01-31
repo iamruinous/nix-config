@@ -62,6 +62,9 @@ with lib; let
   # OpenCode config template from flake
   opencode_config = flake + /files/configs/opencode/opencode.json;
 
+  # OpenCode instructions directory from flake
+  opencode_instructions = flake + /files/configs/opencode/instructions;
+
   # llm-agents packages
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
@@ -457,6 +460,15 @@ with lib; let
         '';
       };
 
+      instructions = mkOption {
+        type = types.nullOr (types.listOf types.str);
+        default = null;
+        description = ''
+          Override instructions for this config directory.
+          If null, inherits from the main instructions setting.
+        '';
+      };
+
       mcpServers = mkOption {
         type = types.nullOr (types.attrsOf mcpServerType);
         default = null;
@@ -567,6 +579,10 @@ with lib; let
       if dirCfg.plugins != null
       then dirCfg.plugins
       else opencodeAssistant.plugins;
+    instructions =
+      if dirCfg.instructions != null
+      then dirCfg.instructions
+      else opencodeAssistant.instructions;
     mcpServers =
       if dirCfg.mcpServers != null
       then dirCfg.mcpServers
@@ -604,6 +620,12 @@ with lib; let
     then builtins.filter (name: builtins.pathExists "${commandSourcePath}/${name}") (builtins.attrNames (builtins.readDir commandSourcePath))
     else [];
 
+  # OpenCode instruction file names from flake
+  instructionNames =
+    if builtins.pathExists opencode_instructions
+    then builtins.filter (name: lib.hasSuffix ".md" name) (builtins.attrNames (builtins.readDir opencode_instructions))
+    else [];
+
   # Generate config files and activation scripts for a config directory
   mkConfigDir = name: dirCfg: let
     resolved = resolveConfig name dirCfg;
@@ -621,7 +643,7 @@ with lib; let
         $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
       fi
 
-      # Inject model, plugins, MCP servers, and providers into opencode.json
+      # Inject model, plugins, instructions, MCP servers, and providers into opencode.json
       # Provider replacement: completely replaces managed entries to apply schema changes
       if [ -f "$CONFIG_FILE" ]; then
         # Create a temporary file with the updated config
@@ -629,10 +651,12 @@ with lib; let
         ${pkgs.jq}/bin/jq \
           --argjson new_model '${builtins.toJSON resolved.model}' \
           --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
+          --argjson new_instructions '${builtins.toJSON resolved.instructions}' \
           --argjson new_servers '${builtins.toJSON resolved.mcpServers}' \
           --argjson new_providers '${builtins.toJSON resolved.providers}' \
           '(if $new_model != null then .model = $new_model else . end)
             | .plugin //= []
+            | (if ($new_instructions | length) > 0 then .instructions = $new_instructions else . end)
             | .mcp = (.mcp // {}) + $new_servers
             | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
             | reduce ($new_plugins[]) as $p (.;
@@ -739,6 +763,18 @@ in {
         List of OpenCode plugins to install.
         By default, this list is appended to the internal default list of plugins.
         To completely override the default list, use `lib.mkForce`.
+      '';
+    };
+
+    instructions = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      example = ["docs/guidelines.md" "https://example.com/rules.md" ".cursor/rules/*.md"];
+      description = lib.mdDoc ''
+        Additional instruction files to combine with AGENTS.md.
+        Supports relative paths, absolute paths, glob patterns, and URLs.
+        These are injected into the `instructions` field in `opencode.json`.
+        See: https://opencode.ai/docs/rules/#custom-instructions
       '';
     };
 
@@ -1123,6 +1159,11 @@ in {
           "opencode-anthropic-auth@latest"
         ];
 
+        # Default instructions (supplementary context files combined with AGENTS.md)
+        ruinous.ruinage.assistants.opencode.instructions = [
+          "instructions/cost-optimization.md"
+        ];
+
         # Default oh-my-opencode agent model configurations
         ruinous.ruinage.assistants.opencode.harnesses.oh-my-opencode.agents = {
           librarian.model = "google/gemini-3-flash-preview";
@@ -1380,6 +1421,11 @@ in {
                 value = {source = "${commandSourcePath}/${cmd}";};
               })
               commandNames);
+            instructionLinks = builtins.listToAttrs (map (instr: {
+                name = "${resolved.configDir}/instructions/${instr}";
+                value = {source = "${opencode_instructions}/${instr}";};
+              })
+              instructionNames);
             ruinagentsEntries =
               {
                 "${resolved.configDir}/AGENTS.md".source = "${ruinagentsShare}/AGENTS.md";
@@ -1414,6 +1460,7 @@ in {
                 );
               };
             }
+            // instructionLinks
             // optionalAttrs resolved.ruinagentsGlobalEnable ruinagentsEntries
         ) (attrNames (opencodeAssistant.configs or {default = {};})));
       }
@@ -1493,6 +1540,12 @@ in {
                 value = {source = "${commandSourcePath}/${cmd}";};
               })
               commandNames);
+            # Instruction file symlinks for this project
+            projectInstructionLinks = builtins.listToAttrs (map (instr: {
+                name = "${paths.config}/instructions/${instr}";
+                value = {source = "${opencode_instructions}/${instr}";};
+              })
+              instructionNames);
             # All ruinagents entries for this project
             projectRuinagentsEntries =
               {
@@ -1523,6 +1576,7 @@ in {
               homeDirectory = config.home.homeDirectory;
               mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
             }
+            // projectInstructionLinks
             // optionalAttrs opencodeAssistant.harnesses.ruinagents.enable projectRuinagentsEntries
             // projectOmoConfig
         ) (attrNames opencodeProjects));
@@ -1537,6 +1591,7 @@ in {
           # Per-project activation uses global settings (same as default config)
           model = opencodeAssistant.model;
           plugins = opencodeAssistant.plugins;
+          instructions = opencodeAssistant.instructions;
           mcpServers = opencodeAssistant.mcpServers;
           providers = opencodeAssistant.providers;
           installPlugins = opencodeAssistant.installPlugins;
@@ -1552,16 +1607,18 @@ in {
               $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
             fi
 
-            # Inject model, plugins, MCP servers, and providers into opencode.json
+            # Inject model, plugins, instructions, MCP servers, and providers into opencode.json
             if [ -f "$CONFIG_FILE" ]; then
               TMP_FILE=$(mktemp)
               ${pkgs.jq}/bin/jq \
                 --argjson new_model '${builtins.toJSON model}' \
                 --argjson new_plugins '${builtins.toJSON plugins}' \
+                --argjson new_instructions '${builtins.toJSON instructions}' \
                 --argjson new_servers '${builtins.toJSON mcpServers}' \
                 --argjson new_providers '${builtins.toJSON providers}' \
                 '(if $new_model != null then .model = $new_model else . end)
                   | .plugin //= []
+                  | (if ($new_instructions | length) > 0 then .instructions = $new_instructions else . end)
                   | .mcp = (.mcp // {}) + $new_servers
                   | .provider = (((.provider // {}) | to_entries | map(select(.key as $k | $new_providers | has($k) | not)) | from_entries) + $new_providers)
                   | reduce ($new_plugins[]) as $p (.;

@@ -1,14 +1,14 @@
-# Moltbot - Personal AI Assistant for Discord and WhatsApp
+# Openclaw - Personal AI Assistant for Discord and WhatsApp
 #
-# Moltbot (formerly Clawdbot) is a personal AI assistant that connects
+# Openclaw (formerly Moltbot/Clawdbot) is a personal AI assistant that connects
 # to messaging platforms. This configuration sets up Discord and WhatsApp
 # deployment using Anthropic Claude as the AI provider.
 #
-# The moltbot home-manager module is configured in:
+# The openclaw home-manager module is configured in:
 #   hosts/chassis/users/jmeskill/home-configuration.nix
 #
 # This file defines:
-#   1. The nixpkgs overlay (adds pkgs.clawdbot etc.)
+#   1. The nixpkgs overlay (adds pkgs.openclaw etc.)
 #   2. The agenix secrets needed by the home-manager module
 #   3. Infisical-sourced secrets for GitHub/Forgejo CLI access
 #
@@ -21,11 +21,11 @@
 #      rm /tmp/whatsapp-allowfrom.txt
 #      agenix-helper lock
 #   2. Deploy: home-manager switch --flake .#jmeskill@chassis
-#   3. Pair: clawdbot channels login whatsapp (scan QR)
+#   3. Pair: openclaw channels login whatsapp (scan QR)
 #
 # GitHub/Forgejo CLI Access (Infisical Integration):
 #   Tokens are sourced from Infisical during agenix-rekey and encrypted
-#   to .age files. This enables moltbot to:
+#   to .age files. This enables openclaw to:
 #   - Create/manage issues on GitHub (gh CLI)
 #   - Create/manage issues on forge.meskill.farm (tea CLI)
 #
@@ -35,8 +35,10 @@
 #     agenix-helper lock
 #
 # References:
-#   - https://github.com/moltbot/moltbot
-#   - https://github.com/moltbot/nix-moltbot
+#   - https://github.com/openclaw/openclaw
+#   - https://github.com/openclaw/nix-openclaw
+#
+# Migration: Moved from fork (github:iamruinous/nix-moltbot) - see issue #391
 {
   flake,
   config,
@@ -44,17 +46,19 @@
   pkgs,
   ...
 }: {
-  # Add the nix-moltbot overlay to make pkgs.clawdbot available
+  # Add the nix-openclaw overlay to make pkgs.openclaw available
   nixpkgs.overlays = [
-    flake.inputs.nix-moltbot.overlays.default
+    flake.inputs.nix-openclaw.overlays.default
   ];
 
   # Enable Infisical integration for agenix-rekey
   # Tokens are fetched from Infisical and re-encrypted to .age files during rekey
   ruinous.infisical.enable = true;
 
-  # Secrets for moltbot - these are referenced by the home-manager config
-  # The actual moltbot service configuration is in the user's home-manager config
+  # Secrets for openclaw - these are referenced by the home-manager config
+  # The actual openclaw service configuration is in the user's home-manager config
+  # NOTE: Secret names retain "moltbot" prefix for backwards compatibility with
+  # existing .age files. The secret *values* are unchanged.
   age.secrets.chassis_moltbot_discord_token = {
     rekeyFile = ./files/moltbot/discord-token.age;
     mode = "400";
@@ -101,7 +105,7 @@
   };
 
   # GitHub token for gh CLI - sourced from Infisical /shared
-  # Enables moltbot to create/manage GitHub issues programmatically
+  # Enables openclaw to create/manage GitHub issues programmatically
   # Shared across services - see /infisical-secrets skill for structure
   age.secrets.chassis_moltbot_github_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
@@ -114,7 +118,7 @@
   };
 
   # Forgejo token for tea CLI - sourced from Infisical /shared
-  # Enables moltbot to create/manage issues on forge.meskill.farm
+  # Enables openclaw to create/manage issues on forge.meskill.farm
   # Shared across services - see /infisical-secrets skill for structure
   age.secrets.chassis_moltbot_forgejo_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
