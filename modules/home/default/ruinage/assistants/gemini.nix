@@ -10,6 +10,11 @@ with lib; let
   cfg = config.ruinous.ruinage;
   geminiAssistant = cfg.assistants.gemini or {};
 
+  # Import config-management library
+  configMgmt = import ../../../../../lib/config-management.nix {
+    inherit lib pkgs config;
+  };
+
   # Ruinagents package from flake input
   ruinagentsPkgs = flake.inputs.ruinagents.packages.${pkgs.system};
   ruinagentsGemini = ruinagentsPkgs.gemini;
@@ -34,7 +39,6 @@ with lib; let
       fileName = ["AGENTS.md" "GEMINI.md"];
     };
   };
-  globalSettingsJson = builtins.toJSON globalSettings;
 
 in {
   options.ruinous.ruinage.assistants.gemini = {
@@ -92,31 +96,11 @@ in {
 
     home.activation.manage-gemini-settings =
       mkIf (geminiAssistant.harnesses.ruinagents.enable or false)
-      (lib.hm.dag.entryAfter ["writeBoundary"] ''
-        CONFIG_DIR="${config.home.homeDirectory}/.gemini"
-        CONFIG_FILE="$CONFIG_DIR/settings.json"
-        BACKUP_FILE="$CONFIG_FILE.nix-deployed"
-        NIX_CONTENT='${globalSettingsJson}'
-
-        $DRY_RUN_CMD mkdir -p "$CONFIG_DIR"
-
-        # If config exists and has changed since last deploy, warn the user.
-        if [ -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ] && ! diff -q "$BACKUP_FILE" <(echo "$NIX_CONTENT") > /dev/null 2>&1; then
-            echo " "
-            echo "------------------------------------------------------------------------"
-            echo "⚠️  WARNING: Runtime changes detected in $CONFIG_FILE"
-            echo "------------------------------------------------------------------------"
-            echo "Nix is overwriting the file with its configured version."
-            echo "To preserve your changes, add them to your Nix configuration."
-            echo "Diff:"
-            diff --color=always -u "$BACKUP_FILE" "$CONFIG_FILE" || true
-            echo "------------------------------------------------------------------------"
-            echo " "
-        fi
-
-        # Always write the Nix-defined content to the file and the backup.
-        echo "$NIX_CONTENT" > "$CONFIG_FILE"
-        echo "$NIX_CONTENT" > "$BACKUP_FILE"
-      '');
+      (configMgmt.manageJsonFile {
+        name = "gemini-settings";
+        configDir = "${config.home.homeDirectory}/.gemini";
+        configFile = "settings.json";
+        content = globalSettings;
+      });
   };
 }

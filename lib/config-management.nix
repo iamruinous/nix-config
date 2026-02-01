@@ -26,7 +26,7 @@
   pkgs,
   config,
 }:
-with lib; {
+with lib; rec {
   # Generate activation script for a JSON config file
   #
   # Args:
