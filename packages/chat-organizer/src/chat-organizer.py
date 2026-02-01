@@ -58,7 +58,14 @@ def manual_yaml_dump(data):
             for item in value:
                 lines.append(f"  - {item}")
         else:
-            clean_value = str(value).replace('"', '"')
+            clean_value = (
+                str(value)
+                .replace("\\", "\\\\")
+                .replace('"', '\\"')
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+            )
             lines.append(f'{key}: "{clean_value}"')
     return "\n".join(lines)
 
