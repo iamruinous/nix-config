@@ -12,22 +12,21 @@ import argparse
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "phi3:mini"
 
+
 def call_ollama(prompt):
-    payload = {
-        "model": MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json"
-    }
-    data = json.dumps(payload).encode('utf-8')
-    req = urllib.request.Request(OLLAMA_URL, data=data, headers={'Content-Type': 'application/json'})
+    payload = {"model": MODEL, "prompt": prompt, "stream": False, "format": "json"}
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        OLLAMA_URL, data=data, headers={"Content-Type": "application/json"}
+    )
     try:
         with urllib.request.urlopen(req) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            return result.get('response', '')
+            result = json.loads(response.read().decode("utf-8"))
+            return result.get("response", "")
     except urllib.error.URLError as e:
         print(f"  [ERROR] Ollama call failed: {e}")
         return None
+
 
 def generate_full_metadata(content):
     prompt = f"""
@@ -43,11 +42,13 @@ def generate_full_metadata(content):
     """
     return call_ollama(prompt)
 
+
 def to_kebab_case(text):
     text = text.lower()
-    text = re.sub(r'[^a-z0-9]+', '-', text)
-    text = re.sub(r'-+', '-', text)
-    return text.strip('-')
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    text = re.sub(r"-+", "-", text)
+    return text.strip("-")
+
 
 def manual_yaml_dump(data):
     lines = []
@@ -57,21 +58,23 @@ def manual_yaml_dump(data):
             for item in value:
                 lines.append(f"  - {item}")
         else:
-            clean_value = str(value).replace('"', '\"')
+            clean_value = str(value).replace('"', '"')
             lines.append(f'{key}: "{clean_value}"')
     return "\n".join(lines)
 
+
 def extract_frontmatter(content):
     # Returns (frontmatter_string, body_content)
-    match = re.match(r'^---\n(.*?)\n---\n(.*)', content, re.DOTALL)
+    match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
     if match:
         return match.group(1), match.group(2)
     return None, content
 
+
 def update_frontmatter_block(fm_str, new_data):
     # robustly appends missing keys to the frontmatter string
     updated_fm = fm_str
-    
+
     for key, value in new_data.items():
         # Simple regex check to see if key exists at start of line
         if not re.search(f"^{key}:", updated_fm, re.MULTILINE):
@@ -83,42 +86,49 @@ def update_frontmatter_block(fm_str, new_data):
                 updated_fm += block
             else:
                 updated_fm += f'\n{key}: "{value}"'
-    
+
     # Update 'updated' field if it exists, or add it
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     if re.search(r"^updated:", updated_fm, re.MULTILINE):
         # Use simple string concatenation or carefully constructed regex replacement
         # The previous error was likely due to string literal handling in the previous write
         replacement = f'updated: "{now}"'
-        updated_fm = re.sub(r"^updated:.*
-", replacement + "\n", updated_fm, flags=re.MULTILINE)
+        updated_fm = re.sub(
+            r"^updated:.*\n", replacement + "\n", updated_fm, flags=re.MULTILINE
+        )
     else:
         updated_fm += f'\nupdated: "{now}"'
 
     return updated_fm
 
+
 def process_file(filepath, incremental=False):
     filename = os.path.basename(filepath)
     # Ignore hidden files, readme, and this script
-    if filename.startswith(".") or not filename.endswith(".md") or filename.lower() == "readme.md" or filename == "organize_chats.py":
+    if (
+        filename.startswith(".")
+        or not filename.endswith(".md")
+        or filename.lower() == "readme.md"
+        or filename == "organize_chats.py"
+    ):
         return
 
     # print(f"Scanning: {filename}")
-    
+
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         print(f"  [ERROR] Read failed: {e}")
         return
 
     fm_str, body = extract_frontmatter(content)
-    
+
     # DECISION LOGIC
     needs_processing = False
     needs_renaming = False
     is_update = False
-    
+
     if not fm_str:
         print(f"Processing New: {filename}")
         needs_processing = True
@@ -127,11 +137,11 @@ def process_file(filepath, incremental=False):
         missing_concepts = "key_concepts:" not in fm_str
         missing_agent = "agent:" not in fm_str
         missing_aliases = "aliases:" not in fm_str
-        
+
         # Check filename convention
         # Regex for YYYY-MM-DD-something
-        is_standard_name = re.match(r'^\d{4}-\d{2}-\d{2}-.*', filename)
-        
+        is_standard_name = re.match(r"^\d{4}-\d{2}-\d{2}-.*", filename)
+
         if missing_concepts or missing_agent or missing_aliases or not is_standard_name:
             print(f"Updating: {filename}")
             needs_processing = True
@@ -145,37 +155,44 @@ def process_file(filepath, incremental=False):
     # METADATA GENERATION
     if needs_processing:
         # Create Timestamped Backup
-        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = f"{filepath}.{timestamp}.bak"
-        
+
         try:
             shutil.copy2(filepath, backup_path)
             # print(f"  [BACKUP] Created {os.path.basename(backup_path)}")
         except OSError as e:
             print(f"  [ERROR] Backup failed: {e}")
-            return # Stop processing if backup fails
+            return  # Stop processing if backup fails
 
         stat = os.stat(filepath)
-        created_date = datetime.datetime.fromtimestamp(stat.st_ctime).strftime('%Y-%m-%d %H:%M')
-        
+        created_date = datetime.datetime.fromtimestamp(stat.st_ctime).strftime(
+            "%Y-%m-%d %H:%M"
+        )
+
         # Infer Agent
         parent_dir = os.path.basename(os.path.dirname(filepath))
         # Logic: If parent is the root dir, assume "Unknown", else use parent folder name
-        agent_name = parent_dir if parent_dir not in ["Agent Chats", "Obsidian Vaults", "src", "bin"] else "Unknown"
+        agent_name = (
+            parent_dir
+            if parent_dir not in ["Agent Chats", "Obsidian Vaults", "src", "bin"]
+            else "Unknown"
+        )
 
         if is_update and fm_str:
             # Incremental update
             # We assume title/summary exist, we just want to fill holes.
             # But we need the LLM to get the tags/concepts if missing.
-            
+
             # If we need new metadata, we must call LLM
             # Optimization: Only call LLM if we are missing semantic fields (tags, concepts)
             # If we are just fixing filename or agent/aliases (which are deterministic), skip LLM?
             # But "aliases" might need title from metadata if we don't trust filename.
             # Let's call LLM to be safe and robust.
-            
-            json_str = generate_full_metadata(body) # Analyze body only
-            if not json_str: return
+
+            json_str = generate_full_metadata(body)  # Analyze body only
+            if not json_str:
+                return
             try:
                 metadata = json.loads(json_str)
             except:
@@ -189,11 +206,11 @@ def process_file(filepath, incremental=False):
                 updates["agent"] = agent_name
             if "aliases:" not in fm_str:
                 updates["aliases"] = [metadata.get("title")]
-            
+
             # Merge
             new_fm_str = update_frontmatter_block(fm_str, updates)
             new_content = f"---\n{new_fm_str}\n---\n{body}"
-            
+
             # Check for Footer (Related Concepts)
             if "## Related Concepts" not in body and metadata.get("key_concepts"):
                 footer = "\n\n## Related Concepts\n"
@@ -204,7 +221,8 @@ def process_file(filepath, incremental=False):
         else:
             # Fresh Process
             json_str = generate_full_metadata(content)
-            if not json_str: return
+            if not json_str:
+                return
             try:
                 metadata = json.loads(json_str)
             except:
@@ -221,13 +239,13 @@ def process_file(filepath, incremental=False):
                 "created": created_date,
                 "updated": created_date,
                 "agent": agent_name,
-                "type": "chat-log"
+                "type": "chat-log",
             }
-            
+
             fm_str = manual_yaml_dump(frontmatter_data)
             obsidian_header = f"# {metadata.get('title')}\n\n"
             obsidian_callout = f"> [!SUMMARY] Summary\n> {metadata.get('summary')}\n\n"
-            
+
             footer = ""
             if metadata.get("key_concepts"):
                 footer = "\n\n## Related Concepts\n"
@@ -235,12 +253,12 @@ def process_file(filepath, incremental=False):
                     footer += f"- [[{concept}]]\n"
 
             new_content = f"---\n{fm_str}\n---\n\n{obsidian_header}{obsidian_callout}{content}{footer}"
-            
+
             # For renaming later
-            metadata["title"] # Ensure we have it for renaming
+            metadata["title"]  # Ensure we have it for renaming
 
         # WRITE
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(new_content)
         print("  [WRITE] Updated content.")
 
@@ -254,15 +272,17 @@ def process_file(filepath, incremental=False):
             if t_match:
                 target_title = t_match.group(1)
             elif "title" in metadata:
-                 target_title = metadata["title"]
-        
+                target_title = metadata["title"]
+
         if target_title:
             kebab_title = to_kebab_case(target_title)
             # Use file creation date for prefix
-            date_prefix = datetime.datetime.fromtimestamp(stat.st_ctime).strftime('%Y-%m-%d')
+            date_prefix = datetime.datetime.fromtimestamp(stat.st_ctime).strftime(
+                "%Y-%m-%d"
+            )
             new_filename = f"{date_prefix}-{kebab_title}.md"
             new_filepath = os.path.join(os.path.dirname(filepath), new_filename)
-            
+
             if new_filename != filename:
                 if not os.path.exists(new_filepath):
                     try:
@@ -276,10 +296,19 @@ def process_file(filepath, incremental=False):
 
 def main():
     parser = argparse.ArgumentParser(description="Organize chat logs for Obsidian.")
-    parser.add_argument("directory", nargs="?", default=os.getcwd(), help="Target directory")
-    parser.add_argument("-r", "--recursive", action="store_true", help="Recursively scan")
-    parser.add_argument("-i", "--incremental", action="store_true", help="Scan files WITH frontmatter and improve them (add missing fields, fix names)")
-    
+    parser.add_argument(
+        "directory", nargs="?", default=os.getcwd(), help="Target directory"
+    )
+    parser.add_argument(
+        "-r", "--recursive", action="store_true", help="Recursively scan"
+    )
+    parser.add_argument(
+        "-i",
+        "--incremental",
+        action="store_true",
+        help="Scan files WITH frontmatter and improve them (add missing fields, fix names)",
+    )
+
     args = parser.parse_args()
     target_dir = os.path.abspath(args.directory)
 
@@ -293,13 +322,13 @@ def main():
         sys.exit(1)
 
     print(f"Scanning: {target_dir} (Incremental: {args.incremental})")
-    
+
     files_to_process = []
     if args.recursive:
         for root, dirs, files in os.walk(target_dir):
             for file in files:
-                if not file.startswith("."): # Ignore hidden files
-                     files_to_process.append(os.path.join(root, file))
+                if not file.startswith("."):  # Ignore hidden files
+                    files_to_process.append(os.path.join(root, file))
     else:
         for f in os.listdir(target_dir):
             if not f.startswith("."):
@@ -310,9 +339,10 @@ def main():
         if os.path.isfile(f) and f.endswith(".md") and not f.endswith(".bak"):
             process_file(f, incremental=args.incremental)
             count += 1
-            
+
     if count == 0:
         print("No markdown files found.")
+
 
 if __name__ == "__main__":
     main()
