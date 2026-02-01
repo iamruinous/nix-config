@@ -1433,14 +1433,15 @@ in {
           pc = processedConfigs.${name};
           resolved = pc.resolved;
           safeName = builtins.replaceStrings ["-" "/" " "] ["_" "_" "_"] name;
-          omoConfigJson = builtins.toJSON (generateOmoConfig {
+          omoConfig = generateOmoConfig {
             agents = resolved.omoAgents;
             categories = resolved.omoCategories;
             disabledSkills = resolved.disabledSkills;
             googleAuth = resolved.omoGoogleAuth;
             sisyphusSignature = resolved.sisyphusSignature;
             lsp = resolved.omoLsp;
-          });
+          };
+          omoConfigFile = pkgs.writeText "oh-my-opencode-${name}.json" (builtins.toJSON omoConfig);
         in
           {
             "opencode-plugins-${safeName}" = pc.activation;
@@ -1448,12 +1449,12 @@ in {
               CONFIG_DIR="${resolved.configDir}"
               CONFIG_FILE="$CONFIG_DIR/oh-my-opencode.json"
               BACKUP_FILE="$CONFIG_FILE.nix-deployed"
-              NIX_CONTENT='${omoConfigJson}'
+              NIX_CONTENT_FILE="${omoConfigFile}"
 
               $DRY_RUN_CMD mkdir -p "$CONFIG_DIR"
 
               # Warn about runtime changes
-              if [ -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ] && ! diff -q "$BACKUP_FILE" <(echo "$NIX_CONTENT") > /dev/null 2>&1; then
+              if [ -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ] && ! diff -q "$BACKUP_FILE" "$NIX_CONTENT_FILE" > /dev/null 2>&1; then
                 echo " "
                 echo "------------------------------------------------------------------------"
                 echo "⚠️  WARNING: Runtime changes detected in $CONFIG_FILE"
@@ -1467,8 +1468,8 @@ in {
               fi
 
               # Always write Nix content
-              echo "$NIX_CONTENT" > "$CONFIG_FILE"
-              echo "$NIX_CONTENT" > "$BACKUP_FILE"
+              $DRY_RUN_CMD cp "$NIX_CONTENT_FILE" "$CONFIG_FILE"
+              $DRY_RUN_CMD cp "$NIX_CONTENT_FILE" "$BACKUP_FILE"
             '';
           }
           // optionalAttrs pc.resolved.notifierEnable {
@@ -1554,25 +1555,26 @@ in {
           providers = opencodeAssistant.providers;
           installPlugins = opencodeAssistant.installPlugins;
           # Generate oh-my-opencode.json content for this project
-          projectOmoConfigJson = builtins.toJSON (generateOmoConfig {
+          projectOmoConfig = generateOmoConfig {
             agents = opencodeAssistant.harnesses.oh-my-opencode.agents;
             categories = opencodeAssistant.harnesses.oh-my-opencode.categories;
             disabledSkills = opencodeAssistant.harnesses.oh-my-opencode.disabledSkills;
             googleAuth = opencodeAssistant.harnesses.oh-my-opencode.googleAuth;
             sisyphusSignature = opencodeAssistant.harnesses.oh-my-opencode.sisyphusSignature;
             lsp = opencodeAssistant.harnesses.oh-my-opencode.lsp;
-          });
+          };
+          projectOmoConfigFile = pkgs.writeText "oh-my-opencode-project-${name}.json" (builtins.toJSON projectOmoConfig);
         in {
           "opencode-project-omo-${safeName}" = lib.hm.dag.entryAfter ["writeBoundary"] ''
             CONFIG_DIR="${paths.config}"
             OMO_CONFIG_FILE="$CONFIG_DIR/oh-my-opencode.json"
             OMO_BACKUP_FILE="$OMO_CONFIG_FILE.nix-deployed"
-            OMO_NIX_CONTENT='${projectOmoConfigJson}'
+            OMO_NIX_CONTENT_FILE="${projectOmoConfigFile}"
 
             $DRY_RUN_CMD mkdir -p "$CONFIG_DIR"
 
             # Warn about runtime changes to oh-my-opencode.json
-            if [ -f "$OMO_CONFIG_FILE" ] && [ -f "$OMO_BACKUP_FILE" ] && ! diff -q "$OMO_BACKUP_FILE" <(echo "$OMO_NIX_CONTENT") > /dev/null 2>&1; then
+            if [ -f "$OMO_CONFIG_FILE" ] && [ -f "$OMO_BACKUP_FILE" ] && ! diff -q "$OMO_BACKUP_FILE" "$OMO_NIX_CONTENT_FILE" > /dev/null 2>&1; then
               echo " "
               echo "------------------------------------------------------------------------"
               echo "⚠️  WARNING: Runtime changes detected in $OMO_CONFIG_FILE"
@@ -1586,8 +1588,8 @@ in {
             fi
 
             # Always write Nix content for oh-my-opencode.json
-            echo "$OMO_NIX_CONTENT" > "$OMO_CONFIG_FILE"
-            echo "$OMO_NIX_CONTENT" > "$OMO_BACKUP_FILE"
+            cp "$OMO_NIX_CONTENT_FILE" "$OMO_CONFIG_FILE"
+            cp "$OMO_NIX_CONTENT_FILE" "$OMO_BACKUP_FILE"
           '';
           "opencode-project-${safeName}" = lib.hm.dag.entryAfter ["writeBoundary"] ''
             CONFIG_DIR="${paths.config}"
