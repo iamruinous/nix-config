@@ -484,7 +484,7 @@ in {
       # Create config file if it doesn't exist (writable, not symlinked)
       if [ ! -f "$CONFIG_FILE" ]; then
         $DRY_RUN_CMD cp "${baseConfigFile}" "$CONFIG_FILE"
-        $DRY_RUN_CMD chmod 644 "$CONFIG_FILE"
+        $DRY_RUN_CMD chmod 600 "$CONFIG_FILE"
       else
         # Merge managed settings into existing config (preserve user changes)
         # Update plugins.load.paths and agents.defaults.workspace
@@ -500,7 +500,7 @@ in {
           "$CONFIG_FILE" > "$TMP_FILE"
 
         if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null 2>&1; then
-          $DRY_RUN_CMD install -m 644 "$TMP_FILE" "$CONFIG_FILE"
+          $DRY_RUN_CMD install -m 600 "$TMP_FILE" "$CONFIG_FILE"
         fi
         rm -f "$TMP_FILE"
       fi
@@ -518,6 +518,8 @@ in {
   systemd.user.services.openclaw-gateway = {
     Unit = {
       Description = "Openclaw gateway";
+      After = ["network-online.target"];
+      Wants = ["network-online.target"];
     };
     Service = {
       ExecStartPre = "${pkgs.writeShellScript "openclaw-gateway-prepare" ''
