@@ -14,7 +14,7 @@ parameters:
     placeholder: "MY_SECRET_NAME"
   secret_path:
     type: string
-    description: Infisical path (e.g., /shared, /moltbot) or legacy .age file path
+    description: Infisical path (e.g., /shared, /services/openclaw, /hosts/chassis/openclaw)
     required: true
     placeholder: "/shared"
   secret_value:
@@ -65,14 +65,44 @@ For Infisical secrets, also ask:
 mcp_question({
   questions: [
     {
-      question: "What Infisical path should this secret be stored at?",
-      header: "Secret Path",
+      question: "Is this secret used by multiple different services?",
+      header: "Secret Scope",
       options: [
-        { label: "/shared", description: "Cross-service secrets (tokens, API keys used by multiple services)" },
-        { label: "/moltbot", description: "Moltbot service secrets" },
-        { label: "/opencode", description: "OpenCode service secrets" },
-        { label: "/caddy", description: "Caddy/proxy secrets" },
-        { label: "/budgey", description: "Budgey service secrets" }
+        { label: "Yes - shared across services", description: "Same value used by openclaw, n8n, opencode, etc. → /shared/" },
+        { label: "No - one service only", description: "Dedicated to a single service → /services/ or /hosts/" }
+      ]
+    }
+  ]
+})
+
+// If service-specific, follow up:
+mcp_question({
+  questions: [
+    {
+      question: "Is this secret the same across all hosts running this service?",
+      header: "Host Scope",
+      options: [
+        { label: "Yes - service-wide", description: "Same on any host running the service → /services/<service>/" },
+        { label: "No - host-specific", description: "Different per host instance → /hosts/<host>/<service>/" }
+      ]
+    }
+  ]
+})
+```
+
+Then ask for the specific path components:
+```
+mcp_question({
+  questions: [
+    {
+      question: "What is the service name?",
+      header: "Service Name",
+      options: [
+        { label: "openclaw", description: "OpenClaw/Moltbot AI assistant" },
+        { label: "opencode", description: "OpenCode AI coding services" },
+        { label: "budgey", description: "Budgey finance assistant" },
+        { label: "caddy", description: "Caddy reverse proxy" },
+        { label: "n8n", description: "n8n workflow automation" }
       ]
     },
     {
@@ -128,14 +158,33 @@ Add to the appropriate host configuration:
 # Enable Infisical integration (if not already)
 ruinous.infisical.enable = true;
 
-# Define the secret with mkGenerator
+# Shared secret (used by multiple services)
 age.secrets.<host>_<service>_<secret_name> = {
   generator.script = config.ruinous.infisical.mkGenerator {
-    name = "SECRET_NAME";
-    path = "/shared";  # or /moltbot, /opencode, etc.
+    name = "GITHUB_TOKEN";
+    path = "/shared";
   };
   mode = "400";
-  # owner = "service-user";  # if needed
+};
+
+# Service-specific secret (not host-specific)
+age.secrets.<host>_openclaw_openai_key = {
+  generator.script = config.ruinous.infisical.mkGenerator {
+    name = "OPENAI_API_KEY";
+    path = "/services/openclaw";
+  };
+  mode = "400";
+  owner = "jmeskill";
+};
+
+# Host-specific secret
+age.secrets.chassis_openclaw_discord_token = {
+  generator.script = config.ruinous.infisical.mkGenerator {
+    name = "DISCORD_TOKEN";
+    path = "/hosts/chassis/openclaw";
+  };
+  mode = "400";
+  owner = "jmeskill";
 };
 ```
 
@@ -164,14 +213,61 @@ just check <host>
 
 ## Infisical Path Structure
 
+### Three-Tier Hierarchy
+
+```
+/
+├── shared/                        # Cross-service secrets (same value everywhere)
+│   ├── GITHUB_TOKEN
+│   ├── ANTHROPIC_API_KEY
+│   └── CLOUDFLARE_API_TOKEN
+│
+├── services/                      # Service-specific, NOT host-specific
+│   ├── openclaw/
+│   │   └── OPENAI_API_KEY        # OpenClaw's dedicated key
+│   ├── budgey/
+│   │   └── DATABASE_URL
+│   └── opencode/
+│       └── PROJECT_TOKEN
+│
+├── hosts/                         # Host-specific service instances
+│   ├── chassis/
+│   │   ├── openclaw/
+│   │   │   └── DISCORD_TOKEN
+│   │   └── caddy/
+│   │       └── BASIC_AUTH_HASH
+│   ├── monolith/
+│   │   └── ...
+│   └── ...
+│
+└── nixos/                         # LEGACY - being migrated
+```
+
+### Decision Flow
+
+```
+Is this secret used by multiple different services?
+├─ YES → /shared/
+└─ NO → Is this secret the same across all hosts running this service?
+         ├─ YES → /services/<service>/
+         └─ NO → /hosts/<host>/<service>/
+```
+
+### Path Reference
+
 | Path | Purpose | Examples |
 |------|---------|----------|
-| `/shared` | Cross-service secrets | GITHUB_TOKEN, ANTHROPIC_API_KEY |
-| `/moltbot` | Moltbot Discord bot | DISCORD_TOKEN, GATEWAY_TOKEN |
-| `/opencode` | OpenCode services | API keys, project tokens |
-| `/caddy` | Reverse proxy | CLOUDFLARE_API_TOKEN |
-| `/budgey` | Budgey assistant | DB_PASSWORD, DEPLOY_KEY |
-| `/forgejo` | Forgejo/Git services | WEBHOOK_SECRET, API_TOKEN |
+| `/shared/` | Same value used by MULTIPLE services | GITHUB_TOKEN, ANTHROPIC_API_KEY, CLOUDFLARE_API_TOKEN |
+| `/services/<service>/` | Service-specific, any host | `/services/openclaw/OPENAI_API_KEY`, `/services/budgey/DATABASE_URL` |
+| `/hosts/<host>/<service>/` | Host-specific instance | `/hosts/chassis/openclaw/DISCORD_TOKEN` |
+
+### When to Use Each
+
+| Use `/shared/` | Use `/services/<service>/` | Use `/hosts/<host>/<service>/` |
+|----------------|---------------------------|-------------------------------|
+| Same API account for all | Isolated quota/billing per service | Different per host instance |
+| GITHUB_TOKEN for all tools | Service needs own rate limits | Discord bot per host |
+| Shared Cloudflare account | Rotate independently | Host-specific auth |
 
 ## Common Infisical Commands
 
@@ -207,9 +303,13 @@ Infisical supports references to avoid duplication:
 infisical secrets set 'GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN}' \
   --env=homelab --path=/shared --projectId=$PROJECT_ID
 
-# Reference from /shared in service path
+# Reference /shared secret from a service path
+infisical secrets set 'ANTHROPIC_API_KEY=${shared.ANTHROPIC_API_KEY}' \
+  --env=homelab --path=/services/openclaw --projectId=$PROJECT_ID
+
+# Reference /shared secret from a host-specific path
 infisical secrets set 'GITHUB_TOKEN=${shared.GITHUB_TOKEN}' \
-  --env=homelab --path=/moltbot --projectId=$PROJECT_ID
+  --env=homelab --path=/hosts/chassis/openclaw --projectId=$PROJECT_ID
 ```
 
 ---
