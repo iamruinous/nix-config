@@ -288,6 +288,9 @@
     workspaceDir = "${config.home.homeDirectory}/.openclaw/workspace";
   };
 
+  # Override upstream module's config file - we manage it ourselves via activation
+  home.file.".openclaw/openclaw.json".enable = lib.mkForce false;
+
   # Base openclaw config - written as writable file via activation
   # Secrets (tokens) are injected at service start via ExecStartPre
   home.activation.openclawConfig = let
@@ -467,6 +470,11 @@
       $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/workspace"
       $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/agents/messy"
       $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/agents/codey"
+
+      # Remove symlink if it exists (upstream module creates one, we want writable file)
+      if [ -L "$CONFIG_FILE" ]; then
+        $DRY_RUN_CMD rm "$CONFIG_FILE"
+      fi
 
       # Create config file if it doesn't exist (writable, not symlinked)
       if [ ! -f "$CONFIG_FILE" ]; then
