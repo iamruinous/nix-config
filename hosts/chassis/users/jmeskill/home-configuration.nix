@@ -265,19 +265,28 @@
     mode = "400";
   };
 
-  # Openclaw - Personal AI Assistant for Discord
-  # Minimal Discord-only configuration using Anthropic Claude
+  # Openclaw - Personal AI Assistant for Discord and WhatsApp
+  # Uses upstream nix-openclaw module with custom systemd service for secret injection
   # Secrets defined in hosts/chassis/openclaw.nix
   #
-  # We use a custom systemd service instead of upstream's because we need
-  # runtime secret injection from agenix-managed files.
-  #
-  # Custom config file because:
-  # 1. plugins.load.paths - bundled extensions path for our setup
-  # 2. plugins.slots.memory = "memory-core" - explicit memory plugin
-  # 3. Multi-agent Discord bot configuration (default, messy, codey)
-  home.file.".clawdbot/clawdbot.json" = lib.mkForce {
-    text = builtins.toJSON {
+  # Configuration approach (similar to opencode):
+  # 1. Base config written as template via home.activation (writable, not symlinked)
+  # 2. ExecStartPre injects secrets from agenix at service start
+  # 3. Runtime changes preserved (user can modify config)
+  programs.openclaw = {
+    enable = true;
+    # Disable upstream systemd - we provide our own with secret injection
+    systemd.enable = false;
+    # State directory (migrated from .clawdbot)
+    stateDir = "${config.home.homeDirectory}/.openclaw";
+    workspaceDir = "${config.home.homeDirectory}/.openclaw/workspace";
+  };
+
+  # Base openclaw config - written as writable file via activation
+  # Secrets (tokens) are injected at service start via ExecStartPre
+  home.activation.openclawConfig = let
+    openclawStateDir = "${config.home.homeDirectory}/.openclaw";
+    baseConfig = builtins.toJSON {
       gateway.mode = "local";
       plugins = {
         load.paths = [
@@ -289,7 +298,7 @@
       };
       agents = {
         defaults = {
-          workspace = "${config.home.homeDirectory}/.clawdbot/workspace";
+          workspace = "${openclawStateDir}/workspace";
           model.primary = "anthropic/claude-sonnet-4-20250514";
           thinkingDefault = "medium";
           # Enable semantic memory search with local embeddings (no API key needed)
@@ -305,11 +314,11 @@
           }
           {
             id = "messy";
-            workspace = "${config.home.homeDirectory}/.clawdbot/agents/messy";
+            workspace = "${openclawStateDir}/agents/messy";
           }
           {
             id = "codey";
-            workspace = "${config.home.homeDirectory}/.clawdbot/agents/codey";
+            workspace = "${openclawStateDir}/agents/codey";
           }
         ];
       };
@@ -442,19 +451,53 @@
         }
       ];
     };
-  };
+    baseConfigFile = pkgs.writeText "openclaw-base.json" baseConfig;
+  in
+    lib.hm.dag.entryAfter ["writeBoundary"] ''
+      CONFIG_DIR="${openclawStateDir}"
+      CONFIG_FILE="$CONFIG_DIR/openclaw.json"
 
-  # Custom systemd service that properly handles secrets
-  # Restart trigger ensures service restarts when config changes
-  systemd.user.services.clawdbot-gateway = {
+      $DRY_RUN_CMD mkdir -p "$CONFIG_DIR"
+      $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/workspace"
+      $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/agents/messy"
+      $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/agents/codey"
+
+      # Create config file if it doesn't exist (writable, not symlinked)
+      if [ ! -f "$CONFIG_FILE" ]; then
+        $DRY_RUN_CMD cp "${baseConfigFile}" "$CONFIG_FILE"
+        $DRY_RUN_CMD chmod 644 "$CONFIG_FILE"
+      else
+        # Merge managed settings into existing config (preserve user changes)
+        # Update plugins.load.paths and agents.defaults.workspace
+        TMP_FILE=$(mktemp)
+        ${pkgs.jq}/bin/jq \
+          --argjson base_plugins '${builtins.toJSON {
+            load.paths = ["${pkgs.openclaw-gateway}/lib/openclaw/extensions"];
+            slots.memory = "memory-core";
+            entries.discord.enabled = true;
+          }}' \
+          --arg workspace "${openclawStateDir}/workspace" \
+          '.plugins = $base_plugins | .agents.defaults.workspace = $workspace' \
+          "$CONFIG_FILE" > "$TMP_FILE"
+
+        if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null 2>&1; then
+          $DRY_RUN_CMD install -m 644 "$TMP_FILE" "$CONFIG_FILE"
+        fi
+        rm -f "$TMP_FILE"
+      fi
+    '';
+
+  # Systemd service with secret injection via ExecStartPre
+  systemd.user.services.openclaw-gateway = {
     Unit = {
-      Description = "Clawdbot gateway";
-      # Restart when config file changes (home-manager will detect derivation changes)
-      X-Restart-Triggers = ["${config.home.file.".clawdbot/clawdbot.json".source}"];
+      Description = "Openclaw gateway";
     };
     Service = {
-      ExecStartPre = "${pkgs.writeShellScript "clawdbot-gateway-prepare" ''
+      ExecStartPre = "${pkgs.writeShellScript "openclaw-gateway-prepare" ''
         set -euo pipefail
+
+        # Create runtime directories
+        mkdir -p /tmp/openclaw
 
         # Read WhatsApp allowFrom from agenix secret (one phone number per line, E.164 format)
         # Secret is optional - if not configured, WhatsApp will use empty allowlist
@@ -510,29 +553,32 @@
            .channels.discord.accounts.default.token = $defaultToken |
            if $messyToken != "" then .channels.discord.accounts.messy.token = $messyToken else . end |
            if $codeyToken != "" then .channels.discord.accounts.codey.token = $codeyToken else . end' \
-          "${config.home.homeDirectory}/.clawdbot/clawdbot.json" \
-          > /tmp/clawdbot/clawdbot-runtime.json
+          "${config.home.homeDirectory}/.openclaw/openclaw.json" \
+          > /tmp/openclaw/openclaw-runtime.json
 
         # Create openclaw-specific tea config with embedded token
         # This isolates openclaw's Forgejo auth from user's interactive config
-        mkdir -p /tmp/clawdbot/config/tea
+        mkdir -p /tmp/openclaw/config/tea
         FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_forgejo_token.path}")
-        cat > /tmp/clawdbot/config/tea/config.yml << EOF
-        logins:
-          - name: forge.meskill.farm
-            url: https://forge.meskill.farm
-            token: $FORGEJO_TOKEN
-            default: true
-            user: iamruinous
-        EOF
+        cat > /tmp/openclaw/config/tea/config.yml << EOF
+logins:
+  - name: forge.meskill.farm
+    url: https://forge.meskill.farm
+    token: $FORGEJO_TOKEN
+    default: true
+    user: iamruinous
+EOF
       ''}";
-      ExecStart = "${pkgs.writeShellScript "clawdbot-gateway-start" ''
+      ExecStart = "${pkgs.writeShellScript "openclaw-gateway-start" ''
         set -euo pipefail
 
         # Read secrets from agenix-managed files
         export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
-        export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
+        export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
+        # Backwards compat env vars
+        export CLAWDBOT_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
+        export MOLTBOT_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
 
         # GitHub CLI authentication (from Infisical via agenix-rekey)
         # gh CLI uses GITHUB_TOKEN or GH_TOKEN - no config file needed
@@ -542,7 +588,7 @@
         # Tea/Forgejo CLI authentication
         # Use openclaw-specific config dir created in ExecStartPre
         # This isolates openclaw from user's interactive tea config
-        export XDG_CONFIG_HOME="/tmp/clawdbot/config"
+        export XDG_CONFIG_HOME="/tmp/openclaw/config"
         # Also set env vars for direct API use and compatibility
         export GITEA_SERVER_URL="https://forge.meskill.farm"
         export GITEA_SERVER_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
@@ -553,19 +599,25 @@
         export PATH="${pkgs.gh}/bin:${pkgs.tea}/bin:$PATH"
 
         # Set openclaw environment - use runtime-patched config
-        # NOTE: Environment variables still use CLAWDBOT_ prefix for backwards compat
         export HOME="${config.home.homeDirectory}"
-        export CLAWDBOT_CONFIG_PATH="/tmp/clawdbot/clawdbot-runtime.json"
-        export CLAWDBOT_STATE_DIR="${config.home.homeDirectory}/.clawdbot"
+        export OPENCLAW_CONFIG_PATH="/tmp/openclaw/openclaw-runtime.json"
+        export OPENCLAW_STATE_DIR="${config.home.homeDirectory}/.openclaw"
+        export OPENCLAW_NIX_MODE=1
+        # Backwards compat env vars
+        export CLAWDBOT_CONFIG_PATH="$OPENCLAW_CONFIG_PATH"
+        export CLAWDBOT_STATE_DIR="$OPENCLAW_STATE_DIR"
         export CLAWDBOT_NIX_MODE=1
+        export MOLTBOT_CONFIG_PATH="$OPENCLAW_CONFIG_PATH"
+        export MOLTBOT_STATE_DIR="$OPENCLAW_STATE_DIR"
+        export MOLTBOT_NIX_MODE=1
 
         exec ${pkgs.openclaw}/bin/openclaw gateway --port 18789
       ''}";
-      WorkingDirectory = "${config.home.homeDirectory}/.clawdbot";
+      WorkingDirectory = "${config.home.homeDirectory}/.openclaw";
       Restart = "always";
       RestartSec = "5s";
-      StandardOutput = "append:/tmp/clawdbot/clawdbot-gateway.log";
-      StandardError = "append:/tmp/clawdbot/clawdbot-gateway.log";
+      StandardOutput = "append:/tmp/openclaw/openclaw-gateway.log";
+      StandardError = "append:/tmp/openclaw/openclaw-gateway.log";
     };
     Install.WantedBy = ["default.target"];
   };
@@ -573,7 +625,8 @@
   # Create ~/.envrc with openclaw secrets for interactive use
   home.file.".envrc".text = ''
     # Openclaw secrets for interactive CLI use (tui, etc.)
-    export CLAWDBOT_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
+    export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
+    export CLAWDBOT_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
     export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
 
     # GitHub/Forgejo CLI authentication (from Infisical via agenix-rekey)
@@ -663,12 +716,12 @@
 
   # Openclaw tmuxp session for TUI access
   ruinous.tmuxp.sessions.openclaw = {
-    startDirectory = "${config.home.homeDirectory}/.clawdbot";
+    startDirectory = "${config.home.homeDirectory}/.openclaw";
     startCommands = ["source ${config.home.homeDirectory}/.envrc"];
     windows = [
       {
         name = "logs";
-        command = "journalctl --user -u clawdbot-gateway -f";
+        command = "journalctl --user -u openclaw-gateway -f";
       }
       {
         name = "tui";
@@ -680,14 +733,6 @@
       }
     ];
   };
-
-  # NOTE: We do NOT enable programs.openclaw because:
-  # 1. We use our own custom systemd service for runtime secret injection from agenix
-  # 2. We have a custom config file with specific plugin/agent setup
-  # 3. We only need the overlay for pkgs.openclaw and pkgs.openclaw-gateway
-  #
-  # The overlay is added in hosts/chassis/openclaw.nix via:
-  #   nixpkgs.overlays = [ flake.inputs.nix-openclaw.overlays.default ];
 
   home.stateVersion = "26.05";
 }
