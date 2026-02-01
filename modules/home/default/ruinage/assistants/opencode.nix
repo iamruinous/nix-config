@@ -1498,6 +1498,7 @@ in {
         home.file = foldAttrs (a: b: a // b) {} (map (
           name: let
             paths = mkProjectPaths name;
+            projectCfg = opencodeProjects.${name}.assistants.opencode;
             # Ruinagents skill symlinks for this project
             projectSkillLinks = builtins.listToAttrs (map (skill: {
                 name = "${paths.config}/skills/${skill}/SKILL.md";
@@ -1516,6 +1517,14 @@ in {
                 value = {source = "${opencode_instructions}/${instr}";};
               })
               instructionNames);
+            # Per-project prompt_append instruction file (if set)
+            projectPromptAppend = optionalAttrs (projectCfg.prompt_append != null) {
+              "${paths.config}/instructions/${name}-prompt.md".text = ''
+                # Project-Specific Instructions: ${name}
+
+                ${projectCfg.prompt_append}
+              '';
+            };
             # All ruinagents entries for this project
             projectRuinagentsEntries =
               {
@@ -1536,6 +1545,7 @@ in {
               mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
             }
             // projectInstructionLinks
+            // projectPromptAppend
             // optionalAttrs opencodeAssistant.harnesses.ruinagents.enable projectRuinagentsEntries
         ) (attrNames opencodeProjects));
       })
@@ -1546,10 +1556,20 @@ in {
         home.activation = mkMerge (map (name: let
           paths = mkProjectPaths name;
           safeName = builtins.replaceStrings ["-" "/" " "] ["_" "_" "_"] name;
-          # Per-project activation uses global settings (same as default config)
+          projectCfg = opencodeProjects.${name}.assistants.opencode;
+          # Per-project settings with fallback to global
           model = opencodeAssistant.model;
           plugins = opencodeAssistant.plugins;
-          instructions = opencodeAssistant.instructions;
+          # Use per-project instructions if set, otherwise global
+          baseInstructions =
+            if projectCfg.instructions != null
+            then projectCfg.instructions
+            else opencodeAssistant.instructions;
+          # If prompt_append is set, add a project-specific instruction file
+          instructions =
+            if projectCfg.prompt_append != null
+            then baseInstructions ++ ["instructions/${name}-prompt.md"]
+            else baseInstructions;
           mcpServers = opencodeAssistant.mcpServers;
           providers = opencodeAssistant.providers;
           installPlugins = opencodeAssistant.installPlugins;
