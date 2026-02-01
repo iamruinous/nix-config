@@ -603,9 +603,6 @@ in {
         export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
         export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
-        # Backwards compat env vars
-        export CLAWDBOT_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
-        export MOLTBOT_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
 
         # GitHub CLI authentication (from Infisical via agenix-rekey)
         # gh CLI uses GITHUB_TOKEN or GH_TOKEN - no config file needed
@@ -630,13 +627,6 @@ in {
         export OPENCLAW_CONFIG_PATH="/tmp/openclaw/openclaw-runtime.json"
         export OPENCLAW_STATE_DIR="${config.home.homeDirectory}/.openclaw"
         export OPENCLAW_NIX_MODE=1
-        # Backwards compat env vars
-        export CLAWDBOT_CONFIG_PATH="$OPENCLAW_CONFIG_PATH"
-        export CLAWDBOT_STATE_DIR="$OPENCLAW_STATE_DIR"
-        export CLAWDBOT_NIX_MODE=1
-        export MOLTBOT_CONFIG_PATH="$OPENCLAW_CONFIG_PATH"
-        export MOLTBOT_STATE_DIR="$OPENCLAW_STATE_DIR"
-        export MOLTBOT_NIX_MODE=1
 
         exec ${openclawPkgs.openclaw}/bin/openclaw gateway --port 18789
       ''}";
