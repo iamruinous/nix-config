@@ -289,7 +289,9 @@ in {
   };
 
   # Override upstream module's config file - we manage it ourselves via activation
+  # Disable both the home.file entry AND the activation that creates a symlink
   home.file.".openclaw/openclaw.json".enable = lib.mkForce false;
+  home.activation.openclawConfigFiles = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] "");
 
   # Base openclaw config - written as writable file via activation
   # Secrets (tokens) are injected at service start via ExecStartPre
