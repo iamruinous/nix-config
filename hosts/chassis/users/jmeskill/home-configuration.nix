@@ -282,8 +282,7 @@
       plugins = {
         load.paths = [
           # Include bundled extensions from openclaw-gateway package
-          # NOTE: This path may need updating when upstream package structure changes
-          "${pkgs.openclaw-gateway}/lib/openclaw/node_modules/.pnpm/openclaw@2026.1.24-3_@types+express@5.0.6_audio-decode@2.2.3_devtools-protocol@0.0.1561482_typescript@5.9.3/node_modules/openclaw/extensions"
+          "${pkgs.openclaw-gateway}/lib/openclaw/extensions"
         ];
         slots.memory = "memory-core"; # Built-in memory using Markdown files + SQLite
         entries.discord.enabled = true; # Explicitly enable discord plugin
