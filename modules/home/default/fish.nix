@@ -133,9 +133,9 @@ in {
       ${loginHubScript}
       ${tmuxAttachScript}
 
-      # Ensure 1Password SSH agent is used (clear stale universal variables)
+      # Use 1Password SSH agent for local sessions only (not over SSH)
       set -e SSH_AGENT_PID 2>/dev/null
-      if test -S "${onePasswordAgentSock}"
+      if test -z "$SSH_TTY"; and test -S "${onePasswordAgentSock}"
         set -gx SSH_AUTH_SOCK "${onePasswordAgentSock}"
       end
 
