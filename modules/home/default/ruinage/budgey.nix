@@ -31,10 +31,12 @@ with lib; let
   cfg = config.ruinous.ruinage;
 
   # Helper to compute XDG paths for an OpenCode project
+  # Note: OpenCode creates its data inside an "opencode" subdirectory of XDG_DATA_HOME,
+  # so the extractor needs xdg_data_home to point to that subdirectory.
   mkOpencodePaths = projectName: {
     config = "${config.home.homeDirectory}/.config/opencode-${projectName}";
     state = "${config.home.homeDirectory}/.local/state/opencode-${projectName}";
-    data = "${config.home.homeDirectory}/.local/share/opencode-${projectName}";
+    data = "${config.home.homeDirectory}/.local/share/opencode-${projectName}/opencode";
   };
 
   # Helper to compute XDG paths for a Kimaki project

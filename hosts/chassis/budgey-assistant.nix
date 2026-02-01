@@ -158,25 +158,41 @@ in {
   # This avoids permission issues with reading ~/.claude, ~/.codex, etc.
   # The archive directory is made group-writable so jmeskill can write to it.
   # See: https://forge.meskill.farm/iamruinous/budgey-assistant-ingest-tools/issues/15
+  #
+  # HOME must point to jmeskill's home so the extractor can find:
+  # - Session data in ~/.local/share/opencode-*/
+  # - Registry in ~/.config/ruinagents/budgey/projects.json
 
-  systemd.services.budgey-extract-claude.serviceConfig = {
-    User = pkgs.lib.mkForce "jmeskill";
-    Group = pkgs.lib.mkForce "budgey-assistant";
+  systemd.services.budgey-extract-claude = {
+    serviceConfig = {
+      User = pkgs.lib.mkForce "jmeskill";
+      Group = pkgs.lib.mkForce "budgey-assistant";
+    };
+    environment.HOME = pkgs.lib.mkForce "/home/jmeskill";
   };
 
-  systemd.services.budgey-extract-opencode.serviceConfig = {
-    User = pkgs.lib.mkForce "jmeskill";
-    Group = pkgs.lib.mkForce "budgey-assistant";
+  systemd.services.budgey-extract-opencode = {
+    serviceConfig = {
+      User = pkgs.lib.mkForce "jmeskill";
+      Group = pkgs.lib.mkForce "budgey-assistant";
+    };
+    environment.HOME = pkgs.lib.mkForce "/home/jmeskill";
   };
 
-  systemd.services.budgey-extract-codex.serviceConfig = {
-    User = pkgs.lib.mkForce "jmeskill";
-    Group = pkgs.lib.mkForce "budgey-assistant";
+  systemd.services.budgey-extract-codex = {
+    serviceConfig = {
+      User = pkgs.lib.mkForce "jmeskill";
+      Group = pkgs.lib.mkForce "budgey-assistant";
+    };
+    environment.HOME = pkgs.lib.mkForce "/home/jmeskill";
   };
 
-  systemd.services.budgey-extract-gemini.serviceConfig = {
-    User = pkgs.lib.mkForce "jmeskill";
-    Group = pkgs.lib.mkForce "budgey-assistant";
+  systemd.services.budgey-extract-gemini = {
+    serviceConfig = {
+      User = pkgs.lib.mkForce "jmeskill";
+      Group = pkgs.lib.mkForce "budgey-assistant";
+    };
+    environment.HOME = pkgs.lib.mkForce "/home/jmeskill";
   };
 
   # ============================================================================

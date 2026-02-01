@@ -1,33 +1,4 @@
 # Gemini CLI Assistant Integration
-#
-# This module provides:
-# - Global Gemini settings (ruinous.ruinage.assistants.gemini.*)
-# - Harness configurations (ruinagents)
-# - Per-project Gemini context file deployment
-# - Custom context file discovery (AGENTS.md support)
-#
-# Gemini CLI (Google) uses:
-# - Global config: ~/.gemini/
-# - Context file: GEMINI.md (we extend to also discover AGENTS.md)
-# - Skills directory: ~/.gemini/skills/
-# - Settings: ~/.gemini/settings.json
-#
-# Example:
-#   ruinous.ruinage = {
-#     enable = true;
-#
-#     # Global Gemini configuration
-#     assistants.gemini = {
-#       enable = true;
-#       harnesses.ruinagents.enable = true;
-#     };
-#
-#     # Per-project Gemini
-#     projects.nix-config = {
-#       repo = "nix-config";
-#       assistants.gemini.enable = true;
-#     };
-#   };
 {
   config,
   lib,
@@ -38,6 +9,11 @@
 with lib; let
   cfg = config.ruinous.ruinage;
   geminiAssistant = cfg.assistants.gemini or {};
+
+  # Import config-management library
+  configMgmt = import ../../../../../lib/config-management.nix {
+    inherit lib pkgs config;
+  };
 
   # Ruinagents package from flake input
   ruinagentsPkgs = flake.inputs.ruinagents.packages.${pkgs.system};
@@ -58,65 +34,73 @@ with lib; let
   ) (cfg.projects or {});
 
   # Global settings.json for Gemini CLI
-  # Configures context file discovery to include AGENTS.md (agents.md spec)
-  # alongside the default GEMINI.md
   globalSettings = {
     context = {
-      # Load both AGENTS.md and GEMINI.md as context files
-      # AGENTS.md follows the agents.md spec (https://agents.md/)
-      # GEMINI.md is the Gemini CLI default
       fileName = ["AGENTS.md" "GEMINI.md"];
     };
   };
+
 in {
   options.ruinous.ruinage.assistants.gemini = {
     enable = mkEnableOption "Gemini CLI assistant configuration management";
-
-    harnesses = {
-      ruinagents = {
-        enable = mkEnableOption "ruinagents harness for Gemini CLI (GEMINI.md, skills)";
-      };
-    };
+    harnesses.ruinagents.enable = mkEnableOption "ruinagents harness for Gemini CLI (GEMINI.md, skills)";
   };
 
-  config = mkIf ((cfg.enable or false) && (geminiAssistant.enable or false)) (mkMerge [
-    # Global ruinagents files for Gemini
-    (mkIf (geminiAssistant.harnesses.ruinagents.enable or false) {
-      home.file = let
-        configDir = "${config.home.homeDirectory}/.gemini";
-        skillLinks = builtins.listToAttrs (map (skill: {
-            name = "${configDir}/skills/${skill}/SKILL.md";
-            value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
-          })
-          skillNames);
-      in
-        {
-          "${configDir}/GEMINI.md".source = "${ruinagentsShare}/GEMINI.md";
-          # Global settings.json with AGENTS.md context discovery
-          "${configDir}/settings.json".text = builtins.toJSON globalSettings;
-        }
-        // skillLinks;
-    })
-
-    # Per-project Gemini context files
-    (mkIf (geminiProjects != {} && (geminiAssistant.harnesses.ruinagents.enable or false)) {
-      home.file = foldAttrs (a: b: a // b) {} (map (
-        name: let
-          project = cfg.projects.${name};
-          projectDir = project.workdir;
-          # Project-level skills symlinks
-          projectSkillLinks = builtins.listToAttrs (map (skill: {
-              name = "${projectDir}/.gemini/skills/${skill}/SKILL.md";
+  config = mkIf ((cfg.enable or false) && (geminiAssistant.enable or false)) {
+    # Manage global files and activation script
+    home.file =
+      # Global ruinagents files for Gemini
+      (
+        if (geminiAssistant.harnesses.ruinagents.enable or false)
+        then let
+          configDir = "${config.home.homeDirectory}/.gemini";
+          skillLinks = builtins.listToAttrs (map (
+            skill: {
+              name = "${configDir}/skills/${skill}/SKILL.md";
               value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
-            })
-            skillNames);
+            }
+          ) skillNames);
         in
           {
-            # Project-level GEMINI.md
-            "${projectDir}/.gemini/GEMINI.md".source = "${ruinagentsShare}/GEMINI.md";
+            "${configDir}/GEMINI.md".source = "${ruinagentsGemini}/GEMINI.md";
           }
-          // projectSkillLinks
-      ) (attrNames geminiProjects));
-    })
-  ]);
+          // skillLinks
+        else {}
+      )
+      # Per-project Gemini context files
+      // (
+        if (geminiProjects != {} && (geminiAssistant.harnesses.ruinagents.enable or false))
+        then
+          foldAttrs (a: b: a // b) {} (
+            map (
+              name:
+                let
+                  project = cfg.projects.${name};
+                  projectDir = project.workdir;
+                  projectSkillLinks = listToAttrs (map (
+                    skill: {
+                      name = "${projectDir}/.gemini/skills/${skill}/SKILL.md";
+                      value = {source = "${skillSourcePath}/${skill}/SKILL.md";};
+                    }
+                  ) skillNames);
+                in
+                  {
+                    "${projectDir}/.gemini/GEMINI.md".source = "${ruinagentsShare}/GEMINI.md";
+                  }
+                  // projectSkillLinks
+            )
+            (attrNames geminiProjects)
+          )
+        else {}
+      );
+
+    home.activation.manage-gemini-settings =
+      mkIf (geminiAssistant.harnesses.ruinagents.enable or false)
+      (configMgmt.manageJsonFile {
+        name = "gemini-settings";
+        configDir = "${config.home.homeDirectory}/.gemini";
+        configFile = "settings.json";
+        content = globalSettings;
+      });
+  };
 }
