@@ -13,15 +13,10 @@
 #   3. Infisical-sourced secrets for GitHub/Forgejo CLI access
 #
 # WhatsApp Setup:
-#   1. Create the phone number secret:
-#      echo "+15551234567" > /tmp/whatsapp-allowfrom.txt
-#      agenix-helper unlock
-#      agenix edit -i /tmp/whatsapp-allowfrom.txt hosts/chassis/files/moltbot/whatsapp-allowfrom.age
-#      agenix rekey -a
-#      rm /tmp/whatsapp-allowfrom.txt
-#      agenix-helper lock
-#   2. Deploy: home-manager switch --flake .#jmeskill@chassis
-#   3. Pair: openclaw channels login whatsapp (scan QR)
+#   1. Add phone number to Infisical at /hosts/chassis/openclaw/WHATSAPP_ALLOWFROM
+#   2. Regenerate secrets: agenix generate -a && agenix rekey -a
+#   3. Deploy: just deploy chassis
+#   4. Pair: openclaw channels login whatsapp (scan QR)
 #
 # GitHub/Forgejo CLI Access (Infisical Integration):
 #   Tokens are sourced from Infisical during agenix-rekey and encrypted
@@ -69,10 +64,9 @@
   # Secrets for openclaw - all sourced from Infisical
   # Host-specific secrets at /hosts/chassis/openclaw/
   # Service-specific (non-host) secrets at /services/openclaw/
-  # NOTE: Secret names retain "moltbot" prefix for backwards compatibility
 
   # Discord bot token (default bot)
-  age.secrets.chassis_moltbot_discord_token = {
+  age.secrets.chassis_openclaw_discord_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "DISCORD_TOKEN";
       path = "/hosts/chassis/openclaw";
@@ -83,7 +77,7 @@
   };
 
   # Anthropic API key - service-specific (not shared with n8n/opencode)
-  age.secrets.chassis_moltbot_anthropic_key = {
+  age.secrets.chassis_openclaw_anthropic_key = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "ANTHROPIC_API_KEY";
       path = "/services/openclaw";
@@ -94,7 +88,7 @@
   };
 
   # Gateway authentication token
-  age.secrets.chassis_moltbot_gateway_token = {
+  age.secrets.chassis_openclaw_gateway_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "GATEWAY_TOKEN";
       path = "/hosts/chassis/openclaw";
@@ -105,7 +99,7 @@
   };
 
   # WhatsApp allowed phone numbers (E.164 format, newline-separated)
-  age.secrets.chassis_moltbot_whatsapp_allowfrom = {
+  age.secrets.chassis_openclaw_whatsapp_allowfrom = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "WHATSAPP_ALLOWFROM";
       path = "/hosts/chassis/openclaw";
@@ -117,7 +111,7 @@
 
   # Messy Discord bot token (separate bot for messy agent)
   # Enables cross-channel memory: messy-discord + whatsapp share the same agent
-  age.secrets.chassis_moltbot_messy_discord_token = {
+  age.secrets.chassis_openclaw_messy_discord_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "MESSY_DISCORD_TOKEN";
       path = "/hosts/chassis/openclaw";
@@ -128,7 +122,7 @@
   };
 
   # Codey Discord bot token (separate bot for codey agent - #ops channel)
-  age.secrets.chassis_moltbot_codey_discord_token = {
+  age.secrets.chassis_openclaw_codey_discord_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "CODEY_DISCORD_TOKEN";
       path = "/hosts/chassis/openclaw";
@@ -141,7 +135,7 @@
   # GitHub token for gh CLI - sourced from Infisical /shared
   # Enables openclaw to create/manage GitHub issues programmatically
   # Shared across services - see /infisical-secrets skill for structure
-  age.secrets.chassis_moltbot_github_token = {
+  age.secrets.chassis_openclaw_github_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "GITHUB_TOKEN";
       path = "/shared";
@@ -154,7 +148,7 @@
   # Forgejo token for tea CLI - sourced from Infisical /shared
   # Enables openclaw to create/manage issues on forge.meskill.farm
   # Shared across services - see /infisical-secrets skill for structure
-  age.secrets.chassis_moltbot_forgejo_token = {
+  age.secrets.chassis_openclaw_forgejo_token = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "FORGEJO_TOKEN";
       path = "/shared";
@@ -164,8 +158,7 @@
     group = "users";
   };
 
-  # OpenAI API key for openclaw - sourced from Infisical /services/openclaw
-  # Service-specific key (not shared with other services like n8n/opencode)
+  # OpenAI API key - service-specific (not shared with n8n/opencode)
   age.secrets.chassis_openclaw_openai_key = {
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "OPENAI_API_KEY";

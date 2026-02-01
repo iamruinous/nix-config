@@ -535,8 +535,8 @@ in {
                 # Read WhatsApp allowFrom from agenix secret (one phone number per line, E.164 format)
                 # Secret is optional - if not configured, WhatsApp will use empty allowlist
                 WHATSAPP_ALLOWFROM_FILE="${
-          if osConfig.age.secrets ? chassis_moltbot_whatsapp_allowfrom
-          then osConfig.age.secrets.chassis_moltbot_whatsapp_allowfrom.path
+          if osConfig.age.secrets ? chassis_openclaw_whatsapp_allowfrom
+          then osConfig.age.secrets.chassis_openclaw_whatsapp_allowfrom.path
           else ""
         }"
                 if [ -n "$WHATSAPP_ALLOWFROM_FILE" ] && [ -f "$WHATSAPP_ALLOWFROM_FILE" ]; then
@@ -548,8 +548,8 @@ in {
 
                 # Read messy Discord bot token from agenix secret (optional)
                 MESSY_DISCORD_TOKEN_FILE="${
-          if osConfig.age.secrets ? chassis_moltbot_messy_discord_token
-          then osConfig.age.secrets.chassis_moltbot_messy_discord_token.path
+          if osConfig.age.secrets ? chassis_openclaw_messy_discord_token
+          then osConfig.age.secrets.chassis_openclaw_messy_discord_token.path
           else ""
         }"
                 if [ -n "$MESSY_DISCORD_TOKEN_FILE" ] && [ -f "$MESSY_DISCORD_TOKEN_FILE" ]; then
@@ -560,8 +560,8 @@ in {
 
                 # Read codey Discord bot token from agenix secret (optional)
                 CODEY_DISCORD_TOKEN_FILE="${
-          if osConfig.age.secrets ? chassis_moltbot_codey_discord_token
-          then osConfig.age.secrets.chassis_moltbot_codey_discord_token.path
+          if osConfig.age.secrets ? chassis_openclaw_codey_discord_token
+          then osConfig.age.secrets.chassis_openclaw_codey_discord_token.path
           else ""
         }"
                 if [ -n "$CODEY_DISCORD_TOKEN_FILE" ] && [ -f "$CODEY_DISCORD_TOKEN_FILE" ]; then
@@ -571,7 +571,7 @@ in {
                 fi
 
                 # Read default Discord bot token from agenix secret
-                DEFAULT_DISCORD_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_discord_token.path}")
+                DEFAULT_DISCORD_TOKEN=$(cat "${osConfig.age.secrets.chassis_openclaw_discord_token.path}")
 
                 # Patch the config with secrets:
                 # 1. WhatsApp allowFrom list
@@ -592,7 +592,7 @@ in {
                 # Create openclaw-specific tea config with embedded token
                 # This isolates openclaw's Forgejo auth from user's interactive config
                 mkdir -p /tmp/openclaw/config/tea
-                FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_forgejo_token.path}")
+                FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_openclaw_forgejo_token.path}")
                 cat > /tmp/openclaw/config/tea/config.yml << EOF
         logins:
           - name: forge.meskill.farm
@@ -606,14 +606,14 @@ in {
         set -euo pipefail
 
         # Read secrets from agenix-managed files
-        export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
+        export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_openclaw_anthropic_key.path})"
         export OPENAI_API_KEY="$(cat ${osConfig.age.secrets.chassis_openclaw_openai_key.path})"
-        export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
-        export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
+        export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_discord_token.path})"
+        export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_gateway_token.path})"
 
         # GitHub CLI authentication (from Infisical via agenix-rekey)
         # gh CLI uses GITHUB_TOKEN or GH_TOKEN - no config file needed
-        export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_github_token.path})"
+        export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_github_token.path})"
         export GH_TOKEN="$GITHUB_TOKEN"
 
         # Tea/Forgejo CLI authentication
@@ -622,7 +622,7 @@ in {
         export XDG_CONFIG_HOME="/tmp/openclaw/config"
         # Also set env vars for direct API use and compatibility
         export GITEA_SERVER_URL="https://forge.meskill.farm"
-        export GITEA_SERVER_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
+        export GITEA_SERVER_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_forgejo_token.path})"
         export FORGEJO_TOKEN="$GITEA_SERVER_TOKEN"
         export GITEA_TOKEN="$GITEA_SERVER_TOKEN"
 
@@ -729,8 +729,8 @@ in {
   ruinous.tmuxp.sessions.openclaw = {
     startDirectory = "${config.home.homeDirectory}/.openclaw";
     startCommands = [
-      "export OPENCLAW_GATEWAY_TOKEN=\"$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})\""
-      "export ANTHROPIC_API_KEY=\"$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})\""
+      "export OPENCLAW_GATEWAY_TOKEN=\"$(cat ${osConfig.age.secrets.chassis_openclaw_gateway_token.path})\""
+      "export ANTHROPIC_API_KEY=\"$(cat ${osConfig.age.secrets.chassis_openclaw_anthropic_key.path})\""
     ];
     windows = [
       {
