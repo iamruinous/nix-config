@@ -29,6 +29,7 @@ def call_ollama(prompt):
 
 
 def generate_full_metadata(content):
+    truncated = content[:8000]
     prompt = f"""
     You are an Obsidian Markdown expert. Analyze this chat log.
     Provide ONLY a JSON object with:
@@ -38,7 +39,7 @@ def generate_full_metadata(content):
     4. "key_concepts": List of 3-5 concepts for Wiki Links (e.g. "NixOS", "LLM").
 
     Content:
-    {content[:8000]} 
+    {truncated}
     """
     return call_ollama(prompt)
 
@@ -164,7 +165,6 @@ def process_file(filepath, incremental=False):
 
     # DECISION LOGIC
     needs_processing = False
-    needs_renaming = False
     is_update = False
 
     if not fm_str:
@@ -226,7 +226,7 @@ def process_file(filepath, incremental=False):
                     return
                 try:
                     metadata = json.loads(json_str)
-                except:
+                except json.JSONDecodeError:
                     print(f"  [ERROR] Failed to parse LLM response for {filename}")
                     return
 
@@ -270,7 +270,7 @@ def process_file(filepath, incremental=False):
                 return
             try:
                 metadata = json.loads(json_str)
-            except:
+            except json.JSONDecodeError:
                 print(f"  [ERROR] Failed to parse LLM response for {filename}")
                 return
 
@@ -349,7 +349,7 @@ def main():
     # Verify Ollama
     try:
         req = urllib.request.Request(OLLAMA_URL.replace("/api/generate", "/api/tags"))
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req) as _:
             pass
     except Exception as e:
         print(f"CRITICAL: Cannot connect to Ollama at {OLLAMA_URL}: {e}")
