@@ -470,6 +470,9 @@
       $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/workspace"
       $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/agents/messy"
       $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/agents/codey"
+      # Create templates directory (workaround for missing templates in nix package)
+      # The gateway looks for docs/reference/templates/ in cwd before falling back to package
+      $DRY_RUN_CMD mkdir -p "$CONFIG_DIR/docs/reference/templates"
 
       # Remove symlink if it exists (upstream module creates one, we want writable file)
       if [ -L "$CONFIG_FILE" ]; then
@@ -498,6 +501,12 @@
           $DRY_RUN_CMD install -m 644 "$TMP_FILE" "$CONFIG_FILE"
         fi
         rm -f "$TMP_FILE"
+      fi
+
+      # Copy AGENTS.md template from workspace if it exists (workaround for nix package bug)
+      TEMPLATE_DIR="$CONFIG_DIR/docs/reference/templates"
+      if [ -f "$CONFIG_DIR/workspace/AGENTS.md" ] && [ ! -f "$TEMPLATE_DIR/AGENTS.md" ]; then
+        $DRY_RUN_CMD cp "$CONFIG_DIR/workspace/AGENTS.md" "$TEMPLATE_DIR/AGENTS.md"
       fi
     '';
 
