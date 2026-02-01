@@ -22,6 +22,7 @@
   home.packages = with pkgs; [
     gh # GitHub CLI
     tea # Forgejo/Gitea CLI
+    chat-organizer
   ];
 
   ruinous = {
@@ -608,8 +609,6 @@
     export FORGEJO_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
     export GITEA_TOKEN="$FORGEJO_TOKEN"
   '';
-
-
 
   # MESSY SOUL.md - Family assistant persona for WhatsApp
   # Derived from ruinagents persona definition (Boulder 3 Phase 1)
