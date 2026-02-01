@@ -312,8 +312,8 @@ in {
           workspace = "${openclawStateDir}/workspace";
           # OpenAI primary with Claude fallback
           model = {
-            primary = "openai/gpt-4o";
-            fallbacks = ["anthropic/claude-sonnet-4-20250514"];
+            primary = "openai/gpt-5.2";
+            fallbacks = ["anthropic/claude-sonnet-4-5"];
           };
           thinkingDefault = "medium";
           # Enable semantic memory search with local embeddings (no API key needed)
