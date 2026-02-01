@@ -12,6 +12,12 @@
     flake.inputs.nix-openclaw.homeManagerModules.openclaw
   ];
 
+  # Add nix-openclaw overlay to home-manager's pkgs
+  # This makes pkgs.openclaw, pkgs.openclaw-gateway etc. available
+  nixpkgs.overlays = [
+    flake.inputs.nix-openclaw.overlays.default
+  ];
+
   programs.wezterm.enable = true;
 
   # Allow git operations in budgey-assistant archive directory
@@ -622,19 +628,7 @@ EOF
     Install.WantedBy = ["default.target"];
   };
 
-  # Create ~/.envrc with openclaw secrets for interactive use
-  home.file.".envrc".text = ''
-    # Openclaw secrets for interactive CLI use (tui, etc.)
-    export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
-    export CLAWDBOT_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
-    export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
 
-    # GitHub/Forgejo CLI authentication (from Infisical via agenix-rekey)
-    export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_github_token.path})"
-    export GH_TOKEN="$GITHUB_TOKEN"
-    export FORGEJO_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_forgejo_token.path})"
-    export GITEA_TOKEN="$FORGEJO_TOKEN"
-  '';
 
   # MESSY SOUL.md - Family assistant persona for WhatsApp
   # Derived from ruinagents persona definition (Boulder 3 Phase 1)
@@ -715,9 +709,13 @@ EOF
   # '';
 
   # Openclaw tmuxp session for TUI access
+  # Secrets are loaded inline from agenix paths (no ~/.envrc needed)
   ruinous.tmuxp.sessions.openclaw = {
     startDirectory = "${config.home.homeDirectory}/.openclaw";
-    startCommands = ["source ${config.home.homeDirectory}/.envrc"];
+    startCommands = [
+      "export OPENCLAW_GATEWAY_TOKEN=\"$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})\""
+      "export ANTHROPIC_API_KEY=\"$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})\""
+    ];
     windows = [
       {
         name = "logs";
