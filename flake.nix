@@ -146,9 +146,8 @@
      ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
      # nix-openclaw - Openclaw personal AI assistant for Nix
-     # <https://github.com/iamruinous/nix-openclaw>
-     # Fork of openclaw/nix-openclaw with path fix - see issue #391
-     nix-openclaw.url = "github:iamruinous/nix-openclaw";
+     # <https://github.com/openclaw/nix-openclaw>
+     nix-openclaw.url = "github:openclaw/nix-openclaw";
      nix-openclaw.inputs.nixpkgs.follows = "nixpkgs";
 
      # Nix User Repository
