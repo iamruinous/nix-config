@@ -505,11 +505,13 @@ in {
         rm -f "$TMP_FILE"
       fi
 
-      # Copy AGENTS.md template from workspace if it exists (workaround for nix package bug)
+      # Copy templates from workspace if they exist (workaround for nix package bug)
       TEMPLATE_DIR="$CONFIG_DIR/docs/reference/templates"
-      if [ -f "$CONFIG_DIR/workspace/AGENTS.md" ] && [ ! -f "$TEMPLATE_DIR/AGENTS.md" ]; then
-        $DRY_RUN_CMD cp "$CONFIG_DIR/workspace/AGENTS.md" "$TEMPLATE_DIR/AGENTS.md"
-      fi
+      for template in AGENTS.md SOUL.md; do
+        if [ -f "$CONFIG_DIR/workspace/$template" ] && [ ! -f "$TEMPLATE_DIR/$template" ]; then
+          $DRY_RUN_CMD cp "$CONFIG_DIR/workspace/$template" "$TEMPLATE_DIR/$template"
+        fi
+      done
     '';
 
   # Systemd service with secret injection via ExecStartPre
