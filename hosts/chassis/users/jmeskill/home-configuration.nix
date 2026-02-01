@@ -507,7 +507,7 @@ in {
 
       # Copy templates from workspace if they exist (workaround for nix package bug)
       TEMPLATE_DIR="$CONFIG_DIR/docs/reference/templates"
-      for template in AGENTS.md SOUL.md; do
+      for template in AGENTS.md SOUL.md TOOLS.md BOOTSTRAP.md HEARTBEAT.md IDENTITY.md USER.md; do
         if [ -f "$CONFIG_DIR/workspace/$template" ] && [ ! -f "$TEMPLATE_DIR/$template" ]; then
           $DRY_RUN_CMD cp "$CONFIG_DIR/workspace/$template" "$TEMPLATE_DIR/$template"
         fi

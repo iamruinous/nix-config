@@ -45,8 +45,21 @@
   ...
 }: {
   # Add the nix-openclaw overlay to make pkgs.openclaw available
+  # Also patch openclaw-gateway to include missing templates (nix-openclaw#18)
   nixpkgs.overlays = [
     flake.inputs.nix-openclaw.overlays.default
+
+    # Workaround for https://github.com/openclaw/nix-openclaw/issues/18
+    # Templates are missing from the package, causing "Missing workspace template" errors
+    (final: prev: {
+      openclaw-gateway = prev.openclaw-gateway.overrideAttrs (oldAttrs: {
+        installPhase = ''
+          ${oldAttrs.installPhase}
+          mkdir -p $out/lib/openclaw/docs/reference/templates
+          cp -r $src/docs/reference/templates/* $out/lib/openclaw/docs/reference/templates/
+        '';
+      });
+    })
   ];
 
   # Enable Infisical integration for agenix-rekey
