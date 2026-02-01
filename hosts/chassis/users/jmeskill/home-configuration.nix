@@ -5,24 +5,22 @@
   pkgs,
   lib,
   ...
-}: {
+}: let
+  # Explicit package references from nix-openclaw flake input
+  # (avoids deprecated nixpkgs.overlays with home-manager.useGlobalPkgs)
+  openclawPkgs = flake.inputs.nix-openclaw.packages.${pkgs.system};
+in {
   imports = [
     flake.homeModules.default
     flake.homeModules.kde
     flake.inputs.nix-openclaw.homeManagerModules.openclaw
   ];
 
-  # Add nix-openclaw overlay to home-manager's pkgs
-  # This makes pkgs.openclaw, pkgs.openclaw-gateway etc. available
-  nixpkgs.overlays = [
-    flake.inputs.nix-openclaw.overlays.default
-  ];
-
   programs.wezterm.enable = true;
 
   # Allow git operations in budgey-assistant archive directory
   # The archive is owned by budgey-assistant service but extractors run as jmeskill
-  programs.git.extraConfig.safe.directory = "/var/lib/budgey-assistant/archive";
+  programs.git.settings.safe.directory = "/var/lib/budgey-assistant/archive";
 
   # GitHub and Forgejo CLI tools for openclaw issue management
   home.packages = with pkgs; [
@@ -281,6 +279,8 @@
   # 3. Runtime changes preserved (user can modify config)
   programs.openclaw = {
     enable = true;
+    # Explicit package reference (overlay removed due to useGlobalPkgs deprecation)
+    package = openclawPkgs.openclaw;
     # Disable upstream systemd - we provide our own with secret injection
     systemd.enable = false;
     # State directory (migrated from .clawdbot)
@@ -300,7 +300,7 @@
       plugins = {
         load.paths = [
           # Include bundled extensions from openclaw-gateway package
-          "${pkgs.openclaw-gateway}/lib/openclaw/extensions"
+          "${openclawPkgs.openclaw-gateway}/lib/openclaw/extensions"
         ];
         slots.memory = "memory-core"; # Built-in memory using Markdown files + SQLite
         entries.discord.enabled = true; # Explicitly enable discord plugin
@@ -340,9 +340,9 @@
           # All Discord bots are defined as named accounts
           # Tokens are injected at runtime from agenix secrets
           accounts = {
-            # Default account (main bot) - moltbot for general use
+            # Default account (main bot) - openclaw for general use
             default = {
-              name = "Moltbot";
+              name = "Openclaw";
               enabled = true;
               token = "PLACEHOLDER_DEFAULT_TOKEN"; # Replaced at runtime
               dm = {
@@ -355,8 +355,8 @@
                 "481143305745465354" = {
                   requireMention = true;
                   channels = {
-                    # #moltbot-chat - no @ required (convention: *bot-chat channels)
-                    "moltbot-chat" = {
+                    # #openclaw-chat - no @ required (convention: *bot-chat channels)
+                    "openclaw-chat" = {
                       requireMention = false;
                     };
                   };
@@ -489,10 +489,10 @@
         TMP_FILE=$(mktemp)
         ${pkgs.jq}/bin/jq \
           --argjson base_plugins '${builtins.toJSON {
-            load.paths = ["${pkgs.openclaw-gateway}/lib/openclaw/extensions"];
-            slots.memory = "memory-core";
-            entries.discord.enabled = true;
-          }}' \
+        load.paths = ["${openclawPkgs.openclaw-gateway}/lib/openclaw/extensions"];
+        slots.memory = "memory-core";
+        entries.discord.enabled = true;
+      }}' \
           --arg workspace "${openclawStateDir}/workspace" \
           '.plugins = $base_plugins | .agents.defaults.workspace = $workspace' \
           "$CONFIG_FILE" > "$TMP_FILE"
@@ -517,80 +517,80 @@
     };
     Service = {
       ExecStartPre = "${pkgs.writeShellScript "openclaw-gateway-prepare" ''
-        set -euo pipefail
+                set -euo pipefail
 
-        # Create runtime directories
-        mkdir -p /tmp/openclaw
+                # Create runtime directories
+                mkdir -p /tmp/openclaw
 
-        # Read WhatsApp allowFrom from agenix secret (one phone number per line, E.164 format)
-        # Secret is optional - if not configured, WhatsApp will use empty allowlist
-        WHATSAPP_ALLOWFROM_FILE="${
+                # Read WhatsApp allowFrom from agenix secret (one phone number per line, E.164 format)
+                # Secret is optional - if not configured, WhatsApp will use empty allowlist
+                WHATSAPP_ALLOWFROM_FILE="${
           if osConfig.age.secrets ? chassis_moltbot_whatsapp_allowfrom
           then osConfig.age.secrets.chassis_moltbot_whatsapp_allowfrom.path
           else ""
         }"
-        if [ -n "$WHATSAPP_ALLOWFROM_FILE" ] && [ -f "$WHATSAPP_ALLOWFROM_FILE" ]; then
-          # Convert newline-separated phone numbers to JSON array
-          ALLOWFROM_JSON=$(${pkgs.jq}/bin/jq -R -s 'split("\n") | map(select(length > 0))' < "$WHATSAPP_ALLOWFROM_FILE")
-        else
-          ALLOWFROM_JSON='[]'
-        fi
+                if [ -n "$WHATSAPP_ALLOWFROM_FILE" ] && [ -f "$WHATSAPP_ALLOWFROM_FILE" ]; then
+                  # Convert newline-separated phone numbers to JSON array
+                  ALLOWFROM_JSON=$(${pkgs.jq}/bin/jq -R -s 'split("\n") | map(select(length > 0))' < "$WHATSAPP_ALLOWFROM_FILE")
+                else
+                  ALLOWFROM_JSON='[]'
+                fi
 
-        # Read messy Discord bot token from agenix secret (optional)
-        MESSY_DISCORD_TOKEN_FILE="${
+                # Read messy Discord bot token from agenix secret (optional)
+                MESSY_DISCORD_TOKEN_FILE="${
           if osConfig.age.secrets ? chassis_moltbot_messy_discord_token
           then osConfig.age.secrets.chassis_moltbot_messy_discord_token.path
           else ""
         }"
-        if [ -n "$MESSY_DISCORD_TOKEN_FILE" ] && [ -f "$MESSY_DISCORD_TOKEN_FILE" ]; then
-          MESSY_DISCORD_TOKEN=$(cat "$MESSY_DISCORD_TOKEN_FILE")
-        else
-          MESSY_DISCORD_TOKEN=""
-        fi
+                if [ -n "$MESSY_DISCORD_TOKEN_FILE" ] && [ -f "$MESSY_DISCORD_TOKEN_FILE" ]; then
+                  MESSY_DISCORD_TOKEN=$(cat "$MESSY_DISCORD_TOKEN_FILE")
+                else
+                  MESSY_DISCORD_TOKEN=""
+                fi
 
-        # Read codey Discord bot token from agenix secret (optional)
-        CODEY_DISCORD_TOKEN_FILE="${
+                # Read codey Discord bot token from agenix secret (optional)
+                CODEY_DISCORD_TOKEN_FILE="${
           if osConfig.age.secrets ? chassis_moltbot_codey_discord_token
           then osConfig.age.secrets.chassis_moltbot_codey_discord_token.path
           else ""
         }"
-        if [ -n "$CODEY_DISCORD_TOKEN_FILE" ] && [ -f "$CODEY_DISCORD_TOKEN_FILE" ]; then
-          CODEY_DISCORD_TOKEN=$(cat "$CODEY_DISCORD_TOKEN_FILE")
-        else
-          CODEY_DISCORD_TOKEN=""
-        fi
+                if [ -n "$CODEY_DISCORD_TOKEN_FILE" ] && [ -f "$CODEY_DISCORD_TOKEN_FILE" ]; then
+                  CODEY_DISCORD_TOKEN=$(cat "$CODEY_DISCORD_TOKEN_FILE")
+                else
+                  CODEY_DISCORD_TOKEN=""
+                fi
 
-        # Read default Discord bot token from agenix secret
-        DEFAULT_DISCORD_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_discord_token.path}")
+                # Read default Discord bot token from agenix secret
+                DEFAULT_DISCORD_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_discord_token.path}")
 
-        # Patch the config with secrets:
-        # 1. WhatsApp allowFrom list
-        # 2. Default Discord bot token (main bot)
-        # 3. Messy Discord bot token (if configured)
-        # 4. Codey Discord bot token (if configured)
-        ${pkgs.jq}/bin/jq --argjson allowFrom "$ALLOWFROM_JSON" \
-          --arg defaultToken "$DEFAULT_DISCORD_TOKEN" \
-          --arg messyToken "$MESSY_DISCORD_TOKEN" \
-          --arg codeyToken "$CODEY_DISCORD_TOKEN" \
-          '.channels.whatsapp.accounts.default.allowFrom = $allowFrom |
-           .channels.discord.accounts.default.token = $defaultToken |
-           if $messyToken != "" then .channels.discord.accounts.messy.token = $messyToken else . end |
-           if $codeyToken != "" then .channels.discord.accounts.codey.token = $codeyToken else . end' \
-          "${config.home.homeDirectory}/.openclaw/openclaw.json" \
-          > /tmp/openclaw/openclaw-runtime.json
+                # Patch the config with secrets:
+                # 1. WhatsApp allowFrom list
+                # 2. Default Discord bot token (main bot)
+                # 3. Messy Discord bot token (if configured)
+                # 4. Codey Discord bot token (if configured)
+                ${pkgs.jq}/bin/jq --argjson allowFrom "$ALLOWFROM_JSON" \
+                  --arg defaultToken "$DEFAULT_DISCORD_TOKEN" \
+                  --arg messyToken "$MESSY_DISCORD_TOKEN" \
+                  --arg codeyToken "$CODEY_DISCORD_TOKEN" \
+                  '.channels.whatsapp.accounts.default.allowFrom = $allowFrom |
+                   .channels.discord.accounts.default.token = $defaultToken |
+                   if $messyToken != "" then .channels.discord.accounts.messy.token = $messyToken else . end |
+                   if $codeyToken != "" then .channels.discord.accounts.codey.token = $codeyToken else . end' \
+                  "${config.home.homeDirectory}/.openclaw/openclaw.json" \
+                  > /tmp/openclaw/openclaw-runtime.json
 
-        # Create openclaw-specific tea config with embedded token
-        # This isolates openclaw's Forgejo auth from user's interactive config
-        mkdir -p /tmp/openclaw/config/tea
-        FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_forgejo_token.path}")
-        cat > /tmp/openclaw/config/tea/config.yml << EOF
-logins:
-  - name: forge.meskill.farm
-    url: https://forge.meskill.farm
-    token: $FORGEJO_TOKEN
-    default: true
-    user: iamruinous
-EOF
+                # Create openclaw-specific tea config with embedded token
+                # This isolates openclaw's Forgejo auth from user's interactive config
+                mkdir -p /tmp/openclaw/config/tea
+                FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_moltbot_forgejo_token.path}")
+                cat > /tmp/openclaw/config/tea/config.yml << EOF
+        logins:
+          - name: forge.meskill.farm
+            url: https://forge.meskill.farm
+            token: $FORGEJO_TOKEN
+            default: true
+            user: iamruinous
+        EOF
       ''}";
       ExecStart = "${pkgs.writeShellScript "openclaw-gateway-start" ''
         set -euo pipefail
@@ -634,7 +634,7 @@ EOF
         export MOLTBOT_STATE_DIR="$OPENCLAW_STATE_DIR"
         export MOLTBOT_NIX_MODE=1
 
-        exec ${pkgs.openclaw}/bin/openclaw gateway --port 18789
+        exec ${openclawPkgs.openclaw}/bin/openclaw gateway --port 18789
       ''}";
       WorkingDirectory = "${config.home.homeDirectory}/.openclaw";
       Restart = "always";
@@ -644,8 +644,6 @@ EOF
     };
     Install.WantedBy = ["default.target"];
   };
-
-
 
   # MESSY SOUL.md - Family assistant persona for WhatsApp
   # Derived from ruinagents persona definition (Boulder 3 Phase 1)
