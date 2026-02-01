@@ -2,7 +2,7 @@
 #
 # Openclaw (formerly Moltbot/Clawdbot) is a personal AI assistant that connects
 # to messaging platforms. This configuration sets up Discord and WhatsApp
-# deployment using Anthropic Claude as the AI provider.
+# deployment using OpenAI GPT-4o as the primary AI provider with Claude as fallback.
 #
 # The openclaw home-manager module is configured in:
 #   hosts/chassis/users/jmeskill/home-configuration.nix
@@ -66,50 +66,73 @@
   # Tokens are fetched from Infisical and re-encrypted to .age files during rekey
   ruinous.infisical.enable = true;
 
-  # Secrets for openclaw - these are referenced by the home-manager config
-  # The actual openclaw service configuration is in the user's home-manager config
-  # NOTE: Secret names retain "moltbot" prefix for backwards compatibility with
-  # existing .age files. The secret *values* are unchanged.
+  # Secrets for openclaw - all sourced from Infisical
+  # Host-specific secrets at /hosts/chassis/openclaw/
+  # Service-specific (non-host) secrets at /services/openclaw/
+  # NOTE: Secret names retain "moltbot" prefix for backwards compatibility
+
+  # Discord bot token (default bot)
   age.secrets.chassis_moltbot_discord_token = {
-    rekeyFile = ./files/moltbot/discord-token.age;
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "DISCORD_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";
   };
 
+  # Anthropic API key - service-specific (not shared with n8n/opencode)
   age.secrets.chassis_moltbot_anthropic_key = {
-    rekeyFile = ./files/moltbot/anthropic-key.age;
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "ANTHROPIC_API_KEY";
+      path = "/services/openclaw";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";
   };
 
+  # Gateway authentication token
   age.secrets.chassis_moltbot_gateway_token = {
-    rekeyFile = ./files/moltbot/gateway-token.age;
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "GATEWAY_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";
   };
 
-  age.secrets.chassis_moltbot_whatsapp_allowfrom = lib.mkIf (builtins.pathExists ./files/moltbot/whatsapp-allowfrom.age) {
-    rekeyFile = ./files/moltbot/whatsapp-allowfrom.age;
+  # WhatsApp allowed phone numbers (E.164 format, newline-separated)
+  age.secrets.chassis_moltbot_whatsapp_allowfrom = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "WHATSAPP_ALLOWFROM";
+      path = "/hosts/chassis/openclaw";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";
   };
 
   # Messy Discord bot token (separate bot for messy agent)
-  # This enables cross-channel memory: messy-discord + whatsapp share the same agent
-  age.secrets.chassis_moltbot_messy_discord_token = lib.mkIf (builtins.pathExists ./files/moltbot/messy-discord-token.age) {
-    rekeyFile = ./files/moltbot/messy-discord-token.age;
+  # Enables cross-channel memory: messy-discord + whatsapp share the same agent
+  age.secrets.chassis_moltbot_messy_discord_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "MESSY_DISCORD_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";
   };
 
   # Codey Discord bot token (separate bot for codey agent - #ops channel)
-  age.secrets.chassis_moltbot_codey_discord_token = lib.mkIf (builtins.pathExists ./files/moltbot/codey-discord-token.age) {
-    rekeyFile = ./files/moltbot/codey-discord-token.age;
+  age.secrets.chassis_moltbot_codey_discord_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "CODEY_DISCORD_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
     mode = "400";
     owner = "jmeskill";
     group = "users";
@@ -135,6 +158,18 @@
     generator.script = config.ruinous.infisical.mkGenerator {
       name = "FORGEJO_TOKEN";
       path = "/shared";
+    };
+    mode = "400";
+    owner = "jmeskill";
+    group = "users";
+  };
+
+  # OpenAI API key for openclaw - sourced from Infisical /services/openclaw
+  # Service-specific key (not shared with other services like n8n/opencode)
+  age.secrets.chassis_openclaw_openai_key = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "OPENAI_API_KEY";
+      path = "/services/openclaw";
     };
     mode = "400";
     owner = "jmeskill";

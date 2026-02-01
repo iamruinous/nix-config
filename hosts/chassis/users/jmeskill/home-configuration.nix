@@ -310,7 +310,11 @@ in {
       agents = {
         defaults = {
           workspace = "${openclawStateDir}/workspace";
-          model.primary = "anthropic/claude-sonnet-4-20250514";
+          # OpenAI primary with Claude fallback
+          model = {
+            primary = "openai/gpt-4o";
+            fallbacks = ["anthropic/claude-sonnet-4-20250514"];
+          };
           thinkingDefault = "medium";
           # Enable semantic memory search with local embeddings (no API key needed)
           memorySearch = {
@@ -603,6 +607,7 @@ in {
 
         # Read secrets from agenix-managed files
         export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_moltbot_anthropic_key.path})"
+        export OPENAI_API_KEY="$(cat ${osConfig.age.secrets.chassis_openclaw_openai_key.path})"
         export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_discord_token.path})"
         export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_moltbot_gateway_token.path})"
 
