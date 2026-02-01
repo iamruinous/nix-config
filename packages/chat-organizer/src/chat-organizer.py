@@ -71,11 +71,42 @@ def manual_yaml_dump(data):
 
 
 def extract_frontmatter(content):
-    # Returns (frontmatter_string, body_content)
     match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
     if match:
         return match.group(1), match.group(2)
     return None, content
+
+
+def parse_frontmatter_to_dict(fm_str):
+    data = {}
+    lines = fm_str.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if ":" in line and not line.startswith(" "):
+            key, _, value_part = line.partition(":")
+            key = key.strip()
+            value_part = value_part.strip()
+
+            if value_part.startswith('"') and value_part.endswith('"'):
+                data[key] = value_part[1:-1]
+            elif not value_part:
+                list_items = []
+                i += 1
+                while i < len(lines) and lines[i].startswith("  - "):
+                    list_items.append(lines[i][4:].strip())
+                    i += 1
+                data[key] = list_items
+                continue
+            else:
+                data[key] = value_part
+        i += 1
+    return data
+
+
+def rebuild_frontmatter_with_escaping(fm_str):
+    parsed = parse_frontmatter_to_dict(fm_str)
+    return manual_yaml_dump(parsed)
 
 
 def update_frontmatter_block(fm_str, new_data):
@@ -187,46 +218,53 @@ def process_file(filepath, incremental=False):
         )
 
         if is_update and fm_str:
-            # Incremental update
-            # We assume title/summary exist, we just want to fill holes.
-            # But we need the LLM to get the tags/concepts if missing.
+            needs_llm = "key_concepts:" not in fm_str or "tags:" not in fm_str
 
-            # If we need new metadata, we must call LLM
-            # Optimization: Only call LLM if we are missing semantic fields (tags, concepts)
-            # If we are just fixing filename or agent/aliases (which are deterministic), skip LLM?
-            # But "aliases" might need title from metadata if we don't trust filename.
-            # Let's call LLM to be safe and robust.
+            if needs_llm:
+                json_str = generate_full_metadata(body)
+                if not json_str:
+                    return
+                try:
+                    metadata = json.loads(json_str)
+                except:
+                    print(f"  [ERROR] Failed to parse LLM response for {filename}")
+                    return
 
-            json_str = generate_full_metadata(body)  # Analyze body only
-            if not json_str:
-                return
-            try:
-                metadata = json.loads(json_str)
-            except:
-                print(f"  [ERROR] Failed to parse LLM response for {filename}")
-                return
+                updates = {}
+                if "key_concepts:" not in fm_str:
+                    updates["key_concepts"] = metadata.get("key_concepts", [])
+                if "tags:" not in fm_str:
+                    updates["tags"] = metadata.get("tags", [])
+                if "agent:" not in fm_str:
+                    updates["agent"] = agent_name
+                if "aliases:" not in fm_str:
+                    updates["aliases"] = [metadata.get("title")]
 
-            updates = {}
-            if "key_concepts:" not in fm_str:
-                updates["key_concepts"] = metadata.get("key_concepts", [])
-            if "agent:" not in fm_str:
-                updates["agent"] = agent_name
-            if "aliases:" not in fm_str:
-                updates["aliases"] = [metadata.get("title")]
+                new_fm_str = update_frontmatter_block(fm_str, updates)
 
-            # Merge
-            new_fm_str = update_frontmatter_block(fm_str, updates)
-            new_content = f"---\n{new_fm_str}\n---\n{body}"
+                new_content = f"---\n{new_fm_str}\n---\n{body}"
 
-            # Check for Footer (Related Concepts)
-            if "## Related Concepts" not in body and metadata.get("key_concepts"):
-                footer = "\n\n## Related Concepts\n"
-                for concept in metadata.get("key_concepts"):
-                    footer += f"- [[{concept}]]\n"
-                new_content += footer
+                if "## Related Concepts" not in body and metadata.get("key_concepts"):
+                    footer = "\n\n## Related Concepts\n"
+                    for concept in metadata.get("key_concepts"):
+                        footer += f"- [[{concept}]]\n"
+                    new_content += footer
+            else:
+                parsed = parse_frontmatter_to_dict(fm_str)
+                if "agent" not in parsed:
+                    parsed["agent"] = agent_name
+                new_fm_str = manual_yaml_dump(parsed)
+                print("  [FIX] Re-escaped frontmatter YAML")
+
+                new_content = f"---\n{new_fm_str}\n---\n{body}"
+
+                if "## Related Concepts" not in body and parsed.get("key_concepts"):
+                    footer = "\n\n## Related Concepts\n"
+                    for concept in parsed.get("key_concepts", []):
+                        footer += f"- [[{concept}]]\n"
+                    new_content += footer
 
         else:
-            # Fresh Process
             json_str = generate_full_metadata(content)
             if not json_str:
                 return
@@ -261,25 +299,14 @@ def process_file(filepath, incremental=False):
 
             new_content = f"---\n{fm_str}\n---\n\n{obsidian_header}{obsidian_callout}{content}{footer}"
 
-            # For renaming later
-            metadata["title"]  # Ensure we have it for renaming
-
-        # WRITE
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(new_content)
         print("  [WRITE] Updated content.")
 
-        # RENAME
         target_title = ""
-        if not is_update:
-            target_title = metadata.get("title")
-        else:
-            # Try extract title from FM
-            t_match = re.search(r'^title: "(.*?)"', new_content, re.MULTILINE)
-            if t_match:
-                target_title = t_match.group(1)
-            elif "title" in metadata:
-                target_title = metadata["title"]
+        t_match = re.search(r'^title: "(.*?)"', new_content, re.MULTILINE)
+        if t_match:
+            target_title = t_match.group(1)
 
         if target_title:
             kebab_title = to_kebab_case(target_title)
