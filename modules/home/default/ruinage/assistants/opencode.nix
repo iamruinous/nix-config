@@ -666,10 +666,9 @@ with lib; let
             | walk(if type == "object" then with_entries(select(.value != null)) else . end)
           ' "$CONFIG_FILE" > "$TMP_FILE"
 
-        # If the file actually changed, update it
+        # If the file actually changed, update it (use install to handle read-only)
         if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null; then
-          $DRY_RUN_CMD cp "$TMP_FILE" "$CONFIG_FILE"
-          $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
+          $DRY_RUN_CMD install -m 644 "$TMP_FILE" "$CONFIG_FILE"
         fi
         rm "$TMP_FILE"
       fi
@@ -1467,9 +1466,9 @@ in {
                 echo " "
               fi
 
-              # Always write Nix content
-              $DRY_RUN_CMD cp "$NIX_CONTENT_FILE" "$CONFIG_FILE"
-              $DRY_RUN_CMD cp "$NIX_CONTENT_FILE" "$BACKUP_FILE"
+              # Always write Nix content (use install to handle read-only files)
+              $DRY_RUN_CMD install -m 644 "$NIX_CONTENT_FILE" "$CONFIG_FILE"
+              $DRY_RUN_CMD install -m 644 "$NIX_CONTENT_FILE" "$BACKUP_FILE"
             '';
           }
           // optionalAttrs pc.resolved.notifierEnable {
@@ -1623,9 +1622,9 @@ in {
                   | walk(if type == "object" then with_entries(select(.value != null)) else . end)
                 ' "$CONFIG_FILE" > "$TMP_FILE"
 
+              # If changed, update it (use install to handle read-only files)
               if ! diff -q "$CONFIG_FILE" "$TMP_FILE" > /dev/null; then
-                $DRY_RUN_CMD cp "$TMP_FILE" "$CONFIG_FILE"
-                $DRY_RUN_CMD chmod +w "$CONFIG_FILE"
+                $DRY_RUN_CMD install -m 644 "$TMP_FILE" "$CONFIG_FILE"
               fi
               rm "$TMP_FILE"
             fi

@@ -37,8 +37,6 @@
 # References:
 #   - https://github.com/openclaw/openclaw
 #   - https://github.com/openclaw/nix-openclaw
-#
-# Migration: Moved from fork (github:iamruinous/nix-moltbot) - see issue #391
 {
   flake,
   config,

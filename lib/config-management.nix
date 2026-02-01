@@ -129,9 +129,9 @@ with lib; rec {
         echo " "
       fi
 
-      # Always write Nix content
-      $DRY_RUN_CMD cp "$TEMPLATE_FILE" "$CONFIG_FILE"
-      $DRY_RUN_CMD cp "$TEMPLATE_FILE" "$BACKUP_FILE"
+      # Always write Nix content (use install to handle read-only files)
+      $DRY_RUN_CMD install -m 644 "$TEMPLATE_FILE" "$CONFIG_FILE"
+      $DRY_RUN_CMD install -m 644 "$TEMPLATE_FILE" "$BACKUP_FILE"
     '';
 
   # Internal: Core activation script generator

@@ -269,39 +269,13 @@
   # Minimal Discord-only configuration using Anthropic Claude
   # Secrets defined in hosts/chassis/openclaw.nix
   #
-  # NOTE: nix-openclaw home-manager module has issues on NixOS:
-  # 1. Uses hardcoded /bin/mkdir and /bin/ln (macOS paths)
-  # 2. Systemd service doesn't properly handle secrets at runtime
+  # We use a custom systemd service instead of upstream's because we need
+  # runtime secret injection from agenix-managed files.
   #
-  # We disable the upstream module's systemd service and use a custom one.
-  # The custom service reads secrets at runtime and sets environment variables.
-  # Migration from fork (github:iamruinous/nix-moltbot) - see issue #391
-
-  # Create required directories
-  home.activation.clawdbotDirs = lib.mkForce (lib.hm.dag.entryAfter ["writeBoundary"] ''
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/workspace/memory
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/messy/memory
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/codey
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/agents/codey/memory
-    run ${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.clawdbot/memory
-    run ${pkgs.coreutils}/bin/mkdir -p /tmp/clawdbot
-  '');
-
-  # Disable upstream config file management
-  home.activation.clawdbotConfigFiles = lib.mkForce (lib.hm.dag.entryAfter ["clawdbotDirs"] ''
-    true
-  '');
-
-  # Generate valid openclaw config (token is read from env at runtime)
-  # Use mkForce to override the upstream module's config file
-  #
-  # Key workarounds for nix-openclaw on NixOS:
-  # 1. plugins.load.paths - bundled extensions aren't in default search path
+  # Custom config file because:
+  # 1. plugins.load.paths - bundled extensions path for our setup
   # 2. plugins.slots.memory = "memory-core" - explicit memory plugin
-  # 3. plugins.entries.discord.enabled - explicitly enable discord plugin
+  # 3. Multi-agent Discord bot configuration (default, messy, codey)
   home.file.".clawdbot/clawdbot.json" = lib.mkForce {
     text = builtins.toJSON {
       gateway.mode = "local";
@@ -709,14 +683,12 @@
   };
 
   # NOTE: We do NOT enable programs.openclaw because:
-  # 1. The upstream schema-only config requires all options defined (no defaults)
-  # 2. We use our own custom systemd service for proper secret handling
+  # 1. We use our own custom systemd service for runtime secret injection from agenix
+  # 2. We have a custom config file with specific plugin/agent setup
   # 3. We only need the overlay for pkgs.openclaw and pkgs.openclaw-gateway
   #
   # The overlay is added in hosts/chassis/openclaw.nix via:
   #   nixpkgs.overlays = [ flake.inputs.nix-openclaw.overlays.default ];
-  #
-  # Migration from fork (github:iamruinous/nix-moltbot) - see issue #391
 
   home.stateVersion = "26.05";
 }
