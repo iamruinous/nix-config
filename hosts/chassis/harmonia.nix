@@ -22,7 +22,7 @@
   # Harmonia binary cache service
   services.harmonia = {
     enable = true;
-    signKeyPath = config.age.secrets.chassis_harmonia_signing_key.path;
+    signKeyPaths = [config.age.secrets.chassis_harmonia_signing_key.path];
     settings = {
       # Bind to localhost only - Caddy handles external access
       bind = "127.0.0.1:5000";
