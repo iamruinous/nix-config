@@ -1,6 +1,8 @@
 {
-  "active_plan": "/home/jmeskill/Projects/ruinage/nix-config/.sisyphus/plans/budgey-assistant-integration.md",
-  "started_at": "2026-01-26T15:45:00.000Z",
-  "session_ids": ["ses_406d7bc06ffe1wwQfd81Cq5ZWn"],
-  "plan_name": "budgey-assistant-integration"
+  "active_plan": "/home/jmeskill/Projects/ruinage/nix-config/.sisyphus/plans/worktree-integration.md",
+  "started_at": "2026-02-02T06:42:54.423Z",
+  "session_ids": [
+    "ses_3e74d15a5ffeUPhw5R0kmPE1dB"
+  ],
+  "plan_name": "worktree-integration"
 }

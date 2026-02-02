@@ -83,6 +83,15 @@ just rekey                     # Re-encrypt all secrets
 # RPi Images
 just sd-image <host>           # Build SD image for Raspberry Pi
 just sd-flash <host> <device>  # Flash SD image to device
+
+# Op Management (Isolated Development Sessions)
+0p new <op-id> --repo <repo> --deck <deck>  # Create new Op
+0p list                                      # List all Ops
+0p status <op-id>                            # Show Op details
+0p attach <op-id>                            # Attach to Op's tmux session
+0p suspend <op-id>                           # Suspend active Op
+0p resume <op-id>                            # Resume suspended Op
+0p complete <op-id>                          # Complete and cleanup Op
 ```
 
 For user passwords and advanced operations, see `just --list`.
