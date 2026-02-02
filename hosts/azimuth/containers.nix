@@ -111,7 +111,7 @@
 
       # Init container to download model if not present
       llama-cpp-init = {
-        image = "docker.io/curlimages/curl:8.11.1";
+        image = "docker.io/curlimages/curl:8.18.0";
         volumes = [
           "/data/docker/llama-cpp/models:/models"
         ];

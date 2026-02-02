@@ -75,7 +75,7 @@
     backend = "docker";
     containers = {
       postgres = {
-        image = "docker.io/postgres:17.7";
+        image = "docker.io/postgres:18.1";
         environment = {
           PGDATA = "/var/lib/postgresql/17/docker";
         };
@@ -198,7 +198,7 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.32";
+        image = "docker.io/getmeili/meilisearch:v1.34.3";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
