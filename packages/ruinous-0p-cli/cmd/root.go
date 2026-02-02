@@ -32,7 +32,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringP("config", "c", "", "config file (default is $HOME/.config/0p/config.yaml)")
-	rootCmd.PersistentFlags().StringP("data-dir", "d", "", "data directory for op state (default is $HOME/.local/share/0p)")
+	rootCmd.PersistentFlags().StringP("data-dir", "D", "", "data directory for op state (default is $HOME/.local/share/0p)")
 
 	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	viper.BindPFlag("data_dir", rootCmd.PersistentFlags().Lookup("data-dir"))
