@@ -139,20 +139,26 @@
     messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git?ref=refs/tags/v0.3.0";
     messy-attributes-editor.inputs.nixpkgs.follows = "nixpkgs";
 
-     # ruinagents - Agent definitions, docs, and skills
-     # <https://forge.meskill.farm/iamruinous/ruinagents>
-     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-     ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.11.0";
-     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
+    # ruinagents - Agent definitions, docs, and skills
+    # <https://forge.meskill.farm/iamruinous/ruinagents>
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.11.0";
+    ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
-     # nix-openclaw - Openclaw personal AI assistant for Nix
-     # <https://github.com/openclaw/nix-openclaw>
-     nix-openclaw.url = "github:openclaw/nix-openclaw";
-     nix-openclaw.inputs.nixpkgs.follows = "nixpkgs";
+    # n0p - Op management CLI for isolated development sessions
+    # <https://forge.meskill.farm/iamruinous/n0p>
+    # TODO: Pin to tagged version once v0.1.0 is released
+    n0p.url = "git+ssh://git@forge.meskill.farm/iamruinous/n0p.git";
+    n0p.inputs.nixpkgs.follows = "nixpkgs";
 
-     # Nix User Repository
-     # <https://nur.nix-community.org>
-     # nur.url = "github:nix-community/NUR";
+    # nix-openclaw - Openclaw personal AI assistant for Nix
+    # <https://github.com/openclaw/nix-openclaw>
+    nix-openclaw.url = "github:openclaw/nix-openclaw";
+    nix-openclaw.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Nix User Repository
+    # <https://nur.nix-community.org>
+    # nur.url = "github:nix-community/NUR";
   };
 
   # Load the blueprint
