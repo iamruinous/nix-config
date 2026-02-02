@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"forge.meskill.farm/ruinous/0p-cli/internal/db"
+	"forge.meskill.farm/ruinous/0p-cli/internal/worktree"
+	"forge.meskill.farm/ruinous/0p-cli/internal/xdg"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -103,7 +105,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 			OpID:         opID,
 			RepoName:     repo,
 			Branch:       fmt.Sprintf("op/%s", opID),
-			WorktreePath: "", // Will be set in Phase 2
+			WorktreePath: "", // Will be set after worktree creation
 		},
 	}
 
@@ -119,8 +121,39 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create op: %w", err)
 	}
 
+	// Create worktree
+	fmt.Printf("Creating worktree for op '%s'...\n", opID)
+	worktreePath, err := worktree.Create(repoPath, opID)
+	if err != nil {
+		// Rollback: delete database record
+		database.DeleteOp(ctx, opID)
+		return fmt.Errorf("failed to create worktree: %w", err)
+	}
+
+	// Setup XDG directories
+	fmt.Printf("Setting up XDG isolation...\n")
+	_, err = xdg.Setup(opID)
+	if err != nil {
+		// Rollback: remove worktree and delete database record
+		worktree.Remove(worktreePath)
+		database.DeleteOp(ctx, opID)
+		return fmt.Errorf("failed to setup XDG directories: %w", err)
+	}
+
+	// Update database with worktree path
+	repos[0].WorktreePath = worktreePath
+	op.UpdatedAt = time.Now()
+	if err := database.UpdateOp(ctx, op); err != nil {
+		// Rollback on error
+		worktree.Remove(worktreePath)
+		xdg.Cleanup(opID)
+		database.DeleteOp(ctx, opID)
+		return fmt.Errorf("failed to update op with worktree path: %w", err)
+	}
+
 	fmt.Printf("Op '%s' created. State: %s, Mode: %s\n", opID, op.State, op.Mode)
 	fmt.Printf("Repository: %s (at %s)\n", repo, repoPath)
+	fmt.Printf("Worktree: %s\n", worktreePath)
 	fmt.Printf("Deck: %s\n", deck)
 	fmt.Printf("Run `0p attach %s` to start working.\n", opID)
 
