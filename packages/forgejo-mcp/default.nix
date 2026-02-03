@@ -1,11 +1,11 @@
 {pkgs, ...}:
 pkgs.buildGoModule rec {
   pname = "forgejo-mcp";
-  version = "2.5.0";
+  version = "2.8.0";
 
   src = pkgs.fetchurl {
     url = "https://codeberg.org/goern/forgejo-mcp/archive/v${version}.tar.gz";
-    hash = "sha256-oT2AYvMv0L6CBRNYi0ph6NaQQOMsROqQ8BPTDL8okcI=";
+    hash = "sha256-gEqCjUSvozhh1KC/7161aYv5lWPTPrX0NSVMuBUNu8g=";
   };
 
   sourceRoot = "forgejo-mcp";
@@ -16,7 +16,7 @@ pkgs.buildGoModule rec {
   '';
 
   # Vendor hash computed from go.sum
-  vendorHash = "sha256-tOTRbc735TrIZ7fL9EywKLLlePKWMMCeuhbQJGHUuk4=";
+  vendorHash = "sha256-THdbGlinpH6ZtVveFEN/wy8ITG6pC+Zs6Leyx+2/hqI=";
 
   # Build tags to exclude wiki package (Nix build compatibility)
   tags = ["nowiki"];
