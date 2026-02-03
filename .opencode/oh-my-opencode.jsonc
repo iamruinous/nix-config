@@ -39,6 +39,12 @@
     "default_max_iterations": 10
   },
 
+  // Git commit configuration
+  "git_master": {
+    "commit_footer": false,
+    "include_co_authored_by": false
+  },
+
   // Claude Code compatibility - read from .claude/ for backward compat
   // Primary location is now .opencode/
   "claude_code": {

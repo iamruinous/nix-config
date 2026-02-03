@@ -9,6 +9,10 @@
   # Explicit package references from nix-openclaw flake input
   # (avoids deprecated nixpkgs.overlays with home-manager.useGlobalPkgs)
   openclawPkgs = flake.inputs.nix-openclaw.packages.${pkgs.system};
+  # n0p package for Op management (isolated development sessions)
+  n0pPkgs = flake.inputs.n0p.packages.${pkgs.system};
+  # n0h package for host management CLI (login hub replacement)
+  n0hPkgs = flake.inputs.n0h.packages.${pkgs.system};
 in {
   imports = [
     flake.homeModules.default
@@ -23,16 +27,28 @@ in {
   programs.git.settings.safe.directory = "/var/lib/budgey-assistant/archive";
 
   # GitHub and Forgejo CLI tools for openclaw issue management
+  # n0p for isolated development sessions (worktrees + tmuxp)
+  # n0h for host management and login hub
   home.packages = with pkgs; [
     gh # GitHub CLI
     tea # Forgejo/Gitea CLI
     chat-organizer
+    n0pPkgs.n0p # Op management CLI
+    n0pPkgs.worktrunk # Git worktree management (n0p dependency)
+    n0hPkgs.n0h # Host management CLI (login hub)
   ];
+
+  # n0h login hub - runs on SSH login instead of ruinous-login-hub
+  programs.fish.interactiveShellInit = ''
+    if test -z "$TMUX" -a -n "$SSH_TTY" -a -z "$BYPASS_LOGIN_HUB"
+      exec ${n0hPkgs.n0h}/bin/n0h
+    end
+  '';
 
   ruinous = {
     rust-motd.enable = true;
     openssh.remote.forwarding.enable = true;
-    loginHub.enable = true;
+    loginHub.enable = false; # Replaced by n0h above
 
     git.default = {
       userEmail = "jade@ruinous.ai";
@@ -334,6 +350,17 @@ in {
           {
             id = "codey";
             workspace = "${openclawStateDir}/agents/codey";
+            # Mention patterns allow triggering without @mention
+            # These work even when requireMention = true
+            groupChat = {
+              mentionPatterns = [
+                "CODEY:"
+                "CTO:"
+                "@codey"
+                "hey codey"
+                "codey,"
+              ];
+            };
           }
         ];
       };
@@ -393,6 +420,7 @@ in {
               };
             };
             # Codey account (separate bot for codey agent - #ops channel)
+            # NOTE: Codey responds to mentionPatterns (CODEY:, CTO:, etc.) without @mention
             codey = {
               name = "Codey Bot";
               enabled = true;
@@ -411,10 +439,8 @@ in {
                     "codeybot-chat" = {
                       requireMention = false;
                     };
-                    # #ops - codey sees all messages (no @ required)
-                    "ops" = {
-                      requireMention = false;
-                    };
+                    # #ops - inherits requireMention = true from guild default
+                    # Codey still responds to mentionPatterns (CODEY:, CTO:, etc.)
                   };
                 };
               };

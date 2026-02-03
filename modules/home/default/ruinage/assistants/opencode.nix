@@ -54,10 +54,15 @@ with lib; let
   opencodeAssistant = cfg.assistants.opencode or {};
 
   # Ruinagents package from flake input (replaces ruinagents-global)
-  # v2.1.0 changed install path from share/ruinagents-opencode to .config/opencode
+  # v5 structure: package contains AGENTS.md (renamed RUINAGENTS.md) and personas/
+  # Skills and commands are in the source repo (not yet packaged in v5)
   ruinagentsPkgs = flake.inputs.ruinagents.packages.${pkgs.system};
   ruinagentsOpencode = ruinagentsPkgs.opencode;
   ruinagentsShare = "${ruinagentsOpencode}/.config/opencode";
+  
+  # Raw ruinagents source for skills/commands (until packaged in upstream)
+  # TODO: Remove when ruinagents packages include skills/commands
+  ruinagentsSource = flake.inputs.ruinagents;
 
   # OpenCode config template from flake
   opencode_config = flake + /files/configs/opencode/opencode.json;
@@ -608,9 +613,10 @@ with lib; let
       else opencodeAssistant.installPlugins;
   };
 
-  # Ruinagents skill and command paths
-  skillSourcePath = "${ruinagentsShare}/skills";
-  commandSourcePath = "${ruinagentsShare}/commands";
+  # Ruinagents skill and command paths (from source until packaged)
+  # TODO: Switch to ruinagentsShare when upstream packages include these
+  skillSourcePath = "${ruinagentsSource}/skills";
+  commandSourcePath = "${ruinagentsSource}/commands";
   skillNames =
     if builtins.pathExists skillSourcePath
     then builtins.filter (name: builtins.pathExists "${skillSourcePath}/${name}/SKILL.md") (builtins.attrNames (builtins.readDir skillSourcePath))
@@ -1395,33 +1401,22 @@ in {
                 value = {source = "${opencode_instructions}/${instr}";};
               })
               instructionNames);
+            # Personas from the package (v5 structure)
+            personasPath = "${ruinagentsShare}/personas";
+            personasEntry =
+              if builtins.pathExists personasPath
+              then {"${resolved.configDir}/personas".source = personasPath;}
+              else {};
             ruinagentsEntries =
               {
                 "${resolved.configDir}/AGENTS.md".source = "${ruinagentsShare}/AGENTS.md";
               }
+              // personasEntry
               // skillLinks
               // commandLinks;
           in
-            {
-              "${resolved.configDir}/package.json".text = builtins.toJSON {
-                name = "opencode-plugins";
-                dependencies = builtins.listToAttrs (
-                  map (plugin: let
-                    parts = lib.splitString "@" plugin;
-                    pname = builtins.head parts;
-                    version =
-                      if builtins.length parts > 1
-                      then builtins.elemAt parts 1
-                      else "latest";
-                  in {
-                    name = pname;
-                    value = version;
-                  })
-                  resolved.plugins
-                );
-              };
-            }
-            // instructionLinks
+            # NOTE: package.json is NOT managed by Nix - opencode manages its own plugins
+            instructionLinks
             // optionalAttrs resolved.ruinagentsGlobalEnable ruinagentsEntries
         ) (attrNames (opencodeAssistant.configs or {default = {};})));
       }
@@ -1607,8 +1602,9 @@ in {
             fi
 
             # Always write Nix content for oh-my-opencode.json
-            cp "$OMO_NIX_CONTENT_FILE" "$OMO_CONFIG_FILE"
-            cp "$OMO_NIX_CONTENT_FILE" "$OMO_BACKUP_FILE"
+            # Use install to handle read-only files from previous generations
+            $DRY_RUN_CMD install -m 644 "$OMO_NIX_CONTENT_FILE" "$OMO_CONFIG_FILE"
+            $DRY_RUN_CMD install -m 644 "$OMO_NIX_CONTENT_FILE" "$OMO_BACKUP_FILE"
           '';
           "opencode-project-${safeName}" = lib.hm.dag.entryAfter ["writeBoundary"] ''
             CONFIG_DIR="${paths.config}"
