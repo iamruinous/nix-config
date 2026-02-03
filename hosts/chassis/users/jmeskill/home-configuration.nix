@@ -13,14 +13,20 @@
   n0pPkgs = flake.inputs.n0p.packages.${pkgs.system};
   # n0h package for host management CLI (login hub replacement)
   n0hPkgs = flake.inputs.n0h.packages.${pkgs.system};
+
 in {
   imports = [
     flake.homeModules.default
     flake.homeModules.kde
     flake.inputs.nix-openclaw.homeManagerModules.openclaw
+    flake.inputs.n0s.homeManagerModules.default
   ];
 
   programs.wezterm.enable = true;
+
+  # N0S - Code Gallery for reference repositories
+  # Provides searchable collection of upstream reference code (opencode, openclaw, etc.)
+  programs.n0s.enable = true;
 
   # Allow git operations in budgey-assistant archive directory
   # The archive is owned by budgey-assistant service but extractors run as jmeskill

@@ -157,6 +157,12 @@
     n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git";
     n0h.inputs.nixpkgs.follows = "nixpkgs";
 
+    # n0s - Session management CLI
+    # <https://forge.meskill.farm/RUiNAGE/N0S>
+    # TODO: Pin to tagged version once v0.1.0 is released
+    n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git";
+    n0s.inputs.nixpkgs.follows = "nixpkgs";
+
     # nix-openclaw - Openclaw personal AI assistant for Nix
     # <https://github.com/openclaw/nix-openclaw>
     nix-openclaw.url = "github:openclaw/nix-openclaw";

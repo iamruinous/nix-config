@@ -572,7 +572,25 @@
     },
     "flake-utils_10": {
       "inputs": {
-        "systems": "systems_16"
+        "systems": "systems_15"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_11": {
+      "inputs": {
+        "systems": "systems_17"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -1503,11 +1521,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1770131791,
-        "narHash": "sha256-RIRWfFGjLaRjc9hadAbvyf61U+0Vos75ck2aPZQWtpw=",
+        "lastModified": 1770146949,
+        "narHash": "sha256-mAvCkXKD7VYgrAfoFMIBzMO7yBu7JH+HyYQI0gVjIiA=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "fb8e3ede565da2db8e04608cc59ba3d526476984",
+        "rev": "8197b8c7764a41bb67e2f28b8bb7b7bbc0429401",
         "type": "github"
       },
       "original": {
@@ -1567,11 +1585,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770142831,
-        "narHash": "sha256-NIQSxpcaDwU/Uxkkwkptq5nCyWmqtZItLYeaqXASqkc=",
+        "lastModified": 1770159152,
+        "narHash": "sha256-uq2pgmJyux7OnpPo7d52JHnIXcOFUTqmwBWcFH6iScU=",
         "ref": "refs/heads/main",
-        "rev": "984d9c262c4da7270b28e0a80b954501e0e40d1d",
-        "revCount": 29,
+        "rev": "1204d10ebeeb760317ec02e835f5896abd521756",
+        "revCount": 35,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0H.git"
       },
@@ -1589,11 +1607,11 @@
         "worktrunk": "worktrunk"
       },
       "locked": {
-        "lastModified": 1770135283,
-        "narHash": "sha256-wX1XdEUXLjovd5t8Fpbl6OKvuAcfIVJXFciOZFLKUbU=",
+        "lastModified": 1770159517,
+        "narHash": "sha256-V+fPeqxQNiWuCgoSDcz1fa15yW8xm/4gbSOEoJ2Y+7k=",
         "ref": "refs/heads/main",
-        "rev": "5dd772a16fcd11ad98778ca308b01da89e70dfe7",
-        "revCount": 64,
+        "rev": "10ae191ae6b0d956f674829135e839eef2eb1f49",
+        "revCount": 68,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0P.git"
       },
@@ -1602,9 +1620,30 @@
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0P.git"
       }
     },
-    "n8n-agent": {
+    "n0s": {
       "inputs": {
         "flake-utils": "flake-utils_7",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1770154478,
+        "narHash": "sha256-qg693McKWufl3fZ9cxrt/4cJezwcuoxFlmjjBZeA2yw=",
+        "ref": "refs/heads/main",
+        "rev": "a8833f170ee51d1d3fd749cfcdee41f0cb862b32",
+        "revCount": 15,
+        "type": "git",
+        "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0S.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0S.git"
+      }
+    },
+    "n8n-agent": {
+      "inputs": {
+        "flake-utils": "flake-utils_8",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -1681,7 +1720,7 @@
     },
     "nix-openclaw": {
       "inputs": {
-        "flake-utils": "flake-utils_8",
+        "flake-utils": "flake-utils_9",
         "home-manager": "home-manager_5",
         "nix-steipete-tools": "nix-steipete-tools",
         "nixpkgs": [
@@ -2182,6 +2221,7 @@
         "microvm": "microvm",
         "n0h": "n0h",
         "n0p": "n0p",
+        "n0s": "n0s",
         "n8n-agent": "n8n-agent",
         "nix-darwin": "nix-darwin",
         "nix-flatpak": "nix-flatpak",
@@ -2201,7 +2241,7 @@
     },
     "ruinagents": {
       "inputs": {
-        "flake-utils": "flake-utils_9",
+        "flake-utils": "flake-utils_10",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -2407,6 +2447,21 @@
     },
     "systems_15": {
       "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_16": {
+      "locked": {
         "lastModified": 1689347949,
         "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
         "owner": "nix-systems",
@@ -2420,7 +2475,7 @@
         "type": "github"
       }
     },
-    "systems_16": {
+    "systems_17": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
@@ -2622,7 +2677,7 @@
       "inputs": {
         "elephant": "elephant",
         "nixpkgs": "nixpkgs_9",
-        "systems": "systems_15"
+        "systems": "systems_16"
       },
       "locked": {
         "lastModified": 1769093508,
@@ -2640,7 +2695,7 @@
     },
     "wezterm": {
       "inputs": {
-        "flake-utils": "flake-utils_10",
+        "flake-utils": "flake-utils_11",
         "freetype2": "freetype2",
         "harfbuzz": "harfbuzz",
         "libpng": "libpng",
