@@ -31,7 +31,7 @@
 
   // MCPs - all defaults enabled
   // context7, websearch_exa, grep_app, nixos, postgres-* servers
-  "disabled_mcps": ["forgejo"],
+  "disabled_mcps": [],
 
   // Ralph Loop - autonomous self-correction
   "ralph_loop": {

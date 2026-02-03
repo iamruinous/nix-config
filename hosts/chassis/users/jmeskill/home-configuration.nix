@@ -69,8 +69,51 @@ in {
       # Global OpenCode configuration
       assistants.opencode = {
         enable = true;
-        # model, plugins, mcpServers, providers inherited from defaults
         harnesses.ruinagents.enable = true;
+
+        # Override MCP servers to use file-based secrets from agenix
+        # Uses lib.mkForce to replace default env-based configs
+        # Secrets sourced from Infisical /shared path
+        mcpServers = lib.mkForce {
+          # GitHub Copilot MCP - uses shared GitHub token
+          github = {
+            type = "remote";
+            url = "https://api.githubcopilot.com/mcp/";
+            oauth = false;
+            headers = {
+              "Authorization" = "Bearer {file:${osConfig.age.secrets.chassis_opencode_github_token.path}}";
+            };
+          };
+
+          # Forgejo MCP - for forge.meskill.farm
+          forgejo = {
+            type = "local";
+            command = [
+              "${pkgs.forgejo-mcp}/bin/forgejo-mcp"
+              "--transport" "stdio"
+              "--url" "https://forge.meskill.farm"
+              "--token" "{file:${osConfig.age.secrets.chassis_opencode_forgejo_token.path}}"
+            ];
+          };
+
+          # Todoist MCP - task management
+          todoist = {
+            type = "remote";
+            url = "https://ai.todoist.net/mcp";
+            headers = {
+              "Authorization" = "Bearer {file:${osConfig.age.secrets.chassis_opencode_todoist_token.path}}";
+            };
+          };
+
+          # Context7 MCP - library documentation lookup
+          context7 = {
+            type = "remote";
+            url = "https://mcp.context7.com/mcp";
+            headers = {
+              "Authorization" = "Bearer {file:${osConfig.age.secrets.chassis_opencode_context7_key.path}}";
+            };
+          };
+        };
       };
 
       # Global Claude Code configuration
