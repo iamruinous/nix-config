@@ -43,6 +43,51 @@ When creating issues or PRs, avoid including actual secret values, project IDs, 
 
 ---
 
+## Reference Repositories
+
+The `references/` directory contains local clones of frequently-searched upstream projects for fast local searching. This directory is git-ignored.
+
+### Setup
+
+```bash
+# Clone all reference repos (run from nix-config root)
+mkdir -p references && cd references
+git clone https://github.com/remorses/kimaki.git
+git clone https://github.com/anomalyco/opencode.git
+git clone https://github.com/code-yeongyu/oh-my-opencode.git
+git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/openclaw/nix-openclaw.git
+```
+
+### Available References
+
+| Repo | Purpose | Search When |
+|------|---------|-------------|
+| `kimaki` | Discord bot for OpenCode | Kimaki config, Discord integration |
+| `opencode` | AI coding agent | OpenCode config, agents, MCP |
+| `oh-my-opencode` | Agent orchestration framework | Subagents, delegation, skills |
+| `openclaw` | Multi-channel AI assistant | Openclaw config, Discord/WhatsApp channels |
+| `nix-openclaw` | Nix module for Openclaw | Home-manager options, systemd service |
+
+### Usage
+
+Search locally instead of firing librarian agents:
+
+```bash
+# Find Kimaki channel configuration
+grep -r "requireMention" references/kimaki/
+
+# Find OpenCode agent options  
+grep -r "mentionPatterns" references/openclaw/
+
+# Check oh-my-opencode delegation patterns
+grep -r "delegate_task" references/oh-my-opencode/
+```
+
+**Recommendation:** Clone any frequently-searched external project here to reduce network lookups and improve search speed.
+
+---
+
 ## Quick Reference
 
 ### Container Hosts
