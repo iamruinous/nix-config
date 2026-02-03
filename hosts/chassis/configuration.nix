@@ -18,6 +18,7 @@
     ./harmonia.nix
     ./forgejo-runner.nix
     ./openclaw.nix
+    ./opencode.nix
     ./messy-attributes-editor.nix
   ];
 
