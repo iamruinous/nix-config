@@ -141,15 +141,21 @@
 
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/iamruinous/ruinagents>
-    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.11.0";
+    # TODO: Pin to tagged version once v5 stabilizes
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
-    # n0p - Op management CLI for isolated development sessions
-    # <https://forge.meskill.farm/iamruinous/n0p>
+    # N0P - Op management CLI for isolated development sessions
+    # <https://forge.meskill.farm/RUiNAGE/n0p>
     # TODO: Pin to tagged version once v0.1.0 is released
-    n0p.url = "git+ssh://git@forge.meskill.farm/iamruinous/n0p.git";
+    n0p.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0P.git";
     n0p.inputs.nixpkgs.follows = "nixpkgs";
+
+    # n0h - Host management CLI
+    # <https://forge.meskill.farm/RUiNAGE/N0H>
+    # TODO: Pin to tagged version once v0.1.0 is released
+    n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git";
+    n0h.inputs.nixpkgs.follows = "nixpkgs";
 
     # nix-openclaw - Openclaw personal AI assistant for Nix
     # <https://github.com/openclaw/nix-openclaw>

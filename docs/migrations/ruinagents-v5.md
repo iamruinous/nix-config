@@ -1,4 +1,4 @@
-# Migration Guide: ruinagents v3.x → v5.0.0-alpha.1
+# Migration Guide: ruinagents v3.x → v5.0.0-alpha.2
 
 > **Status:** Alpha release. Test in development environments before production deployment.
 
@@ -11,6 +11,7 @@ ruinagents v5 introduces a **foundry-based architecture** with portable personas
 - **v3.11.0** → Last stable v3 release
 - **v4.0.0** → Constitutional architecture (internal restructure)
 - **v5.0.0-alpha.1** → Foundry pattern + Four Boxes + Lens expressions
+- **v5.0.0-alpha.2** → Fixed Nix build (uses buildNpmPackage, no pre-built dist/ needed)
 
 ---
 
@@ -39,11 +40,11 @@ The Nix package interface is **backward compatible**:
 ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v3.11.0";
 ```
 
-### Updated (v5.0.0-alpha.1)
+### Updated (v5.0.0-alpha.2)
 
 ```nix
 # flake.nix
-ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v5.0.0-alpha.1";
+ruinagents.url = "git+ssh://git@forge.meskill.farm/iamruinous/ruinagents.git?ref=refs/tags/v5.0.0-alpha.2";
 ```
 
 ### Using the Skill
@@ -173,7 +174,7 @@ just deploy <host>
 
 ## Known Limitations (Alpha)
 
-1. **Build system requires bun** - The v5 build uses TypeScript with bun. Nix packages use pre-built `dist/` directory.
+1. **Build system uses buildNpmPackage** - The v5 Nix packages build `dist/` from source using `buildNpmPackage`. No pre-built artifacts are needed in the repository.
 
 2. **Growth Tracking deferred** - The three-level learning hierarchy (Instance/Entity/Collective) is specified but implementation is deferred to v5.1.0.
 

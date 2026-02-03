@@ -2,6 +2,8 @@
 
 > Declarative NixOS/Darwin infrastructure for 24 hosts.
 
+**Project Forge:** `github:iamruinous/nix-config`  
+**Branch Policy:** `protected` — PRs required, no direct commits to main  
 **LLM Context:** [llms.txt](llms.txt) | **Full Docs:** [agents.ruinous.ai](https://agents.ruinous.ai)
 
 ---
