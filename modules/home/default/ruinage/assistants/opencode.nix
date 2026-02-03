@@ -654,7 +654,7 @@ with lib; let
       if [ -f "$CONFIG_FILE" ]; then
         # Create a temporary file with the updated config
         TMP_FILE=$(mktemp)
-        ${pkgs.jq}/bin/jq \
+        ${pkgs.jq}/bin/jq --indent 2 \
           --argjson new_model '${builtins.toJSON resolved.model}' \
           --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
           --argjson new_instructions '${builtins.toJSON resolved.instructions}' \
@@ -1620,7 +1620,7 @@ in {
             # Inject model, plugins, instructions, MCP servers, and providers into opencode.json
             if [ -f "$CONFIG_FILE" ]; then
               TMP_FILE=$(mktemp)
-              ${pkgs.jq}/bin/jq \
+              ${pkgs.jq}/bin/jq --indent 2 \
                 --argjson new_model '${builtins.toJSON model}' \
                 --argjson new_plugins '${builtins.toJSON plugins}' \
                 --argjson new_instructions '${builtins.toJSON instructions}' \
