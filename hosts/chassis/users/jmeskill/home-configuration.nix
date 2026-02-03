@@ -334,6 +334,17 @@ in {
           {
             id = "codey";
             workspace = "${openclawStateDir}/agents/codey";
+            # Mention patterns allow triggering without @mention
+            # These work even when requireMention = true
+            groupChat = {
+              mentionPatterns = [
+                "CODEY:"
+                "CTO:"
+                "@codey"
+                "hey codey"
+                "codey,"
+              ];
+            };
           }
         ];
       };
@@ -393,6 +404,7 @@ in {
               };
             };
             # Codey account (separate bot for codey agent - #ops channel)
+            # NOTE: Codey responds to mentionPatterns (CODEY:, CTO:, etc.) without @mention
             codey = {
               name = "Codey Bot";
               enabled = true;
@@ -411,10 +423,8 @@ in {
                     "codeybot-chat" = {
                       requireMention = false;
                     };
-                    # #ops - codey sees all messages (no @ required)
-                    "ops" = {
-                      requireMention = false;
-                    };
+                    # #ops - inherits requireMention = true from guild default
+                    # Codey still responds to mentionPatterns (CODEY:, CTO:, etc.)
                   };
                 };
               };
