@@ -1567,11 +1567,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770104334,
-        "narHash": "sha256-wj6QGOPt9Aayf6wpZQ5M3A6CwiN56DyESiycmNjClGs=",
+        "lastModified": 1770107861,
+        "narHash": "sha256-ScTYtW33Al8aMiZ67J9f4LUc/5aJnJ6fba1RS70b7bE=",
         "ref": "refs/heads/main",
-        "rev": "74fc795cb8509f4aa7936092c9efee07f9a3722a",
-        "revCount": 12,
+        "rev": "ea419d9ba93414969e2608085d9b346544df7197",
+        "revCount": 14,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0H.git"
       },
@@ -1589,11 +1589,11 @@
         "worktrunk": "worktrunk"
       },
       "locked": {
-        "lastModified": 1770106200,
-        "narHash": "sha256-Fx50SlnP/K3VUV6MHx8WcHZew9/RNTPWsIwrYpL1+VA=",
+        "lastModified": 1770108474,
+        "narHash": "sha256-alAHzigVReLWFsCLyMhTUP0cZUWHwYxJcVU5SSYuyCQ=",
         "ref": "refs/heads/main",
-        "rev": "8b03679a934e055bfe03a662babd4d73027a9d9a",
-        "revCount": 48,
+        "rev": "d675b9bbbe64f473f60dc8abd001db23aec03377",
+        "revCount": 52,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0P.git"
       },
