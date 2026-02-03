@@ -73,7 +73,7 @@ The OpenCode module can configure this automatically. See `modules/home/default/
 ## Technical Details
 
 - **Language**: Go
-- **Version**: 2.5.0
+- **Version**: 2.8.0
 - **Build**: Static binary with CGO disabled
 - **Transport**: stdio (default) or SSE (HTTP)
 - **Platform Support**: Linux, macOS
