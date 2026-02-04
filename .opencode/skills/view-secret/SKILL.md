@@ -46,38 +46,41 @@ mcp_question({
 
 ```bash
 # Unlock agenix before viewing secrets
-agenix-helper unlock
+just unlock
 ```
 
 ## Steps
 
 1. **View a single secret:**
    ```bash
-   agenix view <path>.age
+   just peek <path>.age
    ```
 
 2. **View all secrets for a host:**
    ```bash
    for f in hosts/<hostname>/files/**/*.age; do
      echo "=== $f ==="
-     agenix view "$f"
+     just peek "$f"
      echo
    done
    ```
 
 3. **Export to temporary file for editing:**
    ```bash
-   agenix view <path>.age > /tmp/secret.txt
+   just peek <path>.age > /tmp/secret.txt
    ```
 
 ## Example
 
 ```bash
+# Unlock first
+just unlock
+
 # View a Docker environment file
-/view-secret hosts/pilaster/files/docker/env/n8n.env.age
+just peek hosts/pilaster/files/docker/env/n8n.env.age
 
 # View a Caddyfile
-/view-secret hosts/monolith/files/caddy/Caddyfile.age
+just peek hosts/monolith/files/caddy/Caddyfile.age
 ```
 
 ## Common Secret Locations

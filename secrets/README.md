@@ -2,32 +2,35 @@
 
 > Encrypted secrets using agenix with agenix-rekey integration.
 
-**Full patterns:** See [NIXEY SME](https://agents.ruinous.ai/smes/nixey/) or the agenix skill.
+**Full patterns:** See [NIXEY SME](https://agents.ruinous.ai/smes/nixey/) or the `/encrypt-secret` skill.
 
 ## Quick Reference
 
-### Unlock/Lock
+### Commands
 
 ```bash
-agenix-helper unlock   # Enter passphrase once per session
+just unlock            # Enter passphrase once per session
+just peek <path>       # View an encrypted secret
+just encrypt <path>    # Create or edit an encrypted secret
+just rekey             # Re-encrypt all secrets
 agenix-helper lock     # When done with secrets work
 ```
 
 ### View
 
 ```bash
-agenix view path/to/file.age
+just peek path/to/file.age
 ```
 
 ### Edit Workflow
 
 ```bash
-agenix view file.age > /tmp/edit.txt
+just peek file.age > /tmp/edit.txt
 # ... modify /tmp/edit.txt ...
 rm file.age
 agenix edit -i /tmp/edit.txt file.age
 rm /tmp/edit.txt
-agenix rekey -a
+just rekey
 ```
 
 ### Create New
@@ -36,7 +39,7 @@ agenix rekey -a
 # From template
 agenix edit -i template.txt output.age
 # Interactive
-agenix edit output.age
+just encrypt output.age
 ```
 
 ## File Locations
@@ -117,17 +120,18 @@ age.secrets.<host>_cloudflared_<tunnel> = {
 
 ## Best Practices
 
-1. **Always rekey** after modifying any `.age` file: `agenix rekey -a`
-2. **Never commit plaintext** - verify with `git status` before committing
-3. **Use /tmp for temporary files** during edit workflow
-4. **Lock when done** - `agenix-helper lock`
-5. **Document secret purpose** in Nix comments
+1. **Always unlock first** - `just unlock` before any secrets work
+2. **Always rekey** after modifying any `.age` file: `just rekey`
+3. **Never commit plaintext** - verify with `git status` before committing
+4. **Use /tmp for temporary files** during edit workflow
+5. **Lock when done** - `agenix-helper lock`
+6. **Document secret purpose** in Nix comments
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| Permission denied | Run `agenix-helper unlock` |
+| Permission denied | Run `just unlock` |
 | Rekey fails | Check host keys in secrets.nix |
 | Secret not available | Verify `age.secrets.<name>` definition |
 | Container can't read | Check `mode` and `environmentFiles` path |

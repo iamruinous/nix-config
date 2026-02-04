@@ -128,7 +128,10 @@ mcp_question({
 ### Prerequisites
 
 ```bash
-# Login to Infisical (interactive)
+# Unlock agenix identity first (enter passphrase once per session)
+just unlock
+
+# Login to Infisical (interactive) if not already
 infisical login --domain https://infisical.meskill.farm
 
 # Or set token
@@ -195,17 +198,20 @@ age.secrets.chassis_openclaw_discord_token = {
 agenix generate -a
 
 # Rekey for all hosts
-agenix rekey -a
+just rekey
 
 # Stage the generated files
 git add secrets/
 ```
 
-### Step 4: Verify
+### Step 4: Verify and Deploy
 
 ```bash
 # Check build passes
 just check <host>
+
+# Deploy changes
+just deploy <host>
 
 # View the secret (after deployment)
 # cat /run/agenix/<secret_name>
@@ -322,7 +328,7 @@ Use for binary files (certificates, SSH keys) that can't be stored as text in In
 
 ```bash
 # Unlock agenix identity
-agenix-helper unlock
+just unlock
 ```
 
 ### Creating a New Legacy Secret
@@ -342,13 +348,15 @@ agenix-helper unlock
 
 3. **Encrypt the file:**
    ```bash
+   just encrypt <output-path>.age
+   # Or with input file:
    agenix edit -i /tmp/secret.txt <output-path>.age
    ```
 
 4. **Clean up and rekey:**
    ```bash
    rm /tmp/secret.txt
-   agenix rekey -a
+   just rekey
    ```
 
 ### Legacy Nix Integration
@@ -385,14 +393,17 @@ age.secrets.<hostname>_<service>_<name> = {
 ## Example: Creating a Webhook Secret
 
 ```bash
-# 1. Generate and store in Infisical
+# 1. Unlock agenix identity
+just unlock
+
+# 2. Generate and store in Infisical
 PROJECT_ID="f95d3144-22bb-4c95-9ee8-f3319d4924d5"
 WEBHOOK_SECRET=$(openssl rand -hex 32)
 
 infisical secrets set GITHUB_FORGE_WEBHOOK_SECRET="$WEBHOOK_SECRET" \
   --env=homelab --path=/shared --projectId=$PROJECT_ID
 
-# 2. Add to Nix config (e.g., hosts/monolith/webhooks.nix)
+# 3. Add to Nix config (e.g., hosts/monolith/webhooks.nix)
 # age.secrets.monolith_github_webhook_secret = {
 #   generator.script = config.ruinous.infisical.mkGenerator {
 #     name = "GITHUB_FORGE_WEBHOOK_SECRET";
@@ -401,27 +412,31 @@ infisical secrets set GITHUB_FORGE_WEBHOOK_SECRET="$WEBHOOK_SECRET" \
 #   mode = "400";
 # };
 
-# 3. Generate and rekey
+# 4. Generate and rekey
 agenix generate -a
-agenix rekey -a
+just rekey
 git add secrets/
 
-# 4. Verify
+# 5. Verify and deploy
 just check monolith
+just deploy monolith
 ```
 
 ## Post-Creation Checklist
 
 ### Infisical Secrets
-- [ ] Secret created in Infisical at correct path
+- [ ] Ran `just unlock` before starting
+- [ ] Secret created in Infisical at correct path (see Three-Tier Hierarchy)
 - [ ] Nix config uses `mkGenerator` with correct name/path
 - [ ] Ran `agenix generate -a`
-- [ ] Ran `agenix rekey -a`
-- [ ] Staged secrets/ changes
+- [ ] Ran `just rekey`
+- [ ] Staged secrets/ changes (`git add secrets/`)
 - [ ] Build passes (`just check <host>`)
+- [ ] Deployed (`just deploy <host>`)
 
 ### Legacy Secrets
+- [ ] Ran `just unlock` before starting
 - [ ] Plaintext file removed
-- [ ] Ran `agenix rekey -a`
+- [ ] Ran `just rekey`
 - [ ] Added `age.secrets.*` entry to Nix config
 - [ ] Ran `agenix-helper lock` when done

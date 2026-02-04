@@ -226,10 +226,14 @@ Projects are managed through the `ruinous.ruinage` module, which provides unifie
 - `/update-flake-input <name>` - For versioned flake inputs (ruinagents, budgey-*)
 
 **Working with secrets?**
-- Always run `agenix-helper unlock` first
-- `/encrypt-secret` for new secrets
-- `/view-secret` to inspect existing
-- `/rekey-secrets` after changing `secrets.nix`
+- Always run `just unlock` first (unlocks agenix identity for the session)
+- `/encrypt-secret` for new secrets - **see three-tier hierarchy** in the skill:
+  - `/shared/` - Cross-service secrets (GITHUB_TOKEN, ANTHROPIC_API_KEY)
+  - `/services/<service>/` - Service-specific, any host
+  - `/hosts/<host>/<service>/` - Host-specific instance
+- `/view-secret` to inspect existing (`just peek <path>`)
+- `/rekey-secrets` after changing secrets (`just rekey`)
+- `agenix-helper lock` when done with secrets work
 
 **Need external access?**
 - Internal only: `/add-caddy-route`

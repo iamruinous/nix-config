@@ -21,18 +21,19 @@ Re-encrypt all secrets after modifying `.age` files or when host keys change.
 
 ```bash
 # Unlock agenix before rekeying
-agenix-helper unlock
+just unlock
 ```
 
 ## Steps
 
 1. **Rekey all secrets:**
    ```bash
-   agenix rekey -a
+   just rekey
    ```
 
-2. **Verify rekeyed files:**
+2. **Stage and verify rekeyed files:**
    ```bash
+   git add secrets/
    ls secrets/nixos/*/
    ```
 
@@ -57,19 +58,23 @@ secrets/nixos/<hostname>/<hash>-<secret_name>.age
 ### Permission denied
 ```bash
 # Ensure agenix is unlocked
-agenix-helper unlock
+just unlock
 ```
 
 ## Example
 
 ```bash
-# After updating any secret
-/rekey-secrets
+# Unlock, rekey, and stage
+just unlock
+just rekey
+git add secrets/
 ```
 
 ## Post-Rekey Checklist
 
-- [ ] All secrets rekeyed successfully
+- [ ] Ran `just unlock` before starting
+- [ ] All secrets rekeyed successfully (`just rekey`)
 - [ ] `secrets/nixos/` contains updated files
+- [ ] Staged changes (`git add secrets/`)
 - [ ] No errors in output
-- [ ] Ran `agenix-helper lock`
+- [ ] Ran `agenix-helper lock` when done
