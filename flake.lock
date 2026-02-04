@@ -1587,13 +1587,14 @@
       "locked": {
         "lastModified": 1770172992,
         "narHash": "sha256-G+AtnSL7TbUzVzvL0ZxcjHlJg0flG0512YL5lGBlEcU=",
-        "ref": "refs/heads/main",
+        "ref": "refs/tags/v0.4.0",
         "rev": "968f483c9da46317a0da50cae03b0e516a096ffa",
         "revCount": 40,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0H.git"
       },
       "original": {
+        "ref": "refs/tags/v0.4.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0H.git"
       }
@@ -1631,13 +1632,14 @@
       "locked": {
         "lastModified": 1770173554,
         "narHash": "sha256-sENe23iE0AKsHTRUxNSMOjf+fhdolAv9k0G75GFolVM=",
-        "ref": "refs/heads/main",
+        "ref": "refs/tags/v0.1.0",
         "rev": "0b850786fe1532a58d8ac43c2516d087c8ed2500",
         "revCount": 17,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0S.git"
       },
       "original": {
+        "ref": "refs/tags/v0.1.0",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0S.git"
       }
@@ -2250,13 +2252,14 @@
       "locked": {
         "lastModified": 1770173568,
         "narHash": "sha256-Ut3jPDlJChgaox4XhDCU0rtCIrc9YSusmDImmnxiob4=",
-        "ref": "refs/heads/main",
+        "ref": "refs/tags/v5.0.0-beta.2",
         "rev": "8bdf4c3219a2ce864d4f0da8049725a0c847f144",
         "revCount": 355,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git"
       },
       "original": {
+        "ref": "refs/tags/v5.0.0-beta.2",
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git"
       }

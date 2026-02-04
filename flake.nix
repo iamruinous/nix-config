@@ -140,9 +140,9 @@
     messy-attributes-editor.inputs.nixpkgs.follows = "nixpkgs";
 
     # ruinagents - Agent definitions, docs, and skills
-    # <https://forge.meskill.farm/iamruinous/ruinagents>
-    # TODO: Pin to tagged version once v5 stabilizes
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git";
+    # <https://forge.meskill.farm/RUiNAGE/RUiNAGENTS>
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git?ref=refs/tags/v5.0.0-beta.2";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # N0P - Op management CLI for isolated development sessions
@@ -153,14 +153,14 @@
 
     # n0h - Host management CLI
     # <https://forge.meskill.farm/RUiNAGE/N0H>
-    # TODO: Pin to tagged version once v0.1.0 is released
-    n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git";
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0h
+    n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git?ref=refs/tags/v0.4.0";
     n0h.inputs.nixpkgs.follows = "nixpkgs";
 
     # n0s - Session management CLI
     # <https://forge.meskill.farm/RUiNAGE/N0S>
-    # TODO: Pin to tagged version once v0.1.0 is released
-    n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git";
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0s
+    n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git?ref=refs/tags/v0.1.0";
     n0s.inputs.nixpkgs.follows = "nixpkgs";
 
     # nix-openclaw - Openclaw personal AI assistant for Nix
