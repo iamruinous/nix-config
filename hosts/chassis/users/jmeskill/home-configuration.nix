@@ -56,6 +56,9 @@ in {
     openssh.remote.forwarding.enable = true;
     loginHub.enable = false; # Replaced by n0h above
 
+    # Enable home-manager Infisical integration for agenix-rekey
+    infisical.enable = true;
+
     git.default = {
       userEmail = "jade@ruinous.ai";
       signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";
@@ -77,9 +80,8 @@ in {
         enable = true;
         harnesses.ruinagents.enable = true;
 
-        # Override MCP servers to use file-based secrets from agenix
-        # Uses lib.mkForce to replace default env-based configs
-        # Secrets sourced from Infisical /shared path
+        # Override MCP servers to use file-based secrets from home-manager agenix
+        # Secrets sourced from Infisical /shared path via home-manager level generators
         mcpServers = lib.mkForce {
           # GitHub Copilot MCP - uses shared GitHub token
           github = {
@@ -87,7 +89,7 @@ in {
             url = "https://api.githubcopilot.com/mcp/";
             oauth = false;
             headers = {
-              "Authorization" = "Bearer {file:${osConfig.age.secrets.chassis_opencode_github_token.path}}";
+              "Authorization" = "Bearer {file:${config.age.secrets.hm_opencode_github_token.path}}";
             };
           };
 
@@ -98,7 +100,7 @@ in {
               "${pkgs.forgejo-mcp}/bin/forgejo-mcp"
               "--transport" "stdio"
               "--url" "https://forge.meskill.farm"
-              "--token" "{file:${osConfig.age.secrets.chassis_opencode_forgejo_token.path}}"
+              "--token" "{file:${config.age.secrets.hm_opencode_forgejo_token.path}}"
             ];
           };
 
@@ -107,7 +109,7 @@ in {
             type = "remote";
             url = "https://ai.todoist.net/mcp";
             headers = {
-              "Authorization" = "Bearer {file:${osConfig.age.secrets.chassis_opencode_todoist_token.path}}";
+              "Authorization" = "Bearer {file:${config.age.secrets.hm_opencode_todoist_token.path}}";
             };
           };
 
@@ -116,7 +118,7 @@ in {
             type = "remote";
             url = "https://mcp.context7.com/mcp";
             headers = {
-              "Authorization" = "Bearer {file:${osConfig.age.secrets.chassis_opencode_context7_key.path}}";
+              "Authorization" = "Bearer {file:${config.age.secrets.hm_opencode_context7_key.path}}";
             };
           };
         };
@@ -331,6 +333,126 @@ in {
 
   age.secrets.chassis_opencode_project_ruinagents_env = {
     rekeyFile = ./files/opencode/projects/ruinagents.env.age;
+    mode = "400";
+  };
+
+  # Home-manager level MCP server tokens (via Infisical)
+  # These replace NixOS-level secrets for standalone home-manager compatibility
+  age.secrets.hm_opencode_github_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "GITHUB_TOKEN";
+      path = "/shared";
+    };
+    mode = "400";
+  };
+
+  age.secrets.hm_opencode_forgejo_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "FORGEJO_TOKEN";
+      path = "/shared";
+    };
+    mode = "400";
+  };
+
+  age.secrets.hm_opencode_todoist_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "TODOIST_API_TOKEN";
+      path = "/shared";
+    };
+    mode = "400";
+  };
+
+  age.secrets.hm_opencode_context7_key = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "CONTEXT7_API_KEY";
+      path = "/shared";
+    };
+    mode = "400";
+  };
+
+  # Home-manager level Openclaw secrets (via Infisical)
+  # These replace NixOS-level secrets for standalone home-manager compatibility
+  # Host-specific secrets at /hosts/chassis/openclaw/
+  # Service-specific secrets at /services/openclaw/
+
+  # Discord bot token (default bot)
+  age.secrets.hm_openclaw_discord_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "DISCORD_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
+    mode = "400";
+  };
+
+  # Anthropic API key - service-specific (not shared with n8n/opencode)
+  age.secrets.hm_openclaw_anthropic_key = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "ANTHROPIC_API_KEY";
+      path = "/services/openclaw";
+    };
+    mode = "400";
+  };
+
+  # OpenAI API key - service-specific (not shared with n8n/opencode)
+  age.secrets.hm_openclaw_openai_key = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "OPENAI_API_KEY";
+      path = "/services/openclaw";
+    };
+    mode = "400";
+  };
+
+  # Gateway authentication token
+  age.secrets.hm_openclaw_gateway_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "GATEWAY_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
+    mode = "400";
+  };
+
+  # WhatsApp allowed phone numbers (E.164 format, newline-separated)
+  age.secrets.hm_openclaw_whatsapp_allowfrom = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "WHATSAPP_ALLOWFROM";
+      path = "/hosts/chassis/openclaw";
+    };
+    mode = "400";
+  };
+
+  # Messy Discord bot token (separate bot for messy agent)
+  age.secrets.hm_openclaw_messy_discord_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "MESSY_DISCORD_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
+    mode = "400";
+  };
+
+  # Codey Discord bot token (separate bot for codey agent - #ops channel)
+  age.secrets.hm_openclaw_codey_discord_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "CODEY_DISCORD_TOKEN";
+      path = "/hosts/chassis/openclaw";
+    };
+    mode = "400";
+  };
+
+  # GitHub token for gh CLI - shared across services
+  age.secrets.hm_openclaw_github_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "GITHUB_TOKEN";
+      path = "/shared";
+    };
+    mode = "400";
+  };
+
+  # Forgejo token for tea CLI - shared across services
+  age.secrets.hm_openclaw_forgejo_token = {
+    generator.script = config.ruinous.infisical.mkGenerator {
+      name = "FORGEJO_TOKEN";
+      path = "/shared";
+    };
     mode = "400";
   };
 
@@ -609,11 +731,7 @@ in {
 
                 # Read WhatsApp allowFrom from agenix secret (one phone number per line, E.164 format)
                 # Secret is optional - if not configured, WhatsApp will use empty allowlist
-                WHATSAPP_ALLOWFROM_FILE="${
-          if osConfig.age.secrets ? chassis_openclaw_whatsapp_allowfrom
-          then osConfig.age.secrets.chassis_openclaw_whatsapp_allowfrom.path
-          else ""
-        }"
+                WHATSAPP_ALLOWFROM_FILE="${config.age.secrets.hm_openclaw_whatsapp_allowfrom.path}"
                 if [ -n "$WHATSAPP_ALLOWFROM_FILE" ] && [ -f "$WHATSAPP_ALLOWFROM_FILE" ]; then
                   # Convert newline-separated phone numbers to JSON array
                   ALLOWFROM_JSON=$(${pkgs.jq}/bin/jq -R -s 'split("\n") | map(select(length > 0))' < "$WHATSAPP_ALLOWFROM_FILE")
@@ -621,24 +739,16 @@ in {
                   ALLOWFROM_JSON='[]'
                 fi
 
-                # Read messy Discord bot token from agenix secret (optional)
-                MESSY_DISCORD_TOKEN_FILE="${
-          if osConfig.age.secrets ? chassis_openclaw_messy_discord_token
-          then osConfig.age.secrets.chassis_openclaw_messy_discord_token.path
-          else ""
-        }"
+                # Read messy Discord bot token from agenix secret
+                MESSY_DISCORD_TOKEN_FILE="${config.age.secrets.hm_openclaw_messy_discord_token.path}"
                 if [ -n "$MESSY_DISCORD_TOKEN_FILE" ] && [ -f "$MESSY_DISCORD_TOKEN_FILE" ]; then
                   MESSY_DISCORD_TOKEN=$(cat "$MESSY_DISCORD_TOKEN_FILE")
                 else
                   MESSY_DISCORD_TOKEN=""
                 fi
 
-                # Read codey Discord bot token from agenix secret (optional)
-                CODEY_DISCORD_TOKEN_FILE="${
-          if osConfig.age.secrets ? chassis_openclaw_codey_discord_token
-          then osConfig.age.secrets.chassis_openclaw_codey_discord_token.path
-          else ""
-        }"
+                # Read codey Discord bot token from agenix secret
+                CODEY_DISCORD_TOKEN_FILE="${config.age.secrets.hm_openclaw_codey_discord_token.path}"
                 if [ -n "$CODEY_DISCORD_TOKEN_FILE" ] && [ -f "$CODEY_DISCORD_TOKEN_FILE" ]; then
                   CODEY_DISCORD_TOKEN=$(cat "$CODEY_DISCORD_TOKEN_FILE")
                 else
@@ -646,7 +756,7 @@ in {
                 fi
 
                 # Read default Discord bot token from agenix secret
-                DEFAULT_DISCORD_TOKEN=$(cat "${osConfig.age.secrets.chassis_openclaw_discord_token.path}")
+                DEFAULT_DISCORD_TOKEN=$(cat "${config.age.secrets.hm_openclaw_discord_token.path}")
 
                 # Patch the config with secrets:
                 # 1. WhatsApp allowFrom list
@@ -667,7 +777,7 @@ in {
                 # Create openclaw-specific tea config with embedded token
                 # This isolates openclaw's Forgejo auth from user's interactive config
                 mkdir -p /tmp/openclaw/config/tea
-                FORGEJO_TOKEN=$(cat "${osConfig.age.secrets.chassis_openclaw_forgejo_token.path}")
+                FORGEJO_TOKEN=$(cat "${config.age.secrets.hm_openclaw_forgejo_token.path}")
                 cat > /tmp/openclaw/config/tea/config.yml << EOF
         logins:
           - name: forge.meskill.farm
@@ -681,14 +791,14 @@ in {
         set -euo pipefail
 
         # Read secrets from agenix-managed files
-        export ANTHROPIC_API_KEY="$(cat ${osConfig.age.secrets.chassis_openclaw_anthropic_key.path})"
-        export OPENAI_API_KEY="$(cat ${osConfig.age.secrets.chassis_openclaw_openai_key.path})"
-        export DISCORD_BOT_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_discord_token.path})"
-        export OPENCLAW_GATEWAY_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_gateway_token.path})"
+        export ANTHROPIC_API_KEY="$(cat ${config.age.secrets.hm_openclaw_anthropic_key.path})"
+        export OPENAI_API_KEY="$(cat ${config.age.secrets.hm_openclaw_openai_key.path})"
+        export DISCORD_BOT_TOKEN="$(cat ${config.age.secrets.hm_openclaw_discord_token.path})"
+        export OPENCLAW_GATEWAY_TOKEN="$(cat ${config.age.secrets.hm_openclaw_gateway_token.path})"
 
         # GitHub CLI authentication (from Infisical via agenix-rekey)
         # gh CLI uses GITHUB_TOKEN or GH_TOKEN - no config file needed
-        export GITHUB_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_github_token.path})"
+        export GITHUB_TOKEN="$(cat ${config.age.secrets.hm_openclaw_github_token.path})"
         export GH_TOKEN="$GITHUB_TOKEN"
 
         # Tea/Forgejo CLI authentication
@@ -697,7 +807,7 @@ in {
         export XDG_CONFIG_HOME="/tmp/openclaw/config"
         # Also set env vars for direct API use and compatibility
         export GITEA_SERVER_URL="https://forge.meskill.farm"
-        export GITEA_SERVER_TOKEN="$(cat ${osConfig.age.secrets.chassis_openclaw_forgejo_token.path})"
+        export GITEA_SERVER_TOKEN="$(cat ${config.age.secrets.hm_openclaw_forgejo_token.path})"
         export FORGEJO_TOKEN="$GITEA_SERVER_TOKEN"
         export GITEA_TOKEN="$GITEA_SERVER_TOKEN"
 
@@ -804,8 +914,8 @@ in {
   ruinous.tmuxp.sessions.openclaw = {
     startDirectory = "${config.home.homeDirectory}/.openclaw";
     startCommands = [
-      "export OPENCLAW_GATEWAY_TOKEN=\"$(cat ${osConfig.age.secrets.chassis_openclaw_gateway_token.path})\""
-      "export ANTHROPIC_API_KEY=\"$(cat ${osConfig.age.secrets.chassis_openclaw_anthropic_key.path})\""
+      "export OPENCLAW_GATEWAY_TOKEN=\"$(cat ${config.age.secrets.hm_openclaw_gateway_token.path})\""
+      "export ANTHROPIC_API_KEY=\"$(cat ${config.age.secrets.hm_openclaw_anthropic_key.path})\""
     ];
     windows = [
       {

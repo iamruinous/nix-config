@@ -221,6 +221,8 @@ encrypt secret:
 [group('secrets')]
 rekey:
     @just header "🔑 Rekey Secrets"
+    @just info "Generating secrets from Infisical..."
+    @agenix generate -a
     @just info "Re-encrypting secrets for all hosts..."
     @agenix rekey -a
     @just success "Secrets rekeyed"

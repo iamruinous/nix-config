@@ -1,6 +1,7 @@
 {
   flake,
   config,
+  lib,
   ...
 }: {
   # https://github.com/ryantm/agenix
@@ -21,12 +22,25 @@
 
     # https://github.com/oddlama/agenix-rekey
     rekey = let
-      inherit (config.networking) hostName;
+      # Hostname resolution priority:
+      # 1. hostName from _module.args (set by our flake.nix override for standalone home-manager)
+      # 2. config.networking.hostName (available when run via nixos-rebuild)
+      # 3. "standalone" fallback for standalone home-manager without hostName arg
+      moduleHostName = config._module.args.hostName or null;
+      networkingHostName = config.networking.hostName or "unknown";
+      rawHostName =
+        if moduleHostName != null
+        then moduleHostName
+        else networkingHostName;
+      resolvedHostName =
+        if rawHostName == "unknown" || rawHostName == null
+        then "standalone"
+        else rawHostName;
       username = config.home.username or "";
       target =
         if builtins.hasAttr "home" config
-        then "home/${hostName}-${username}"
-        else "nixos/${hostName}";
+        then "home/${resolvedHostName}-${username}"
+        else "nixos/${resolvedHostName}";
     in {
       # Master identities for agenix-rekey operations (static /tmp paths)
       # agenix-rekey evaluates ALL hosts, so we use /tmp symlinks created by agenix-helper
@@ -38,7 +52,7 @@
       # > nixos generate
       hostPubkey = let
         inherit (builtins) pathExists readFile;
-        sshPub = flake + /hosts/${hostName}/ssh_host_ed25519_key.pub;
+        sshPub = flake + /hosts/${resolvedHostName}/ssh_host_ed25519_key.pub;
         agePub = flake + /users/${username}/id_age.pub;
       in
         if pathExists agePub
