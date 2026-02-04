@@ -35,6 +35,36 @@ secrets/nixos/<host>/*.age (encrypted for host keys)
 opencode.json: {file:/run/agenix/<secret_name>}
 ```
 
+## Local MCP Server Schema
+
+When configuring local MCP servers directly in `opencode.json` (native OpenCode config, not oh-my-opencode.jsonc), use the `environment` key for environment variables:
+
+```json
+{
+  "mcpServers": {
+    "my-mcp": {
+      "type": "local",
+      "command": ["my-mcp-server"],
+      "environment": {
+        "API_KEY": "{file:/run/agenix/my_api_key}",
+        "DATABASE_URL": "{file:/run/agenix/my_db_url}"
+      }
+    }
+  }
+}
+```
+
+> **Important:** Native OpenCode uses `environment` (not `env`) for local MCP server environment variables. This is different from oh-my-opencode.jsonc which may use different key names.
+
+### Schema Comparison
+
+| Config File | Environment Key | Example |
+|-------------|-----------------|---------|
+| `opencode.json` (native) | `environment` | `"environment": {"VAR": "value"}` |
+| `oh-my-opencode.jsonc` | `env` (in mcps section) | `"env": {"VAR": "value"}` |
+
+The `{file:...}` syntax works in both configurations for secret injection.
+
 ## Global MCP Server Secrets
 
 Global secrets apply to all OpenCode sessions on a host. They are configured at the host level and shared across all projects.

@@ -41,6 +41,7 @@ When creating issues or PRs, avoid including actual secret values, project IDs, 
 | Host details | [hosts/README.md](hosts/README.md) |
 | Networks & DNS | [docs/NETWORKS.md](docs/NETWORKS.md) |
 | Secrets patterns | [secrets/README.md](secrets/README.md) |
+| OpenCode MCP secrets | [docs/opencode-mcp-secrets.md](docs/opencode-mcp-secrets.md) |
 | Package docs | [packages/README.md](packages/README.md) |
 
 ---
