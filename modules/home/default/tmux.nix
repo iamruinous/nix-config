@@ -184,6 +184,16 @@ in {
           key = "]";
           command = "switch-client -n";
         };
+
+        # N0H session management (requires n0h CLI)
+        n0h-new = {
+          key = "N";
+          command = "display-popup -E -w 80% -h 80% \"n0h new\"";
+        };
+        n0h-triage = {
+          key = "G";
+          command = "display-popup -E -w 80% -h 80% \"n0h triage\"";
+        };
       };
       description = ''
         Attrset of tmux keybindings. Each binding specifies:
