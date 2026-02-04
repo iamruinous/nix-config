@@ -10,6 +10,7 @@
     flake.inputs.agenix.homeManagerModules.default
     flake.inputs.agenix-rekey.homeManagerModules.default
     (flake + /secrets)
+    ./infisical.nix
   ];
 
   # Overlay is only needed for standalone homeConfigurations (osConfig == null).
@@ -18,6 +19,8 @@
   # Setting nixpkgs.overlays with useGlobalPkgs is deprecated and will be removed.
   nixpkgs.overlays = lib.mkIf (osConfig == null) [
     (import ../../shared/universal/packages-overlay.nix {inherit perSystem flake;})
+    # nix-openclaw overlay needed because the module compares cfg.package == pkgs.openclaw
+    flake.inputs.nix-openclaw.overlays.default
   ];
 
   # Set home.uid from osConfig if available, otherwise fall back to typical Linux UID

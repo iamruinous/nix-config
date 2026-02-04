@@ -125,42 +125,42 @@
     # budgey-assistant-dashboard - Analytics dashboard for budgey assistant
     # <https://forge.meskill.farm/iamruinous/budgey-assistant-dashboard>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input budgey-assistant-dashboard
-    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git?ref=refs/tags/v0.4.10";
+    budgey-assistant-dashboard.url = "git+ssh://git@forge.meskill.farm/iamruinous/budgey-assistant-dashboard.git";
     budgey-assistant-dashboard.inputs.nixpkgs.follows = "nixpkgs";
 
     # n8n-agent - n8n workflow automation agent
     # <https://forge.meskill.farm/iamruinous/n8n-agent>
-    n8n-agent.url = "git+ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git?ref=refs/tags/v0.2.0";
+    n8n-agent.url = "git+ssh://git@forge.meskill.farm/iamruinous/n8n-agent.git";
     n8n-agent.inputs.nixpkgs.follows = "nixpkgs";
 
     # messy-attributes-editor - CRUD webservice for messy_attribute table
     # <https://forge.meskill.farm/iamruinous/messy-attributes-editor>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input messy-attributes-editor
-    messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git?ref=refs/tags/v0.3.0";
+    messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git";
     messy-attributes-editor.inputs.nixpkgs.follows = "nixpkgs";
 
     # ruinagents - Agent definitions, docs, and skills
     # <https://forge.meskill.farm/RUiNAGE/RUiNAGENTS>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git?ref=refs/tags/v5.0.0-beta.2";
+    ruinagents.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git";
     ruinagents.inputs.nixpkgs.follows = "nixpkgs";
 
     # N0P - Op management CLI for isolated development sessions
     # <https://forge.meskill.farm/RUiNAGE/n0p>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0p
-    n0p.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0P.git?ref=refs/tags/v0.5.2";
+    n0p.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0P.git";
     n0p.inputs.nixpkgs.follows = "nixpkgs";
 
     # n0h - Host management CLI
     # <https://forge.meskill.farm/RUiNAGE/N0H>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0h
-    n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git?ref=refs/tags/v0.4.0";
+    n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git";
     n0h.inputs.nixpkgs.follows = "nixpkgs";
 
     # n0s - Session management CLI
     # <https://forge.meskill.farm/RUiNAGE/N0S>
     # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0s
-    n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git?ref=refs/tags/v0.1.0";
+    n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git";
     n0s.inputs.nixpkgs.follows = "nixpkgs";
 
     # nix-openclaw - Openclaw personal AI assistant for Nix
@@ -191,6 +191,24 @@
       hostsDir = ./hosts;
       inherit blueprintOutputs;
     };
+    # Override homeConfigurations to pass hostName via extraSpecialArgs
+    # Blueprint creates homeConfigurations from hosts/<hostname>/users/<username>/home-configuration.nix
+    # but doesn't pass hostname to modules. We need it for agenix-rekey path resolution.
+    lib = inputs.nixpkgs.lib;
+    overrideHomeConfigurations = system: homeConfigs:
+      lib.mapAttrs (name: homeConfig: let
+        # Parse "username@hostname" format
+        parts = lib.splitString "@" name;
+        hostname = if builtins.length parts > 1 then builtins.elemAt parts 1 else "unknown";
+      in
+        homeConfig.extendModules {
+          modules = [
+            {
+              _module.args.hostName = hostname;
+            }
+          ];
+        }
+      ) homeConfigs;
   in
     blueprintOutputs
     // {
@@ -200,6 +218,15 @@
 
       # Merge Pi hosts with blueprint nixosConfigurations
       nixosConfigurations = blueprintOutputs.nixosConfigurations // piHosts;
+
+      # Override legacyPackages to include hostname in homeConfigurations
+      # This allows standalone `home-manager switch --flake .#user@host` to work
+      # with agenix-rekey secrets that are stored in host-specific directories
+      legacyPackages = lib.mapAttrs (system: pkgs:
+        pkgs // {
+          homeConfigurations = overrideHomeConfigurations system (pkgs.homeConfigurations or {});
+        }
+      ) (blueprintOutputs.legacyPackages or {});
 
       # add hashes for cachenix
       caches = [
