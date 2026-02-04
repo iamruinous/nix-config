@@ -186,13 +186,20 @@ in {
         };
 
         # N0H session management (requires n0h CLI)
+        # Uses profile path to always resolve current version (survives deploys without shell restart)
         n0h-new = {
           key = "N";
-          command = "display-popup -E -w 80% -h 80% \"n0h new\"";
+          command = "display-popup -E -w 80% -h 80% \"/etc/profiles/per-user/$USER/bin/n0h new\"";
         };
         n0h-triage = {
           key = "G";
-          command = "display-popup -E -w 80% -h 80% \"n0h triage\"";
+          command = "display-popup -E -w 80% -h 80% \"/etc/profiles/per-user/$USER/bin/n0h triage\"";
+        };
+
+        # Refresh environment after deploy (re-sources profile to pick up new paths)
+        refresh-env = {
+          key = "E";
+          command = "run-shell 'tmux set-environment -g PATH \"$(fish -lc \"echo \\$PATH\")\"' \\; display-message \"Environment refreshed\"";
         };
       };
       description = ''
