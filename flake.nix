@@ -147,8 +147,8 @@
 
     # N0P - Op management CLI for isolated development sessions
     # <https://forge.meskill.farm/RUiNAGE/n0p>
-    # TODO: Pin to tagged version once v0.1.0 is released
-    n0p.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0P.git";
+    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0p
+    n0p.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0P.git?ref=refs/tags/v0.5.2";
     n0p.inputs.nixpkgs.follows = "nixpkgs";
 
     # n0h - Host management CLI
