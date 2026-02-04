@@ -25,6 +25,7 @@
       openssl
       ripgrep
       urlencode
+      yq
 
       # languages
       bun
