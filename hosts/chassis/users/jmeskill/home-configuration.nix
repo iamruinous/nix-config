@@ -38,7 +38,6 @@ in {
   home.packages = with pkgs; [
     gh # GitHub CLI
     tea # Forgejo/Gitea CLI
-    chat-organizer
     n0pPkgs.n0p # Op management CLI
     n0pPkgs.worktrunk # Git worktree management (n0p dependency)
     n0hPkgs.n0h # Host management CLI (login hub)
@@ -58,6 +57,16 @@ in {
 
     # Enable home-manager Infisical integration for agenix-rekey
     infisical.enable = true;
+
+    # Chat log organizer for Obsidian vaults
+    # Runs every 5 minutes, uses Ollama to generate metadata
+    chat-organizer = {
+      enable = true;
+      directories = [
+        "~/Documents/Obsidian Vaults/Personal/Agent Chats"
+      ];
+      interval = "5m";
+    };
 
     git.default = {
       userEmail = "jade@ruinous.ai";
