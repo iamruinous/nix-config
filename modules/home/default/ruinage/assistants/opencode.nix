@@ -580,6 +580,7 @@ with lib; let
       if dirCfg.model != null
       then dirCfg.model
       else opencodeAssistant.model;
+    theme = opencodeAssistant.theme;
     plugins =
       if dirCfg.plugins != null
       then dirCfg.plugins
@@ -656,11 +657,13 @@ with lib; let
         TMP_FILE=$(mktemp)
         ${pkgs.jq}/bin/jq --indent 2 \
           --argjson new_model '${builtins.toJSON resolved.model}' \
+          --argjson new_theme '${builtins.toJSON resolved.theme}' \
           --argjson new_plugins '${builtins.toJSON resolved.plugins}' \
           --argjson new_instructions '${builtins.toJSON resolved.instructions}' \
           --argjson new_servers '${builtins.toJSON resolved.mcpServers}' \
           --argjson new_providers '${builtins.toJSON resolved.providers}' \
           '(if $new_model != null then .model = $new_model else . end)
+            | (if $new_theme != null then .theme = $new_theme else . end)
             | .plugin //= []
             | (if ($new_instructions | length) > 0 then .instructions = $new_instructions else . end)
             | .mcp = (.mcp // {}) + $new_servers
@@ -745,6 +748,21 @@ in {
         - `"anthropic/claude-sonnet-4"` - Claude Sonnet 4
         - `"openai/gpt-5.2"` - GPT 5.2
         - `"google/gemini-2.5-pro"` - Gemini 2.5 Pro
+      '';
+    };
+
+    theme = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "tokyonight";
+      description = lib.mdDoc ''
+        Theme name for the OpenCode interface.
+        If null, uses OpenCode's default theme.
+
+        Example values:
+        - `"tokyonight"` - Tokyo Night theme
+        - `"catppuccin"` - Catppuccin theme
+        - `"dracula"` - Dracula theme
       '';
     };
 
