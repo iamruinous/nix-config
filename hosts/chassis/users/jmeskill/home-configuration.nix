@@ -90,6 +90,7 @@ in {
       # Global OpenCode configuration
       assistants.opencode = {
         enable = true;
+        theme = "tokyonight";
         harnesses.ruinagents.enable = true;
 
         # Override MCP servers to use file-based secrets from home-manager agenix
