@@ -21,7 +21,7 @@
     # Syncthing for cross-machine sync
     syncthing = {
       enable = true;
-      claudeSessions.enable = true;
+      claudeSessions.enable = false;
       devices = {
         jbookpro = {
           id = "MLNPWYZ-LAZM4PW-VXMGTLG-CFI4SCZ-EEWJEXX-VMHOFFA-XZMAFEI-HEPITAW";

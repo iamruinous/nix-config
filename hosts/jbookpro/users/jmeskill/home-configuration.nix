@@ -22,7 +22,7 @@
     # Syncthing for cross-machine sync
     syncthing = {
       enable = true;
-      claudeSessions.enable = true;
+      claudeSessions.enable = false;
       devices = {
         jmacmini = {
           id = "SG7DSAA-HQVGRUF-PO5AKJV-QZSE5GD-PYARYJW-VL7CN3R-U6NJO22-X4ZPSQR";
