@@ -236,9 +236,9 @@ in {
 
       keybinding = lib.mkOption {
         type = lib.types.str;
-        default = "`";
-        description = "Key to trigger doom console (after prefix)";
-        example = "/";
+        default = "C-`";
+        description = "Key to trigger doom console (root table, no prefix needed)";
+        example = "F12";
       };
 
       command = lib.mkOption {
@@ -438,8 +438,9 @@ in {
       bind u display-popup -E "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh"
 
       ${lib.optionalString cfg.doomConsole.enable ''
-        # Doom Console - quick AI popup (prefix + ${cfg.doomConsole.keybinding})
-        bind ${cfg.doomConsole.keybinding} display-popup -E -w ${cfg.doomConsole.width} -h ${cfg.doomConsole.height} "/etc/profiles/per-user/$USER/bin/${cfg.doomConsole.command}"
+        # Doom Console - quick AI popup (${cfg.doomConsole.keybinding}, no prefix)
+        # Close with Ctrl-C or Escape
+        bind -n ${cfg.doomConsole.keybinding} display-popup -E -w ${cfg.doomConsole.width} -h ${cfg.doomConsole.height} "/etc/profiles/per-user/$USER/bin/${cfg.doomConsole.command}"
       ''}
 
       # Status bar position (can be overridden by theme)
