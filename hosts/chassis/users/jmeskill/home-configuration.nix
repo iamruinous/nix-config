@@ -68,6 +68,9 @@ in {
       interval = "5m";
     };
 
+    # Doom Console - quick AI popup (prefix + `)
+    tmux.doomConsole.enable = true;
+
     git.default = {
       userEmail = "jade@ruinous.ai";
       signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";

@@ -230,6 +230,37 @@ in {
       description = "Additional tmux configuration";
     };
 
+    # Doom Console - quick AI popup (Phase 1)
+    doomConsole = {
+      enable = lib.mkEnableOption "Doom Console quick AI popup";
+
+      keybinding = lib.mkOption {
+        type = lib.types.str;
+        default = "`";
+        description = "Key to trigger doom console (after prefix)";
+        example = "/";
+      };
+
+      command = lib.mkOption {
+        type = lib.types.str;
+        default = "opencode";
+        description = "Command to run in the popup";
+        example = "opencode run";
+      };
+
+      width = lib.mkOption {
+        type = lib.types.str;
+        default = "80%";
+        description = "Popup width";
+      };
+
+      height = lib.mkOption {
+        type = lib.types.str;
+        default = "60%";
+        description = "Popup height";
+      };
+    };
+
     powerkit = {
       enable = lib.mkEnableOption "tmux-powerkit status bar framework" // {default = true;};
 
@@ -405,6 +436,11 @@ in {
 
       # Refresh SSH_AUTH_SOCK - opens popup for interactive pane selection
       bind u display-popup -E "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh"
+
+      ${lib.optionalString cfg.doomConsole.enable ''
+        # Doom Console - quick AI popup (prefix + ${cfg.doomConsole.keybinding})
+        bind ${cfg.doomConsole.keybinding} display-popup -E -w ${cfg.doomConsole.width} -h ${cfg.doomConsole.height} "/etc/profiles/per-user/$USER/bin/${cfg.doomConsole.command}"
+      ''}
 
       # Status bar position (can be overridden by theme)
       set -g status-position ${cfg.statusPosition}
