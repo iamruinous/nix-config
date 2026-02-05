@@ -7,6 +7,134 @@
   cfg = config.ruinous.tmux;
   powerkitCfg = cfg.powerkit;
 
+  # N0FRILLS theme variants - RUiNAGE design system
+  n0frillsThemes = {
+    pink = pkgs.writeText "n0frills-pink.sh" ''
+      #!/usr/bin/env bash
+      declare -gA THEME_COLORS=(
+          [background]="#1c1c1c"
+          [statusbar-bg]="#1c1c1c"
+          [statusbar-fg]="#eeeeee"
+          [session-bg]="#d75fd7"
+          [session-fg]="#1c1c1c"
+          [session-prefix-bg]="#ff5faf"
+          [session-copy-bg]="#ffafd7"
+          [session-search-bg]="#d75fd7"
+          [session-command-bg]="#ff5faf"
+          [window-active-base]="#d75fd7"
+          [window-active-style]="bold"
+          [window-inactive-base]="#4e4e4e"
+          [window-inactive-style]="none"
+          [window-activity-style]="italics"
+          [window-bell-style]="bold"
+          [window-zoomed-bg]="#ffafd7"
+          [pane-border-active]="#d75fd7"
+          [pane-border-inactive]="#4e4e4e"
+          [ok-base]="#626262"
+          [good-base]="#d75fd7"
+          [info-base]="#ffafd7"
+          [warning-base]="#ff5faf"
+          [error-base]="#ff5faf"
+          [disabled-base]="#4e4e4e"
+          [message-bg]="#1c1c1c"
+          [message-fg]="#eeeeee"
+          [popup-bg]="#1c1c1c"
+          [popup-fg]="#eeeeee"
+          [popup-border]="#d75fd7"
+          [menu-bg]="#1c1c1c"
+          [menu-fg]="#eeeeee"
+          [menu-selected-bg]="#d75fd7"
+          [menu-selected-fg]="#1c1c1c"
+          [menu-border]="#d75fd7"
+      )
+    '';
+    purple = pkgs.writeText "n0frills-purple.sh" ''
+      #!/usr/bin/env bash
+      declare -gA THEME_COLORS=(
+          [background]="#1c1c1c"
+          [statusbar-bg]="#1c1c1c"
+          [statusbar-fg]="#eeeeee"
+          [session-bg]="#875fd7"
+          [session-fg]="#1c1c1c"
+          [session-prefix-bg]="#af87ff"
+          [session-copy-bg]="#af87ff"
+          [session-search-bg]="#875fd7"
+          [session-command-bg]="#af87ff"
+          [window-active-base]="#875fd7"
+          [window-active-style]="bold"
+          [window-inactive-base]="#4e4e4e"
+          [window-inactive-style]="none"
+          [window-activity-style]="italics"
+          [window-bell-style]="bold"
+          [window-zoomed-bg]="#af87ff"
+          [pane-border-active]="#875fd7"
+          [pane-border-inactive]="#4e4e4e"
+          [ok-base]="#626262"
+          [good-base]="#875fd7"
+          [info-base]="#af87ff"
+          [warning-base]="#af87ff"
+          [error-base]="#af87ff"
+          [disabled-base]="#4e4e4e"
+          [message-bg]="#1c1c1c"
+          [message-fg]="#eeeeee"
+          [popup-bg]="#1c1c1c"
+          [popup-fg]="#eeeeee"
+          [popup-border]="#875fd7"
+          [menu-bg]="#1c1c1c"
+          [menu-fg]="#eeeeee"
+          [menu-selected-bg]="#875fd7"
+          [menu-selected-fg]="#1c1c1c"
+          [menu-border]="#875fd7"
+      )
+    '';
+    grayscale = pkgs.writeText "n0frills-grayscale.sh" ''
+      #!/usr/bin/env bash
+      declare -gA THEME_COLORS=(
+          [background]="#1c1c1c"
+          [statusbar-bg]="#1c1c1c"
+          [statusbar-fg]="#eeeeee"
+          [session-bg]="#eeeeee"
+          [session-fg]="#1c1c1c"
+          [session-prefix-bg]="#bcbcbc"
+          [session-copy-bg]="#bcbcbc"
+          [session-search-bg]="#eeeeee"
+          [session-command-bg]="#bcbcbc"
+          [window-active-base]="#eeeeee"
+          [window-active-style]="bold"
+          [window-inactive-base]="#4e4e4e"
+          [window-inactive-style]="none"
+          [window-activity-style]="italics"
+          [window-bell-style]="bold"
+          [window-zoomed-bg]="#bcbcbc"
+          [pane-border-active]="#eeeeee"
+          [pane-border-inactive]="#4e4e4e"
+          [ok-base]="#626262"
+          [good-base]="#eeeeee"
+          [info-base]="#bcbcbc"
+          [warning-base]="#8a8a8a"
+          [error-base]="#8a8a8a"
+          [disabled-base]="#4e4e4e"
+          [message-bg]="#1c1c1c"
+          [message-fg]="#eeeeee"
+          [popup-bg]="#1c1c1c"
+          [popup-fg]="#eeeeee"
+          [popup-border]="#eeeeee"
+          [menu-bg]="#1c1c1c"
+          [menu-fg]="#eeeeee"
+          [menu-selected-bg]="#eeeeee"
+          [menu-selected-fg]="#1c1c1c"
+          [menu-border]="#eeeeee"
+      )
+    '';
+  };
+
+  isN0frillsTheme = powerkitCfg.theme == "n0frills";
+  effectiveTheme =
+    if isN0frillsTheme
+    then "custom"
+    else powerkitCfg.theme;
+  n0frillsThemePath = n0frillsThemes.${powerkitCfg.themeVariant} or n0frillsThemes.pink;
+
   # Keybinding submodule type
   keybindingType = lib.types.submodule {
     options = {
@@ -282,13 +410,21 @@ in {
       theme = lib.mkOption {
         type = lib.types.str;
         default = "tokyo-night";
-        description = "Powerkit theme name";
+        description = ''
+          Powerkit theme name. Use "n0frills" for the RUiNAGE design system theme.
+          Other themes: tokyo-night, catppuccin, dracula, nord, gruvbox, etc.
+        '';
       };
 
       themeVariant = lib.mkOption {
         type = lib.types.str;
         default = "night";
-        description = "Powerkit theme variant";
+        description = ''
+          Powerkit theme variant.
+          For n0frills: pink (default), purple, grayscale
+          For tokyo-night: night, day, storm
+          For catppuccin: mocha, macchiato, frappe, latte
+        '';
       };
 
       # Base plugins are always installed by default.
@@ -397,8 +533,9 @@ in {
         plugin = pkgs.tmuxPlugins.tmux-powerkit;
         extraConfig = ''
           # Theme configuration
-          set -g @powerkit_theme "${powerkitCfg.theme}"
-          set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"
+          set -g @powerkit_theme "${effectiveTheme}"
+          ${lib.optionalString isN0frillsTheme ''set -g @powerkit_custom_theme_path "${n0frillsThemePath}"''}
+          ${lib.optionalString (!isN0frillsTheme) ''set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"''}
 
           # Plugins to show (basePlugins + extraPlugins)
           set -g @powerkit_plugins "${lib.concatStringsSep "," (powerkitCfg.basePlugins ++ powerkitCfg.extraPlugins)}"

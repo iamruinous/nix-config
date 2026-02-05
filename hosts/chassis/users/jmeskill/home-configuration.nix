@@ -71,6 +71,13 @@ in {
     # Doom Console - quick AI popup (prefix + `)
     tmux.doomConsole.enable = true;
 
+    # N0FRILLS tmux theme - RUiNAGE design system
+    tmux.powerkit = {
+      theme = "n0frills";
+      themeVariant = "pink";
+      separatorStyle = "none";
+    };
+
     git.default = {
       userEmail = "jade@ruinous.ai";
       signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";

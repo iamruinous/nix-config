@@ -150,6 +150,20 @@ For user passwords and advanced operations, see `just --list`.
 2. Verify build: `just check [host]`
 3. Deploy: `just deploy [host]`
 
+### Critical: Git Tracking for New Files
+
+⚠️ **Nix flakes only see files tracked by git.** When you create new files, you MUST add them to git before building:
+
+```bash
+# Add new files to git (required for Nix to see them)
+git add path/to/new/file.nix
+
+# Then build
+just check [host]
+```
+
+**Common failure pattern:** Build fails with "file not found" or evaluation errors for files that exist on disk but aren't tracked by git. Always `git add` new files immediately after creating them.
+
 ---
 
 ## Skills Catalog
