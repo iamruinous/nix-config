@@ -102,8 +102,23 @@ in {
     # Secondary prefix
     prefix2 = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
-      default = "C-u";
+      default = null;
       description = "Secondary prefix key (set to null to disable)";
+    };
+
+    # Quick session picker (Ctrl-U by default, no prefix needed)
+    sessionPicker = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable quick session picker keybinding";
+      };
+
+      keybinding = lib.mkOption {
+        type = lib.types.str;
+        default = "C-u";
+        description = "Key to trigger session picker (root table, no prefix needed)";
+      };
     };
 
     # Terminal features
@@ -441,6 +456,11 @@ in {
         # Doom Console - quick AI popup (${cfg.doomConsole.keybinding}, no prefix)
         # Close with Ctrl-C or Escape
         bind -n ${cfg.doomConsole.keybinding} display-popup -E -w ${cfg.doomConsole.width} -h ${cfg.doomConsole.height} "/etc/profiles/per-user/$USER/bin/${cfg.doomConsole.command}"
+      ''}
+
+      ${lib.optionalString cfg.sessionPicker.enable ''
+        # Quick session picker (${cfg.sessionPicker.keybinding}, no prefix)
+        bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs
       ''}
 
       # Status bar position (can be overridden by theme)
