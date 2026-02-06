@@ -7,6 +7,9 @@
   cfg = config.ruinous.tmux;
   powerkitCfg = cfg.powerkit;
 
+  # N0FRILLS theme support - uses themes from tmux-powerkit package
+  isN0frillsTheme = powerkitCfg.theme == "n0frills";
+
   # Keybinding submodule type
   keybindingType = lib.types.submodule {
     options = {
@@ -131,8 +134,8 @@ in {
     # Allow passthrough
     allowPassthrough = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Allow passthrough for certain escape sequences (e.g., for image protocols)";
+      default = false;
+      description = "Allow passthrough for certain escape sequences (e.g., for image protocols). DISABLED: causes terminal corruption and OSC52 issues.";
     };
 
     # Keybindings - attrset for easy override/extension
@@ -282,13 +285,21 @@ in {
       theme = lib.mkOption {
         type = lib.types.str;
         default = "tokyo-night";
-        description = "Powerkit theme name";
+        description = ''
+          Powerkit theme name. Use "n0frills" for the RUiNAGE design system theme.
+          Other themes: tokyo-night, catppuccin, dracula, nord, gruvbox, etc.
+        '';
       };
 
       themeVariant = lib.mkOption {
         type = lib.types.str;
         default = "night";
-        description = "Powerkit theme variant";
+        description = ''
+          Powerkit theme variant.
+          For n0frills: ruin (default), siege, ghost
+          For tokyo-night: night, day, storm
+          For catppuccin: mocha, macchiato, frappe, latte
+        '';
       };
 
       # Base plugins are always installed by default.
@@ -321,13 +332,13 @@ in {
 
       separatorStyle = lib.mkOption {
         type = lib.types.enum ["normal" "rounded" "slant" "slantup" "trapezoid" "flame" "pixel" "honeycomb" "none"];
-        default = "rounded";
+        default = "slant";
         description = "Separator style between status bar segments";
       };
 
       edgeSeparatorStyle = lib.mkOption {
         type = lib.types.enum ["normal" "rounded" "slant" "slantup" "trapezoid" "flame" "pixel" "honeycomb" "none" "same"];
-        default = "rounded";
+        default = "slant";
         description = "Edge separator style for status bar";
       };
 
@@ -397,8 +408,14 @@ in {
         plugin = pkgs.tmuxPlugins.tmux-powerkit;
         extraConfig = ''
           # Theme configuration
-          set -g @powerkit_theme "${powerkitCfg.theme}"
-          set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"
+          ${lib.optionalString isN0frillsTheme ''
+            set -g @powerkit_theme "n0frills"
+            set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"
+          ''}
+          ${lib.optionalString (!isN0frillsTheme) ''
+            set -g @powerkit_theme "${powerkitCfg.theme}"
+            set -g @powerkit_theme_variant "${powerkitCfg.themeVariant}"
+          ''}
 
           # Plugins to show (basePlugins + extraPlugins)
           set -g @powerkit_plugins "${lib.concatStringsSep "," (powerkitCfg.basePlugins ++ powerkitCfg.extraPlugins)}"

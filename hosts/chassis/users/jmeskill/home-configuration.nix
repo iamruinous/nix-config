@@ -71,6 +71,12 @@ in {
     # Doom Console - quick AI popup (prefix + `)
     tmux.doomConsole.enable = true;
 
+    # N0FRILLS tmux theme
+    tmux.powerkit = {
+      theme = "n0frills";
+      themeVariant = "ruin";
+    };
+
     git.default = {
       userEmail = "jade@ruinous.ai";
       signingKey = "/home/jmeskill/.ssh/id_codey_ed25519";

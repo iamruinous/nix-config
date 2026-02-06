@@ -66,6 +66,139 @@ in
             --set PATH ${runtimePath}
         fi
       done
+
+      # Add N0FRILLS custom themes
+      # https://forge.meskill.farm/RUiNAGE/N0FRILLS
+      mkdir -p $out/share/tmux-plugins/tmux-powerkit/src/themes/n0frills
+      
+      cat > $out/share/tmux-plugins/tmux-powerkit/src/themes/n0frills/ruin.sh << 'EOF'
+#!${pkgs.bash}/bin/bash
+# RUiN - Warm magenta primary with cyan highlight (default)
+declare -gA THEME_COLORS=(
+    [background]="#1c1c1c"
+    [statusbar-bg]="#1c1c1c"
+    [statusbar-fg]="#eeeeee"
+    [session-bg]="#5fd7d7"
+    [session-fg]="#1c1c1c"
+    [session-prefix-bg]="#ff5faf"
+    [session-copy-bg]="#ffafd7"
+    [session-search-bg]="#d75fd7"
+    [session-command-bg]="#ff5faf"
+    [window-active-base]="#d75fd7"
+    [window-active-style]="bold"
+    [window-inactive-base]="#4e4e4e"
+    [window-inactive-style]="none"
+    [window-activity-base]="#5fd7d7"
+    [window-activity-style]="italics"
+    [window-bell-base]="#ff5faf"
+    [window-bell-style]="bold"
+    [window-zoomed-bg]="#ffafd7"
+    [pane-border-active]="#d75fd7"
+    [pane-border-inactive]="#4e4e4e"
+    [ok-base]="#626262"
+    [good-base]="#d75fd7"
+    [info-base]="#ffafd7"
+    [warning-base]="#ff5faf"
+    [error-base]="#ff5faf"
+    [disabled-base]="#4e4e4e"
+    [message-bg]="#1c1c1c"
+    [message-fg]="#eeeeee"
+    [popup-bg]="#1c1c1c"
+    [popup-fg]="#eeeeee"
+    [popup-border]="#d75fd7"
+    [menu-bg]="#1c1c1c"
+    [menu-fg]="#eeeeee"
+    [menu-selected-bg]="#d75fd7"
+    [menu-selected-fg]="#1c1c1c"
+    [menu-border]="#d75fd7"
+)
+EOF
+
+      cat > $out/share/tmux-plugins/tmux-powerkit/src/themes/n0frills/siege.sh << 'EOF'
+#!${pkgs.bash}/bin/bash
+# SIEGE - Cool violet primary with teal highlight
+declare -gA THEME_COLORS=(
+    [background]="#1c1c1c"
+    [statusbar-bg]="#1c1c1c"
+    [statusbar-fg]="#eeeeee"
+    [session-bg]="#00afaf"
+    [session-fg]="#1c1c1c"
+    [session-prefix-bg]="#5f5fff"
+    [session-copy-bg]="#af87ff"
+    [session-search-bg]="#875fd7"
+    [session-command-bg]="#5f5fff"
+    [window-active-base]="#875fd7"
+    [window-active-style]="bold"
+    [window-inactive-base]="#4e4e4e"
+    [window-inactive-style]="none"
+    [window-activity-base]="#00afaf"
+    [window-activity-style]="italics"
+    [window-bell-base]="#5f5fff"
+    [window-bell-style]="bold"
+    [window-zoomed-bg]="#af87ff"
+    [pane-border-active]="#875fd7"
+    [pane-border-inactive]="#4e4e4e"
+    [ok-base]="#626262"
+    [good-base]="#875fd7"
+    [info-base]="#af87ff"
+    [warning-base]="#5f5fff"
+    [error-base]="#5f5fff"
+    [disabled-base]="#4e4e4e"
+    [message-bg]="#1c1c1c"
+    [message-fg]="#eeeeee"
+    [popup-bg]="#1c1c1c"
+    [popup-fg]="#eeeeee"
+    [popup-border]="#875fd7"
+    [menu-bg]="#1c1c1c"
+    [menu-fg]="#eeeeee"
+    [menu-selected-bg]="#875fd7"
+    [menu-selected-fg]="#1c1c1c"
+    [menu-border]="#875fd7"
+)
+EOF
+
+      cat > $out/share/tmux-plugins/tmux-powerkit/src/themes/n0frills/ghost.sh << 'EOF'
+#!${pkgs.bash}/bin/bash
+# GHOST - Monochrome with amber highlight
+declare -gA THEME_COLORS=(
+    [background]="#1c1c1c"
+    [statusbar-bg]="#1c1c1c"
+    [statusbar-fg]="#eeeeee"
+    [session-bg]="#ffaf00"
+    [session-fg]="#1c1c1c"
+    [session-prefix-bg]="#bcbcbc"
+    [session-copy-bg]="#bcbcbc"
+    [session-search-bg]="#eeeeee"
+    [session-command-bg]="#bcbcbc"
+    [window-active-base]="#eeeeee"
+    [window-active-style]="bold"
+    [window-inactive-base]="#4e4e4e"
+    [window-inactive-style]="none"
+    [window-activity-base]="#ffaf00"
+    [window-activity-style]="italics"
+    [window-bell-base]="#eeeeee"
+    [window-bell-style]="bold"
+    [window-zoomed-bg]="#bcbcbc"
+    [pane-border-active]="#eeeeee"
+    [pane-border-inactive]="#4e4e4e"
+    [ok-base]="#626262"
+    [good-base]="#eeeeee"
+    [info-base]="#bcbcbc"
+    [warning-base]="#8a8a8a"
+    [error-base]="#8a8a8a"
+    [disabled-base]="#4e4e4e"
+    [message-bg]="#1c1c1c"
+    [message-fg]="#eeeeee"
+    [popup-bg]="#1c1c1c"
+    [popup-fg]="#eeeeee"
+    [popup-border]="#eeeeee"
+    [menu-bg]="#1c1c1c"
+    [menu-fg]="#eeeeee"
+    [menu-selected-bg]="#eeeeee"
+    [menu-selected-fg]="#1c1c1c"
+    [menu-border]="#eeeeee"
+)
+EOF
     '';
 
   meta = {
