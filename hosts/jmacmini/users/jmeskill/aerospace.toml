@@ -53,14 +53,22 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 #                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-1 = 'main'
+1 = 'secondary'
 2 = 'secondary'
+3 = 'secondary'
+4 = 'secondary'
+5 = 'main'
+6 = 'main'
+7 = 'main'
+8 = 'main'
+9 = 'main'
 A = 'main'
 B = 'main'
 C = 'main'
 G = 'main'
 M = 'main'
 O = 'main'
+P = 'main'
 S = 'secondary'
 T = 'secondary'
 X = 'main'
@@ -127,13 +135,13 @@ alt-f = 'layout floating tiling'
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
 alt-1 = 'workspace 1'
 alt-2 = 'workspace 2'
-## alt-3 = 'workspace 3'
-## alt-4 = 'workspace 4'
-## alt-5 = 'workspace 5'
-## alt-6 = 'workspace 6'
-## alt-7 = 'workspace 7'
-## alt-8 = 'workspace 8'
-## alt-9 = 'workspace 9'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
 alt-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
 alt-b = 'workspace B'
 alt-c = 'workspace C'
@@ -145,7 +153,7 @@ alt-g = 'workspace G'
 alt-m = 'workspace M'
 ## alt-n = 'workspace N'
 alt-o = 'workspace O'
-## alt-p = 'workspace P'
+alt-p = 'workspace P'
 ## alt-q = 'workspace Q'
 ## alt-r = 'workspace R'
 alt-s = 'workspace S'
@@ -160,13 +168,13 @@ alt-y = 'workspace Y'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
 alt-shift-1 = 'move-node-to-workspace 1'
 alt-shift-2 = 'move-node-to-workspace 2'
-## alt-shift-3 = 'move-node-to-workspace 3'
-## alt-shift-4 = 'move-node-to-workspace 4'
-## alt-shift-5 = 'move-node-to-workspace 5'
-## alt-shift-6 = 'move-node-to-workspace 6'
-## alt-shift-7 = 'move-node-to-workspace 7'
-## alt-shift-8 = 'move-node-to-workspace 8'
-## alt-shift-9 = 'move-node-to-workspace 9'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-8 = 'move-node-to-workspace 8'
+alt-shift-9 = 'move-node-to-workspace 9'
 alt-shift-a = 'move-node-to-workspace A'
 alt-shift-b = 'move-node-to-workspace B'
 alt-shift-c = 'move-node-to-workspace C'
@@ -178,7 +186,7 @@ alt-shift-g = 'move-node-to-workspace G'
 alt-shift-m = 'move-node-to-workspace M'
 ## alt-shift-n = 'move-node-to-workspace N'
 alt-shift-o = 'move-node-to-workspace O'
-## alt-shift-p = 'move-node-to-workspace P'
+alt-shift-p = 'move-node-to-workspace P'
 ## alt-shift-q = 'move-node-to-workspace Q'
 ## alt-shift-r = 'move-node-to-workspace R'
 alt-shift-s = 'move-node-to-workspace S'
@@ -245,11 +253,11 @@ run = 'layout floating'
 check-further-callbacks = true
 
 
-# 1 - 1st Space
+# 5 - Messages Space
 
 [[on-window-detected]]
 if.app-id = 'com.apple.MobileSMS'
-run = 'move-node-to-workspace 1'
+run = 'move-node-to-workspace 5'
 
 # 2 - 2nd Space
 
@@ -261,6 +269,22 @@ run = 'move-node-to-workspace 2'
 if.app-id = 'com.google.Chrome.app.cmeodllendljmgnfaopchncmnpgaocab' # Glance
 run = 'move-node-to-workspace 2'
 
+# 3 - Perplexity Space
+
+[[on-window-detected]]
+if.app-id = 'ai.perplexity.mac'
+run = 'move-node-to-workspace 3'
+
+# 8 - AI Coding Space
+
+[[on-window-detected]]
+if.app-id = 'com.openai.codex'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace 8'
+
 # A - AI Space
 
 [[on-window-detected]]
@@ -271,12 +295,7 @@ run = 'move-node-to-workspace A'
 if.app-id = 'com.google.Chrome.app.gdfaincndogidkdcdkhapmbffkckdkhn' # Gemini Magic Leap
 run = 'move-node-to-workspace A'
 
-[[on-window-detected]]
-if.app-id = 'com.anthropic.claudefordesktop'
-run = 'move-node-to-workspace A'
-
 # B - Browser Space 
-
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome'
 if.window-title-regex-substring = '- Jade \(Work\)$'

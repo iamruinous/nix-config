@@ -4,8 +4,13 @@ description: Add an AeroSpace window rule to assign an app/window to a workspace
 compatibility: macOS with AeroSpace window manager
 metadata:
   author: ruinous.ai
-  version: "1.0"
+  version: "1.2"
 parameters:
+  host:
+    type: string
+    description: Target host (defaults to current hostname)
+    required: false
+    placeholder: "jbookpro"
   mode:
     type: select
     description: How to identify the target
@@ -107,10 +112,39 @@ Output format:
 
 ## Configuration File Location
 
-For `jbookpro` host:
-```
-hosts/jbookpro/users/jmeskill/aerospace.toml
-```
+### Determine Target Host
+
+1. **Get current hostname (default):**
+   ```bash
+   hostname
+   ```
+
+2. **If `host` parameter provided in `$ARGUMENTS`, use that instead.**
+
+3. **Find the aerospace.toml for the target host:**
+   ```bash
+   # List all available aerospace configs
+   find hosts -name "aerospace.toml" -path "*/users/*" 2>/dev/null
+   ```
+
+   Known locations:
+   - `hosts/jbookpro/users/jmeskill/aerospace.toml`
+   - `hosts/jmacmini/users/jmeskill/aerospace.toml`
+   - `hosts/jpex/users/jmeskill/aerospace.toml`
+   - `hosts/jpex/users/messybot/aerospace.toml`
+   - `hosts/studio/users/jmeskill/aerospace.toml`
+
+4. **Config path pattern:**
+   ```
+   hosts/<hostname>/users/<username>/aerospace.toml
+   ```
+   
+   Default username is `jmeskill` unless host has a different primary user.
+
+5. **If no aerospace.toml exists for the target host, inform user:**
+   ```
+   "No aerospace.toml found for host '<hostname>'. Available hosts: jbookpro, jmacmini, jpex, studio"
+   ```
 
 ## TOML Entry Patterns
 
@@ -243,7 +277,8 @@ run = 'move-node-to-workspace P'
 ### 2. Read Current Config
 
 ```bash
-cat hosts/jbookpro/users/jmeskill/aerospace.toml
+# Use the determined host from step above
+cat hosts/<hostname>/users/<username>/aerospace.toml
 ```
 
 Identify the appropriate section for the new entry:
@@ -263,21 +298,17 @@ Use `mcp_edit` to add the entry in the appropriate location:
 - Add a comment if it's a new category
 - Maintain consistent formatting
 
-### 5. Validate & Reload
+### 5. Remind User to Deploy
 
-```bash
-# Validate TOML syntax
-aerospace reload-config 2>&1
+Since aerospace.toml is managed by Nix, changes require deployment:
+
+```
+"Entry added. Run `just deploy <hostname>` to apply changes."
 ```
 
-If reload fails, show the error and offer to revert.
-
-### 6. Verify
-
-```bash
-# List current workspace assignments
-aerospace list-workspaces --all --json
-```
+The config will take effect after:
+1. `just deploy <hostname>` completes
+2. AeroSpace automatically reloads on config file change (or manually via `aerospace reload-config`)
 
 ## Existing Workspace Assignments (for reference)
 
@@ -312,6 +343,8 @@ aerospace list-workspaces --all --json
 ```
 User: /add-aerospace-entry
 
+Agent: [Detects hostname: jmacmini]
+Agent: [Finds config: hosts/jmacmini/users/jmeskill/aerospace.toml]
 Agent: [Runs aerospace list-apps --json]
 Agent: "Which app do you want to configure?"
   - Antigravity (com.google.antigravity)
@@ -348,9 +381,17 @@ Agent:
    - Uncomments `alt-y = 'workspace Y'`
    - Uncomments `alt-shift-y = 'move-node-to-workspace Y'`
 
-3. Runs `aerospace reload-config`
+Agent: "Added Antigravity to workspace Y. Run `just deploy jmacmini` to apply."
+```
 
-Agent: "Added Antigravity to workspace Y. Reload successful."
+### Specifying a Different Host
+
+```
+User: /add-aerospace-entry jbookpro
+
+Agent: [Uses specified host: jbookpro]
+Agent: [Finds config: hosts/jbookpro/users/jmeskill/aerospace.toml]
+Agent: [Proceeds with normal workflow...]
 ```
 
 ## Post-Completion Checklist
@@ -359,5 +400,4 @@ Agent: "Added Antigravity to workspace Y. Reload successful."
 - [ ] TOML entry syntax is valid
 - [ ] Entry placed in appropriate section
 - [ ] Workspace keybinding enabled (if using new workspace)
-- [ ] `aerospace reload-config` succeeds
-- [ ] Window moves to correct workspace on next launch
+- [ ] User informed to run `just deploy <hostname>`
