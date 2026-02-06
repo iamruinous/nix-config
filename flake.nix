@@ -163,6 +163,18 @@
     n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git";
     n0s.inputs.nixpkgs.follows = "nixpkgs";
 
+    # n0utl - Utility CLI
+    # <https://forge.meskill.farm/RUiNAGE/N0UTL>
+    # NOTE: Tracks main branch (active development). Pin to tag when stable.
+    n0utl.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0UTL.git";
+    n0utl.inputs.nixpkgs.follows = "nixpkgs";
+
+    # n0dmn - Domain management CLI
+    # <https://forge.meskill.farm/RUiNAGE/N0DMN>
+    # NOTE: Tracks main branch (active development). Pin to tag when stable.
+    n0dmn.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0DMN.git";
+    n0dmn.inputs.nixpkgs.follows = "nixpkgs";
+
     # nix-openclaw - Openclaw personal AI assistant for Nix
     # <https://github.com/openclaw/nix-openclaw>
     nix-openclaw.url = "github:openclaw/nix-openclaw";
@@ -196,19 +208,24 @@
     # but doesn't pass hostname to modules. We need it for agenix-rekey path resolution.
     lib = inputs.nixpkgs.lib;
     overrideHomeConfigurations = system: homeConfigs:
-      lib.mapAttrs (name: homeConfig: let
-        # Parse "username@hostname" format
-        parts = lib.splitString "@" name;
-        hostname = if builtins.length parts > 1 then builtins.elemAt parts 1 else "unknown";
-      in
-        homeConfig.extendModules {
-          modules = [
-            {
-              _module.args.hostName = hostname;
-            }
-          ];
-        }
-      ) homeConfigs;
+      lib.mapAttrs (
+        name: homeConfig: let
+          # Parse "username@hostname" format
+          parts = lib.splitString "@" name;
+          hostname =
+            if builtins.length parts > 1
+            then builtins.elemAt parts 1
+            else "unknown";
+        in
+          homeConfig.extendModules {
+            modules = [
+              {
+                _module.args.hostName = hostname;
+              }
+            ];
+          }
+      )
+      homeConfigs;
   in
     blueprintOutputs
     // {
@@ -222,10 +239,12 @@
       # Override legacyPackages to include hostname in homeConfigurations
       # This allows standalone `home-manager switch --flake .#user@host` to work
       # with agenix-rekey secrets that are stored in host-specific directories
-      legacyPackages = lib.mapAttrs (system: pkgs:
-        pkgs // {
-          homeConfigurations = overrideHomeConfigurations system (pkgs.homeConfigurations or {});
-        }
+      legacyPackages = lib.mapAttrs (
+        system: pkgs:
+          pkgs
+          // {
+            homeConfigurations = overrideHomeConfigurations system (pkgs.homeConfigurations or {});
+          }
       ) (blueprintOutputs.legacyPackages or {});
 
       # add hashes for cachenix
