@@ -13,6 +13,10 @@
   n0pPkgs = flake.inputs.n0p.packages.${pkgs.system};
   # n0h package for host management CLI (login hub replacement)
   n0hPkgs = flake.inputs.n0h.packages.${pkgs.system};
+  # n0dmn package for domain management CLI
+  n0dmnPkgs = flake.inputs.n0dmn.packages.${pkgs.system};
+  # n0utl packages for utility CLIs (n0hub, n0mux, n0ps, n0code, n0isu)
+  n0utlPkgs = flake.inputs.n0utl.packages.${pkgs.system};
 
 in {
   imports = [
@@ -20,6 +24,7 @@ in {
     flake.homeModules.kde
     flake.inputs.nix-openclaw.homeManagerModules.openclaw
     flake.inputs.n0s.homeManagerModules.default
+    flake.inputs.n0dmn.homeManagerModules.default
   ];
 
   programs.wezterm.enable = true;
@@ -28,6 +33,13 @@ in {
   # Provides searchable collection of upstream reference code (opencode, openclaw, etc.)
   programs.n0s.enable = true;
 
+  # N0DMN - Session Lifecycle Daemon
+  # Manages development sessions, OpenCode backends, and Caddy dynamic routing
+  services.n0dmn = {
+    enable = true;
+    caddy.enable = true;
+  };
+
   # Allow git operations in budgey-assistant archive directory
   # The archive is owned by budgey-assistant service but extractors run as jmeskill
   programs.git.settings.safe.directory = "/var/lib/budgey-assistant/archive";
@@ -35,12 +47,21 @@ in {
   # GitHub and Forgejo CLI tools for openclaw issue management
   # n0p for isolated development sessions (worktrees + tmuxp)
   # n0h for host management and login hub
+  # n0dmn for domain management
+  # n0utl for utility CLIs
   home.packages = with pkgs; [
     gh # GitHub CLI
     tea # Forgejo/Gitea CLI
+    grepai # AI-powered semantic code search (requires Ollama + nomic-embed-text)
     n0pPkgs.n0p # Op management CLI
     n0pPkgs.worktrunk # Git worktree management (n0p dependency)
     n0hPkgs.n0h # Host management CLI (login hub)
+    n0dmnPkgs.n0dmn # Domain management CLI
+    n0utlPkgs.n0hub # TUI dashboard for development sessions
+    n0utlPkgs.n0mux # tmux wrapper for session management
+    n0utlPkgs.n0ps # Session process manager
+    n0utlPkgs.n0code # OpenCode wrapper
+    n0utlPkgs.n0isu # Issue management CLI
   ];
 
   # n0h login hub - runs on SSH login instead of ruinous-login-hub
@@ -75,6 +96,12 @@ in {
     tmux.powerkit = {
       theme = "n0frills";
       themeVariant = "ruin";
+      # Override session colors to use cyan instead of magenta
+      extraConfig = ''
+        # Session name colors - cyan background
+        set -g @powerkit_color_session_bg "#5fd7d7"
+        set -g @powerkit_color_session_fg "#1c1c1c"
+      '';
     };
 
     git.default = {
@@ -139,6 +166,12 @@ in {
             headers = {
               "Authorization" = "Bearer {file:${config.age.secrets.hm_opencode_context7_key.path}}";
             };
+          };
+
+          # grepai MCP - semantic code search (uses Ollama + nomic-embed-text)
+          grepai = {
+            type = "local";
+            command = ["${pkgs.grepai}/bin/grepai" "mcp-serve"];
           };
         };
       };
