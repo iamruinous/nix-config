@@ -9,10 +9,6 @@
   # Explicit package references from nix-openclaw flake input
   # (avoids deprecated nixpkgs.overlays with home-manager.useGlobalPkgs)
   openclawPkgs = flake.inputs.nix-openclaw.packages.${pkgs.system};
-  # n0p package for Op management (isolated development sessions)
-  n0pPkgs = flake.inputs.n0p.packages.${pkgs.system};
-  # n0h package for host management CLI (login hub replacement)
-  n0hPkgs = flake.inputs.n0h.packages.${pkgs.system};
   # n0dmn package for domain management CLI
   n0dmnPkgs = flake.inputs.n0dmn.packages.${pkgs.system};
   # n0utl packages for utility CLIs (n0hub, n0mux, n0ps, n0code, n0isu)
@@ -23,15 +19,10 @@ in {
     flake.homeModules.default
     flake.homeModules.kde
     flake.inputs.nix-openclaw.homeManagerModules.openclaw
-    flake.inputs.n0s.homeManagerModules.default
     flake.inputs.n0dmn.homeManagerModules.default
   ];
 
   programs.wezterm.enable = true;
-
-  # N0S - Code Gallery for reference repositories
-  # Provides searchable collection of upstream reference code (opencode, openclaw, etc.)
-  programs.n0s.enable = true;
 
   # N0DMN - Session Lifecycle Daemon
   # Manages development sessions, OpenCode backends, and Caddy dynamic routing
@@ -45,17 +36,12 @@ in {
   programs.git.settings.safe.directory = "/var/lib/budgey-assistant/archive";
 
   # GitHub and Forgejo CLI tools for openclaw issue management
-  # n0p for isolated development sessions (worktrees + tmuxp)
-  # n0h for host management and login hub
   # n0dmn for domain management
   # n0utl for utility CLIs
   home.packages = with pkgs; [
     gh # GitHub CLI
     tea # Forgejo/Gitea CLI
     grepai # AI-powered semantic code search (requires Ollama + nomic-embed-text)
-    n0pPkgs.n0p # Op management CLI
-    n0pPkgs.worktrunk # Git worktree management (n0p dependency)
-    n0hPkgs.n0h # Host management CLI (login hub)
     n0dmnPkgs.n0dmn # Domain management CLI
     n0utlPkgs.n0hub # TUI dashboard for development sessions
     n0utlPkgs.n0mux # tmux wrapper for session management
@@ -64,17 +50,9 @@ in {
     n0utlPkgs.n0isu # Issue management CLI
   ];
 
-  # n0h login hub - runs on SSH login instead of ruinous-login-hub
-  programs.fish.interactiveShellInit = ''
-    if test -z "$TMUX" -a -n "$SSH_TTY" -a -z "$BYPASS_LOGIN_HUB"
-      exec ${n0hPkgs.n0h}/bin/n0h
-    end
-  '';
-
   ruinous = {
     rust-motd.enable = true;
     openssh.remote.forwarding.enable = true;
-    loginHub.enable = false; # Replaced by n0h above
 
     # Enable home-manager Infisical integration for agenix-rekey
     infisical.enable = true;
@@ -206,73 +184,26 @@ in {
         harnesses.ruinagents.enable = true;
       };
 
-      # Kimaki Discord voice bot - global service configuration
-      # Uses common.env for shared tokens (Git, CF, Todoist, Apprise)
-      # Plus all project envs since it handles Discord requests for any project
-      # Discord credentials stored in ~/.kimaki/discord-sessions.db
-      assistants.kimaki = {
-        enable = true;
-        configDir = "${config.home.homeDirectory}/.config/kimaki";
-        cacheDir = "${config.home.homeDirectory}/.cache/kimaki";
-        stateDir = "${config.home.homeDirectory}/.local/state/kimaki";
-        dataDir = "${config.home.homeDirectory}/.local/share/kimaki";
-        environmentFiles = [
-          config.age.secrets.chassis_opencode_common_env.path
-          config.age.secrets.chassis_opencode_project_nix_env.path
-          config.age.secrets.chassis_opencode_project_n8n_env.path
-        ];
-      };
-
       # Unified project-centric configuration
-      # Projects with caddy.fqdn get:
-      #   - Systemd user service (opencode web)
-      #   - Caddy route (configured in chassis/caddy.nix)
-      #   - CORS configured for the FQDN
-      #   - tmuxp session in attach mode (no server window)
-      #
-      # Environment files:
-      #   - common.env.age: Shared tokens (Git, CF, Todoist, Apprise)
-      #   - projects/*.env.age: Per-project secrets (Postgres URIs, API keys)
+      # Projects with tmuxp enabled get tmuxp session files generated
+      # OpenCode projects removed - now managed via n0dmn
       projects = {
-        # nix-config - web service with Caddy
+        # nix-config
         nix-config = {
           forge = "github.com"; # differs from default
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-            config.age.secrets.chassis_opencode_project_nix_env.path
-          ];
         };
 
-        # n8n-agent - web service with Caddy
+        # n8n-agent
         n8n-agent = {
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-            config.age.secrets.chassis_opencode_project_n8n_env.path
-          ];
         };
 
-        # dossiq-ai - web service with Caddy
+        # dossiq-ai
         dossiq-ai = {
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           tmuxp.extraWindows = [
             {
               name = "tests";
@@ -280,125 +211,53 @@ in {
             }
           ];
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-          ];
         };
 
-        # kimaki-discord-voice-bot - web service with Caddy
+        # kimaki-discord-voice-bot
         kimaki-discord = {
           repo = "kimaki-discord-voice-bot"; # differs from project name
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-          ];
         };
 
-        # n8n-messy-discord-bot - web service with Caddy
+        # n8n-messy-discord-bot
         messy-discord = {
           repo = "n8n-messy-discord-bot"; # differs from project name
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-          ];
         };
 
-        # ruinagents - web service with Caddy
+        # ruinagents
         ruinagents = {
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-            config.age.secrets.chassis_opencode_project_ruinagents_env.path
-          ];
         };
 
-        # budgey-assistant-dashboard - web service with Caddy
+        # budgey-assistant-dashboard
         budgey-assistant-dashboard = {
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-          ];
         };
 
-        # budgey-assistant-ingest-tools - web service with Caddy
+        # budgey-assistant-ingest-tools
         budgey-assistant-ingest-tools = {
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-          ];
         };
 
-        # messy-attributes-editor - web service with Caddy
+        # messy-attributes-editor
         messy-attributes-editor = {
           # Disable docs aggregation - upstream docs build needs fixing
           # (mkdocstrings can't find messy_attributes module in build env)
           docs.enable = false;
-          assistants.opencode = {
-            enable = true;
-            web.enable = true;
-            budgey.enable = true;
-          };
-          assistants.kimaki.enable = true;
+          tmuxp.enable = true;
           direnv.enable = true;
-          environmentFiles = [
-            config.age.secrets.chassis_opencode_common_env.path
-          ];
         };
       };
     };
   };
 
-  # Common environment shared by all opencode-projects and kimaki
-  age.secrets.chassis_opencode_common_env = {
-    rekeyFile = ./files/opencode/common.env.age;
-    mode = "400";
-  };
 
-  # Per-project environment files
-  age.secrets.chassis_opencode_project_nix_env = {
-    rekeyFile = ./files/opencode/projects/nix.env.age;
-    mode = "400";
-  };
-
-  age.secrets.chassis_opencode_project_n8n_env = {
-    rekeyFile = ./files/opencode/projects/n8n.env.age;
-    mode = "400";
-  };
-
-  age.secrets.chassis_opencode_project_ruinagents_env = {
-    rekeyFile = ./files/opencode/projects/ruinagents.env.age;
-    mode = "400";
-  };
 
   # Home-manager level MCP server tokens (via Infisical)
   # These replace NixOS-level secrets for standalone home-manager compatibility

@@ -139,41 +139,14 @@
     messy-attributes-editor.url = "git+ssh://git@forge.meskill.farm/iamruinous/messy-attributes-editor.git";
     messy-attributes-editor.inputs.nixpkgs.follows = "nixpkgs";
 
-    # ruinagents - Agent definitions, docs, and skills
-    # <https://forge.meskill.farm/RUiNAGE/RUiNAGENTS>
-    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input ruinagents
-    ruinagents.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git";
-    ruinagents.inputs.nixpkgs.follows = "nixpkgs";
+    # N0FRILLS aggregator flake (N0UTL, N0DMN, RUiNAGENTS)
+    # <https://forge.meskill.farm/RUiNAGE/N0FLK>
+    n0flk.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0FLK.git";
 
-    # N0P - Op management CLI for isolated development sessions
-    # <https://forge.meskill.farm/RUiNAGE/n0p>
-    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0p
-    n0p.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0P.git";
-    n0p.inputs.nixpkgs.follows = "nixpkgs";
-
-    # n0h - Host management CLI
-    # <https://forge.meskill.farm/RUiNAGE/N0H>
-    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0h
-    n0h.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0H.git";
-    n0h.inputs.nixpkgs.follows = "nixpkgs";
-
-    # n0s - Session management CLI
-    # <https://forge.meskill.farm/RUiNAGE/N0S>
-    # NOTE: Keep pinned to tagged version. Update with: /update-flake-input n0s
-    n0s.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0S.git";
-    n0s.inputs.nixpkgs.follows = "nixpkgs";
-
-    # n0utl - Utility CLI
-    # <https://forge.meskill.farm/RUiNAGE/N0UTL>
-    # NOTE: Tracks main branch (active development). Pin to tag when stable.
-    n0utl.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0UTL.git";
-    n0utl.inputs.nixpkgs.follows = "nixpkgs";
-
-    # n0dmn - Domain management CLI
-    # <https://forge.meskill.farm/RUiNAGE/N0DMN>
-    # NOTE: Tracks main branch (active development). Pin to tag when stable.
-    n0dmn.url = "git+ssh://git@forge.meskill.farm/RUiNAGE/N0DMN.git";
-    n0dmn.inputs.nixpkgs.follows = "nixpkgs";
+    # Follow N0FRILLS aggregator inputs
+    ruinagents.follows = "n0flk/ruinagents";
+    n0utl.follows = "n0flk/n0utl";
+    n0dmn.follows = "n0flk/n0dmn";
 
     # nix-openclaw - Openclaw personal AI assistant for Nix
     # <https://github.com/openclaw/nix-openclaw>
