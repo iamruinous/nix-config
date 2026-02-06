@@ -134,8 +134,8 @@ in {
     # Allow passthrough
     allowPassthrough = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Allow passthrough for certain escape sequences (e.g., for image protocols)";
+      default = false;
+      description = "Allow passthrough for certain escape sequences (e.g., for image protocols). DISABLED: causes terminal corruption and OSC52 issues.";
     };
 
     # Keybindings - attrset for easy override/extension
