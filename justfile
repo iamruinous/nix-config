@@ -1,36 +1,75 @@
 # justfile for nix-config
 # Run `just` to see available recipes
 
-# Default recipe - show help
+# Default recipe - show banner + help
 default:
+    @just n0-banner
     @just --list
 
+[private]
+n0-banner:
+    #!/usr/bin/env bash
+    # N0FRILLS gradient banner using figlet font
+    FONT_URL="https://forge.meskill.farm/RUiNAGE/N0FRILLS/raw/branch/main/font/N0FRILLS.flf"
+    FONT_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/n0frills/N0FRILLS.flf"
+    
+    # Cache the font locally
+    if [ ! -f "$FONT_CACHE" ]; then
+        mkdir -p "$(dirname "$FONT_CACHE")"
+        curl -sL "$FONT_URL" -o "$FONT_CACHE" 2>/dev/null || true
+    fi
+    
+    echo ""
+    if [ -f "$FONT_CACHE" ] && command -v figlet &>/dev/null; then
+        # Generate banner with gradient (white -> magenta)
+        n=0
+        figlet -f "$FONT_CACHE" "RUiNiX" | while IFS= read -r line; do
+            n=$((n + 1))
+            case $n in
+                1) gum style --foreground "#ffffff" "$line" ;;
+                2) gum style --foreground "#eeaadd" "$line" ;;
+                3) gum style --foreground "#dd77cc" "$line" ;;
+                4) gum style --foreground "#d75fd7" "$line" ;;
+                *) gum style --foreground "#d75fd7" "$line" ;;
+            esac
+        done
+    else
+        # Fallback if figlet unavailable
+        gum style --foreground "#d75fd7" --bold "RUiNiX"
+    fi
+    echo ""
+
 # =============================================================================
-# Helper Functions (private)
+# N0FRILLS Output Helpers
 # =============================================================================
 
 [private]
-header title:
-    @gum style --foreground 212 --bold "{{ title }}"
+n0-header title:
+    @echo ""
+    @gum style --foreground "#d75fd7" --bold "{{ title }}"
 
 [private]
-info msg:
-    @gum log --level info "{{ msg }}"
+n0-info msg:
+    @echo "    {{ msg }}"
 
 [private]
-warn msg:
-    @gum log --level warn "{{ msg }}"
+n0-ok msg="Done.":
+    @gum style --foreground "#5fd7d7" "[+] {{ msg }}"
 
 [private]
-error msg:
-    @gum log --level error "{{ msg }}"
+n0-warn msg:
+    @gum style --foreground "#ffaf00" "[!] {{ msg }}"
 
 [private]
-success msg:
-    @gum log --level info --prefix "✓" "{{ msg }}"
+n0-error msg:
+    @gum style --foreground "#af0000" "[!] {{ msg }}"
+
+[private]
+n0-action msg:
+    @gum style --foreground "#8a8a8a" "[>] {{ msg }}"
 
 # =============================================================================
-# Host Commands
+# HOST
 # =============================================================================
 
 # Verify configuration builds (dry-build)
@@ -41,27 +80,21 @@ check host=`hostname`:
     current_host=$(hostname)
     os_type=$(uname -s)
     
-    # Check if target is a Darwin host by looking for darwin-configuration.nix
     is_darwin_host=false
-    if [ -f "hosts/{{ host }}/darwin-configuration.nix" ]; then
-        is_darwin_host=true
-    fi
+    [ -f "hosts/{{ host }}/darwin-configuration.nix" ] && is_darwin_host=true
     
     if [ "{{ host }}" = "$current_host" ]; then
-        # Local verification
         if [ "$os_type" = "Darwin" ]; then
             just darwin-check
         else
             just local-check
         fi
     elif [ "$is_darwin_host" = "true" ]; then
-        # Darwin hosts - use nix build --dry-run (can check remotely)
-        just header "🧪 Darwin Check"
-        just info "Dry-building darwin configuration for {{ host }}..."
+        just n0-header "CHECK"
+        just n0-action "{{ host }} (darwin)"
         nix build .#darwinConfigurations.{{ host }}.system --dry-run
-        just success "Check complete for {{ host }}"
+        just n0-ok
     else
-        # Remote NixOS
         just remote-check {{ host }}
     fi
 
@@ -73,25 +106,19 @@ deploy host=`hostname`:
     current_host=$(hostname)
     os_type=$(uname -s)
     
-    # Check if target is a Darwin host by looking for darwin-configuration.nix
     is_darwin_host=false
-    if [ -f "hosts/{{ host }}/darwin-configuration.nix" ]; then
-        is_darwin_host=true
-    fi
+    [ -f "hosts/{{ host }}/darwin-configuration.nix" ] && is_darwin_host=true
     
     if [ "{{ host }}" = "$current_host" ]; then
-        # Local deployment
         if [ "$os_type" = "Darwin" ]; then
             just darwin-deploy
         else
             just local-deploy
         fi
     elif [ "$is_darwin_host" = "true" ]; then
-        # Darwin hosts don't support remote deployment
-        just error "Darwin hosts don't support remote deployment. Run 'just deploy' on {{ host }} directly."
+        just n0-error "Darwin hosts: run 'just deploy' locally"
         exit 1
     else
-        # Remote NixOS deployment
         just remote-deploy {{ host }}
     fi
 
@@ -103,135 +130,129 @@ build host=`hostname`:
     current_host=$(hostname)
     os_type=$(uname -s)
     
-    # Check if target is a Darwin host by looking for darwin-configuration.nix
     is_darwin_host=false
-    if [ -f "hosts/{{ host }}/darwin-configuration.nix" ]; then
-        is_darwin_host=true
-    fi
+    [ -f "hosts/{{ host }}/darwin-configuration.nix" ] && is_darwin_host=true
     
     if [ "{{ host }}" = "$current_host" ]; then
-        # Local build
         if [ "$os_type" = "Darwin" ]; then
             just darwin-build
         else
             just local-build
         fi
     elif [ "$is_darwin_host" = "true" ]; then
-        # Darwin hosts - can build remotely
-        just header "🔨 Darwin Build"
-        just info "Building darwin configuration for {{ host }}..."
+        just n0-header "BUILD"
+        just n0-action "{{ host }} (darwin)"
         nix build .#darwinConfigurations.{{ host }}.system
-        just success "Build complete for {{ host }}"
+        just n0-ok
     else
-        # Remote NixOS build
         just remote-build {{ host }}
     fi
 
-# Bootstrap host with nixos-anywhere (initial installation)
+# Bootstrap host with nixos-anywhere
 [group('host')]
 bringup host sshpass:
     #!/usr/bin/env bash
     set -euo pipefail
-    just header "🚀 Bringup - nixos-anywhere"
-    just info "Bootstrapping {{ host }} with nixos-anywhere..."
-    just warn "This will ERASE the target system and install NixOS!"
-    gum confirm "Bootstrap {{ host }}?" || exit 1
+    just n0-header "BRINGUP"
+    just n0-warn "This will ERASE {{ host }} and install NixOS"
+    gum confirm "Proceed?" || exit 1
+    just n0-action "{{ host }}"
     env SSHPASS="{{ sshpass }}" nix run github:nix-community/nixos-anywhere -- \
         --flake .#{{ host }} \
         --target-host nixos@{{ host }}.meskill.farm \
         --env-password
-    just success "Bringup complete for {{ host }}"
+    just n0-ok
 
-# Install Nix and nix-darwin (if on macOS)
+# Install Nix and nix-darwin (macOS)
 [group('host')]
 install:
     #!/usr/bin/env bash
     set -euo pipefail
     os_type=$(uname -s)
     
-    just header "📦 Install"
+    just n0-header "INSTALL"
     
     if [ "$os_type" = "Darwin" ]; then
-        just info "Installing Lix (Nix fork) via lix-installer..."
+        just n0-action "lix"
         curl -sSf -L https://install.lix.systems/lix | sh -s -- install
-        just success "Lix installation complete"
-        
-        just info "Installing nix-darwin for $(hostname)..."
+        just n0-action "nix-darwin"
         nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake .#$(hostname)
-        just success "nix-darwin installation complete"
     else
-        just info "Installing Nix package manager..."
+        just n0-action "nix"
         curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes
-        just success "Nix installation complete"
     fi
+    just n0-ok
 
 # =============================================================================
-# Validation Commands
+# VALIDATE
 # =============================================================================
 
-# Dry-build representative hosts (sanity check)
+# Dry-build representative hosts
 [group('validate')]
 canary:
-    @just header "🐤 Canary - Dry Build Representative Hosts"
-    @just info "Testing NixOS desktop (chassis)..."
-    @nix build .#nixosConfigurations.chassis.config.system.build.toplevel --dry-run 2>/dev/null
-    @just success "chassis (NixOS desktop) OK"
-    @just info "Testing NixOS laptop (framework)..."
-    @nix build .#nixosConfigurations.framework.config.system.build.toplevel --dry-run 2>/dev/null
-    @just success "framework (NixOS laptop) OK"
-    @just info "Testing NixOS server (monolith)..."
-    @nix build .#nixosConfigurations.monolith.config.system.build.toplevel --dry-run 2>/dev/null
-    @just success "monolith (NixOS server) OK"
-    @just info "Testing Darwin (jbookpro)..."
-    @nix build .#darwinConfigurations.jbookpro.system --dry-run 2>/dev/null
-    @just success "jbookpro (Darwin) OK"
-    @just info "Testing Raspberry Pi 5 (rp500)..."
-    @nix build .#nixosConfigurations.rp500.config.system.build.toplevel --dry-run 2>/dev/null
-    @just success "rp500 (Raspberry Pi 5) OK"
-    @just info "Testing Raspberry Pi 4 (rpc-4-echo)..."
-    @nix build .#nixosConfigurations.rpc-4-echo.config.system.build.toplevel --dry-run 2>/dev/null
-    @just success "rpc-4-echo (Raspberry Pi 4) OK"
-    @echo ""
-    @gum style --foreground 82 --bold "✓ All canary checks passed!"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just n0-header "CANARY"
+    
+    hosts=(
+        "chassis:nixos:desktop"
+        "framework:nixos:laptop"
+        "monolith:nixos:server"
+        "jbookpro:darwin:workstation"
+        "rp500:nixos:pi5"
+        "rpc-4-echo:nixos:pi4"
+    )
+    
+    for entry in "${hosts[@]}"; do
+        IFS=':' read -r host type label <<< "$entry"
+        just n0-action "$host ($label)"
+        if [ "$type" = "darwin" ]; then
+            nix build .#darwinConfigurations.$host.system --dry-run 2>/dev/null
+        else
+            nix build .#nixosConfigurations.$host.config.system.build.toplevel --dry-run 2>/dev/null
+        fi
+    done
+    
+    echo ""
+    gum style --foreground "#5fd7d7" --bold "[+] All canary checks passed"
 
 # =============================================================================
-# Secrets Commands
+# SECRETS
 # =============================================================================
 
-# Unlock agenix identity for secret operations
+# Unlock agenix identity
 [group('secrets')]
 unlock:
-    @just header "🔓 Unlock Agenix"
+    @just n0-header "UNLOCK"
     @agenix-helper unlock
-    @just success "Agenix identity unlocked"
+    @just n0-ok
 
-# View an encrypted secret
+# View encrypted secret
 [group('secrets')]
 peek secret:
-    @just header "👁️  View Secret"
+    @just n0-header "PEEK"
     @agenix view {{ secret }}
 
-# Create or edit an encrypted secret
+# Edit encrypted secret
 [group('secrets')]
 encrypt secret:
-    @just header "🔐 Edit Secret"
+    @just n0-header "ENCRYPT"
     @agenix edit {{ secret }}
 
-# Re-encrypt all secrets for hosts that need them
+# Re-encrypt all secrets
 [group('secrets')]
 rekey:
-    @just header "🔑 Rekey Secrets"
-    @just info "Generating secrets from Infisical..."
+    @just n0-header "REKEY"
+    @just n0-action "generate"
     @agenix generate -a
-    @just info "Re-encrypting secrets for all hosts..."
+    @just n0-action "rekey"
     @agenix rekey -a
-    @just success "Secrets rekeyed"
+    @just n0-ok
     @echo ""
-    @gum style --foreground 229 "Don't forget to commit the rekeyed secrets:"
-    @gum style --foreground 245 "  git add secrets/"
+    @gum style --foreground "#8a8a8a" "Commit: git add secrets/"
 
 # =============================================================================
-# RPi Image Commands
+# PI
 # =============================================================================
 
 # Build Raspberry Pi SD image
@@ -239,8 +260,8 @@ rekey:
 sd-image host:
     #!/usr/bin/env bash
     set -euo pipefail
-    just header "🥧 Build Raspberry Pi SD Image"
-    just info "Building SD image for {{ host }} on armistice..."
+    just n0-header "SD-IMAGE"
+    just n0-action "{{ host }} -> armistice"
     export NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true"
     nix build .#nixosConfigurations.{{ host }}.config.system.build.sdImage \
         --builders "ssh://armistice.meskill.farm aarch64-linux - 12 1 benchmark,big-parallel,kvm" \
@@ -248,177 +269,156 @@ sd-image host:
         --cores 0 \
         --log-format bar-with-logs \
         -o result-{{ host }}-sdimage
-    just success "SD image built: result-{{ host }}-sdimage/"
-    @echo ""
-    @gum style --foreground 229 "To flash to SD card:"
-    @gum style --foreground 245 "  just sd-flash {{ host }} /dev/sdX"
+    just n0-ok "result-{{ host }}-sdimage/"
+    echo ""
+    gum style --foreground "#8a8a8a" "Flash: just sd-flash {{ host }} /dev/sdX"
 
-# Flash Raspberry Pi SD image to device
+# Flash SD image to device
 [group('pi')]
 sd-flash host device:
     #!/usr/bin/env bash
     set -euo pipefail
-    just header "🥧 Flash Raspberry Pi SD Card"
-    if [ ! -d "result-{{ host }}-sdimage" ]; then
-        just error "result-{{ host }}-sdimage not found. Run 'just sd-image {{ host }}' first."
-        exit 1
-    fi
-    if [ ! -b "{{ device }}" ]; then
-        just error "{{ device }} is not a block device"
-        exit 1
-    fi
-    just warn "This will erase all data on {{ device }}!"
-    gum confirm "Flash {{ host }} image to {{ device }}?" || exit 1
-    just info "Decompressing image..."
-    gum spin --spinner dot --title "Decompressing {{ host }} image..." -- zstd -d -f result-{{ host }}-sdimage/sd-image/*.img.zst -o /tmp/{{ host }}.img
-    just info "Flashing to {{ device }}..."
+    just n0-header "SD-FLASH"
+    
+    [ ! -d "result-{{ host }}-sdimage" ] && { just n0-error "Run 'just sd-image {{ host }}' first"; exit 1; }
+    [ ! -b "{{ device }}" ] && { just n0-error "{{ device }} not a block device"; exit 1; }
+    
+    just n0-warn "Will erase {{ device }}"
+    gum confirm "Proceed?" || exit 1
+    
+    just n0-action "decompress"
+    gum spin --spinner dot --title "Decompressing..." -- zstd -d -f result-{{ host }}-sdimage/sd-image/*.img.zst -o /tmp/{{ host }}.img
+    
+    just n0-action "flash -> {{ device }}"
     sudo bmaptool copy --nobmap /tmp/{{ host }}.img {{ device }}
     sync
     rm -f /tmp/{{ host }}.img
-    just success "Flash complete! You can safely remove {{ device }}."
+    just n0-ok "Safe to remove {{ device }}"
 
 # =============================================================================
-# Utility Commands
+# UTILITY
 # =============================================================================
 
 # Update all flake inputs
 [group('utility')]
 update-flake:
-    @just header "🔄 Update Flake"
-    @gum spin --spinner dot --title "Updating flake inputs..." -- nix flake update
-    @just success "Flake update complete"
+    @just n0-header "UPDATE"
+    @gum spin --spinner dot --title "Updating..." -- nix flake update
+    @just n0-ok
 
-# Refresh README.md from remote repository
+# Refresh README.md from remote
 [group('utility')]
 refresh-readme:
-    @just header "📄 Refresh README"
-    @just info "Pulling latest README.md from remote..."
-    @gum spin --spinner dot --title "Fetching from origin..." -- git fetch origin
+    @just n0-header "REFRESH-README"
+    @gum spin --spinner dot --title "Fetching..." -- git fetch origin
     @git checkout origin/main -- README.md
-    @just success "README.md refreshed from remote repository"
+    @just n0-ok
 
-# Restore README.md from current commit
+# Restore README.md from commit
 [group('utility')]
 restore-readme:
-    @just header "📄 Restore README"
-    @just info "Restoring README.md from current commit..."
+    @just n0-header "RESTORE-README"
     @git restore README.md
-    @just success "README.md restored from current commit"
+    @just n0-ok
 
-# Set password for a user (hashed and encrypted with agenix)
+# Set user password (hashed + encrypted)
 [group('utility')]
 user-password user:
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ ! -d "users/{{ user }}" ]; then
-        just error "users/{{ user }} directory does not exist"
-        exit 1
-    fi
-    just header "🔐 Set User Password"
-    just info "Setting password for user: {{ user }}"
-    just warn "Password will be hashed and encrypted with agenix"
-    echo ""
-    PASSWORD=$(gum input --password --placeholder "Enter password for {{ user }}")
-    CONFIRM=$(gum input --password --placeholder "Confirm password")
-    if [ "$PASSWORD" != "$CONFIRM" ]; then
-        just error "Passwords do not match"
-        exit 1
-    fi
+    [ ! -d "users/{{ user }}" ] && { just n0-error "users/{{ user }} not found"; exit 1; }
+    
+    just n0-header "USER-PASSWORD"
+    just n0-info "{{ user }}"
+    
+    PASSWORD=$(gum input --password --placeholder "password")
+    CONFIRM=$(gum input --password --placeholder "confirm")
+    [ "$PASSWORD" != "$CONFIRM" ] && { just n0-error "Passwords don't match"; exit 1; }
+    
     HASHED=$(echo "$PASSWORD" | mkpasswd -m sha-512 --stdin)
     echo "$HASHED" > /tmp/user-password-{{ user }}.txt
-    just info "Password hashed successfully"
-    if [ -f "users/{{ user }}/password.age" ]; then
-        rm -f "users/{{ user }}/password.age"
-    fi
-    just info "Encrypting with agenix..."
+    
+    [ -f "users/{{ user }}/password.age" ] && rm -f "users/{{ user }}/password.age"
+    
+    just n0-action "encrypt"
     agenix edit -i /tmp/user-password-{{ user }}.txt users/{{ user }}/password.age
     rm -f /tmp/user-password-{{ user }}.txt
-    just info "Rekeying secrets..."
+    
+    just n0-action "rekey"
     agenix rekey -a
-    just success "Password set for {{ user }}"
+    just n0-ok
     echo ""
-    gum style --foreground 229 "Don't forget to commit the changes:"
-    gum style --foreground 245 "  git add users/{{ user }}/password.age secrets/"
-    gum style --foreground 245 "  git commit -m 'chore(users): update password for {{ user }}'"
+    gum style --foreground "#8a8a8a" "Commit: git add users/{{ user }}/password.age secrets/"
 
 # =============================================================================
-# Private Variant Commands (implementation details)
+# PRIVATE IMPLEMENTATIONS
 # =============================================================================
 
-# Local NixOS dry-build
 [private]
 local-check:
-    @just header "🧪 Local Check"
-    @just info "Dry-building NixOS configuration for $(hostname)..."
+    @just n0-header "CHECK"
+    @just n0-action "$(hostname) (nixos)"
     @nixos-rebuild dry-build --flake .#$(hostname)
-    @just success "Check complete for $(hostname)"
+    @just n0-ok
 
-# Darwin dry-build
 [private]
 darwin-check:
-    @just header "🧪 Darwin Check"
-    @just info "Dry-building darwin configuration for $(hostname)..."
+    @just n0-header "CHECK"
+    @just n0-action "$(hostname) (darwin)"
     @nix build .#darwinConfigurations.$(hostname).system --dry-run
-    @just success "Check complete for $(hostname)"
+    @just n0-ok
 
-# Remote NixOS dry-build
 [private]
 remote-check host:
-    @just header "🧪 Remote Check"
-    @just info "Dry-building configuration for {{ host }}..."
+    @just n0-header "CHECK"
+    @just n0-action "{{ host }} (remote)"
     @nixos-rebuild dry-build --flake .#{{ host }}
-    @just success "Check complete for {{ host }}"
+    @just n0-ok
 
-# Local NixOS deploy
 [private]
 local-deploy:
-    @just header "🐧 Local Deploy"
-    @just info "Deploying NixOS configuration for $(hostname)..."
+    @just n0-header "DEPLOY"
+    @just n0-action "$(hostname) (nixos)"
     @sudo nixos-rebuild switch --flake .#$(hostname)
-    @just success "Deploy complete for $(hostname)"
+    @just n0-ok
 
-# Darwin deploy
 [private]
 darwin-deploy:
-    @just header "🍎 Darwin Deploy"
-    @just info "Deploying darwin configuration for $(hostname)..."
+    @just n0-header "DEPLOY"
+    @just n0-action "$(hostname) (darwin)"
     @sudo --preserve-env=SSH_AUTH_SOCK darwin-rebuild switch --flake .#$(hostname)
-    @just success "Deploy complete for $(hostname)"
+    @just n0-ok
 
-# Remote NixOS deploy
 [private]
 remote-deploy host:
     #!/usr/bin/env bash
     set -euo pipefail
-    just header "🖥️  Remote Deploy"
-    just info "Deploying to {{ host }}.meskill.farm..."
+    just n0-header "DEPLOY"
+    just n0-action "{{ host }} (remote)"
     export NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true"
     nixos-rebuild --sudo --target-host {{ host }}.meskill.farm switch --flake .#{{ host }} --accept-flake-config
-    just success "Deploy complete for {{ host }}"
+    just n0-ok
 
-# Local NixOS build (no switch)
 [private]
 local-build:
-    @just header "🔨 Local Build"
-    @just info "Building NixOS configuration for $(hostname)..."
+    @just n0-header "BUILD"
+    @just n0-action "$(hostname) (nixos)"
     @nixos-rebuild build --flake .#$(hostname)
-    @just success "Build complete for $(hostname)"
+    @just n0-ok
 
-# Darwin build (no switch)
 [private]
 darwin-build:
-    @just header "🔨 Darwin Build"
-    @just info "Building darwin configuration for $(hostname)..."
+    @just n0-header "BUILD"
+    @just n0-action "$(hostname) (darwin)"
     @nix build .#darwinConfigurations.$(hostname).system
-    @just success "Build complete for $(hostname)"
+    @just n0-ok
 
-# Remote NixOS build (no switch)
 [private]
 remote-build host:
     #!/usr/bin/env bash
     set -euo pipefail
-    just header "🔨 Remote Build"
-    just info "Building configuration for {{ host }}..."
+    just n0-header "BUILD"
+    just n0-action "{{ host }} (remote)"
     export NIX_SSHOPTS="-o SetEnv=BYPASS_LOGIN_HUB=true"
     nixos-rebuild --sudo --target-host {{ host }}.meskill.farm build --flake .#{{ host }} --accept-flake-config
-    just success "Build complete for {{ host }}"
+    just n0-ok
