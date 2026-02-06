@@ -481,7 +481,12 @@ in {
 
       ${lib.optionalString cfg.sessionPicker.enable ''
         # Quick session picker (${cfg.sessionPicker.keybinding}, no prefix)
-        bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs
+        ${lib.optionalString isN0frillsTheme ''
+          bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs -F "#{?pane_marked,#[fg=${n0frillsPalette.hot}]■ , }#[fg=${n0frillsPalette.primary}]#S #[fg=${n0frillsPalette.gray}]#W"
+        ''}
+        ${lib.optionalString (!isN0frillsTheme) ''
+          bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs
+        ''}
       ''}
 
       # Status bar position (can be overridden by theme)
