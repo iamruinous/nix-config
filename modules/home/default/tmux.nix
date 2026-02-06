@@ -332,13 +332,13 @@ in {
 
       separatorStyle = lib.mkOption {
         type = lib.types.enum ["normal" "rounded" "slant" "slantup" "trapezoid" "flame" "pixel" "honeycomb" "none"];
-        default = "rounded";
+        default = "slant";
         description = "Separator style between status bar segments";
       };
 
       edgeSeparatorStyle = lib.mkOption {
         type = lib.types.enum ["normal" "rounded" "slant" "slantup" "trapezoid" "flame" "pixel" "honeycomb" "none" "same"];
-        default = "rounded";
+        default = "slant";
         description = "Edge separator style for status bar";
       };
 
