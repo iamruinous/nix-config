@@ -201,15 +201,15 @@
       format = "[$all_status$ahead_behind]($style)";
       style = colorway.accent;
       conflicted = "[!](${colorway.hotAccent})";
-      ahead = "[+$count]";
-      behind = "[-$count]";
-      diverged = "[!]";
-      untracked = "[?]";
-      stashed = "[S]";
-      modified = "[~]";
-      staged = "[+]";
-      renamed = "[>]";
-      deleted = "[x]";
+      ahead = "+$count";
+      behind = "-$count";
+      diverged = "!";
+      untracked = "?";
+      stashed = "S";
+      modified = "~";
+      staged = "+";
+      renamed = ">";
+      deleted = "x";
     };
 
     package = {

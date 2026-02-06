@@ -57,18 +57,19 @@
         hotAccent = "${palette.hotAccent}",
     }
 
-    -- Apply Styles
-    xplr.config.general.style.default = { fg = c.white, bg = c.bg }
-    xplr.config.general.style.focused = { fg = c.bg, bg = c.highlight, add_modifiers = { "Bold" } }
-    xplr.config.general.style.selected = { fg = c.accent, add_modifiers = { "Italic" } }
+    -- Apply UI Styles (xplr 1.1.0+ API)
+    xplr.config.general.default_ui.style = { fg = c.white, bg = c.bg }
+    xplr.config.general.focus_ui.style = { fg = c.bg, bg = c.highlight, add_modifiers = { "Bold" } }
+    xplr.config.general.selection_ui.style = { fg = c.accent, add_modifiers = { "Italic" } }
+    xplr.config.general.focus_selection_ui.style = { fg = c.bg, bg = c.accent, add_modifiers = { "Bold", "Italic" } }
 
     xplr.config.node_types.directory.style = { fg = c.primary, add_modifiers = { "Bold" } }
-    xplr.config.node_types.file.style      = { fg = c.white }
-    xplr.config.node_types.symlink.style   = { fg = c.highlight, add_modifiers = { "Italic" } }
-    xplr.config.node_types.executable.style = { fg = c.hotAccent }
+    xplr.config.node_types.file.style = { fg = c.white }
+    xplr.config.node_types.symlink.style = { fg = c.highlight, add_modifiers = { "Italic" } }
+    xplr.config.node_types.extension.executable = { style = { fg = c.hotAccent } }
 
     xplr.config.general.table.header.style = { fg = c.muted }
-    xplr.config.general.status_bar.style = { fg = c.gray, bg = c.bg }
+    xplr.config.general.panel_ui.default.style = { fg = c.gray, bg = c.bg }
   '';
 
   layoutLua = if cfg.themeVariant == "classic" then "" else (
