@@ -77,6 +77,12 @@ ruinous.starship = {
 | `highlight` | `#5fd7d7` | `#00afaf` | `#ffaf00` |
 | `accent` | `#ffafd7` | `#af87ff` | `#bcbcbc` |
 | `hotAccent` | `#ff5faf` | `#5f5fff` | `#eeeeee` |
+| `success` | `#afd787` | `#5faf87` | `#bcbcbc` |
+| `warning` | `#ffd787` | `#afaf5f` | `#ffaf00` |
+| `error` | `#ff5faf` | `#5f5fff` | `#eeeeee` |
+| `info` | `#87afff` | `#5f87ff` | `#bcbcbc` |
+
+**Note:** Starship now maps git status, prompt success/error, and battery thresholds to the semantic tokens (`success`, `warning`, `error`, `info`) for consistent meaning across colorways.
 
 ---
 

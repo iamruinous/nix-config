@@ -20,6 +20,7 @@
     dim = "#4e4e4e";
     border = "#3a3a3a";
     bg = "#1c1c1c";
+    void = "#09090b";
   };
 
   # Colorway palettes
@@ -29,24 +30,40 @@
       accent = "208";
       hotAccent = "red";
       highlight = "bold blue";
+      success = "green";
+      warning = "yellow";
+      error = "red";
+      info = "blue";
     };
     ruin = {
       primary = "#d75fd7";
       accent = "#ffafd7";
       hotAccent = "#ff5faf";
       highlight = "#5fd7d7";
+      success = "#afd787";
+      warning = "#ffd787";
+      error = "#ff5faf";
+      info = "#87afff";
     };
     siege = {
       primary = "#875fd7";
       accent = "#af87ff";
       hotAccent = "#5f5fff";
       highlight = "#00afaf";
+      success = "#5faf87";
+      warning = "#afaf5f";
+      error = "#5f5fff";
+      info = "#5f87ff";
     };
     ghost = {
       primary = "#eeeeee";
       accent = "#bcbcbc";
       hotAccent = "#eeeeee";
       highlight = "#ffaf00";
+      success = "#bcbcbc";
+      warning = "#ffaf00";
+      error = "#eeeeee";
+      info = "#bcbcbc";
     };
   };
 
@@ -103,22 +120,22 @@
 
     git_status = {
       format = "[$all_status$ahead_behind]($style)";
-      style = colorway.accent;
-      conflicted = "!";
-      ahead = "+$count";
-      behind = "-$count";
-      diverged = "~";
-      untracked = "?";
-      stashed = "S";
-      modified = "M";
-      staged = "A";
-      renamed = "R";
-      deleted = "D";
+      style = shared.muted;
+      conflicted = "[!](${colorway.error})";
+      ahead = "[+$count](${colorway.success})";
+      behind = "[-$count](${colorway.warning})";
+      diverged = "[~](${colorway.error})";
+      untracked = "[?](${colorway.info})";
+      stashed = "[S](${colorway.info})";
+      modified = "[M](${colorway.warning})";
+      staged = "[A](${colorway.success})";
+      renamed = "[R](${colorway.info})";
+      deleted = "[D](${colorway.error})";
     };
 
     character = {
-      success_symbol = "[>](${colorway.primary})";
-      error_symbol = "[>](bold ${colorway.hotAccent})";
+      success_symbol = "[>](${colorway.success})";
+      error_symbol = "[>](bold ${colorway.error})";
     };
 
     cmd_duration = {
@@ -199,17 +216,17 @@
 
     git_status = {
       format = "[$all_status$ahead_behind]($style)";
-      style = colorway.accent;
-      conflicted = "[!](${colorway.hotAccent})";
-      ahead = "+$count";
-      behind = "-$count";
-      diverged = "!";
-      untracked = "?";
-      stashed = "S";
-      modified = "~";
-      staged = "+";
-      renamed = ">";
-      deleted = "x";
+      style = shared.muted;
+      conflicted = "[!](${colorway.error})";
+      ahead = "[+$count](${colorway.success})";
+      behind = "[-$count](${colorway.warning})";
+      diverged = "[!](${colorway.error})";
+      untracked = "[?](${colorway.info})";
+      stashed = "[S](${colorway.info})";
+      modified = "[~](${colorway.warning})";
+      staged = "[+](${colorway.success})";
+      renamed = "[>](${colorway.info})";
+      deleted = "[x](${colorway.error})";
     };
 
     package = {
@@ -248,8 +265,8 @@
     };
 
     character = {
-      success_symbol = "[\\[>\\]](${colorway.highlight})";
-      error_symbol = "[\\[!\\]](bold ${colorway.hotAccent})";
+      success_symbol = "[\\[>\\]](${colorway.success})";
+      error_symbol = "[\\[!\\]](bold ${colorway.error})";
     };
 
     cmd_duration = {
@@ -266,11 +283,11 @@
       display = [
         {
           threshold = 20;
-          style = colorway.hotAccent;
+          style = colorway.error;
         }
         {
           threshold = 50;
-          style = colorway.accent;
+          style = colorway.warning;
         }
       ];
     };
@@ -310,8 +327,8 @@
     fill.symbol = " ";
 
     character = {
-      success_symbol = "[λ](${colorway.primary})";
-      error_symbol = "[✗](bold ${colorway.hotAccent})";
+      success_symbol = "[λ](${colorway.success})";
+      error_symbol = "[✗](bold ${colorway.error})";
     };
 
     cmd_duration = {
@@ -334,17 +351,17 @@
     };
 
     git_status = {
-      ahead = "⇡$count";
-      diverged = "⇕⇡$ahead_count⇣$behind_count";
-      behind = "⇣$count";
-      conflicted = " ";
-      untracked = "󰠗 ";
-      stashed = "󰽄 ";
-      modified = " ";
-      staged = " $count";
-      renamed = " ";
-      deleted = "󰆴 ";
-      style = colorway.accent;
+      ahead = "[⇡$count](${colorway.success})";
+      diverged = "[⇕⇡$ahead_count⇣$behind_count](${colorway.error})";
+      behind = "[⇣$count](${colorway.warning})";
+      conflicted = "[ ](${colorway.error})";
+      untracked = "[󰠗 ](${colorway.info})";
+      stashed = "[󰽄 ](${colorway.info})";
+      modified = "[ ](${colorway.warning})";
+      staged = "[ $count](${colorway.success})";
+      renamed = "[ ](${colorway.info})";
+      deleted = "[󰆴 ](${colorway.error})";
+      style = shared.muted;
       format = "[$all_status$ahead_behind]($style)";
     };
 
@@ -415,22 +432,22 @@
         {
           threshold = 10;
           discharging_symbol = "󰁺 ";
-          style = colorway.hotAccent;
+          style = colorway.error;
         }
         {
           threshold = 30;
           discharging_symbol = "󰁼 ";
-          style = colorway.accent;
+          style = colorway.warning;
         }
         {
           threshold = 50;
           discharging_symbol = "󰁾 ";
-          style = colorway.primary;
+          style = colorway.info;
         }
         {
           threshold = 100;
           discharging_symbol = "󰂂 ";
-          style = colorway.highlight;
+          style = colorway.success;
         }
       ];
     };
