@@ -263,18 +263,17 @@
       full_symbol = "B";
       charging_symbol = "B+";
       discharging_symbol = "B";
+      display = [
+        {
+          threshold = 20;
+          style = colorway.hotAccent;
+        }
+        {
+          threshold = 50;
+          style = colorway.accent;
+        }
+      ];
     };
-
-    "battery.display" = [
-      {
-        threshold = 20;
-        style = colorway.hotAccent;
-      }
-      {
-        threshold = 50;
-        style = colorway.accent;
-      }
-    ];
   };
 
   # HANDCRAFTED: Artisanal box-drawing (original style)
@@ -412,30 +411,29 @@
       full_symbol = "󰁹";
       charging_symbol = "󰚥 ";
       discharging_symbol = "󰁺 ";
+      display = [
+        {
+          threshold = 10;
+          discharging_symbol = "󰁺 ";
+          style = colorway.hotAccent;
+        }
+        {
+          threshold = 30;
+          discharging_symbol = "󰁼 ";
+          style = colorway.accent;
+        }
+        {
+          threshold = 50;
+          discharging_symbol = "󰁾 ";
+          style = colorway.primary;
+        }
+        {
+          threshold = 100;
+          discharging_symbol = "󰂂 ";
+          style = colorway.highlight;
+        }
+      ];
     };
-
-    "battery.display" = [
-      {
-        threshold = 10;
-        discharging_symbol = "󰁺 ";
-        style = colorway.hotAccent;
-      }
-      {
-        threshold = 30;
-        discharging_symbol = "󰁼 ";
-        style = colorway.accent;
-      }
-      {
-        threshold = 50;
-        discharging_symbol = "󰁾 ";
-        style = colorway.primary;
-      }
-      {
-        threshold = 100;
-        discharging_symbol = "󰂂 ";
-        style = colorway.highlight;
-      }
-    ];
   };
 
   # ===========================================================================
