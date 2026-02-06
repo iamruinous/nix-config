@@ -342,7 +342,7 @@
       untracked = "󰠗 ";
       stashed = "󰽄 ";
       modified = " ";
-      staged = "$count ";
+      staged = " $count";
       renamed = " ";
       deleted = "󰆴 ";
       style = colorway.accent;

@@ -1617,11 +1617,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1770388146,
-        "narHash": "sha256-tjCUAiXibkgKMJxiTXak+VwYbWyxY2at7hRCPykrTbc=",
+        "lastModified": 1770406041,
+        "narHash": "sha256-qRlZ7phCPmV51GjNmQ1WHNNPGJSFMIIrmLmE7bOkx8c=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "2c5791cc2667f20fe75fa6a5ea9335c23bea538d",
+        "rev": "7ae8b7d8595b4a1a6edadf495f7a0c3dafbcbf03",
         "type": "github"
       },
       "original": {
@@ -1681,11 +1681,11 @@
         "worktrunk": "worktrunk"
       },
       "locked": {
-        "lastModified": 1770353911,
-        "narHash": "sha256-YCrsTzMe9A/0DKHIsP/euw4H+vunF8F9xycDBjymdCc=",
+        "lastModified": 1770400502,
+        "narHash": "sha256-w8BJ69TFhZLASm95KyRYbIB4coVoZAlWaPIfJn26XfY=",
         "ref": "refs/heads/main",
-        "rev": "a8bb83b0a9c2235c9737b8138db2ec767463a453",
-        "revCount": 88,
+        "rev": "9f49ab14bd2659db8bffb0d4a3eb9cd1c55d1d37",
+        "revCount": 95,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0DMN.git"
       },
@@ -2415,11 +2415,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770173568,
-        "narHash": "sha256-Ut3jPDlJChgaox4XhDCU0rtCIrc9YSusmDImmnxiob4=",
+        "lastModified": 1770400461,
+        "narHash": "sha256-3+/tHXu9pL6sY9a9GCeb/ZP7Tk5eF3rHRJpp/vm8vqc=",
         "ref": "refs/heads/main",
-        "rev": "8bdf4c3219a2ce864d4f0da8049725a0c847f144",
-        "revCount": 355,
+        "rev": "056be5c2d8034ca24d04354cc35e67ade31b3861",
+        "revCount": 386,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git"
       },

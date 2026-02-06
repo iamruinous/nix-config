@@ -524,8 +524,8 @@ in {
       set -g set-clipboard on
 
       # --- TRACKPAD OPTIMIZATION ---
-      # Prevent jump-to-bottom on mouse selection (stay in copy-mode with selection visible)
-      bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-no-clear
+      # Auto-copy on mouse selection via OSC52
+      bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "osc-copy"
 
       # Increase scroll speed: 3 lines per wheel event (default is 1)
       bind -T copy-mode-vi WheelUpPane send -N 3 -X scroll-up
