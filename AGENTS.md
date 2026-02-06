@@ -32,6 +32,20 @@ When creating issues or PRs, avoid including actual secret values, project IDs, 
 
 ---
 
+## Problem-Solving Approach
+
+**Don't be quick to undo or remove.**
+
+When encountering issues (especially with Nix/NixOS integration):
+1. **Investigate alternatives first** - Look for workarounds, configuration options, or alternative approaches
+2. **Check for NixOS-specific solutions** - Many tools have XDG paths, environment variables, or config options to work around read-only Nix store
+3. **Search for prior art** - Check nixpkgs issues, NixOS discourse, or existing configs for how others solved it
+4. **Only remove as last resort** - If no workaround exists after thorough investigation
+
+**Example:** tmux-which-key initially failed due to trying to write to read-only Nix store. Instead of removing it, investigation revealed `@tmux-which-key-xdg-enable` option to use `~/.config/` instead.
+
+---
+
 ## Tiered Context Loading
 
 | Need | Load |

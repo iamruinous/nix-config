@@ -70,6 +70,9 @@ with lib; let
   # OpenCode instructions directory from flake
   opencode_instructions = flake + /files/configs/opencode/instructions;
 
+  # OpenCode themes directory from flake
+  opencode_themes = flake + /files/configs/opencode/themes;
+
   # llm-agents packages
   llmAgentsPkgs = flake.inputs.llm-agents.packages.${pkgs.system};
 
@@ -1143,6 +1146,12 @@ in {
         home.packages = mkIf pkgs.stdenv.isLinux [
           llmAgentsPkgs.opencode
         ];
+
+        # OpenCode themes
+        xdg.configFile."opencode/themes" = {
+          source = "${opencode_themes}";
+          recursive = true;
+        };
 
         # Default plugins
         ruinous.ruinage.assistants.opencode.plugins = [

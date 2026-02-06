@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/theme.json",
+  "defs": {
+    "bg": "#1c1c1c",
+    "fg": "#eeeeee",
+    "primary": "#875fd7",
+    "secondary": "#8a8a8a",
+    "accent": "#00afaf"
+  },
+  "theme": {
+    "primary": "primary",
+    "secondary": "secondary",
+    "accent": "accent",
+    "text": "fg",
+    "background": "bg"
+  }
+}

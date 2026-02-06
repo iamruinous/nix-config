@@ -79,6 +79,18 @@ in {
     # Enable home-manager Infisical integration for agenix-rekey
     infisical.enable = true;
 
+    # N0FRILLS Starship theme - matches tmux.powerkit theme
+    starship = {
+      themeVariant = "ruin";   # N0FRILLS magenta/cyan colorway
+      themeStyle = "advanced"; # Tech-forward with [>] [~] [@] bracket notation
+    };
+
+    # N0FRILLS xplr theme
+    xplr = {
+      enable = true;
+      themeVariant = "ruin";
+    };
+
     # Chat log organizer for Obsidian vaults
     # Runs every 5 minutes, uses Ollama to generate metadata
     chat-organizer = {
