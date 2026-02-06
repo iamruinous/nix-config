@@ -1617,11 +1617,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1770349810,
-        "narHash": "sha256-rB4d4zBQlhm1J1CxsIIstyRZzuODVeJCAxutWBmt35w=",
+        "lastModified": 1770406041,
+        "narHash": "sha256-qRlZ7phCPmV51GjNmQ1WHNNPGJSFMIIrmLmE7bOkx8c=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "398181e94b91ad081fad17d9b5eab140411d6a29",
+        "rev": "7ae8b7d8595b4a1a6edadf495f7a0c3dafbcbf03",
         "type": "github"
       },
       "original": {
@@ -1681,11 +1681,11 @@
         "worktrunk": "worktrunk"
       },
       "locked": {
-        "lastModified": 1770346957,
-        "narHash": "sha256-94sSEY8L9qwB4oHI1RkWQ+/D8IsCjCxP4Z+VaDLtC14=",
+        "lastModified": 1770400502,
+        "narHash": "sha256-w8BJ69TFhZLASm95KyRYbIB4coVoZAlWaPIfJn26XfY=",
         "ref": "refs/heads/main",
-        "rev": "20f0c42e7f4392f953a08afda7c61c636e7777e0",
-        "revCount": 83,
+        "rev": "9f49ab14bd2659db8bffb0d4a3eb9cd1c55d1d37",
+        "revCount": 95,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0DMN.git"
       },
@@ -1766,11 +1766,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770351195,
-        "narHash": "sha256-ryYt/2f2R7FZp9BLm2MxHB2PvbXlWv1K07LA7ASczaw=",
+        "lastModified": 1770355726,
+        "narHash": "sha256-F18Mv3jYE/vvl/fYQLRf9z8xPGRvUyiOU5RzPvc/MBY=",
         "ref": "refs/heads/main",
-        "rev": "6f06ba0d0f6b3bd3220c7c9d54587b9cc0cba57c",
-        "revCount": 56,
+        "rev": "5fa6d0a6b3ac05d56d8a1873c21ad594bb5d3072",
+        "revCount": 59,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/N0UTL.git"
       },
@@ -2415,11 +2415,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770173568,
-        "narHash": "sha256-Ut3jPDlJChgaox4XhDCU0rtCIrc9YSusmDImmnxiob4=",
+        "lastModified": 1770400461,
+        "narHash": "sha256-3+/tHXu9pL6sY9a9GCeb/ZP7Tk5eF3rHRJpp/vm8vqc=",
         "ref": "refs/heads/main",
-        "rev": "8bdf4c3219a2ce864d4f0da8049725a0c847f144",
-        "revCount": 355,
+        "rev": "056be5c2d8034ca24d04354cc35e67ade31b3861",
+        "revCount": 386,
         "type": "git",
         "url": "ssh://git@forge.meskill.farm/RUiNAGE/RUiNAGENTS.git"
       },

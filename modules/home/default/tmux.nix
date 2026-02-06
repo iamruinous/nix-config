@@ -9,6 +9,37 @@
 
   # N0FRILLS theme support - uses themes from tmux-powerkit package
   isN0frillsTheme = powerkitCfg.theme == "n0frills";
+  n0frillsShared = {
+    fg = "#eeeeee";
+    bg = "#1c1c1c";
+    border = "#3a3a3a";
+    muted = "#626262";
+    dim = "#4e4e4e";
+    gray = "#8a8a8a";
+  };
+  n0frillsColorways = {
+    ruin = {
+      primary = "#d75fd7";
+      accent = "#ffafd7";
+      hot = "#ff5faf";
+      highlight = "#5fd7d7";
+    };
+    siege = {
+      primary = "#875fd7";
+      accent = "#af87ff";
+      hot = "#5f5fff";
+      highlight = "#00afaf";
+    };
+    ghost = {
+      primary = "#eeeeee";
+      accent = "#bcbcbc";
+      hot = "#eeeeee";
+      highlight = "#ffaf00";
+    };
+  };
+  n0frillsPalette =
+    n0frillsShared
+    // (lib.attrByPath [powerkitCfg.themeVariant] n0frillsColorways.ruin n0frillsColorways);
 
   # Keybinding submodule type
   keybindingType = lib.types.submodule {
@@ -134,66 +165,16 @@ in {
     # Allow passthrough
     allowPassthrough = lib.mkOption {
       type = lib.types.bool;
-      default = false;
-      description = "Allow passthrough for certain escape sequences (e.g., for image protocols). DISABLED: causes terminal corruption and OSC52 issues.";
+      default = true;
+      description = "Allow passthrough for certain escape sequences (e.g., for image protocols, OSC52 clipboard support).";
     };
 
     # Keybindings - attrset for easy override/extension
     keybindings = lib.mkOption {
       type = lib.types.attrsOf keybindingType;
       default = {
-        # Vi copy mode bindings
-        copy-mode-vi-begin-selection = {
-          key = "v";
-          command = "send-keys -X begin-selection";
-          table = "copy-mode-vi";
-        };
-        copy-mode-vi-copy = {
-          key = "y";
-          command = "send-keys -X copy-selection-and-cancel";
-          table = "copy-mode-vi";
-        };
-
-        # Shift+PageUp/Down for scrolling (root table = no prefix needed)
-        scroll-up = {
-          key = "S-PPage";
-          command = "copy-mode -u";
-          table = "root";
-        };
-        copy-mode-page-up = {
-          key = "S-PPage";
-          command = "send -X page-up";
-          table = "copy-mode";
-        };
-        copy-mode-page-down = {
-          key = "S-NPage";
-          command = "send -X page-down";
-          table = "copy-mode";
-        };
-
-        # Reorder windows (prefix + R)
-        reorder-windows = {
-          key = "R";
-          command = "move-window -r \\; display-message \"Windows reordered...\"";
-        };
-
-        # Reload tmux config (prefix + r)
-        reload-config = {
-          key = "r";
-          command = "source-file ~/.config/tmux/tmux.conf \\; display-message \"Config reloaded...\"";
-        };
-
-        # Session management
-        new-session = {
-          key = "S";
-          command = "command-prompt -p \"New Session:\" \"new-session -A -s '%%'\"";
-        };
-        kill-session = {
-          key = "K";
-          command = "confirm kill-session";
-        };
-
-        # Session navigation (prefix + [ / ])
+        # Session navigation (overrides default [ = copy-mode, ] = paste-buffer)
+        # Rationale: More ergonomic than ( and ) for frequent session switching
         prev-session = {
           key = "[";
           command = "switch-client -p";
@@ -203,21 +184,38 @@ in {
           command = "switch-client -n";
         };
 
-        # N0H session management (requires n0h CLI)
-        # Uses profile path to always resolve current version (survives deploys without shell restart)
-        n0h-new = {
-          key = "N";
-          command = "display-popup -E -w 80% -h 80% \"/etc/profiles/per-user/$USER/bin/n0h new\"";
+        # Pane splitting (preserves current path)
+        split-horizontal = {
+          key = "|";
+          command = "split-window -h -c \"#{pane_current_path}\"";
         };
-        n0h-triage = {
-          key = "G";
-          command = "display-popup -E -w 80% -h 80% \"/etc/profiles/per-user/$USER/bin/n0h triage\"";
+        split-vertical = {
+          key = "-";
+          command = "split-window -v -c \"#{pane_current_path}\"";
+        };
+
+        # Window swapping
+        swap-window-left = {
+          key = "<";
+          command = "swap-window -t -1 \\; select-window -t -1";
+          repeat = true;
+        };
+        swap-window-right = {
+          key = ">";
+          command = "swap-window -t +1 \\; select-window -t +1";
+          repeat = true;
         };
 
         # Refresh environment after deploy (re-sources profile to pick up new paths)
         refresh-env = {
           key = "E";
           command = "run-shell 'tmux set-environment -g PATH \"$(fish -lc \"echo \\$PATH\")\"' \\; display-message \"Environment refreshed\"";
+        };
+
+        # SSH agent refresh (interactive pane selection popup)
+        ssh-agent-refresh = {
+          key = "u";
+          command = "display-popup -E \"${pkgs.ssh-agent-check}/bin/ssh-agent-refresh\"";
         };
       };
       description = ''
@@ -252,11 +250,11 @@ in {
     doomConsole = {
       enable = lib.mkEnableOption "Doom Console quick AI popup";
 
-      keybinding = lib.mkOption {
-        type = lib.types.str;
-        default = "C-`";
-        description = "Key to trigger doom console (root table, no prefix needed)";
-        example = "F12";
+      keybindings = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = ["C-`" "C-_"];
+        description = "Keys to trigger doom console (root table, no prefix needed). C-_ is more compatible than C-/ across terminals.";
+        example = ["F12"];
       };
 
       command = lib.mkOption {
@@ -394,14 +392,24 @@ in {
     terminal = "tmux-256color";
     historyLimit = 100000;
     escapeTime = 0;
+    
+    # Enable vim-style pane navigation (hjkl) and resizing (HJKL)
+    # Replaces pain-control plugin
+    customPaneNavigationAndResize = true;
 
     plugins = with pkgs.tmuxPlugins; [
       # Core functionality plugins
-      better-mouse-mode
-      copycat
-      pain-control
-      sensible
-      yank
+      copycat        # Regex search + predefined patterns (URLs, files, git hashes, IPs)
+      
+      # Keybinding discovery popup (like vim's which-key)
+      {
+        plugin = tmux-which-key;
+        extraConfig = ''
+          # Use XDG config directory to avoid read-only Nix store
+          set -g @tmux-which-key-xdg-enable 1
+          set -g @tmux-which-key-xdg-plugin-path ".config/tmux/tmux-which-key"
+        '';
+      }
 
       # Powerkit - modular status bar framework
       (lib.mkIf powerkitCfg.enable {
@@ -466,27 +474,68 @@ in {
       # Keybindings
       ${keybindingLines}
 
-      # Refresh SSH_AUTH_SOCK - opens popup for interactive pane selection
-      bind u display-popup -E "${pkgs.ssh-agent-check}/bin/ssh-agent-refresh"
-
-      ${lib.optionalString cfg.doomConsole.enable ''
-        # Doom Console - quick AI popup (${cfg.doomConsole.keybinding}, no prefix)
+      ${lib.optionalString cfg.doomConsole.enable (lib.concatMapStringsSep "\n" (key: ''
+        # Doom Console - quick AI popup (${key}, no prefix)
         # Close with Ctrl-C or Escape
-        bind -n ${cfg.doomConsole.keybinding} display-popup -E -w ${cfg.doomConsole.width} -h ${cfg.doomConsole.height} "/etc/profiles/per-user/$USER/bin/${cfg.doomConsole.command}"
-      ''}
+        bind -n ${key} display-popup -E -w ${cfg.doomConsole.width} -h ${cfg.doomConsole.height} "/etc/profiles/per-user/$USER/bin/${cfg.doomConsole.command}"'') cfg.doomConsole.keybindings)}
 
       ${lib.optionalString cfg.sessionPicker.enable ''
         # Quick session picker (${cfg.sessionPicker.keybinding}, no prefix)
-        bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs
+        ${lib.optionalString isN0frillsTheme ''
+          bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs -F "#{?pane_marked,#[fg=${n0frillsPalette.hot}]■ , }#[fg=${n0frillsPalette.primary}]#S #[fg=${n0frillsPalette.gray}]#W"
+        ''}
+        ${lib.optionalString (!isN0frillsTheme) ''
+          bind -n ${cfg.sessionPicker.keybinding} choose-tree -Zs
+        ''}
       ''}
 
       # Status bar position (can be overridden by theme)
       set -g status-position ${cfg.statusPosition}
 
+      ${lib.optionalString isN0frillsTheme ''
+        # N0FRILLS tmux UI surfaces (menus, prompts, popups, copy-mode, overlays)
+        set -g message-style "fg=${n0frillsPalette.fg},bg=${n0frillsPalette.bg}"
+        set -g message-command-style "fg=${n0frillsPalette.primary},bg=${n0frillsPalette.bg},bold"
+
+        set -g mode-style "fg=${n0frillsPalette.bg},bg=${n0frillsPalette.primary},bold"
+        set -g copy-mode-match-style "fg=${n0frillsPalette.bg},bg=${n0frillsPalette.highlight}"
+        set -g copy-mode-current-match-style "fg=${n0frillsPalette.bg},bg=${n0frillsPalette.hot},bold"
+
+        set -g menu-style "fg=${n0frillsPalette.fg},bg=${n0frillsPalette.bg}"
+        set -g menu-selected-style "fg=${n0frillsPalette.bg},bg=${n0frillsPalette.primary},bold"
+        set -g menu-border-style "fg=${n0frillsPalette.border},bg=${n0frillsPalette.bg}"
+
+        set -g popup-style "fg=${n0frillsPalette.fg},bg=${n0frillsPalette.bg}"
+        set -g popup-border-style "fg=${n0frillsPalette.primary},bg=${n0frillsPalette.bg}"
+        set -g popup-border-lines "rounded"
+
+        set -g display-panes-colour "${n0frillsPalette.muted}"
+        set -g display-panes-active-colour "${n0frillsPalette.primary}"
+
+        set -g clock-mode-colour "${n0frillsPalette.primary}"
+      ''}
+
       ${lib.optionalString cfg.allowPassthrough ''
-        # Allow passthrough for certain escape sequences (e.g., for image protocols)
+        # Allow passthrough for certain escape sequences (e.g., for image protocols, OSC52)
         set -g allow-passthrough on
       ''}
+
+      # Enable clipboard support (required for OSC52)
+      set -g set-clipboard on
+
+      # --- TRACKPAD OPTIMIZATION ---
+      # Auto-copy on mouse selection via OSC52
+      bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "osc-copy"
+
+      # Increase scroll speed: 3 lines per wheel event (default is 1)
+      bind -T copy-mode-vi WheelUpPane send -N 3 -X scroll-up
+      bind -T copy-mode-vi WheelDownPane send -N 3 -X scroll-down
+      bind -T copy-mode WheelUpPane send -N 3 -X scroll-up
+      bind -T copy-mode WheelDownPane send -N 3 -X scroll-down
+
+      # Smart scroll: pass to mouse-aware apps (vim/less), else enter copy-mode
+      bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
+      bind -n WheelDownPane select-pane -t= \; send-keys -M
 
       # Additional user configuration
       ${cfg.extraConfig}

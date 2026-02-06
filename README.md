@@ -108,6 +108,92 @@ This repository includes custom Nix packages for specialized functionality:
 
 For detailed information about each package including usage examples and dependencies, see **[packages/README.md](packages/README.md)**.
 
+## N0FRILLS Themes
+
+A comprehensive design system providing consistent visual language across all CLI tools.
+
+### Philosophy
+
+**N0FRILLS** is a minimalist design language built on four principles:
+
+- **No Waste** - Remove purely decorative elements, focus on functional information
+- **Visual Stability** - Consistent positioning across all tools prevents cognitive load
+- **Direct Voice** - Functional bracket notation `[>]` `[~]` `[@]` over icons
+- **Absolute Consistency** - Shared colorways across your entire CLI ecosystem
+
+### Colorways
+
+| Colorway | Primary | Accent | Character |
+|----------|---------|--------|-----------|
+| **classic** | White `#eeeeee` | Gray `#8a8a8a` | Monochrome brutalism |
+| **ruin** | Magenta `#d75fd7` | Cyan `#5fd7d7` | High-energy contrast |
+| **siege** | Purple `#875fd7` | Teal `#00afaf` | Professional depth |
+| **ghost** | White `#eeeeee` | Amber `#ffaf00` | Warm minimalism |
+
+All colorways share a base palette:
+```
+fg:     #eeeeee  (primary text)
+bg:     #1c1c1c  (background)
+border: #3a3a3a  (frames)
+muted:  #626262  (secondary text)
+dim:    #4e4e4e  (inactive)
+gray:   #8a8a8a  (labels)
+```
+
+### Themed Tools
+
+**Fully Implemented:**
+- **WezTerm** - 3 color schemes (ghost, ruin, siege) in `files/configs/wezterm/colors/`
+- **Neovim** - Custom colorscheme in `files/configs/nvim/colors/n0frills.lua`
+- **OpenCode** - 3 themes in `files/configs/opencode/themes/`
+- **tmux** - Colorway support with shared palette in `modules/home/default/tmux.nix`
+- **Starship** - Theme compositor: 4 colorways × 3 styles = 12 combinations in `modules/home/default/starship.nix`
+- **xplr** - File manager theming in `modules/home/default/xplr.nix`
+
+**Starship Styles:**
+- **basic** - Brutalist single-line, minimal modules
+- **advanced** - Structured two-line, comprehensive status
+- **handcrafted** - Artisanal with custom formatting
+
+### Configuration
+
+Select colorway in your host's home-configuration:
+
+```nix
+ruinous.colorscheme = "ruin";  # or "siege", "ghost", "classic"
+ruinous.starship.style = "advanced";  # or "basic", "handcrafted"
+```
+
+### Documentation
+
+**Implementation Guides:**
+- [Gemini CLI](docs/guides/gemini-theme-guide.md) - AI CLI theming
+- [Neovim](docs/guides/neovim-theme-guide.md) - Editor colorscheme
+- [OpenCode](docs/guides/opencode-theme-guide.md) - AI coding assistant themes
+- [Starship](docs/guides/starship-theme-guide.md) - Prompt theme compositor
+- [tmux](docs/guides/tmux-theme-guide.md) - Terminal multiplexer theming
+- [WezTerm](docs/guides/wezterm-theme-guide.md) - Terminal emulator colors
+- [xplr](docs/guides/xplr-theme-guide.md) - File manager theming
+
+**Research & Design:**
+- [Starship Implementation Plan](docs/plans/starship-n0frills-theme.md) - Theme compositor design
+- [tmux Theming Research](docs/research/tmux-theming.md) - Comprehensive theming patterns
+- [Extended Research](docs/research/) - Tool-specific theming deep dives
+
+### Design Resources
+
+All themes use the shared color definitions from `modules/home/default/options.nix`:
+
+```nix
+ruinous.colorschemes = {
+  ruin = { primary = "#d75fd7"; accent = "#5fd7d7"; };
+  siege = { primary = "#875fd7"; accent = "#00afaf"; };
+  ghost = { primary = "#eeeeee"; accent = "#ffaf00"; };
+};
+```
+
+Modules automatically inject colorway-specific values based on `ruinous.colorscheme` selection.
+
 ## Key Features
 
 ### Infrastructure

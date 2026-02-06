@@ -8,6 +8,7 @@
     if pkgs.stdenv.isDarwin
     then "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
     else "~/.1password/agent.sock";
+  wezterm_colors = ../../../files/configs/wezterm/colors;
 in {
   # Install wezterm via home-manager module
   programs.wezterm = {
@@ -29,9 +30,9 @@ in {
       end
 
       -- (This is where our config will go)
-      -- Pick a colour scheme. WezTerm ships with more than 1,000!
-      -- Find them here: https://wezfurlong.org/wezterm/colorschemes/index.html
-      config.color_scheme = 'Tokyo Night'
+      -- N0FRILLS color schemes (local TOML files)
+      config.color_scheme_dirs = { wezterm.home_dir .. '/.config/wezterm/colors' }
+      config.color_scheme = 'N0FRILLS-ruin'
 
       -- Choose your favourite font, make sure it's installed on your machine
       config.font = wezterm.font({ family = 'MonaspiceNe Nerd Font Mono', weight = "Light" })
@@ -162,5 +163,12 @@ in {
       -- Returns our config to be evaluated. We must always do this at the bottom of this file
       return config
     '';
+  };
+
+  xdg.configFile = {
+    "wezterm/colors" = {
+      source = "${wezterm_colors}";
+      recursive = true;
+    };
   };
 }

@@ -46,7 +46,30 @@ This directory is curated by **LIBBY** (documentation voice) with domain experti
 | Document | What You'll Learn | Read If... |
 |----------|-------------------|------------|
 | [ai-cli-sync-reference.md](ai-cli-sync-reference.md) | AI CLI synchronization | You're setting up AI tools |
-| [tmux-theming-research.md](tmux-theming-research.md) | Tmux theming research | You're customizing tmux |
+
+### N0FRILLS Theme Research
+
+| Document | What You'll Learn | Read If... |
+|----------|-------------------|------------|
+| [plans/starship-n0frills-theme.md](plans/starship-n0frills-theme.md) | Theme compositor architecture | You're understanding Starship design |
+| [research/neovim-theming.md](research/neovim-theming.md) | Colorscheme patterns & LSP integration | You're extending Neovim themes |
+| [research/opencode-theming.md](research/opencode-theming.md) | Theme structure & token scopes | You're creating OpenCode themes |
+| [research/tmux-theming.md](research/tmux-theming.md) | Comprehensive theming (all UI elements) | You're customizing tmux appearance |
+| [research/tmux-theming-extended.md](research/tmux-theming-extended.md) | Advanced patterns (messages, copy mode, popups) | You need advanced tmux styling |
+| [research/wezterm-theming.md](research/wezterm-theming.md) | Color scheme formats & integration | You're creating WezTerm themes |
+| [research/xplr-theming.md](research/xplr-theming.md) | Theming capabilities & layout system | You're customizing xplr |
+
+### N0FRILLS Theme Guides
+
+| Tool | Guide | Read If... |
+|------|-------|------------|
+| [Gemini CLI](guides/gemini-theme-guide.md) | N0FRILLS integration | You're updating AI CLI colors |
+| [Neovim](guides/neovim-theme-guide.md) | Colorscheme implementation | You're updating editor colors |
+| [OpenCode](guides/opencode-theme-guide.md) | Theme files | You're updating AI assistant colors |
+| [Starship](guides/starship-theme-guide.md) | Theme compositor (4 colorways × 3 styles) | You're updating prompt colors |
+| [tmux](guides/tmux-theme-guide.md) | Multiplexer theming | You're updating tmux appearance |
+| [WezTerm](guides/wezterm-theme-guide.md) | Color schemes | You're updating terminal colors |
+| [xplr](guides/xplr-theme-guide.md) | File manager theming | You're updating xplr colors |
 
 ### Plans & Migrations
 

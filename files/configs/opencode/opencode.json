@@ -5,6 +5,7 @@
     "opencode-openai-codex-auth@latest",
     "opencode-gemini-auth@latest"
   ],
+  "theme": "n0frills-ruin",
   "provider": {
     "openai": {
       "api": "codex",

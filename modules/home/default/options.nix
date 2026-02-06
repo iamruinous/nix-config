@@ -30,7 +30,64 @@
   };
 in {
   options = {
-    ruinous.starship.battery.enable = lib.mkEnableOption "enable battery in starship";
+    ruinous.starship = {
+      battery.enable = lib.mkEnableOption "enable battery in starship";
+
+      theme = lib.mkOption {
+        type = lib.types.enum ["ruinous"];
+        default = "ruinous";
+        description = "Starship theme system. Currently only 'ruinous' is supported.";
+      };
+
+      themeVariant = lib.mkOption {
+        type = lib.types.enum ["classic" "ruin" "siege" "ghost"];
+        default = "classic";
+        description = ''
+          Colorway variant:
+          - 'classic': Original colors (ANSI gradients, purple/blue accents)
+          - 'ruin': N0FRILLS magenta primary, cyan highlight
+          - 'siege': N0FRILLS purple primary, teal highlight
+          - 'ghost': N0FRILLS white primary, amber highlight
+        '';
+      };
+
+      themeStyle = lib.mkOption {
+        type = lib.types.enum ["basic" "advanced" "handcrafted"];
+        default = "handcrafted";
+        description = ''
+          Visual style:
+          - 'basic': Brutalist, minimal decoration (pure N0FRILLS philosophy)
+          - 'advanced': Structured layout with N0FRILLS bracket notation [>] [~] [@]
+          - 'handcrafted': Artisanal box-drawing with gradient borders (original)
+        '';
+      };
+    };
+
+    ruinous.xplr = {
+      enable = lib.mkEnableOption "xplr file manager configuration";
+
+      themeVariant = lib.mkOption {
+        type = lib.types.enum ["classic" "ruin" "siege" "ghost"];
+        default = "classic";
+        description = ''
+          Colorway variant for xplr:
+          - 'classic': Standard xplr colors
+          - 'ruin': N0FRILLS magenta primary, cyan highlight
+          - 'siege': N0FRILLS purple primary, teal highlight
+          - 'ghost': N0FRILLS white primary, amber highlight
+        '';
+      };
+
+      themeStyle = lib.mkOption {
+        type = lib.types.enum ["basic" "advanced"];
+        default = "advanced";
+        description = ''
+          Visual style for xplr:
+          - 'basic': Table only, no borders (Brutalist)
+          - 'advanced': Table with HelpMenu/Logs, functional layout
+        '';
+      };
+    };
 
     # DEPRECATED: Use ruinous.loginHub.enable instead.
     # This option is kept for backward compatibility during migration.

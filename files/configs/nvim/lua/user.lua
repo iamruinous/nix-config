@@ -1,4 +1,3 @@
-vim.cmd [[colorscheme tokyonight-night]]
 
 -- Setup language servers.
 -- require("mason-lspconfig").setup {
