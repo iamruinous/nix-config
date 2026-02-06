@@ -15,6 +15,7 @@
     ./budgey-assistant.nix
     ./weaviate.nix
     ./ollama.nix
+    ./qdrant.nix
     ./harmonia.nix
     ./forgejo-runner.nix
     ./openclaw.nix
