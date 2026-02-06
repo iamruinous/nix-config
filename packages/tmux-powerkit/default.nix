@@ -30,13 +30,13 @@
 in
   pkgs.tmuxPlugins.mkTmuxPlugin {
     pluginName = "tmux-powerkit";
-    version = "unstable-2026-01-11";
+    version = "5.17.0";
 
     src = pkgs.fetchFromGitHub {
       owner = "fabioluciano";
       repo = "tmux-powerkit";
-      rev = "200ba5846ebf43b93bb8abc4de4b4d13f70b6825"; # main branch as of 2026-01-11
-      sha256 = "sha256-R7FpIoaqvqE3ATSaq7yT2ZnME+KJPJ8IrpGNGV9cmNM=";
+      rev = "v5.17.0";
+      sha256 = "sha256-lVfxCYF9JQ1bOUxIVdgGa+vaBONseMVCfRx2MUsvTD8=";
     };
 
     # Powerkit requires bash 5.0+, bc, jq, and other utilities
