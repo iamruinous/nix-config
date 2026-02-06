@@ -17,6 +17,7 @@
   eztunnel = perSystem.self.eztunnel;
   forgejo-mcp = perSystem.self.forgejo-mcp;
   forgejo-shell = perSystem.self.forgejo-shell;
+  grepai = perSystem.self.grepai;
   nelko-pl70ebt = perSystem.self.nelko-pl70ebt;
   osc-copy = perSystem.self.osc-copy;
   opencode-notifier-apprise = perSystem.self.opencode-notifier-apprise;
