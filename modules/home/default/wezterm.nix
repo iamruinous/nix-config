@@ -34,9 +34,14 @@ in {
       config.color_scheme = 'Tokyo Night'
 
       -- Choose your favourite font, make sure it's installed on your machine
-      config.font = wezterm.font({ family = 'FiraCode Nerd Font Mono' })
+      config.font = wezterm.font({ family = 'MonaspiceNe Nerd Font Mono', weight = "Light" })
       -- And a font size that won't have you squinting
       config.font_size = 18
+
+      -- NerdFont rendering improvements
+      config.allow_square_glyphs_to_overflow_width = 'WhenFollowedBySpace'
+      config.custom_block_glyphs = true
+      config.anti_alias_custom_block_glyphs = true
 
       -- Solid background for proper tmux-powerkit separator rendering
       -- (0.9 opacity causes visual artifacts with powerline separators)
@@ -52,8 +57,8 @@ in {
       config.window_frame = {
         -- Berkeley Mono for me again, though an idea could be to try a
         -- serif font here instead of monospace for a nicer look?
-        font = wezterm.font({ family = 'MonaspiceNe Nerd Font' }),
-        font_size = 13,
+        font = wezterm.font({ family = 'MonaspiceNe Nerd Font', weight = "Medium" }),
+        font_size = 14,
       }
 
       -- Show notifications if not currently focused
