@@ -69,7 +69,7 @@
     backend = "docker";
     containers = {
       postgres = {
-        image = "docker.io/postgres:18.1";
+        image = "docker.io/postgres:18.6";
         ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/18/docker";
@@ -176,7 +176,7 @@
         ];
       };
       qdrant = {
-        image = "qdrant/qdrant:v1.16.3";
+        image = "qdrant/qdrant:v1.19";
         environmentFiles = [config.age.secrets.pilaster_docker_env_qdrant.path];
         networks = [
           "datanet"
@@ -239,7 +239,7 @@
         ];
       };
       wikijs = {
-        image = "ghcr.io/requarks/wiki:2.5.277";
+        image = "ghcr.io/requarks/wiki:2.5.314";
         environment = {
           DB_TYPE = "postgres";
           DB_HOST = "postgres";
@@ -270,7 +270,7 @@
         ];
       };
       mariadb = {
-        image = "docker.io/mariadb:11.8.5";
+        image = "docker.io/mariadb:12.3.3";
         ports = ["3306:3306"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_mariadb.path];
         networks = [
@@ -296,7 +296,7 @@
         ];
       };
       redis = {
-        image = "docker.io/redis:7.4.7";
+        image = "docker.io/redis:8.10.1";
         cmd = ["redis-server" "--maxmemory-policy" "noeviction"];
         networks = ["datanet"];
         volumes = [
@@ -304,7 +304,7 @@
         ];
       };
       twenty = {
-        image = "docker.io/twentycrm/twenty:v1.15";
+        image = "docker.io/twentycrm/twenty:v2.14.1";
         environment = {
           REDIS_URL = "redis://redis:6379";
           STORAGE_TYPE = "local";
@@ -324,7 +324,7 @@
         ];
       };
       twenty-worker = {
-        image = "docker.io/twentycrm/twenty:v1.15";
+        image = "docker.io/twentycrm/twenty:v2.14.1";
         cmd = ["yarn" "worker:prod"];
         environment = {
           REDIS_URL = "redis://redis:6379";
@@ -391,7 +391,7 @@
         ];
       };
       writefreely = {
-        image = "ghcr.io/writefreely/writefreely:v0.16.0";
+        image = "ghcr.io/writefreely/writefreely:v0.17.1";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/writefreely/keys:/go/keys"
@@ -423,7 +423,7 @@
       };
       "karakeep-meilisearch" = {
         # Pinned to v1.31 - database created with this version, v1.32 is incompatible
-        image = "docker.io/getmeili/meilisearch:v1.31.0";
+        image = "docker.io/getmeili/meilisearch:v1.49.0";
         environmentFiles = [config.age.secrets.pilaster_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
@@ -464,7 +464,7 @@
         ];
       };
       rallly = {
-        image = "docker.io/lukevella/rallly:3.11.2";
+        image = "docker.io/lukevella/rallly:4.13.1";
         environmentFiles = [config.age.secrets.pilaster_docker_env_rallly.path];
         networks = ["servicenet" "datanet"];
         dependsOn = ["postgres"];
@@ -603,7 +603,7 @@
       };
       # Web archiving platform
       archivebox = {
-        image = "archivebox/archivebox:0.7.3";
+        image = "archivebox/archivebox:0.7.4";
         environmentFiles = [config.age.secrets.pilaster_docker_env_archivebox.path];
         networks = ["servicenet"];
         volumes = [
@@ -612,7 +612,7 @@
         dependsOn = ["archivebox-sonic"];
       };
       archivebox-sonic = {
-        image = "valeriansaliou/sonic:v1.4.9";
+        image = "valeriansaliou/sonic:v1.8.1";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/archivebox/sonic:/var/lib/sonic/store"
@@ -620,7 +620,7 @@
         ];
       };
       archivebox-scheduler = {
-        image = "archivebox/archivebox:0.7.3";
+        image = "archivebox/archivebox:0.7.4";
         cmd = ["schedule" "--foreground" "--update" "--every=day"];
         environmentFiles = [config.age.secrets.pilaster_docker_env_archivebox.path];
         networks = ["servicenet"];
@@ -631,7 +631,7 @@
       };
       # RSS Feed Aggregator
       freshrss = {
-        image = "docker.io/freshrss/freshrss:1.28.0";
+        image = "docker.io/freshrss/freshrss:1.29.1";
         environmentFiles = [config.age.secrets.pilaster_docker_env_freshrss.path];
         networks = [
           "datanet"

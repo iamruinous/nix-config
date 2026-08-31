@@ -75,7 +75,7 @@
     backend = "docker";
     containers = {
       postgres = {
-        image = "docker.io/postgres:17.7";
+        image = "docker.io/postgres:18.6";
         environment = {
           PGDATA = "/var/lib/postgresql/17/docker";
         };
@@ -198,7 +198,7 @@
         ];
       };
       "karakeep-meilisearch" = {
-        image = "docker.io/getmeili/meilisearch:v1.32";
+        image = "docker.io/getmeili/meilisearch:v1.49.0";
         environmentFiles = [config.age.secrets.tty_ruinous_social_docker_env_karakeep.path];
         networks = ["servicenet"];
         volumes = [
@@ -311,7 +311,7 @@
       };
       # remotenet
       rustdesk-hbbr = {
-        image = "docker.io/rustdesk/rustdesk-server:1.1.15";
+        image = "docker.io/rustdesk/rustdesk-server:1.1.16";
         cmd = ["hbbr"];
         networks = ["remotenet"];
         ports = [
@@ -325,7 +325,7 @@
         ];
       };
       rustdesk-hbbs = {
-        image = "docker.io/rustdesk/rustdesk-server:1.1.15";
+        image = "docker.io/rustdesk/rustdesk-server:1.1.16";
         cmd = ["hbbs"];
         networks = ["remotenet"];
         ports = [

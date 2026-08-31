@@ -83,7 +83,7 @@
         ];
       };
       mariadb = {
-        image = "docker.io/mariadb:11.8.5";
+        image = "docker.io/mariadb:12.3.3";
         ports = ["3306:3306"];
         environmentFiles = [config.age.secrets.monolith_docker_env_mariadb.path];
         networks = [
@@ -128,7 +128,7 @@
         ];
       };
       postgres = {
-        image = "docker.io/postgres:17.7";
+        image = "docker.io/postgres:18.6";
         ports = ["5432:5432"];
         environment = {
           PGDATA = "/var/lib/postgresql/17/docker";
@@ -154,7 +154,7 @@
         ];
       };
       prometheus = {
-        image = "docker.io/prom/prometheus:v3.9.1";
+        image = "docker.io/prom/prometheus:v3.14.0";
         ports = ["9090:9090"];
         networks = [
           "datanet"
@@ -167,7 +167,7 @@
         ];
       };
       gatus = {
-        image = "docker.io/twinproduction/gatus:v5.22.0";
+        image = "docker.io/twinproduction/gatus:v5.36.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_gatus.path];
         networks = ["servicenet"];
         volumes = [
@@ -194,7 +194,7 @@
         ];
       };
       acme-dns = {
-        image = "docker.io/joohoi/acme-dns:v1.0";
+        image = "docker.io/joohoi/acme-dns:v2.0.2";
         networks = ["servicenet"];
         volumes = [
           "/data/docker/acme-dns/config:/etc/acme-dns:ro"
@@ -202,7 +202,7 @@
         ];
       };
       adminer = {
-        image = "docker.io/adminer:5.4.1";
+        image = "docker.io/adminer:6.0.1";
         environment = {
           TZ = "America/Phoenix";
         };
@@ -411,7 +411,7 @@
         dependsOn = ["gluetun"];
       };
       forgejo = {
-        image = "codeberg.org/forgejo/forgejo:13.0.4";
+        image = "codeberg.org/forgejo/forgejo:14.0.5";
         environment = {
           USER_UID = "2000";
           USER_GID = "2000";
@@ -469,7 +469,7 @@
         ];
       };
       grafana = {
-        image = "docker.io/grafana/grafana-oss:12.3.1";
+        image = "docker.io/grafana/grafana-oss:13.0.2";
         networks = [
           "datanet"
           "servicenet"
@@ -482,7 +482,7 @@
         ];
       };
       "loki" = {
-        image = "docker.io/grafana/loki:3.6.3";
+        image = "docker.io/grafana/loki:3.7.7";
         cmd = ["-config.file=/mnt/config/loki-config.yaml"];
         networks = [
           "datanet"
@@ -544,7 +544,7 @@
         ];
       };
       n8n = {
-        image = "docker.io/n8nio/n8n:2.4.1";
+        image = "docker.io/n8nio/n8n:2.13.3";
         environment = {
           TZ = "America/Phoenix";
           GENERIC_TIMEZONE = "America/Phoenix";
@@ -583,7 +583,7 @@
         ];
       };
       n8n-runner-alpha = {
-        image = "docker.io/n8nio/runners:2.4.1";
+        image = "docker.io/n8nio/runners:2.19.3";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -603,7 +603,7 @@
         ];
       };
       n8n-runner-bravo = {
-        image = "docker.io/n8nio/runners:2.4.1";
+        image = "docker.io/n8nio/runners:2.19.3";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -621,7 +621,7 @@
         ];
       };
       n8n-runner-charlie = {
-        image = "docker.io/n8nio/runners:2.4.1";
+        image = "docker.io/n8nio/runners:2.19.3";
         environment = {
           TZ = "America/Phoenix";
           N8N_RUNNERS_TASK_BROKER_URI = "http://n8n:5679";
@@ -705,7 +705,7 @@
         ];
       };
       "gotenberg" = {
-        image = "docker.io/gotenberg/gotenberg:8.25.1";
+        image = "docker.io/gotenberg/gotenberg:8.36";
         cmd = [
           "gotenberg"
           "--chromium-disable-javascript=true"
@@ -714,11 +714,11 @@
         networks = ["servicenet"];
       };
       "tika" = {
-        image = "docker.io/apache/tika:2.5.0";
+        image = "docker.io/apache/tika:4.0.0";
         networks = ["servicenet"];
       };
       phpldapadmin = {
-        image = "docker.io/phpldapadmin/phpldapadmin:2.3.8";
+        image = "docker.io/phpldapadmin/phpldapadmin:2.3.11";
         environment = {
           LDAP_HOST = "openldap";
           LDAP_BASE_DN = "dc=meskill-farmhouse,dc=lan";
@@ -730,7 +730,7 @@
         ];
       };
       gluetun = {
-        image = "docker.io/qmcgaw/gluetun:v3.41.0";
+        image = "docker.io/qmcgaw/gluetun:v3.41.3";
         environmentFiles = [config.age.secrets.monolith_docker_env_gluetun.path];
         ports = [
           "8080:8080"
@@ -809,7 +809,7 @@
         ];
       };
       tubesync = {
-        image = "ghcr.io/meeb/tubesync:v0.16.1";
+        image = "ghcr.io/meeb/tubesync:v0.16.3";
         environment = {
           TZ = "America/Phoenix";
           PUID = "4000";
@@ -832,7 +832,7 @@
         ];
       };
       "graphite-exporter" = {
-        image = "docker.io/prom/graphite-exporter:v0.16.0";
+        image = "docker.io/prom/graphite-exporter:v0.17.0";
         networks = [
           "datanet"
           "servicenet"
@@ -844,7 +844,7 @@
         ];
       };
       "node-exporter" = {
-        image = "docker.io/prom/node-exporter:v1.10.2";
+        image = "docker.io/prom/node-exporter:v1.12.1";
         networks = [
           "datanet"
           "servicenet"
@@ -911,7 +911,7 @@
         ];
       };
       romm = {
-        image = "docker.io/rommapp/romm:3.10.3";
+        image = "docker.io/rommapp/romm:4.4.0";
         environmentFiles = [config.age.secrets.monolith_docker_env_romm.path];
         networks = [
           "servicenet"
@@ -1002,7 +1002,7 @@
       #   ];
       # };
       zigbee2mqtt = {
-        image = "ghcr.io/koenkk/zigbee2mqtt:2.7.2";
+        image = "ghcr.io/koenkk/zigbee2mqtt:2.13";
         environment = {
           TZ = "America/Phoenix";
         };
